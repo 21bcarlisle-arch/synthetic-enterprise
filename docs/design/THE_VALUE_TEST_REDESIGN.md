@@ -1762,7 +1762,7 @@ is **not worth a day of the box**. If skip1 refutes, the next lever is the cut's
 the twin's scale is a realised risk of about 6%, and the cut has worked as a "top third" selector. A cut in
 calibrated units, or one on rank, is the candidate. Neither is built, and neither is pre-registered yet.
 
-### 12f. skip1's grade: not yet readable. The launch was refused at 09:49Z and is re-armed (18 Nov 11:15Z)
+### 12f. skip1's grade. Not readable at 11:15Z on 18 Nov; graded 19 Nov below (REFUTE, k = 0)
 
 **Not graded, because skip1 has not run.** `read_threshold_skip.skip1.out` does not exist and no `vts-out-skip*`
 directory exists. Every §12e row is still owed. None is marked held or missed here, because nothing has been read.
@@ -1800,3 +1800,80 @@ waits for `skip1.out` and then takes §12e's branch from the reader's own `k` li
 
 **Reverse.** `systemctl --user stop vts-threshold-skip-watch vts-branch-watch`. Then
 `git worktree unlock /var/tmp/value-test-threshold-skip` and `git worktree remove --force` it.
+
+#### skip1 graded (19 Nov 01:10Z)
+
+**The reader's exit 2 was the reader's fault, not the log's.** skip1 finished at 23:53Z on 18 Nov. The reader
+exited 2 because two flips had no row at their 2018 renewal. I read both accounts in
+`vts-out-skip1/control_11111_22222.json`, and in each the row is absent by construction:
+- **SYN-2016-468 (seed 11111).** In skip1 it churned at its 2017-10-17 renewal (`left_at` 2017-10-17). In A it
+  renewed then and left in 2018. There is no 2018 renewal to re-offer.
+- **SYN-2016-581 (seed 11111).** In skip1 it renewed on 2017-12-10, then sat on SVT (12 `svt_segment_decisions`,
+  `left_at` None, one renewal decision). No fixed term ended in 2018, so no flip renewal exists. In A it left at
+  2018-12-10.
+
+No row was dropped. The reader treated "no renewal at the date" as "unlogged". It now classifies an absent flip by
+reason (left before the flip, or on SVT with no fixed term ending). Each counts as not re-offered, and only an
+account with neither reason is still unreadable (exit 2). It was re-run on the same files:
+`read_threshold_skip.py` (v3; v2 kept beside it), output in `read_threshold_skip.skip1.v3.out`, rc 0.
+
+**k = 0 of 9: REFUTE.** Two of the nine were weighed on save odds (SYN-2016-458 and SYN-2016-498, seed 22222).
+Neither was offered. The other seven were never weighed. The direction's bound holds whatever the two absent flips
+had shown: the seven present flips are all not re-offered, so k ≤ 2 in any case.
+
+| §12e / §12c row | Pre-registered | Read | Graded |
+|---|---|---|---|
+| §12c candidate 1 (as corrected) | 6 or more of 9 re-offered; 3 or fewer refutes | **0 of 9** | **MISSED.** REFUTE branch |
+| §12e branch table | One branch, chosen by `k` | `k` = 0 | REFUTE taken. HOLD and NEITHER not taken. `launch_hold_pairs.sh` **not launched**, and `vts-branch-watch` stopped on rc 2, as built |
+| §12e HOLD's money (+£0.60 on two new pairs) | Applies only if HOLD | Not run | Not graded: its condition did not occur |
+| §12e C1 to C3 | Graded 18 Nov 04:50Z (C3 held; C1 and C2 missed) | Unchanged | Not re-counted here |
+
+**Value-arm money, £ per household-year, control-arm divisor, pair 11111/22222.**
+- skip1 minus A (as run, `vta-out-flag1`): **−£4.57 (−£7.26 to −£2.24)**. Per seed −£5.10 and −£4.04.
+- skip1 minus the twin (`vta-out-flag0`): **−£5.77 (−£8.38 to −£3.39)**.
+
+skip1 differs from A in two switches, so this figure does not yet say which switch cost the £4.57.
+
+**Where the loss sits. Measured from skip1's and A's files, before skip0 exists.** The skip can act only on a
+renewal weighed under the cutoff. skip1 weighed 22 renewals (seed 11111) and 36 (seed 22222) under the cutoff,
+and it **offered on none of them**. The households that reached the skip carry −£0.43 and +£0.40 per
+household-year. The rest carry −£4.67 and −£4.44, across 176 and 153 households whose net moved without the skip
+ever touching them. (A logs `retention_offered` as None throughout, so a count of A's offers is not a reading.)
+
+**Pre-registered before skip0 is read (19 Nov 01:10Z; skip0, unit PID 341142, still running).** skip0 is A plus
+the weighing, without the skip. Let `d0` = skip0 minus A and `d1` = skip1 minus skip0, value arm, on the same method.
+- **If the loss is the skip's:** `d0` ≥ −£1.50, its CI includes 0, and `d1` carries about −£4.6.
+- **If the loss is the weighing's:** `d0` ≤ −£3.00, close to −£4.57, and |`d1`| < £1.00.
+- **Between those (`d0` from −£3.00 to −£1.50):** both switches share the loss, and I cannot attribute it.
+- **My prediction: the weighing's.** `d0` = **−£4.5 (−£7.3 to −£2.2)**, and `d1` = **£0.0 (−£0.5 to +£0.5)**. The
+  skip made no offers. Unless some state couples the runs beyond the offer decision, skip1 and skip0 should be
+  nearly identical. If `d1` is not near zero, that coupling is itself a finding: the skip moves money through
+  something other than an offer.
+
+**The next lever, pre-registered before any build: the cut's own scale.** skip1 shows the skip cannot rescue a
+flip: the save-odds weighing declined both flips it weighed. The other seven were never weighed, because their
+ending-term type has no learned save rate. So the lever has to act on the cut itself, on the old offer path. These
+figures are read from A's own `desk_belief_by_arm.value_arm` (1,144 renewals over both seeds):
+- The nine flips' 2018 beliefs are **0.111 to 0.137**. A year earlier, when they renewed, the same households read
+  0.54 to 0.64.
+- At the current cut (0.30), 29% of renewals sit at or above it, and 10.2% of those leave.
+- Renewals from 0.12 up to 0.30 are about 6.6% of the book, and **about 41% of them leave**. Below 0.11, 4% leave.
+  On this book, A's belief is inverted just under the cut.
+- **"0.30 in calibrated units" is refuted offline.** With pooled O/E about 0.45, the cut moves to about 0.65 in A's
+  units. That offers fewer renewals and reaches 0 of the 9 flips. It is not built.
+- **A cut on rank and a lower absolute cut select the same set on this book.** A cut at the 64th percentile equals
+  a cut at 0.12. The rank form is only worth building separately if the belief's level drifts between books.
+  That is not shown here, so only one switch is built.
+
+**The candidate: A with the cut at 0.12, weighing and skip off, against A on pair 11111/22222.** The switch is to
+be built default off. The 0.12 is not a sourced number. It is the lowest cut that reaches 6 of §12c's 9 flips
+offline (offered share 35.6%, against 29% at 0.30), and the build carries it as that measurement, with this
+section as its origin.
+- **Mechanics (bar 1):** 6 or more of the 9 flips re-offered. Refuted at 3 or fewer. If that is refuted, the
+  offer path has a gate other than the cut, and it is named before anything else runs.
+- **Money (bar 2, the one that matters):** value arm, A at 0.12 minus A, £ per household-year. Predicted
+  **+£0.50 (−£1.50 to +£2.50)**. Refuted if the mean is below zero. If the CI includes zero, it does not count as
+  a hold either.
+- **Transfer check (M2):** the added offers' discount total is printed beside the retained margin. A gain made
+  of discounts paid to households who would have stayed is transfer, and is not graded as a hold.
+
