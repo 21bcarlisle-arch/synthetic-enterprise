@@ -49,6 +49,7 @@ GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH = 2.0
 # Derived from UK DUKES Table 4.3 residential gas monthly shares (2016-2020 avg).
 # Daily factor = monthly_pct * 365 / days_in_month, normalised so annual avg = 1.0.
 # Jan:Jul ratio ≈ 5.3x (matches UK peak/trough for residential heating demand).
+# CORRECTION 2026-11-19: see _GAS_BOILER_HEATING_FRACTION below; published Jan:Jul is ~7.2 at normal weather.
 GAS_CONSUMPTION_MONTHLY_PROFILE: dict[int, float] = {
     1: 1.8839, 2: 1.8250, 3: 1.2952, 4: 0.8517, 5: 0.5887, 6: 0.3650,
     7: 0.3532, 8: 0.3532, 9: 0.4867, 10: 0.8242, 11: 1.4600, 12: 1.7661,
@@ -66,6 +67,10 @@ GAS_IC_CONSUMPTION_MONTHLY_PROFILE: dict[int, float] = {
 # Phase W: gas boiler daily HDD shape constants.
 # 70% space heating (HDD-weighted), 30% DHW + cooking (flat year-round).
 # Fraction calibrated to match DUKES Table 4.3 Jan:Jul ratio ~5.3x for UK resi.
+# CORRECTION 2026-11-19, value unchanged: no DESNZ domestic monthly series exists before 2023, so
+# that citation cannot hold as worded; 5.3 matches the published Q1:Q3 ratio. DESNZ ET 4.1/4.2
+# against ET 7.1 HDD give 0.85 at normal weather (0.82-0.87, 2016-25). GAP, the move held behind
+# skip0: docs/market_research/the_domestic_gas_year_heats_on_about_85_percent_not_70_2026-11-19.md
 # Annual total conserved when actual HDD equals reference HDD.
 _GAS_BOILER_HEATING_FRACTION: float = 0.70
 _HDD_REF_ANNUAL: float = sum(REFERENCE_MONTHLY_HDD.values())
