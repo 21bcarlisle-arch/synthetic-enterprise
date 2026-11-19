@@ -73,6 +73,12 @@ evidence. They are the right yardstick.
 
 **Next (handed on, not drawn here).**
 1. Knowledge page: the domestic gas monthly shape, reconciling DUKES 4.3 "~5.3x" with ET 4.2/5.5 at 7.3.
+   **Done 2026-11-19:** `docs/market_research/the_domestic_gas_year_heats_on_about_85_percent_not_70_2026-11-19.md`.
+   Fitting the world's own two-term form to DESNZ ET 4.1/4.2 against ET 7.1 HDD gives f = 0.85 at normal weather,
+   with every year 2016–25 between 0.82 and 0.87. The "5.3x" matches the published Q1:Q3 ratio, not a Jan:Jul ratio,
+   and no domestic monthly series exists before 2023. Before step 2, note that `REFERENCE_MONTHLY_HDD` has no source
+   and its summer runs below the DESNZ normal, so f and that table move together (page §5). The `OCC-` gap (step 3)
+   is the missing copy of the gas split in `_admit_incoming_occupant` (page §8).
 2. Then the W2_30 fix: recalibrate the fallback's heating fraction to the established ratio, or widen fabric coverage
    so fewer premises fall back. Grade it on the book after skip0, with this table as the pre-registered baseline.
 3. Add the `OCC-` accounts to `gas_shape_provider_by_customer`.
