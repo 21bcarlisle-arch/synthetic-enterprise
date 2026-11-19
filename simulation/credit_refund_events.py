@@ -63,13 +63,11 @@ def generate_credit_refund_log(
     period end, 134 of 176 clocks on the N29 replay started before the bill existed. Returns plain
     JSON-serialisable dicts.
 
-    ``last_collection`` is a level-DD leaver's last level collection. One taken after the final
-    bill is part of the credit, so the refund clock runs from the later of the two
-    (home_moves.md s.8.8b choice 2).
-
-    ``money_in`` is the day the last money a leaver's closing credit counts reached the account
-    (`balance_settlement_from_outcomes`). A credit exists once its money does (SLC 27.16), so the
-    clock runs from that day too when it is later (s.8.8d choice 18).
+    ``last_collection`` is a level-DD leaver's last level collection, and ``money_in`` the day the
+    last money a leaver's closing credit counts reached the account
+    (`balance_settlement_from_outcomes`). Both are stated beside the final bill's issue; the company
+    decides the refund clock runs from the latest of the three (`refund_clock_starts`, home_moves.md
+    s.8.8b choice 2, s.8.8d choice 18). This module took that max itself until KNIFE3, 2026-11-19.
 
     A dual-fuel household whose other fuel closes owing hands that debt to the company with the
     credit. The company sets the credit against it first and refunds the rest (s.8.8e). Each event
@@ -97,11 +95,11 @@ def generate_credit_refund_log(
             continue
         if normalise_segment(customer_segments.get(cid, RESIDENTIAL)) != RESIDENTIAL:
             continue
-        final = bill_issue_date(cid, last_bill[cid]["period_end"])
-        later = [d for d in ((last_collection or {}).get(cid), (money_in or {}).get(cid)) if d]
-        collected = max(later) if later else None
+        # The world states the dates it holds; from which the refund clock runs is the company's.
         closures.append({"account_id": cid,
-                         "final_bill_issued": max(final, collected) if collected else final,
+                         "final_bill_issued": bill_issue_date(cid, last_bill[cid]["period_end"]),
+                         "last_collection": (last_collection or {}).get(cid),
+                         "money_in": (money_in or {}).get(cid),
                          "credit": round(-balance, 2)})
     # Which debt leg a closing credit is set against, and how much, is the company's decision from
     # its own ledger (s.8.8e); the world states the closures and the ledger and logs the answers.

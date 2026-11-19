@@ -150,19 +150,28 @@ def refunds_on_account_closures(
     the company's own ledger (home_moves.md s.8.8e choices 21, 22, 30).
 
     ``closures`` is what the world states, one per account closing in credit: ``account_id``,
-    ``final_bill_issued`` and ``credit``, in pounds. ``closing_balances`` and ``uncollected`` are
+    ``final_bill_issued`` and ``credit``, in pounds, and where it has them ``last_collection`` (a
+    level collection taken after the final bill) and ``money_in`` (the day the last money the
+    credit counts arrived). From which of those days reg 6D's clock runs is the company's reading
+    (`credit_refund.refund_clock_starts`), decided here. ``closing_balances`` and ``uncollected`` are
     the ledger: each leg's balance at its final bill, and its collected bills as
     ``(issued, collected, cash)``. Which other leg the credit is set against, and how much that leg
     owes on the refund day after earlier set-offs, is decided here, behind the wall. Each answer is
     `refund_on_account_closure`'s, plus ``set_off_against`` where ``set_off`` is above zero.
     """
-    from company.billing.credit_refund import HouseholdCloseDebts, scheduled_refund_date
+    from company.billing.credit_refund import (
+        HouseholdCloseDebts,
+        refund_clock_starts,
+        scheduled_refund_date,
+    )
     from company.interfaces.dd_review_outcome import billing_account_of
 
     debts = HouseholdCloseDebts(closing_balances, uncollected, billing_account_of)
     answers: list[dict] = []
     for closure in closures:
-        account, issued = closure["account_id"], closure["final_bill_issued"]
+        account = closure["account_id"]
+        issued = refund_clock_starts(closure["final_bill_issued"], closure.get("last_collection"),
+                                     closure.get("money_in"))
         against, debt = None, 0.0
         if debts.has_other_leg(account):
             # The company pays on its own schedule, and the debt is the other leg's on that day.
