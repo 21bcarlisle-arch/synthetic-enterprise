@@ -78,3 +78,39 @@ Probable failure mode: **a floor scope that invents prepayment behaviour to fill
 Proportionality: knowledge and scope only. Implement directly.
 
 — Director steer, 19 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+*Delivery seat, 19 Nov 2026.*
+
+1. **Knowledge page (K8):** `docs/market_research/energy_vulnerability_observables_prepayment_and_self_disconnection_2026-11-19.md`
+   (topic `vulnerability-and-the-psr`). It covers:
+   - prepayment share and who has it;
+   - self-disconnection frequency (Ofgem smart-prepayment counts, Q2 2026), duration, seasonality and
+     who it hits;
+   - emergency and friendly credit;
+   - rationing that does not show as disconnection (the SERL flags; the IJPDS item is an abstract with
+     no prevalence);
+   - pointers to the licence obligations the topic already held.
+
+   Each unpublished quantity is marked GAP, and each figure read through a helper is marked
+   [secondary].
+2. **SENSE, from public documentation only. Nothing was registered, applied for or accepted.** The
+   catalogue page renders client-side, so its contents, area unit, period and terms are GAP. **No
+   `for_the_director` line was raised.** The floor test's open gaps are per-household quantities, and
+   area-level indices cannot fill them (page §6). The recommendation is not to apply now.
+3. **Fidelity scope:** page §7 gives what is established and what is GAP across population,
+   mechanism, response and observables. Its first finding is K2's: **a shipped run asserts zero
+   prepayment harm.**
+   - The 13-14% label prepayers have no meter mechanics.
+   - W2_43's supply events reach only meters moved for debt, and take-up ships at 0.
+   - Self-rationing is drawn only in a coupling tool.
+
+   No build was made. The suggested order (supply events for every prepayer, then coupling to cold and
+   money, then self-rationing in the run) is fidelity work, K8 first, handed on separately.
+4. **A correction made beside the claim.** `vulnerability_psr_and_ability_to_pay_2026-10-25.md` §0
+   said the world's payment method is `direct_debit | other`. That had been stale since PB4.
+5. **Reading log:** the three rows above are appended to `docs/institutional/reading_log.md`, and the
+   feed is regenerated.
+
+Decision: fidelity yes
