@@ -40,3 +40,25 @@ as AGREED, BOUNDED or DISAGREED. That gives the denominator before anyone names 
 
 **Why LATENT and not BLOCKING.** 3 bills in the book fail. The overcharge is a few pounds to £17
 per bill, on a population the validator can see.
+
+## Count and pre-registration (delivery seat, 2026-11-19, before reading the biller)
+
+**The count.** On the 6af7fd0bfd ledger (53,605 bills), there are 87 bill periods in which an E7 fix
+(a term carrying a Day/Night pair) ends and an SVT term begins. 84 are BOUNDED: 58 with one register
+and 26 with two. **3 are DISAGREED**, and all 3 have two registers. So it is not every E7-to-SVT roll.
+It is not every two-register roll either: 26 of the 29 sit inside the range.
+
+**What the data alone shows.** PROS-2021-0313, Sep 2022, prints two rate lines. Line 1 is the fix's
+1-day stub: 6.6 kWh at 18.48p, which is inside 10.03..21.35. Line 2 is the SVT from 2 Sep: 531.7 kWh
+at **28.618p**, all-in £152.16. The term record gives that SVT a flat 25.4557p and NO Day/Night pair
+(`tou_unit_rates: null`). October's SVT term, which is the same product on the same meter, does
+carry a pair (60.08 / 28.24 against a flat of 46.70).
+
+**Pre-registered prediction.** The excess is carried by the ENERGY line, on the SVT rate line. The
+biller charges the SVT stub per register at an E7 Day/Night pair. That pair's average, weighted by
+this customer's 76% day share, is above the flat rate, because the flat rate is the pair averaged at
+a standard split. The network-and-policy line is NOT double-counted. The defect is in the term record
+the ledger exports, not in the bill: a stub SVT term that no full bill settles as time-of-use gets no
+pair. So the validator's ceiling (max of the flat rates) is too low. Fix the export so that the term
+carries its pair, and keep the bill. **Refuted if** the biller prices the SVT stub at the flat rate
+plus a separate adder, or if the levy line is charged twice.
