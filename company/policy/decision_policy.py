@@ -298,6 +298,12 @@ class DecisionPolicy:
     #: policy. `THE_VALUE_TEST_REDESIGN.md` §12e (candidate 2); knowledge §11g.
     retention_cutoff_reads_the_calibrated_belief: bool = False
 
+    #: (2026-11-19) The retention cut moves from 0.30 to 0.12 (`growth_desk.
+    #: RETENTION_THRESHOLD_AT_THE_FLIPS`), and a belief between 0.12 and the lowest tier takes that
+    #: tier's share (`growth_desk.retention_tier_share`), since a 0% tier is a second cut. Off on
+    #: every standing policy. `THE_VALUE_TEST_REDESIGN.md` §12f.
+    retention_cut_at_the_flips: bool = False
+
     #: (2026-10-22) Of the renewals the save-odds guard would offer on, the company's own coin
     #: (`growth_desk.retention_save_holdout_draws`, a hash of account and roll date) holds a derived
     #: share out with no offer, and the save rate is read as the holdout's loss rate against the

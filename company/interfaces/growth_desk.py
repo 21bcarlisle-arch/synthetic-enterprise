@@ -462,6 +462,30 @@ def retention_value_weighed_by_save_odds(value_protected: float | None, *, belie
 #: §12c, §12e). Moved here from the run loop, which imports it, because the cut is the supplier's.
 RETENTION_THRESHOLD = 0.30
 
+#: The cut `retention_cut_at_the_flips` moves the guard to. A MEASUREMENT, not a sourced number:
+#: the lowest cut that reaches 6 of the 9 value-arm flips offline, read from candidate A's own
+#: `desk_belief_by_arm` on pair 11111/22222 (offered share 35.6% against 29% at 0.30). Its origin
+#: is `docs/design/THE_VALUE_TEST_REDESIGN.md` §12f, whose bars grade it; nothing outside that book
+#: says 0.12 is right for any other.
+RETENTION_THRESHOLD_AT_THE_FLIPS = 0.12
+
+
+def retention_threshold(cut_at_the_flips: bool) -> float:
+    """(2026-11-19) The churn-belief cut the guard reads: the standing 0.30, or §12f's 0.12."""
+    return RETENTION_THRESHOLD_AT_THE_FLIPS if cut_at_the_flips else RETENTION_THRESHOLD
+
+
+def retention_tier_share(policy, belief: float, *, cut_at_the_flips: bool) -> float:
+    """(2026-11-19) The tier's cut share for this belief. With §12f's cut on, a belief between 0.12
+    and the lowest tier's floor takes the lowest tier's share. Without that, the tier table is a
+    second cut at 0.30: such a renewal passes the 0.30 cut, is sized at 0%, and gets no offer, so
+    moving the cut alone reaches none of the flips. Off, this is `retention_discount_for_risk`."""
+    share = policy.retention_discount_for_risk(belief)
+    if share > 0.0 or not cut_at_the_flips or belief <= RETENTION_THRESHOLD_AT_THE_FLIPS:
+        return share
+    tiers = policy.retention_tiers
+    return min(d for _, d in tiers) if tiers else share
+
 
 def retention_cutoff_belief(belief: float, *, calibrate: bool, account_id: str | None,
                             renewal_year: int | None) -> tuple[float, str]:

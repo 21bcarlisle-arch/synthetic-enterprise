@@ -61,7 +61,7 @@ from company.interfaces.fixed_overhead import book_monthly_overhead
 from company.interfaces.flexibility_revenue import build_flexibility_revenue
 from company.interfaces.growth_desk import (
     CONSIDERED_ON_THE_SAVE_ODDS,
-    RETENTION_THRESHOLD,
+    RETENTION_THRESHOLD,  # noqa: F401 -- re-exported; tools read the cut from this module
     book_acquisition_gate,
     book_acquisition_spend,
     book_retention_cost,
@@ -81,6 +81,8 @@ from company.interfaces.growth_desk import (
     retention_engagement,
     retention_offer_can_buy_anything,
     retention_save_holdout_draws,
+    retention_threshold,
+    retention_tier_share,
     retention_value_at_save_rate_lower_bound,
     retention_value_protected,
     retention_value_weighed_by_save_odds,
@@ -4350,7 +4352,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     calibrate=policy.retention_cutoff_reads_the_calibrated_belief,
                     account_id=billing_account, renewal_year=_renewal_year)
                 _considered, _considered_why = retention_considers_the_renewal(
-                    _cutoff_belief, threshold=RETENTION_THRESHOLD,
+                    _cutoff_belief, threshold=retention_threshold(policy.retention_cut_at_the_flips),
                     skip_threshold=policy.retention_skips_the_belief_threshold_when_save_odds_weigh,
                     ending_term_type=_ending_term_type, renewal_year=_renewal_year)
                 _considered_on_save_odds = _considered_why == CONSIDERED_ON_THE_SAVE_ODDS
@@ -4364,7 +4366,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         _cut = retention_cut_share_at_price_match(unit_rate, **_cut_inputs)
                     elif policy.retention_cut_sizing == "risk_tiers":
                         _cut = retention_cut_share_at_risk_tiers(
-                            unit_rate, policy.retention_discount_for_risk(company_est_pre),
+                            unit_rate, retention_tier_share(
+                                policy, company_est_pre,
+                                cut_at_the_flips=policy.retention_cut_at_the_flips),
                             cost_floor=_cut_inputs["cost_floor"])
                     else:
                         raise ValueError(f"retention_cut_sizing {policy.retention_cut_sizing!r} "
