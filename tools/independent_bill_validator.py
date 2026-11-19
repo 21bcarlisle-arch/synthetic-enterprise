@@ -533,10 +533,25 @@ def published_cap_ceilings(commodity: str, first: str, last: str, *, multi_regis
         if commodity != "electricity":
             return [(first, last, None, "no multi-register cap is published for {}".format(
                 commodity))]
-        rows = [(p["from"], p["to"], p["multi_register_p_per_kwh_ex_vat"],
-                 "multi-register {} p/kWh ex-VAT, cap level model".format(
-                     p["multi_register_p_per_kwh_ex_vat"]))
-                for p in _published("ofgem_cap_multi_register_unit_rates.json")["periods"]]
+        # The published single-rate headline scaled by the model's multi/single ratio, not the
+        # model's absolute multi-register median: that median's single-rate twin sits up to 1.4%
+        # off the published headline (26.942p against 26.990p, Apr 2022), so the absolute figure
+        # graded 996 multi-register bills of the 6af7fd0bf book on a different basis from the
+        # single-rate check beside it. No Economy 7 series is published to settle which is right.
+        headline = {w["from"]: w for w in windows}
+        rows = []
+        for p in _published("ofgem_cap_multi_register_unit_rates.json")["periods"]:
+            w = headline.get(p["from"])
+            if w is None or w["to"] != p["to"]:
+                rows.append((p["from"], p["to"], None, "no published single-rate window shares the "
+                             "multi-register period {}..{}".format(p["from"], p["to"])))
+                continue
+            single = _dec(w["elec"]) / 10 / (1 + _dec(_vat_on(commodity, w["from"])))
+            ratio = _dec(p["multi_register_p_per_kwh_ex_vat"]) / _dec(
+                p["single_rate_p_per_kwh_ex_vat"])
+            rows.append((p["from"], p["to"], float(single * ratio),
+                         "multi-register: {} GBP/MWh inc VAT x {:.4f} (cap level model "
+                         "multi/single)".format(w["elec"], ratio)))
     else:
         key = "elec" if commodity == "electricity" else "gas"
         rows = []

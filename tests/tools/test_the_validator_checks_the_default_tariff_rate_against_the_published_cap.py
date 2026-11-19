@@ -2,8 +2,8 @@
 
 `unit_charge_at_contract` proves the bill charges the term record's rate, but the term record is
 ours. For a default tariff the cap is the one outside source that bounds it, read here from the
-commons alone: single-register `ofgem_default_tariff_cap_windows.json` ex-VAT, multi-register
-`ofgem_cap_multi_register_unit_rates.json`.
+commons alone: single-register `ofgem_default_tariff_cap_windows.json` ex-VAT, multi-register that
+headline x `ofgem_cap_multi_register_unit_rates.json`'s multi/single ratio for the same period.
 
 Measured 2026-10-26 on the 4ae8da9b0f book, regenerated: 27,197 periods graded, 0 above, every rate
 at its ceiling (ratio 1.0000). A 1% raise on every graded term fails all 27,197.
@@ -104,6 +104,27 @@ def test_the_multi_register_benchmark_grades_a_multi_register_period():
     assert line["within"]
     assert not _line(_period([_term(49.0, "2022-10-01", "2023-01-01")], "2022-10-01",
                              "2022-10-31", registers=2))["within"]
+
+
+def test_the_multi_register_ceiling_sits_on_the_published_headline_the_single_rate_check_uses():
+    """PROS-2021-0313, Sep 2022, on the 6af7fd0bf book: an SVT struck at 25.4557p on an Economy 7
+    meter. That is the published 283.4 GBP/MWh inc VAT (26.990p ex-VAT) x the cap model's
+    multi/single ratio (25.41 / 26.942). The validator graded it against the model's absolute
+    multi-register median, 25.41p, and read it as above the cap. That median's single-rate twin is
+    0.18% under the headline the single-rate check uses, so the two checks were on different
+    bases, and 996 multi-register bills read as above the cap.
+
+    MUTATION: grade on `multi_register_p_per_kwh_ex_vat` directly and the 25.4557p strike
+    disagrees. A strike at the single-rate headline on a two-register meter still disagrees."""
+    sep = _period([_term(25.4557, "2022-09-02", "2022-10-01")], "2022-09-01", "2022-09-30",
+                  registers=2)
+    line = _line(sep)
+    assert line["status"] == v.CAP_CHECKED and line["within"], line
+    assert line["graded"][0]["ceiling_p_per_kwh"] == pytest.approx(25.4557, abs=0.0002)
+    assert not _line(_period([_term(25.4600, "2022-09-02", "2022-10-01")], "2022-09-01",
+                             "2022-09-30", registers=2))["within"]
+    assert not _line(_period([_term(26.9905, "2022-09-02", "2022-10-01")], "2022-09-01",
+                             "2022-09-30", registers=2))["within"]
 
 
 @pytest.mark.parametrize("period, segment", [

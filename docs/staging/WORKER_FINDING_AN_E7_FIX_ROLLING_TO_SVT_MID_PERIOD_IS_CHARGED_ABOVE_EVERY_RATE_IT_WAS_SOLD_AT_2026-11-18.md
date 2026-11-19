@@ -62,3 +62,59 @@ the ledger exports, not in the bill: a stub SVT term that no full bill settles a
 pair. So the validator's ceiling (max of the flat rates) is too low. Fix the export so that the term
 carries its pair, and keep the bill. **Refuted if** the biller prices the SVT stub at the flat rate
 plus a separate adder, or if the levy line is charged twice.
+
+## The cause, read (delivery seat, 2026-11-19)
+
+**The prediction held, and another lane had already fixed the cause.** c6695cd8db (18 Nov 12:45,
+after this ledger was written at 10:10) found what I pre-registered. The SVT stub term is no bill's
+`term_of_bill`, so `_tou_terms` gave it no pair. Its record went out with `tou_unit_rates: null`,
+and the bound's ceiling was the flat rate. The biller settled the stub on Day/Night: its rate line
+is flagged `time_of_use`, and PROS-2021-0313 was charged 28.618p, which is the pair weighted by a 76%
+day share. The bill is right and the exported term record was wrong. That commit measured the book
+moving from 3 DISAGREED to 0, with 29 stub terms gaining a pair. **The red clears when the next
+publish regenerates the ledger. Nothing is left to fix on the crossing.**
+
+## The cap row is a class: 996 bills, not 1
+
+On this ledger, `default_tariff_rate_within_cap` reads AGREED 26,553 and DISAGREED 996. All 996 are
+on multi-register meters, across every cap window from 2019 to 2025, and every one is over by less
+than 0.5p. **PROS-2021-0313 is not a pro-rating artefact.** Its SVT term (2 Sep to 30 Sep 2022) sits
+wholly inside one window. It is also not a charge above the published level. Two readings of a
+level that is not published are disagreeing:
+
+- **The company** takes the published single-rate headline, 283.4 £/MWh inc VAT (26.990p ex-VAT),
+  and scales it by the cap model's multi-register / single-rate ratio (25.41 / 26.942 = 0.9431):
+  **25.4557p**.
+- **The validator** takes the model's 15-region median multi-register level directly: **25.41p**.
+  That median's own single-rate twin (26.942p) is 0.18% UNDER the published headline (26.990p).
+
+The validator's single-rate check uses the published headline, so its two checks are on different
+bases. The multi-register column "has NOT been checked against a published Economy 7 cap series"
+(`slc_28ad_multi_register_cap_test.md`). The law is per region, and neither figure is that
+customer's regional level.
+
+**Fix (validator; the bill is kept).** Put the multi-register ceiling on the single-rate check's
+basis: the published headline × the model's multi/single ratio for the same period. The windows and
+the multi-register periods share every boundary (checked).
+
+**Pre-registered before re-measuring.** The 996 move to AGREED. Whether any AGREED bill moves to
+DISAGREED depends on whether the headline is under the median single-rate in any period, which I
+have not looked at. If it is, those periods' ceilings fall, and I predict 0 bills cross because the
+company's rate is built on the headline.
+
+**Measured after the fix, on the same ledger.** `default_tariff_rate_within_cap` reads AGREED
+27,549 and DISAGREED 0. That is all 996 moved, and none moved the other way. The headline IS under
+the model's single-rate median in 6 periods (Apr–Dec 2024 and Jul–Dec 2025, by up to 0.47%), so
+those ceilings fell. No bill crossed, because the company's rate is built on the headline. The
+prediction held.
+
+**What this costs the check, stated.** The validator's multi-register ceiling is now computed the
+way the company computes its own. A company that struck a multi-register SVT at the single-rate
+headline still disagrees, because the ratio is below 1 in every period (test). A company that read
+the WRONG ratio from the same artefact would not. The ratio has one source, the cap model, and no
+second one is published. The open knowledge gap is a published Economy 7 cap series, which the
+commons artefact already names as uncorroborated. This lane does not close it.
+
+**Status.** The crossing cause was named and fixed in c6695cd8db, and its red clears at the next
+publish. The cap row is fixed in the validator and the bill is kept. Nothing here is left open, so
+this finding can move to `done/` once the next publish shows both readers green.
