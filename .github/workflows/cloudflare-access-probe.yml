@@ -1,0 +1,63 @@
+name: Cloudflare Access probe (read-only)
+
+# READ-ONLY. Tests the claim in docs/staging/records/SEAT_RECORD_THE_SITE_LOGIN_WHAT_LANDED_AND_WHAT_
+# STAYS_PUBLIC_2026-11-19.md that no lane holds a credential able to configure Access: can the deploy token see Zero Trust / Access at all, and does a Zero Trust
+# organisation exist yet? Every call is a GET. It prints HTTP status, `success`, error codes and
+# non-secret names (hostnames, app names, IdP types) -- never the token, never the account id.
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Probe what the token can read
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          python3 - <<'EOF'
+          import json, os, urllib.request, urllib.error
+          tok, acc = os.environ["CF_TOKEN"], os.environ["CF_ACCOUNT"]
+          base = "https://api.cloudflare.com/client/v4"
+          def get(path):
+              req = urllib.request.Request(base + path, headers={"Authorization": f"Bearer {tok}"})
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      return r.status, json.load(r)
+              except urllib.error.HTTPError as e:
+                  try:
+                      return e.code, json.load(e)
+                  except Exception:
+                      return e.code, {}
+          def errs(d):
+              return [(e.get("code"), e.get("message")) for e in d.get("errors") or []]
+          probes = {
+              "token_verify": "/user/tokens/verify",
+              "zt_organization": f"/accounts/{acc}/access/organizations",
+              "access_apps": f"/accounts/{acc}/access/apps",
+              "identity_providers": f"/accounts/{acc}/access/identity_providers",
+              "service_tokens": f"/accounts/{acc}/access/service_tokens",
+              "pages_project": f"/accounts/{acc}/pages/projects/poesys-net",
+          }
+          for name, path in probes.items():
+              status, d = get(path)
+              res = d.get("result")
+              summary = None
+              if name == "token_verify" and isinstance(res, dict):
+                  summary = {"status": res.get("status")}
+              elif name == "zt_organization" and isinstance(res, dict):
+                  summary = {"exists": bool(res), "auth_domain_set": bool(res.get("auth_domain"))}
+              elif name == "access_apps" and isinstance(res, list):
+                  summary = [{"name": a.get("name"), "domain": a.get("domain"), "type": a.get("type")} for a in res]
+              elif name == "identity_providers" and isinstance(res, list):
+                  summary = [p.get("type") for p in res]
+              elif name == "service_tokens" and isinstance(res, list):
+                  summary = {"count": len(res)}
+              elif name == "pages_project" and isinstance(res, dict):
+                  summary = {"subdomain": res.get("subdomain"), "domains": res.get("domains")}
+              print(json.dumps({"probe": name, "http": status, "success": d.get("success"),
+                                "errors": errs(d), "summary": summary}))
+          EOF

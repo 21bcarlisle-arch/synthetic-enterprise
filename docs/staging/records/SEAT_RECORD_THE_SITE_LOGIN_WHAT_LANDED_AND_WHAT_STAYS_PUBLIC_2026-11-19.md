@@ -21,7 +21,10 @@ That file stays open until the gate is proved. This record is the first incremen
 ## Waits (raised, with a recommendation)
 
 - **The gate itself** (row `the-site-login-you-ruled-on-19`). No lane holds a Cloudflare credential that can
-  configure Access. The 20 Aug grant is an OAuth session held by the console. The design is one Access application
+  configure Access. *[Note, 19 Nov, delivery seat: not yet tested. The Actions secret
+  `CLOUDFLARE_API_TOKEN` (the Pages deploy token, minted 22 Jun) is a lane-usable credential, and its scopes are
+  unknown. `.github/workflows/cloudflare-access-probe.yml` is read-only and answers this. If the token can see
+  Access, the gate needs no new credential from him.]* The 20 Aug grant is an OAuth session held by the console. The design is one Access application
   over `poesys.net`, `poesys-net.pages.dev` and `*.poesys-net.pages.dev`, using one-time email codes with the
   director's address as the only reader, plus one service token for the deploy check. Done means:
   - an unauthenticated fetch of each of those routes is refused, recorded as a reading;
