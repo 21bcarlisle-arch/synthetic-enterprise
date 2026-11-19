@@ -25,6 +25,9 @@ def _governor_admits(monkeypatch, tmp_path):
     control below overrides `admit` to reach both branches."""
     monkeypatch.setattr(resource_headroom, "RESERVATIONS_PATH", tmp_path / "reservations.json")
     monkeypatch.setattr(resource_headroom, "DEFERRAL_LOG_PATH", tmp_path / "deferrals.jsonl")
+    # The commit gate runs this file inside its own `queued` holder, and `queued` then neither
+    # waits nor reserves -- so the census's admission is only observable with the flag cleared.
+    monkeypatch.delenv(resource_headroom.ADMITTED_ENV, raising=False)
     monkeypatch.setattr(resource_headroom, "admit",
                         lambda job_class, **kw: {"job_class": job_class, "admitted": True,
                                                  "reason": "test default: admitted"})
@@ -982,11 +985,12 @@ def test_the_census_suite_runs_only_when_admitted_and_holds_its_measured_weight(
     monkeypatch.setattr(resource_headroom, "admit",
                         lambda job_class, **kw: {"job_class": job_class, "admitted": False,
                                                  "reason": "budget exhausted: test refusal"})
+    monkeypatch.setattr(hgc, "ADMISSION_DEADLINE_SECONDS", 0)
     observed: dict = {}
     output = hgc.run_suite(observed=observed)
     reached["refused"] = not ledger_at_start
     assert output == "" and not ledger_at_start, "a refused census launched its suite anyway"
-    assert observed["deferred"] == "budget exhausted: test refusal"
+    assert "budget exhausted: test refusal" in observed["deferred"]
     receipts = (tmp_path / "deferrals.jsonl").read_text().splitlines()
     assert len(receipts) == 1 and json.loads(receipts[0])["job_class"] == "head_green_census"
 
@@ -1051,3 +1055,81 @@ def test_a_completed_run_prints_its_slowest_tests_to_the_journal(tmp_path, monke
 def test_a_run_with_no_table_prints_none_and_still_gives_its_verdict():
     assert hgc.durations_table("") == []
     assert hgc.durations_table("FAILED a::b\n1 failed, 3 passed in 1.0s\n") == []
+
+
+def test_a_refused_census_asks_again_and_runs_when_the_box_has_room(tmp_path, monkeypatch):
+    """The 8-19 Nov defect: one refusal at 03:30 and the census gave up for 24h, 7 nights of 12.
+
+    The governor refuses twice, then admits. The census must sleep `ADMISSION_POLL_SECONDS`
+    between asks, build its subject only AFTER admission (so it measures HEAD when the suite
+    starts), and run the suite inside its reservation. A governor that raises is a deferral.
+
+    MUTATIONS (each must fire): go back to one `admitted()` ask (no re-ask, the suite never runs);
+    build the subject before queueing (`built_after_admission` fails); let a raising governor
+    propagate (the last leg raises instead of returning "").
+    """
+    import contextlib
+    answers = iter([False, False, True])
+    asks, slept, built_after = [], [], []
+    monkeypatch.setattr(resource_headroom, "admit", lambda job_class, **kw: (
+        asks.append(job_class),
+        {"job_class": job_class, "admitted": next(answers), "reason": "budget exhausted: test"})[1])
+    monkeypatch.setattr(hgc, "_admission_sleep", slept.append)
+
+    @contextlib.contextmanager
+    def _subject():
+        built_after.append(len(asks))
+        yield tmp_path
+
+    ran = []
+    monkeypatch.setattr(hgc, "head_subject_checkout", _subject)
+    monkeypatch.setattr(hgc, "overlay_shortfall", lambda subject: [])
+    monkeypatch.setattr(hgc, "subject_head_sha", lambda s: "cafebabe")
+    monkeypatch.setattr(hgc, "pytest_argv", lambda: (ran.append(
+        [r["job_class"] for r in resource_headroom.live_reservations()]), ["true"])[1])
+
+    observed: dict = {}
+    hgc.run_suite(observed=observed)
+    assert len(asks) == 3 and slept == [hgc.ADMISSION_POLL_SECONDS] * 2, (asks, slept)
+    assert built_after == [3], "the subject was built before the census was admitted"
+    assert ran == [["head_green_census"]], "the suite did not run inside its reservation"
+    assert "deferred" not in observed
+
+    def _raises(job_class, **kw):
+        raise OSError("meminfo unreadable")
+    monkeypatch.setattr(resource_headroom, "admit", _raises)
+    observed = {}
+    assert hgc.run_suite(observed=observed) == ""
+    assert "OSError" in observed["deferred"]
+
+
+def _timer_seconds(key: str) -> int:
+    for line in (_UNIT_PATH.parent / "head-green-census.timer").read_text().splitlines():
+        if line.strip().startswith(key + "="):
+            value = line.split("=", 1)[1].strip()
+            return int(value[:-3]) * 60 if value.endswith("min") else int(value)
+    raise AssertionError("the timer declares no " + key)
+
+
+def test_a_census_that_waits_for_room_still_ends_before_the_next_firing():
+    """The unit must hold the whole wait AND the suite, and still end before the next 03:30.
+
+    Too short and systemd SIGTERMs a census that was admitted late, mid-suite, with no verdict --
+    the one failure this control cannot afford. Too long and a census still waiting meets the
+    next night's firing. Keyed to the timer file's own RandomizedDelaySec and daily calendar.
+
+    MUTATIONS (each must fire): leave `TimeoutStartSec=17700` (first assertion); raise
+    `ADMISSION_DEADLINE_SECONDS` by an hour (second); raise RandomizedDelaySec to 1h (second).
+    """
+    timer = (_UNIT_PATH.parent / "head-green-census.timer").read_text()
+    assert "OnCalendar=*-*-* 03:30:00" in timer, "the derivation assumes one firing a day"
+    worst = (hgc.ADMISSION_DEADLINE_SECONDS + hgc.ADMISSION_POLL_SECONDS
+             + hgc.SUITE_TIMEOUT_SECONDS + hgc.UNIT_REPORT_MARGIN_SECONDS)
+    unit = _unit_timeout_start_sec()
+    assert unit >= worst, (
+        "a census admitted at its deadline would be killed by systemd at {}s, before its suite's "
+        "own {}s bound reports UNPROVEN (worst case {}s)".format(unit, hgc.SUITE_TIMEOUT_SECONDS,
+                                                                 worst))
+    assert unit + _timer_seconds("RandomizedDelaySec") <= 24 * 3600, (
+        "the unit can still be running at the next firing: {}s plus the timer's delay".format(unit))
+    assert hgc.ADMISSION_DEADLINE_SECONDS > 0
