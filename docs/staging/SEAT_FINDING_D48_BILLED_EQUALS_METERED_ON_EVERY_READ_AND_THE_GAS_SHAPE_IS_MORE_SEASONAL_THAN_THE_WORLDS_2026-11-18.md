@@ -39,7 +39,7 @@ The shape is worth having: it removes two thirds of a flat spread's gas error. B
 gas profile puts about 1.2 points more of the year into each winter month than the world's homes use. The
 gas estimates follow suit: they over-bill winter by 112 kWh a month and under-bill summer by 83.
 
-**I cannot yet say which side that bias belongs to.**
+**I cannot yet say which side that bias belongs to.** *[Answered 2026-11-19: the side is the WORLD. Xoserve's published seasonal-normal ALP for domestic band 1 agrees with the proxy: DJF within ±1.5 points, Jan/Jul 7.8–9.9 against the proxy's 7.32. The world's 70/30 fallback reads about 5.0. See `docs/staging/records/SEAT_PREREG_D48_THE_GAS_ESTIMATE_SHAPE_AGAINST_XOSERVE_ALP_2026-11-19.md` and the W2_30 fallback finding.]*
 - *World too flat.* The published shares are DESNZ actual-weather national domestic gas (January 17%, July 2.3%).
   A world whose gas has too large a summer base, or too weak a heating response, would read this way.
   N13 and N17 found this world's year too smooth before.

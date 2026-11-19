@@ -73,6 +73,22 @@ Estimation* help page and the DESC introduction slides (both retrieved 2026-10-0
 ALPs, DAFs and PLFs) for the current gas year" live in **"the UK Link secure area," UNC-party
 access only** — a structural gap stated by the source itself, not a search failure.
 
+*[Correction, 2026-11-19, delivery seat: the paragraph above is wrong for the ALP and DAF values.
+Xoserve's public readme for the Derived Factors says: "Following a request in 2019, DESC agreed that
+the above output [ALPs, DAFs and PLFs] could be shared in the public domain. ... Note the underlying
+demand models and supporting files are available to UNC parties on the secure area" (*End User
+Categories and Derived Factors*, July 2019, p.2, `xoserve.com/media/7945/readme_euc_df_19_public.pdf`).
+The approved files for gas years 2024/25, 2025/26 and 2026/27 can be downloaded from
+`xoserve.com/media/0cgkbagq/derived-factors.zip` (retrieved 19 Nov 2026, SHA-256 de7827d8…3e5d). Each
+row is `"LDZ:EUC",dd/mm/yyyy,ALP,DAF`, and domestic band 1 non-prepayment is `xx:E2401BND`. The UK Link
+secure area holds the models, and the Seasonal Normal 2025 restated history for 2018/19–2024/25.
+**Two limits remain.** First, gas years before 2024/25 are not in the public zip. Second, the
+licence is "for your use only": no part may be "copied, reproduced, ... stored in a retrieval
+system, publicly displayed, republished". This public repository can therefore hold
+comparisons made against the ALP, but not its values or a table derived from them. Embedding the
+ALP in the company's estimator needs Xoserve's written permission. The comparison made with these
+files: `docs/staging/records/SEAT_PREREG_D48_THE_GAS_ESTIMATE_SHAPE_AGAINST_XOSERVE_ALP_2026-11-19.md`.]*
+
 ## 4. Best published GB domestic gas monthly shape (not EUC01B-exact)
 
 **DESNZ Energy Trends Table 4.2**, "Domestic" demand column — published monthly only from **2023
