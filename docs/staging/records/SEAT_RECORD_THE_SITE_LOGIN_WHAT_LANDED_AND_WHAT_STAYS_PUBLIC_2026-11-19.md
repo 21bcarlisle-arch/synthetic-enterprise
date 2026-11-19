@@ -24,7 +24,15 @@ That file stays open until the gate is proved. This record is the first incremen
   configure Access. *[Note, 19 Nov, delivery seat: not yet tested. The Actions secret
   `CLOUDFLARE_API_TOKEN` (the Pages deploy token, minted 22 Jun) is a lane-usable credential, and its scopes are
   unknown. `.github/workflows/cloudflare-access-probe.yml` is read-only and answers this. If the token can see
-  Access, the gate needs no new credential from him.]* The 20 Aug grant is an OAuth session held by the console. The design is one Access application
+  Access, the gate needs no new credential from him.]* *[Reading, 19 Nov 16:45Z, Actions run 44569003701: it cannot, and the
+  claim stands with its cause named. Access is not enabled on the account at all. All three Access endpoints
+  answer 403 `access.api.error.not_enabled`, with this message: "Access is not enabled. Visit the Access dashboard
+  at https://dash.cloudflare.com/ and click the 'Enable Access' button." The Zero Trust organisation endpoint
+  answers 403 too. The token does work for Pages: the project serves exactly `poesys-net.pages.dev` and
+  `poesys.net`, so those two hostnames and the preview wildcard are the whole gate scope. The first step is his:
+  in the Cloudflare dashboard, open Zero Trust, choose a team name and the Free plan. If that asks for a card,
+  that is his too. After that, the Access application needs either a token with Access edit scope or the
+  console's OAuth session.]* The 20 Aug grant is an OAuth session held by the console. The design is one Access application
   over `poesys.net`, `poesys-net.pages.dev` and `*.poesys-net.pages.dev`, using one-time email codes with the
   director's address as the only reader, plus one service token for the deploy check. Done means:
   - an unauthenticated fetch of each of those routes is refused, recorded as a reading;
