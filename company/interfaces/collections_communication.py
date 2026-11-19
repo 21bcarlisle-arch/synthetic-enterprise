@@ -154,3 +154,18 @@ def statute_barred_write_off_date(due, last_payment=None):
     from company.billing.collections_journey import statute_barred_write_off_date as _date
 
     return _date(due, last_payment)
+
+
+def bill_falls_due(issued):
+    """The day a bill the supplier issued on `issued` falls due, on its own payment terms. The world
+    passes the issue date and takes back the due date; the terms stay behind the door."""
+    from company.billing.collections_journey import bill_falls_due as _due
+
+    return _due(issued)
+
+
+def bill_issued_for(due):
+    """The day the supplier issued the bill that falls due on `due`."""
+    from company.billing.collections_journey import bill_issued_for as _issued
+
+    return _issued(due)

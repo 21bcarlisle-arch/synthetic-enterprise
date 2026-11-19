@@ -32,6 +32,7 @@ def test_the_refund_clock_starts_on_the_issue_day_the_ledger_prints():
 
 
 def test_the_issue_day_is_the_due_day_less_the_payment_terms():
-    from simulation.arrears_engine import PAYMENT_TERMS_DAYS, bill_due_date
+    from company.interfaces.collections_communication import bill_issued_for
+    from simulation.arrears_engine import bill_due_date
     for cid, pe in _leavers():
-        assert bill_due_date(cid, pe) - dt.timedelta(days=PAYMENT_TERMS_DAYS) == bill_issue_date(cid, pe)
+        assert bill_issued_for(bill_due_date(cid, pe)) == bill_issue_date(cid, pe)

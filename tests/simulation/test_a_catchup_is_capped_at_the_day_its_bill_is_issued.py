@@ -11,7 +11,8 @@ from datetime import timedelta
 import pytest
 
 from company.compliance.domain_invariants import check_back_billing_cap_respected
-from simulation.arrears_engine import PAYMENT_TERMS_DAYS, bill_due_date
+from company.interfaces.collections_communication import bill_issued_for
+from simulation.arrears_engine import bill_due_date
 from simulation.run_phase4c_on_phase2b import (
     build_monthly_bills,
     dated_payment_channel,
@@ -55,7 +56,7 @@ def test_the_issue_date_is_the_ledgers():
     assert simulated_bill_issue_date(HOME, "2025-01-31") == "2025-02-07"
     for cid, period_end in ((HOME, "2025-01-31"), ("C1", "2022-03-31"), ("SYN-2016-307g", "2019-03-31")):
         assert simulated_bill_issue_date(cid, period_end) == (
-            bill_due_date(cid, period_end) - timedelta(days=PAYMENT_TERMS_DAYS)).isoformat()
+            bill_issued_for(bill_due_date(cid, period_end))).isoformat()
 
 
 def test_a_window_inside_twelve_months_of_the_period_end_but_not_of_the_issue_is_capped(

@@ -260,6 +260,21 @@ def statute_barred_write_off_date(due: dt.date, last_payment: Optional[dt.date] 
     clock = due if last_payment is None else max(due, last_payment)
     return _years_after(clock, STATUTE_BAR_YEARS)
 
+
+def bill_falls_due(issued: dt.date) -> dt.date:
+    """The day a bill issued on `issued` falls due: the company's own payment terms
+    (`company/billing/invoice.PAYMENT_TERMS_DAYS`), printed on its bill. The world issues the bill
+    and dates the payment; it no longer holds the terms (KNIFE3, 2026-11-19)."""
+    from company.billing.invoice import PAYMENT_TERMS_DAYS
+    return issued + dt.timedelta(days=PAYMENT_TERMS_DAYS)
+
+
+def bill_issued_for(due: dt.date) -> dt.date:
+    """The day the bill falling due on `due` was issued: `bill_falls_due`'s inverse, for a walk that
+    kept only the due date (the close leg's write-off clock runs from the final bill's issue)."""
+    from company.billing.invoice import PAYMENT_TERMS_DAYS
+    return due - dt.timedelta(days=PAYMENT_TERMS_DAYS)
+
 def statute_barred_gbp(ledger: AccountLedger, on: dt.date, payment_terms_days: int = 14) -> float:
     """What this account owes on `on` that is statute-barred: the FIFO-unpaid bills due at least six
     years before `on`, and only if no payment has landed on the account in those six years. Read off

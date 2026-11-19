@@ -144,14 +144,14 @@ company-observable artefact where none existed before.
 from __future__ import annotations
 
 import random
-from datetime import date, timedelta
+from datetime import date
 
 import simulation.bacs_rails as bacs_rails
 from company.interfaces.bill_assembly import owed_after_scheme_credit
+from company.interfaces.collections_communication import bill_falls_due
 from company.interfaces.dd_collection_instructions import open_collections_desk
 from simulation.arrears_engine import (
     PAY_ON_RECEIPT_METHOD,
-    PAYMENT_TERMS_DAYS,
     _fuel_poor_for_bill,
     _tone_for_bill,
     bill_substream,
@@ -525,7 +525,7 @@ def _run_rails(
             )
 
         issue_date = date.fromisoformat(period_end)
-        due_date = issue_date + timedelta(days=PAYMENT_TERMS_DAYS)
+        due_date = bill_falls_due(issue_date)
 
         if not desk.has_mandate(cid):
             monthly_amount = monthly_amount_by_customer.get(cid, amount)
@@ -685,7 +685,7 @@ def _re_mandate(desk, cid: str, period_end: str, acceptance: float, seed: int, s
     The desk reviews on the bill's due date, the day it knows the bill was paid in time. A signed
     mandate goes through AUDDIS like any setup; the bills after this one are presented by DD again.
     """
-    as_of = date.fromisoformat(period_end) + timedelta(days=PAYMENT_TERMS_DAYS)
+    as_of = bill_falls_due(date.fromisoformat(period_end))
     invitation = desk.review_re_mandate(cid, as_of.isoformat(), staggered_payment_day(cid))
     if invitation is None:
         return False
