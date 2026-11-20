@@ -136,37 +136,86 @@ wrong:
   - what: 'THE MACHINE''S (THIS SEAT''S), NEW. My 03:22 record set the per-debt rule''s landing test as "the cells spread on the varying world". It did not first ask whether the company''s 365-day learning window could see the agency''s remittance, which arrives 575 days after the final bill, or what the cells divide by. They spread (0.03 to 0.92) on customer cash, not on recovery. The landing rule refused the rule (98177f319), so no wrong rule landed. The window and the denominator are now focus item 2.'
     corrected: true
 for_the_director:
-  - id: the-site-login-you-ruled-on-19
-    raised: "2026-11-19"
-    kind: reserved
-    decision_kind: g5
-    what: "The site login you ruled on 19 Nov cannot start until Cloudflare Zero Trust is switched on for the account, and that sign-up screen may ask for a card, which is yours. A read-only probe (Actions run 44569003701) found Access not enabled: every Access endpoint answers 403 access.api.error.not_enabled. Everything else the ruling asked for has landed: robots disallow, noindex on every route, and the deploy check ready for a service token."
-    proposal: "One step for you: in the Cloudflare dashboard (dash.cloudflare.com), open Zero Trust, pick a team name (poesys is fine) and choose the Free plan. If it asks for a card, decide whether to give one; the Free plan covers up to 50 readers at no charge. Then either reply 'go' so the console session sets up the Access application, or create an API token with 'Access: Apps and Policies Edit' and 'Access: Service Tokens Edit' and add it as an Actions secret. The machine then gates poesys.net, poesys-net.pages.dev and *.poesys-net.pages.dev with one-time email codes, your address as the only reader, proves each route refuses an unauthenticated fetch, and records how to reverse it (delete the Access application). No DNS change is expected."
-    recommendation: I recommend you do the Zero Trust sign-up on the Free plan, and decline it if it insists on a card; tell me if so and I will propose a Pages-Function password gate instead, which needs no card.
-    based_on: 57a89f463f
-    status: open
-    resolution: ""
-    g5_class: real_money
-    evidence: docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md; docs/staging/records/SEAT_RECORD_THE_SITE_LOGIN_WHAT_LANDED_AND_WHAT_STAYS_PUBLIC_2026-11-19.md
-  - id: canon-d11-says-the-public-site-exists
-    raised: "2026-11-19"
-    kind: canon_intent
-    decision_kind: strategy
-    what: Canon D11 says the public site exists so that an intelligent stranger can understand the project and follow its progress. Your 19 Nov ruling puts poesys.net behind a login, so a stranger can no longer reach it. The repo and the github.io copy stay public. Page copy that calls the site public is unchanged until D11 says what the site is for now.
-    proposal: "Amend D11 by adding one sentence after its first: 'Readers reach it by invitation, behind a login. The repository and its github.io copy stay public, so the login keeps out search engines and casual visitors, not a determined reader.' The rest of D11 (no house vocabulary, weekly Monday publish, the banner) stays as written, because an invited reader is still a stranger to the project. Once you agree, the machine updates the site pages that call it public to say 'by invitation'."
-    recommendation: I recommend you approve that one added sentence, and keep the newcomer test for invited readers.
-    based_on: 57a89f463f
-    status: open
-    resolution: ""
-    evidence: docs/design/DIRECTOR_CANON.md (D11); docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md
-  - id: the-bsc-smoothing-parameter-spar-value-it
-    raised: "2026-11-19"
-    kind: strategy
-    decision_kind: outside_source
-    what: "The BSC Smoothing Parameter (SPAR) value: it is the one number between us and fixing the electricity unbilled residual, and no public source states it"
-    proposal: "Measured since (19 Nov, same book): the choice no longer turns on SPAR's exact value. At every SPAR from 0.5 to 4 the blend lowers the electricity gap (0.407 today; 0.379 at 0.5, 0.289 at 3) and leaves the E1 estimate-run guard exactly as it is (the same 8 breaches and 27 flags). Only from about 6 upward does it re-open breaches (13 at the limit). So I can build the D0019-shaped blend with SPAR as a stated range, [0.5, 3], run at both ends, with the gap published as a range."
-    recommendation: I recommend you reply with SPAR's value only if you know it offhand, and that we do not seek MDD access (a licence is G5). Silence now means I build the blend at both ends of [0.5, 3] and publish the range; the hold is beaten everywhere in it. Reply "hold" to keep the 182-day hold.
-    based_on: 2721453029
-    status: open
-    resolution: ""
-    evidence: docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 8 (search of URS, LDD, Tech Spec, SMG, P40, MDD page; value only in licensed MDD); docs/staging/records/SEAT_PREREG_D48_THE_ELECTRICITY_RESIDUAL_BY_ESTIMATE_ROUTE_2026-11-19.md (hold route holds 57% of the residual, billed/true 1.15); docs/staging/records/SEAT_PREREG_D48_E1_BREACHES_AT_EACH_SPAR_2026-11-19.md (E1 breaches and the gap at each SPAR)
+- id: the-site-login-you-ruled-on-19
+  raised: '2026-11-19'
+  kind: reserved
+  decision_kind: g5
+  what: 'The site login you ruled on 19 Nov cannot start until Cloudflare Zero Trust is switched on for
+    the account, and that sign-up screen may ask for a card, which is yours. A read-only probe (Actions
+    run 44569003701) found Access not enabled: every Access endpoint answers 403 access.api.error.not_enabled.
+    Everything else the ruling asked for has landed: robots disallow, noindex on every route, and the
+    deploy check ready for a service token.'
+  proposal: 'One step for you: in the Cloudflare dashboard (dash.cloudflare.com), open Zero Trust, pick
+    a team name (poesys is fine) and choose the Free plan. If it asks for a card, decide whether to give
+    one; the Free plan covers up to 50 readers at no charge. Then either reply ''go'' so the console session
+    sets up the Access application, or create an API token with ''Access: Apps and Policies Edit'' and
+    ''Access: Service Tokens Edit'' and add it as an Actions secret. The machine then gates poesys.net,
+    poesys-net.pages.dev and *.poesys-net.pages.dev with one-time email codes, your address as the only
+    reader, proves each route refuses an unauthenticated fetch, and records how to reverse it (delete
+    the Access application). No DNS change is expected.'
+  recommendation: I recommend you do the Zero Trust sign-up on the Free plan, and decline it if it insists
+    on a card; tell me if so and I will propose a Pages-Function password gate instead, which needs no
+    card.
+  based_on: 57a89f463f
+  status: open
+  resolution: ''
+  g5_class: real_money
+  evidence: docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md;
+    docs/staging/records/SEAT_RECORD_THE_SITE_LOGIN_WHAT_LANDED_AND_WHAT_STAYS_PUBLIC_2026-11-19.md
+- id: canon-d11-says-the-public-site-exists
+  raised: '2026-11-19'
+  kind: canon_intent
+  decision_kind: strategy
+  what: Canon D11 says the public site exists so that an intelligent stranger can understand the project
+    and follow its progress. Your 19 Nov ruling puts poesys.net behind a login, so a stranger can no longer
+    reach it. The repo and the github.io copy stay public. Page copy that calls the site public is unchanged
+    until D11 says what the site is for now.
+  proposal: 'Amend D11 by adding one sentence after its first: ''Readers reach it by invitation, behind
+    a login. The repository and its github.io copy stay public, so the login keeps out search engines
+    and casual visitors, not a determined reader.'' The rest of D11 (no house vocabulary, weekly Monday
+    publish, the banner) stays as written, because an invited reader is still a stranger to the project.
+    Once you agree, the machine updates the site pages that call it public to say ''by invitation''.'
+  recommendation: I recommend you approve that one added sentence, and keep the newcomer test for invited
+    readers.
+  based_on: 57a89f463f
+  status: open
+  resolution: ''
+  evidence: docs/design/DIRECTOR_CANON.md (D11); docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md
+- id: the-bsc-smoothing-parameter-spar-value-it
+  raised: '2026-11-19'
+  kind: strategy
+  decision_kind: outside_source
+  what: 'The BSC Smoothing Parameter (SPAR) value: it is the one number between us and fixing the electricity
+    unbilled residual, and no public source states it'
+  proposal: 'Measured since (19 Nov, same book): the choice no longer turns on SPAR''s exact value. At
+    every SPAR from 0.5 to 4 the blend lowers the electricity gap (0.407 today; 0.379 at 0.5, 0.289 at
+    3) and leaves the E1 estimate-run guard exactly as it is (the same 8 breaches and 27 flags). Only
+    from about 6 upward does it re-open breaches (13 at the limit). So I can build the D0019-shaped blend
+    with SPAR as a stated range, [0.5, 3], run at both ends, with the gap published as a range.'
+  recommendation: I recommend you reply with SPAR's value only if you know it offhand, and that we do
+    not seek MDD access (a licence is G5). Silence now means I build the blend at both ends of [0.5, 3]
+    and publish the range; the hold is beaten everywhere in it. Reply "hold" to keep the 182-day hold.
+  based_on: 2721453029
+  status: open
+  resolution: ''
+  evidence: docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 8 (search
+    of URS, LDD, Tech Spec, SMG, P40, MDD page; value only in licensed MDD); docs/staging/records/SEAT_PREREG_D48_THE_ELECTRICITY_RESIDUAL_BY_ESTIMATE_ROUTE_2026-11-19.md
+    (hold route holds 57% of the residual, billed/true 1.15); docs/staging/records/SEAT_PREREG_D48_E1_BREACHES_AT_EACH_SPAR_2026-11-19.md
+    (E1 breaches and the gap at each SPAR)
+- id: the-one-work-system-s-decision-map
+  raised: '2026-11-20'
+  kind: canon_intent
+  decision_kind: harness
+  what: 'The one work system''s decision map (D7) would retire the maturity-map dials. One rule would
+    pick work: the weekly review''s share per lane, then the order inside a lane. CLAUDE.md quotes the
+    dials as yours (''everything else is a dial that orders work but never zeroes it''), so retiring them
+    may change something you ruled.'
+  proposal: Retire the dials. The weight between lanes comes only from the weekly balance review's share
+    table, and age order inside each lane keeps the dials' intent (nothing eligible is ever zeroed). If
+    you say no, the build keeps each dial as one input to the share step.
+  recommendation: 'I recommend retiring the dials: two weightings kept in step is what your 14 Nov steer
+    asks to remove, and the share table already carries your 11 Nov ruling.'
+  based_on: 61759ae55a
+  status: open
+  resolution: ''
+  evidence: docs/design/ONE_WORK_SYSTEM_DECISION_MAP_2026-11-20.md D7 and D6; docs/market_research/one_backlog_and_flow_practice_2026-11-20.md
