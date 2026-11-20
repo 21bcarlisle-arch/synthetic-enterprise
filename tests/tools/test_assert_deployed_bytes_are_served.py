@@ -500,9 +500,27 @@ def test_the_deploy_check_reads_through_the_access_gate_only_with_a_token(monkey
     token, and never half a token."""
     monkeypatch.delenv("CF_ACCESS_CLIENT_ID", raising=False)
     monkeypatch.delenv("CF_ACCESS_CLIENT_SECRET", raising=False)
+    # Isolated from the box's real password file, which must never reach an assertion diff.
+    monkeypatch.delenv("SITE_PASSWORD", raising=False)
+    monkeypatch.setattr(A, "SITE_PASSWORD_FILE", "/nonexistent/site_password")
     assert A.reader_headers() == {"User-Agent": "poesys-deploy-assert"}
     monkeypatch.setenv("CF_ACCESS_CLIENT_ID", "id.access")
     assert "CF-Access-Client-Id" not in A.reader_headers()
     monkeypatch.setenv("CF_ACCESS_CLIENT_SECRET", "s3cret")
     h = A.reader_headers()
     assert (h["CF-Access-Client-Id"], h["CF-Access-Client-Secret"]) == ("id.access", "s3cret")
+
+
+def test_the_deploy_check_reads_through_the_password_gate(monkeypatch, tmp_path):
+    """Director addendum 2026-11-20: the gate is functions/_middleware.js, which lets a machine
+    reader through on the X-Poesys-Gate header. The check must send it from CI's env or this box's
+    file, and send nothing when neither exists."""
+    monkeypatch.delenv("SITE_PASSWORD", raising=False)
+    monkeypatch.setattr(A, "SITE_PASSWORD_FILE", str(tmp_path / "absent"))
+    assert "X-Poesys-Gate" not in A.reader_headers()
+    f = tmp_path / "site_password"
+    f.write_text("from-the-file\n")
+    monkeypatch.setattr(A, "SITE_PASSWORD_FILE", str(f))
+    assert A.reader_headers()["X-Poesys-Gate"] == "from-the-file"
+    monkeypatch.setenv("SITE_PASSWORD", "from-ci")
+    assert A.reader_headers()["X-Poesys-Gate"] == "from-ci"

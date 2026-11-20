@@ -93,3 +93,39 @@ the director reports one successful login.
 Delete the Access applications for `poesys.net` and `poesys-net.pages.dev`, and turn off the
 preview access policy in the Pages project. Revert the robots and `_headers` lines. Nothing else
 changes.
+
+## Amendment, 20 Nov: the gate is a password function, not Access
+
+The director's addendum, Fri 20 Nov 07:00 GMT ("Card"): the Zero Trust sign-up asked for a card
+and he declined it, so Access is never enabled and the Access design above is not built. What is
+built instead, with no further ask:
+
+- **`functions/_middleware.js`**, a Pages Function in front of every route the Pages project
+  serves: `poesys.net`, `poesys-net.pages.dev`, the preview addresses, and `/api/query`. A reader
+  without the cookie gets a password page (401, `noindex`, `no-store`). The right password sets an
+  HttpOnly cookie for 30 days. The cookie holds a keyed hash of the password, so changing the
+  password signs everyone out. Only `/robots.txt` is open, so a crawler can read its own refusal.
+- **Fails closed.** With no `SITE_PASSWORD` secret, every route answers 503 and serves nothing.
+  A preview deployment that lacks the secret serves nothing for the same reason.
+- **The password** is the Pages secret `SITE_PASSWORD`, set on each deploy from the Actions secret
+  of the same name, by stdin. The deploy refuses by name if the Actions secret is unset. On this
+  box it is in `~/.config/synthetic-enterprise/site_password`, mode 600. It is never committed,
+  logged or printed.
+- **Machine readers** send it in the `X-Poesys-Gate` header: `reader_headers()` in
+  `tools/assert_deployed_bytes_are_served.py` (the deploy check), and
+  `tools/retired_paths_still_served.py`. The other readers named above still read as strangers
+  and will see the password page. That is a known gap, filed with this change, not a silent one.
+- **robots and noindex stay** as landed in d3025b96d0.
+- **The github.io copy and the repository are untouched and public.** Pages Functions run only on
+  Cloudflare. A password page is enough for the director and a few invited readers (the advisor's
+  view, which he accepted). It is not per-person, and a password shared on is not revocable per
+  reader. Change the password to revoke everyone.
+
+### How to reverse the password gate
+
+Delete `functions/_middleware.js` and the "Set the site password gate's secret" step in
+`.github/workflows/deploy-pages.yml`, then deploy. Optionally delete the Pages secret
+(`npx wrangler pages secret delete SITE_PASSWORD --project-name=poesys-net`), the Actions secret
+(`gh secret delete SITE_PASSWORD`) and the file on this box. To change the password, overwrite the
+file, run `gh secret set SITE_PASSWORD < ~/.config/synthetic-enterprise/site_password`, and
+dispatch the deploy workflow.
