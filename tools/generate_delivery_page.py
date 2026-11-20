@@ -32,25 +32,32 @@ from __future__ import annotations
 import json
 import re
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from background import direction as direction_mod
+# Launched as a script path (`python3 tools/generate_delivery_page.py`), the repo root is not on
+# sys.path and `import background` dies before main() runs.
+_PROJECT = Path(__file__).resolve().parent.parent
+if str(_PROJECT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT))
+
+from background import direction as direction_mod  # noqa: E402  (after the path fix)
 
 # THE GATE DECLARATION, IMPORTED RATHER THAN RESTATED. `A49_GATING_RUNG` and `the_a49_gate` live in
 # the instrument beside `OBSERVABLE_FIELD_SCOPE`, which is what decides them; this module calls the
 # same function on the artefact it reads so the page and the record cannot come to disagree about
 # which rung is the gate. That is still a LIFT and not a computation -- the readings are the
 # artefact's and the choice is the instrument's constant; nothing here derives a number.
-from tools.r1_inference_ceiling import the_a49_gate
+from tools.r1_inference_ceiling import the_a49_gate  # noqa: E402
 
 # THE OTHER TWO INSTRUMENTS A49 EXISTS FOR, imported for the SAME reason as the line above: each
 # module owns where its artefact lives, and a generator that restated those paths would be a second
 # opinion about which file is the record. Importing `OUT_PATH` also wires both modules to something
 # that actually runs -- until 2026-09-07 they were reachable from no committed schedule and read as
 # orphans, which is the honest description of an instrument whose reading nobody ever sees.
-from tools.r3_carbon_score_ceiling import OUT_PATH as R3_ARTEFACT
-from tools.r4_product_ceiling import OUT_PATH as R4_ARTEFACT
+from tools.r3_carbon_score_ceiling import OUT_PATH as R3_ARTEFACT  # noqa: E402
+from tools.r4_product_ceiling import OUT_PATH as R4_ARTEFACT  # noqa: E402
 
 PROJECT = Path(__file__).resolve().parent.parent
 OUT_PATH = PROJECT / "site" / "data" / "delivery.json"

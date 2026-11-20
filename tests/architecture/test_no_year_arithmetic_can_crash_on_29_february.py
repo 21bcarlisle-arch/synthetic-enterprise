@@ -58,7 +58,9 @@ def test_the_census_sees_the_sites_it_governs():
     """Not vacuous: the guarded sites this was written from are found as year arithmetic at all."""
     seen = {p.relative_to(ROOT).as_posix() for s in SCOPES for p in (ROOT / s).rglob("*.py")
             if _year_replaces(p)}
-    assert {"company/pricing/value_based_renewal.py", "simulation/arrears_engine.py"} <= seen, seen
+    # arrears_engine's limitation clock moved to collections_journey._years_after (5e554a00be);
+    # the anchor follows the site, not the file it was first written from.
+    assert {"company/pricing/value_based_renewal.py", "company/billing/collections_journey.py"} <= seen, seen
 
 
 def test_no_year_arithmetic_is_outside_a_value_error_guard():
