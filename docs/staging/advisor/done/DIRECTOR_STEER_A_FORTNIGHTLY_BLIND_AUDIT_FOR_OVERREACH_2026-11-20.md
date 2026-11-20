@@ -59,3 +59,22 @@ Probable failure modes:
 Proportionality: governance, light. Implement directly.
 
 — Director steer, 20 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+2026-11-20, delivery seat (claim `a-fortnightly-blind-audit-for-overreach`). The first audit ran
+with the cold-eyes blindfold: two fresh reviewers, each seeing only a packet. 28 landings: 20
+wall-side and 6 other, drawn at random from 888 non-merge origin commits (6–20 Nov), plus two
+planted cases. **Both planted cases were found**, so the result can be trusted. 3 of 20 wall-side
+landings are confirmed over-reaches (15%, 95% interval 3%–38%). All are scope, and one is also
+hardness. None treated silence as a yes. Record:
+`docs/staging/records/SEAT_RECORD_BLIND_AUDIT_FOR_OVERREACH_2026-11-20.md`. Two findings filed, each
+proposing a hard limit: keyed holds read by the draw and the landing door, and a gate-selection
+narrowing that carries a run of what it drops. The reading-log row was appended to
+`docs/institutional/reading_log.md`. The next audit is queued as a continuation, not drawn before
+2026-12-04. No new reviewer, register or gate was built.
+
+Correction beside the claim: the drawn item said f0445b2dc landed against the 20 Nov 03:22 not_now.
+It landed on 19 Nov at 10:56Z, against the 19 Nov 09:23Z not_now.
+
+Decision: harness yes

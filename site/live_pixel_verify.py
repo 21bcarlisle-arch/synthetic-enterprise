@@ -270,7 +270,12 @@ def _http_get(url: str, fetcher=None) -> tuple[int, bytes]:
             return None
 
     opener = urllib.request.build_opener(_NoRedirect)
-    req = urllib.request.Request(url, headers={"User-Agent": "poesys-live-pixel-verify"})
+    # poesys.net answers 401 with a password page to a request without the gate header (ruling
+    # 19 Nov), so a live check that sends none reads the password page, never the door.
+    from tools.assert_deployed_bytes_are_served import reader_headers
+
+    headers = {**reader_headers(), "User-Agent": "poesys-live-pixel-verify"}
+    req = urllib.request.Request(url, headers=headers)
     try:
         with opener.open(req, timeout=TIMEOUT) as r:
             return r.status, r.read()

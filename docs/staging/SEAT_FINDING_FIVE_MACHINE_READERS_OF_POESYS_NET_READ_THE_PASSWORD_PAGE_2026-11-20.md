@@ -16,6 +16,11 @@ and `tools/retired_paths_still_served.py` send the header (via `reader_headers()
 - `tools/mirror_github_pages.py` / `tools/edge_traffic_capture.py` (to be checked: they may read
   github.io or the Cloudflare API, not the site)
 
+A sixth reader, not on that list, was fixed on 20 Nov by the blind-audit landing:
+`site/live_pixel_verify.py`'s `_http_get`, which every live site test uses. It got a 401, so
+`site/test_the_published_bound_reaches_the_live_reader.py` was red and refused every commit that
+triggers the whole site suite. It now sends `reader_headers()`.
+
 Each will either read a 401 as "stale" or "missing" or compare the password page's bytes. Fix:
 send `reader_headers()` on each fetch of poesys.net, and confirm on the first live publish that
 none goes red for the gate's reason. Knowledge gap: no.
