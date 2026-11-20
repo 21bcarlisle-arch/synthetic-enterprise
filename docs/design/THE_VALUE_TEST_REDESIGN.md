@@ -2111,3 +2111,114 @@ both arms.
 
 **Reverse:** `systemctl --user stop longjob-value-test-cut012-rep`, then `git worktree remove --force
 /var/tmp/value-test-cut012`.
+
+**Corrected, beside the claim above (12:09Z).** The replication did not run. At 11:41:33Z the driver refused
+in 60 ms with exit 5. At 11:35:40Z `fork_salvage` had committed the tree's uncommitted port as
+`SALVAGE(auto)`, `sim/cache` symlink included, so the pinned diff no longer matched. The finding is
+`SEAT_FINDING_FORK_SALVAGE_COMMITS_INTO_A_PINNED_RUN_WORKTREE_AND_THE_LONG_JOB_REFUSES_2026-11-20.md`.
+HEAD was moved back to `870201d1e7` with a mixed reset, which leaves the working tree alone. The diff
+then equals the pin, and the tree is `git worktree lock`ed. The launch is re-armed as `vtc-cut012-rep-watch`
+(`/var/tmp/box-plan/arm_cut012_rep.sh`). It waits for `box_free.py`, which at 12:09Z read "a book is owed".
+Before it launches, it re-checks the pin and that the job is not already running or on disk. Then it runs
+`launch_cut012_rep.sh` once: the same driver, unchanged, with `grade_rep.py` chained after it into
+`/var/tmp/vtc-rep-driver/grade_rep.out`. The deadline is 27 Nov. The prediction above is unchanged.
+**Reverse:** `systemctl --user stop vtc-cut012-rep-watch`.
+
+#### Where the £1.00 sits: pre-registered before the split is read (20 Nov 12:07Z)
+
+**The question.** The value arm's cut minus A is +£1.00, and the added offers that changed a departure
+carry about a tenth of it as term margin. If most of the rest is churn-roll redraw noise on households the
+cut never touched, the gain is not inference. Written before any per-household figure is read. The only
+things read so far are the files' key names.
+
+**The unit and the classes.** A mover is a (seed, household) whose value-arm net, summed over its billing
+accounts, differs by more than £0.005 between the cut and A (`vtc-out-cut012` against `vta-out-flag1`, pair
+11111/22222). §12f's "75" counts households pooled across the seeds, so this split gives both counts. Each mover
+falls in exactly one class, tested in this order:
+1. **Added offer.** The cut's value-arm `retention_log` holds an offer to it at a belief of 0.30 or below.
+   Its GBP is split three ways. The first part is the logged `expected_term_margin_gbp` on offers that
+   changed a departure, which §12f already attributed. The second is the discount on offers to households
+   that stayed anyway. **The remainder is candidate 1: retention beyond one term.**
+2. **Lower-tier pricing on a non-added renewal (candidate 3).** No added offer, but at least one renewal in
+   the value arm whose offer or discount differs from A's at the same date.
+3. **Knock-on (candidate 2).** Neither of the above, but the net moved anyway.
+
+**Predicted shares of the pooled +£1.00 (£ per household-year, control-arm divisor):**
+- **Added offer: +£0.60 (+£0.30 to +£0.90)**, on about half the movers. Within that, retention beyond one
+  term is +£0.65 (+£0.35 to +£0.95). A retained household that stays to 2025 earns several years of margin,
+  and the term field prices one.
+- **Lower-tier pricing on non-added renewals: £0.00, on 0 households.** By construction, the switch acts
+  only on beliefs in (0.12, 0.30], and every such offer is an added offer. Any household here means the
+  switch moves money through a path the section does not name, and that is a finding.
+- **Knock-on: +£0.40 (+£0.10 to +£0.70)**, on the other half of the movers, with a household-resampled CI
+  that includes zero. A CI that includes zero is what redraw noise looks like.
+
+**How it is graded.** Each line holds if its read falls in the stated range. For the zero line, it holds at
+exactly 0 households. **The decision rule:** if knock-on carries more than half the £1.00 *and* its CI
+excludes zero, the gain is attributed to something the cut moved without an offer, and that path is named
+before the replication is graded. If knock-on carries more than half and its CI includes zero, the in-sample
++£1.00 is mostly redraw noise. The replication on 33333/44444 and 55555/66666 is then the only reading that
+counts.
+
+#### The split read: the whole £1.00 sits on nine retained households, and none of it is redraw noise (20 Nov 12:08Z)
+
+**What ran.** `/var/tmp/vtc-driver/attribute_cut012.py`, written after the pre-registration above was hashed
+(`attribution_prereg.sha256`, 12:07:19Z; its digest is of the file with the pre-registration as its last entry) and before it was run. Output: `attribute_cut012.out`. The script
+reproduces §12f's figure: the whole value arm reads **+£0.997** (seeds +£1.319 and +£0.674), across **75
+households pooled, 101 (seed, household) units**. That is the same method and the same total.
+
+| Class | £ per household-year (95% CI) | Share | Units (moved; up / down) | Households | £ total, both seeds |
+|---|---|---|---|---|---|
+| **Added offer** | **+£0.996 (+£0.24 to +£2.07)** | **100%** | 42 (20; 9 / 11) | 29 | +£11,400 |
+| Lower tier on a non-added renewal | +£0.001 (£0.000 to +£0.003) | 0% | 3 (3; 1 / 2) | 3 | +£11 |
+| Knock-on | +£0.000 (−£0.001 to +£0.003) | 0% | 78 (78; 3 / 75) | 59 | +£3 |
+
+Within the added offers, the term margin on changed departures is **+£0.088** and the discount to stayers is
+**−£0.133**. The **remainder, retention beyond one term, is +£1.041**.
+
+**Where it is.** Nine (seed, household) units carry every pound of the gain. In each, A lost the household
+and the cut kept it to the end of the window:
+
+| Seed | Household | £ | Left in A | Left in the cut |
+|---|---|---|---|---|
+| 11111 | SYN-2016-557 | +3,892 | 2018-12-02 | never |
+| 11111 | PROS-2017-0371 | +2,601 | 2018-11-29 | never |
+| 22222 | PROS-2019-0270 | +1,560 | 2020-09-10 | never |
+| 22222 | SYN-2016-458 | +1,077 | 2018-10-09 | never |
+| 22222 | PROS-2017-0318 | +976 | 2018-10-07 | never |
+| 11111 | SYN-2016-581 | +571 | 2018-12-10 | never |
+| 11111 | PROS-2018-0003 | +476 | 2019-01-03 | never |
+| 22222 | PROS-2018-0003 | +476 | 2019-01-03 | never |
+| 11111 | PROS-2016-0263 | +85 | 2018-09-16 | never |
+
+Six of these are §12c's flips. The 11 that lost money are the offers' price: discounts to stayers of £0.01 to
+£105 each. The 78 knock-on units moved by pennies, 75 of them down. 22 added-offer units did not move at all.
+
+| Pre-registered (12:07Z) | Predicted | Read | Graded |
+|---|---|---|---|
+| Added offer | +£0.60 (+£0.30 to +£0.90), about half the movers | **+£0.996**, 20 of 101 moved units | **MISSED** (above the range) |
+| Its remainder, retention beyond one term | +£0.65 (+£0.35 to +£0.95) | **+£1.041** | **MISSED** (above the range) |
+| Lower tier on non-added renewals | £0.00, on 0 households | **+£0.001, on 3 households** | **MISSED** (the money held; the zero count did not) |
+| Knock-on | +£0.40 (+£0.10 to +£0.70), CI includes zero | **+£0.000** (CI includes zero) | **MISSED** (the level) |
+| Decision rule | Knock-on over half the gain triggers one of two branches | Knock-on carries 0% | **Neither branch taken** |
+
+`Graded: value-test held=0 missed=4`
+
+**What it means.** The worry that drew this split, that about nine tenths of the £1.00 might be redraw noise,
+is refuted. The noise class carries £0.000. The gain comes from retained households, and the term field
+under-prices it because they stay for years, not one term. My prediction erred toward noise, and the read was
+cleaner than I expected.
+
+**Two limits.** First, the gain sits on nine units, and the top two carry 56% of it. The household bootstrap
+already shows that: its CI runs from +£0.24 to +£2.07. Second, this is still in-sample. The nine are largely
+the households the 0.12 was chosen to reach. So the replication stays the reading that counts, and it should
+be read the same way. The question for each new pair is not just the mean. It is whether the gain again sits
+on retained households that A lost, or on a few large movers of either sign.
+
+**A small unnamed path (the lower-tier miss).** Three households carry no added offer, yet their p_retain
+differs from A's at the same renewal. 22222/SYN-2016-215 (+£11) is one of them, and the same household is
+the one knock-on unit over £1 on seed 11111 (+£14). The switch moves the world's price response somewhere
+other than an added offer. It is worth £0.001 per household-year, and I have not named the path. If the
+replication shows the class growing, it is the first thing to read.
+
+**Reverse:** nothing to reverse. This is a reading.
