@@ -164,3 +164,48 @@ WORK are reached at 0.070 and at 0.093, both published prices. Ten tests guard i
 deliberately injected defect (a "mutation") made at least one test fail: earmark, cut, per-cell
 figure, lag, cash before write-off, and cap. In-run the learner still resolves nothing, because the
 agency's remittance is not posted to the company's book. That is the next item.
+
+## In-run successor: pre-registration (written 2026-11-20 08:23Z, before any in-run code changed; verbatim)
+
+Drawn item `knife3-agency-remittance-reaches-the-company-book`. What was read at origin 37f9ff6ebf
+before building:
+
+- Neither of the company's closed-account write-offs carries `invoice_ref`. The month-end sweep
+  (`arrears_engine.closed_balance_write_offs`, run by `LivePaymentTriad.write_off_closed_balances`)
+  and the desk's (`PaymentObservationConsumer._post_desk_write_off`) each post ONE balance-level
+  `WRITE_OFF_CREDIT` per account. `cash_forecast_provision._written_off` drops a write-off with no
+  `invoice_ref`, so in-run the learner sees no debt at all, before any question of remittance.
+- The live triad has no agency leg. `_post_writeoff_stages` (PLACED_WITH_DCA, RECOVERED) exists only
+  in the engine's post-run cascade, read by `generate_payment_ledger_data` as a `recovery_note`.
+
+The build, in two increments:
+1. The company writes a closed account off one invoice at a time: one `WRITE_OFF_CREDIT` per unpaid
+   invoice, carrying its `invoice_ref`, sized by the ledger's own remittance-else-oldest-first
+   allocation. Any remainder the allocation cannot place on an invoice is written off with no ref.
+   The total and the date do not change.
+2. The world's agency works each written-off invoice it is given. It remits what it recovers
+   (`dca_recovered_amount` on the bill's own age at close) to the company as a `RemittanceAdvice` on
+   placement + outcome (write-off + 210 d), with `bank_reference` set to the invoice's ref, through
+   the consumer's ordinary remittance path. The company posts it as a `PAYMENT_CREDIT` earmarked to
+   that bill. A remittance dated after the run's end does not cross.
+
+Predictions:
+
+- I0 (after increment 1 alone): an in-run `learn()` still resolves 0 written-off debts (no cash
+  after a write-off, so no lag, so `_learn_written_off` returns early), and every sale decision
+  stays at the 0.122 prior. The total written off and every write-off date are unchanged to the
+  penny on the same ledger.
+- I1 (on the next book after both increments): at least 95% of the GBP written off in-run carries an
+  `invoice_ref`.
+- I2: the learned lag is one value in [200, 240] days, centre 210.
+- I3: the aged cell (more than 12 months past due at close) reads in [0.04, 0.09], centre 0.063. The
+  young cell reads in [0.10, 0.15], centre 0.122. Aged reads below young.
+- I4: at 0.054 nothing is sold. At 0.070 and 0.093, every aged debt is sold and every young one is
+  worked.
+- I5 (risk named in advance): the company's cell is its own bill date against its last bill. The
+  world's age is its own bill's age at close. Where the company's allocation puts the unpaid
+  remainder on a different invoice from the one the world left unpaid, the remittance lands on the
+  invoice the world names. If the company wrote off no invoice with that ref, the cash posts as an
+  ordinary payment and the learner does not see it. Predicted: under 5% of remitted GBP is lost this
+  way. If more is lost, I3's cells blur towards the book-wide figure, and that disagreement is the
+  finding.

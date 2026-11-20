@@ -957,7 +957,8 @@ class LivePaymentTriad:
 
     def write_off_closed_balances(self, through: date) -> int:
         """Run the company's write-off sweep at every month end up to `through`, as it would have run
-        on each of those days, and return how many write-offs it posted. Called once the run is
+        on each of those days, and return how many write-offs it posted (one per invoice written off,
+        not per account). Called once the run is
         over: bills post in term order, not date order, so a sweep during the run could write off
         an account whose next bill had not been posted yet. Each sweep reads only what the ledger
         held by its own day, so running them late decides nothing a supplier could not have.

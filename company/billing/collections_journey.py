@@ -86,6 +86,7 @@ from company.billing.arrears_engine import (
     level_leave_dates,
     level_shortfall,
     on_level_dd,
+    owed_by_invoice,
     unpaid_asks,
 )
 from company.billing.payment_plan import PaymentPlanBook, PaymentPlanStatus
@@ -577,7 +578,7 @@ class CollectionsJourneyDesk:
                  refuse_dunning_of_cleared_debt: Callable[[dict, str], None],
                  plan_offers: Optional[Any] = None,
                  post_cash: Optional[Callable[[str, float, dt.date, str], None]] = None,
-                 post_write_off: Optional[Callable[[str, float, dt.date, str], None]] = None,
+                 post_write_off: Optional[Callable[..., None]] = None,
                  level_of: Optional[Callable[[str], Optional[tuple]]] = None,
                  prepayment_suitability: Optional[
                      Callable[[str, dt.date], Optional[Any]]] = None,
@@ -594,8 +595,10 @@ class CollectionsJourneyDesk:
         #: `post_cash(account_id, amount_gbp, value_date, reference)`: the consumer's received-cash
         #: seam, idempotent on `reference`. Every paid plan instalment goes through it.
         self._post_cash = post_cash
-        #: `post_write_off(account_id, amount_gbp, on, rule)`: posts a write-off to the company ledger
-        #: under `rule` (`STATUTE_BAR_RULE` or `CLOSED_ACCOUNT_RULE`). None: a barred debt is still
+        #: `post_write_off(account_id, amount_gbp, on, rule, invoice_ref=None)`: posts a write-off to
+        #: the company ledger under `rule` (`STATUTE_BAR_RULE` or `CLOSED_ACCOUNT_RULE`), against
+        #: `invoice_ref` when it is one invoice's (a closed account is written off one invoice at a
+        #: time, `arrears_engine.owed_by_invoice`). None: a barred debt is still
         #: recorded as a `write_off` stage, unposted, and a closed account is left to the sweep.
         self._post_write_off = post_write_off
         #: `prepayment_suitability(account_id, on)`: the company's dated safe-and-reasonably-practicable
@@ -831,7 +834,8 @@ class CollectionsJourneyDesk:
             return False
         owed, _final_bill = due
         view = self._view_at(account_id, segment, on)
-        self._post_write_off(account_id, owed, on, CLOSED_ACCOUNT_RULE)
+        for ref, gbp in owed_by_invoice(ledger, on, owed):
+            self._post_write_off(account_id, gbp, on, CLOSED_ACCOUNT_RULE, invoice_ref=ref)
         journey = self._open.pop(account_id, None)
         if journey is not None:
             journey.enter(WRITE_OFF, on, f"written off by rule {CLOSED_ACCOUNT_RULE}", view,

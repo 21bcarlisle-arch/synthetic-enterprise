@@ -1783,9 +1783,10 @@ class PaymentObservationConsumer:
                         correlation_id=reference, remittance_ref=None)
 
     def _post_desk_write_off(self, account_id: str, amount_gbp: float, on: dt.date,
-                             rule: str) -> None:
+                             rule: str, invoice_ref: Optional[str] = None) -> None:
         """The collections desk's write-off, posted on the day it is decided: statute-barred, or
-        the closed-account write-off the month-end sweep would otherwise post later."""
+        the closed-account write-off the month-end sweep would otherwise post later, one invoice
+        at a time."""
         from company.billing.arrears_engine import (
             CLOSED_ACCOUNT_RULE,
             WriteOffReason,
@@ -1795,7 +1796,7 @@ class PaymentObservationConsumer:
                   else WriteOffReason.STATUTE_BARRED)
         self.ledger_book.post(build_write_off_event(
             account_id, amount_gbp, reason, on,
-            dt.datetime.combine(on, dt.time(23, 59)), note=rule))
+            dt.datetime.combine(on, dt.time(23, 59)), invoice_ref=invoice_ref, note=rule))
 
     def _observe_remittance(self, payload: RemittanceAdvice, response: WallResponse) -> None:
         self._post_cash(
