@@ -729,11 +729,25 @@
     "label": "Agents and models",
     "anchor": null
    }
+  },
+  {
+   "read": "20 Nov",
+   "source": "Addy Osmani, \"How the Claude Code team thinks about verification\" (X article, 17 Nov 2026); shared by the director",
+   "claim": "\"If a change can modify the check that judges it, the check is broken\"; property tests make edge cases not made \"with the same bias as the agent\"; a reliability checklist with diff-readable triggers; new gates go off, observe, then enforce",
+   "evidence": "Practitioner article, read as relayed by the advisor",
+   "verdict": "ADOPT (three items, in order)",
+   "done": "We already do E2E doors, cheap gates first, verification stamps, misses into rules, and reviewer review. Gaps: gates judged from the change, not the base (confirmed bb33b0a629; observe mode `tools/base_judged_gates.py`, `docs/market_research/gates_judged_from_the_base_2026-11-20.md`); no property tests; rules always loaded rather than diff-triggered (both queued)",
+   "concept": "Delivery and CI",
+   "placed": {
+    "kind": "step",
+    "label": "Delivery and CI",
+    "anchor": null
+   }
   }
  ],
  "placed": {
   "concept": 17,
-  "step": 23,
+  "step": 24,
   "unplaced": 4,
   "none": 8
  },

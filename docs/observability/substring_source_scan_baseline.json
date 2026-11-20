@@ -1123,6 +1123,30 @@
       "subject": "unknown"
     },
     {
+      "path": "tools/base_judged_gates.py",
+      "function": "_imports_of",
+      "subject": "unknown",
+      "reason": "Python is read by ast.parse; the only `in` tests are on repo paths and dotted names. The observer runs from stdin with stdlib only (python3 -P -), so it cannot import tools/python_code_text.py."
+    },
+    {
+      "path": "tools/base_judged_gates.py",
+      "function": "affected_gates",
+      "subject": "unknown",
+      "reason": "reads the shell hook and passes it to gate_lines; Python closures come from ast.parse. The observer runs from stdin with stdlib only (python3 -P -), so it cannot import tools/python_code_text.py."
+    },
+    {
+      "path": "tools/base_judged_gates.py",
+      "function": "build_shadow",
+      "subject": "unknown",
+      "reason": "`in` tests are set membership over repo paths, no file text is matched. The observer runs from stdin with stdlib only (python3 -P -), so it cannot import tools/python_code_text.py."
+    },
+    {
+      "path": "tools/base_judged_gates.py",
+      "function": "gate_lines",
+      "subject": "unknown",
+      "reason": "subject is the shell hook tools/git-hooks/pre-commit, not Python. The observer runs from stdin with stdlib only (python3 -P -), so it cannot import tools/python_code_text.py."
+    },
+    {
       "path": "tools/billing_axis_coverage.py",
       "function": "axis_records",
       "subject": "unknown"
