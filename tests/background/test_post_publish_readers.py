@@ -177,3 +177,24 @@ def test_an_unreadable_store_rings_and_an_absent_one_does_not(tmp_path):
     assert ppr.doorbell_clause(path=absent, live="abc1234567") is None
     clause = ppr.doorbell_clause(path=corrupt, live="abc1234567")
     assert clause and "unreadable" in clause and "UNGRADED" in clause
+
+
+def test_a_disposed_red_still_rings_and_the_next_publish_drops_the_disposition(tmp_path):
+    """The 6af7fd0bfd book's contracted-tariff red was fixed in source two hours after that
+    publish (c6695cd8db) and the doorbell redrew it every tick, each re-tracing it from scratch.
+    A disposition says why it stands without silencing it; `run` rewrites the store whole, so the
+    next publish drops it. The refusal partition: a red store takes one, a clean one does not.
+    MUTATION: drop the disposition suffix from `doorbell_clause` and the reason never prints."""
+    p = tmp_path / "obs.json"
+    ppr.run("6af7fd0bfd", PARSE, runner=_runner(1, RED_OUT), files=["t.py"], path=p)
+    reason = "fixed in source at c6695cd8db; re-ledgered book reads 0 disagree"
+    assert ppr.dispose(reason, path=p) == reason
+    line = ppr.doorbell_clause(path=p, live="6af7fd0bfd")
+    assert "1 red on publish" in line and reason in line, line
+    with pytest.raises(SystemExit):
+        ppr.dispose("too short", path=p)
+
+    ppr.run("6af7fd0bfd", PARSE, runner=_runner(0, GREEN_OUT), files=["t.py"], path=p)
+    assert "disposition" not in ppr.load(p)
+    with pytest.raises(SystemExit, match="no red"):
+        ppr.dispose(reason, path=p)

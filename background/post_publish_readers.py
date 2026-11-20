@@ -308,8 +308,32 @@ def doorbell_clause(state: dict | None = None, *, path: Path | None = None,
         store = store.relative_to(PROJECT_DIR)
     except ValueError:
         pass
-    return ("POST-PUBLISH READERS: {} red on publish {} ({}) -- {}{} (store {})".format(
-        len(reds), sha, when, ", ".join(names), ", ..." if len(reds) > 3 else "", store))
+    # A red traced to a fix that landed after the publish stays red: the book IS wrong. The
+    # disposition only saves the next reader re-tracing it, and `run` rewrites the store whole,
+    # so it cannot outlive the book it was written against.
+    disposed = state.get("disposition")
+    return ("POST-PUBLISH READERS: {} red on publish {} ({}) -- {}{} (store {}){}".format(
+        len(reds), sha, when, ", ".join(names), ", ..." if len(reds) > 3 else "", store,
+        "; DISPOSED, still red until the next publish: {}".format(disposed) if disposed else ""))
+
+
+def dispose(reason: str, *, path: Path | None = None) -> str:
+    """Record on the current store why its reds stand; refuses a store with no red to explain."""
+    path = path or OBSERVED_PATH
+    state = load(path)
+    if not state or state.get("outcome") != RAN or not state.get("reds"):
+        raise SystemExit("post-publish readers: REFUSED -- the store holds no red from a run to "
+                         "dispose of; a disposition on an ungraded or green book would explain "
+                         "nothing")
+    if len(reason.strip()) < 20:
+        raise SystemExit("post-publish readers: REFUSED -- a disposition must say what was "
+                         "measured and what clears it")
+    state["disposition"] = reason.strip()
+    from background.live_ledger_guard import guard_live_ledger_write
+
+    guard_live_ledger_write(path, writer="post_publish_readers.dispose")
+    path.write_text(json.dumps(state, indent=2) + "\n")
+    return state["disposition"]
 
 
 def main(argv=None) -> int:
@@ -317,7 +341,12 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--list", action="store_true", help="print the derived reader tests and exit")
     ap.add_argument("--run", action="store_true", help="run them now against this tree")
+    ap.add_argument("--dispose", metavar="REASON",
+                    help="record why the stored reds stand (e.g. fixed after the publish)")
     args = ap.parse_args(argv)
+    if args.dispose:
+        print("disposed: " + dispose(args.dispose))
+        return 0
     if args.list:
         print("\n".join(reader_tests() + list(PAGE_READERS)))
         return 0
