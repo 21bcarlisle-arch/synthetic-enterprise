@@ -121,4 +121,32 @@ map_notes:
     this row''s L3 asks for criteria 1 and 2 plus a cold-eyes pass on the fitted distribution. Criterion 2 landed in
     a698590552. To reverse: put the clause back in map_comment_note''s EXIT.
     TO UNBLOCK: once the store covers the book, rerun and count the providers again. Criterion 1 is met when the
-    refusals that remain have reasons other than weather (no household record, HH-metered, non-domestic).'
+    refusals that remain have reasons other than weather (no household record, HH-metered, non-domestic).
+    RECOUNT 2026-11-20 on 67d454905c: 237 of 722 electricity premises on fabric_physics, 153 of 586 gas legs on
+    fabric_seasonal_split, 483 refusals still for want of weather (541 before). All 41 gas legs that left the fallback
+    since 6af7fd0bfd moved because their ERA5 cells were filled (37 shown cell by cell; 4 gas-only legs carry no
+    verdict to show it). Record: SEAT_PREREG_W2_36_D48_THE_GAS_RESIDUAL_BY_SHAPE_PROVIDER_ON_THE_FIRST_BOOK_CARRYING_4ACCBB828_2026-11-19.md.
+
+    SPLIT 2026-11-20, read-only, on book 67d454905c (433 gas legs on population_70_30_split) against
+    the store at 3772531b8e (474 of 919 cells carry ERA5; 369 of the book''s 596 cells still owed). Method f165c9b1e''s:
+    the run''s own fabric_eligibility over WeatherWorldSource on each store. CONTROL: the same probe over the store at
+    67d454905c reproduces the book exactly (319 weather refusals, 0 eligible). THE PULL CAN FILL 319: 27 are already
+    eligible on HEAD''s store (27 distinct cells filled since the book), and 292 wait on 289 cells, every one of them on
+    `build_weather_world --list`''s incomplete list. Each of these 319 failed no other gate, because the weather check is the
+    predicate''s last one. Its own trace can still refuse it ("does not rise with cold": 1 of the 154 fitted so far). THE PULL CAN
+    NEVER FILL 114: 113 OCC- legs (an incoming occupier''s leg does not carry its premise''s split, so these settle
+    on 0.70 whatever the store holds) and PROS-2019-0321g (fitted, refused on its own trace). What would move those 114
+    has no published source: docs/market_research/the_domestic_gas_year_heats_on_about_85_percent_not_70_2026-11-19.md
+    section 9. PREDICTION for the next book, if the book holds the same legs and nothing else touches gas shape: fabric_seasonal_split >= 153 + 27 = 180,
+    and OCC- legs on the fallback stay 113.
+
+    [Correction 2026-11-20, beside the claim: the "stay 113" half is withdrawn by the build below, which touches gas
+    shape on purpose. It was written before that build was drawn.]
+    BUILT 2026-11-20 (85-percent page s.8): `_admit_incoming_occupant` now carries the premise''s split, or its refusal
+    with the premise''s reason, onto the OCC- gas leg (`carry_premise_split_to_occupier`). The leg already reads the
+    premise''s fabric series and HDD cell, so a refit would return the premise''s fit; the s.9 GAP (whether an occupier''s
+    fraction differs from its predecessor''s) is carried, not filled. On 67d454905c, via occupier_successions: 37 of
+    the 113 OCC- legs have a fitted premise, 76 a refused one (75 no fabric trace, 1 no cold response).
+    PREDICTION for the next book with the same legs on at least that store: OCC- legs on fabric_seasonal_split >= 37,
+    and no OCC- leg carries SETTLED_WITHOUT_A_SPLIT_OR_A_REFUSAL. To reverse: remove the call in
+    _admit_incoming_occupant.'

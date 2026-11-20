@@ -671,6 +671,34 @@ toggles:
         (DRS IA, 6 Nov 2025, fn 6) the post-write-off leg is near zero.
     verdict: DOESNT_MATTER
 
+  - id: post_write_off_recovery_aged_over_young
+    question: Q3 debt
+    meaning: >-
+      Recovery after write-off on a closed account's bill that was MORE than 12 months overdue when
+      the account closed, as a fraction of the recovery on one that was not. The world multiplies
+      1 - prov_coverage_final_bill_over_90d by this for the aged cell only. The age is the bill's
+      own due date to the close, which the supplier reads off its own ledger.
+    default: 0.52
+    low: 0.24
+    high: 0.52
+    unit: ratio of recovery shares (aged / not aged)
+    basis_default: >-
+      Energy UK, recovery rate by debt age (Fig. 5, debt_and_collections.md s.2.5), 2022-23: debt
+      over 12 months old 31% against under 12 months 60%, so 0.52. The least steep of the three
+      published years, used for every year (F11: the flattest published gradient gives a per-debt
+      rule the least to find). Arrears, definition undisclosed, not written-off balances: a stated
+      belief on the direction every source agrees on (s.7.7), not a measured post-write-off split.
+    basis_low: Energy UK Fig. 5, 2024-25, 9% / 38% = 0.24 (2023-24 is 15% / 56% = 0.27).
+    basis_high: As default; no published GB gradient is flatter. A ratio of 1 (no gradient) asserts zero, which every source contradicts (K2).
+    feeds: [EP4_collections_journey, KNIFE3_wall_crossing_paydown]
+    read_by: simulation/arrears_engine.py::post_write_off_aged_ratio (2026-11-20)
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        On book 67d454905c, 64 of 240 close-leg debts (GBP 1,975.50 of 8,794.84) are in the aged
+        cell. Book recovery per GBP written off: 0.122 at 1.0, 0.109 at 0.52, 0.101 at 0.24.
+    verdict: MATTERS_AND_RESOLVABLE
+
   - id: q3_debt_sale_price_share_of_face
     question: Q3 debt
     meaning: >-

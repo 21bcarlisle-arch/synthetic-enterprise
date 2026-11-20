@@ -932,6 +932,171 @@ page should print is a separate question, not settled here (GAP).
     practitioner question once the overpayment is gone, because only then does it change an
     outcome.
 
+### 7.7 Selling a written-off debt or having an agency work it: whose choice, on what (2026-11-19)
+
+Say what it is first. **Working** a debt means the supplier keeps owning it and pays a debt
+collection agency (DCA) a commission on what the agency collects. **Selling** it means the
+debt is assigned to a debt purchaser for a lump sum per £ of face value. The purchaser then owns
+it and keeps whatever it collects. These are two different quantities. One is a recovery share
+that depends on the debtor and arrives late. The other is a price fixed on the day of sale.
+`q3_debt_sale_price_share_of_face` is the second, and it is not a recovery share.
+
+**What is published (ESTABLISHED).**
+- Suppliers do sell written-off energy debt. Centrica ARA 2017 Note 17 records £5m of proceeds,
+  but not the face value sold (`assumption_toggles.yaml`, `q3_debt_sale_price_share_of_face`).
+- A creditor sells debt "at a lower price for a lump sum", and the purchaser becomes the legal
+  owner (StepChange, *Can debts be sold on?*). An agency normally takes no assignment and charges
+  a fee or commission on recoveries. A creditor uses one when it cannot reach the debtor, cannot get
+  the debtor to cooperate, or wants to outsource collection (HMRC VAT Finance Manual VATFIN3255;
+  sale and assignment: VATFIN3215).
+- Purchase prices for unsecured consumer debt across all sectors run 5.4p–9.3p per £ (Lowell 2013,
+  Arrow Global 2017; the register's low and high). No energy-specific price is published.
+- After a closed account's balance is aged, a supplier expects to recover about 12p per £: one minus
+  Centrica's final-bill >90-day coverage, 0.878 at 2025 (range 0.755–0.896). The company already
+  holds this figure as `company/finance/cash_forecast_provision.PRIOR_POST_CLOSE_RECOVERY`.
+- Sellers segment what they sell, and they exclude "accounts not eligible for sale due to sensitive
+  circumstances". A broker sells to a panel with "segmentation aligned to seller's core
+  requirements, purchaser appetite and portfolio composition" (TDX Group, Equifax, *Debt Sale*
+  brochure, read 2026-11-20). So in practice, which debts are sold is a per-debt choice, and
+  vulnerability is a reason not to sell. This is practice description from a broker, not a rule.
+- UK purchasers have collected about two times what they paid over 84 months, falling below two by
+  2014 (L.E.K., *Why the UK Debt Purchase Market is Sustainable*, Executive Insights XVIII/1). At
+  5.4p–9.3p that is about 11p–19p per £ collected, which brackets the 12p above. The two
+  published routes agree; neither is energy-specific.
+- Money Advice Trust (response to Ofgem's affordability and debt call for input, 2024) names debt
+  sale and DCA use as practices that still cause concern. No Ofgem licence condition on selling
+  domestic energy debt was found this pass.
+
+**What is not published (GAP).**
+- Any GB supplier's rule for WHICH debts it sells and which it works. Nothing was found on age,
+  balance or contact history. On a vulnerability flag, the only published practice is a broker's
+  general one, given above: sensitive circumstances are excluded from sale (corrected 2026-11-20;
+  this line said nothing was found). The register already says so: "No company
+  DCA-versus-sale decision exists".
+- DCA commission on energy debt. The illustrative 15% was removed on 2026-10-08.
+- An energy debt-sale price.
+
+**Which observables could decide it.** All of these are on the supplier's side of the wall: the
+balance written off and its date; whether the account is closed or statute-barred (the write-off
+leg); the supplier's own contact and arrangement history on the account; the supplier's own
+expected recovery (its provision coverage, then its book's observed recovery); and a purchaser's
+quote. The household's income-stress path is not among them. Before this date the world used it
+to choose: `debt_archetype == "AVOIDANT"` was sold. That was access, not inference
+(`docs/staging/done/SEAT_FINDING_THE_WORLD_CHOOSES_WHICH_WRITTEN_OFF_DEBT_IS_SOLD_FROM_A_LABEL_THE_SUPPLIER_CANNOT_SEE_2026-11-19.md`).
+
+**The design's choice, and why.**
+- The decision is the company's: `company/billing/collections_journey.sells_written_off_debt`,
+  which the world reaches through `company/interfaces/collections_communication`. The world keeps
+  the price on offer (the register row) and the proceeds.
+- The rule: sell when the offered price per £ is above the company's own expected recovery per £
+  on a closed, aged balance. Otherwise work the debt. With no offer (`None`, as today), work it.
+- No commission is taken off the agency side, because commission is a GAP. That makes working look
+  better than it is, so the rule sells less than a supplier who knows its commission would. This
+  errs against selling (F11). It is stated, not hidden.
+- The rule is the same for every debt. The company has no per-debt recovery estimate yet. One
+  built from contact and arrangement history is the next step, and it is named here as owed, not
+  done.
+- At real inputs (printed 2026-11-19): expected recovery 0.122. Offered price 0.054, 0.070 or
+  0.093 (the published range) gives WORK. 0.122 gives WORK (not above). 0.15 gives SELL. So at
+  any published purchase price, a supplier using this rule sells nothing. Whether that matches
+  practice cannot be told: Centrica's £5m of proceeds comes with no face value.
+
+**Why the per-debt rule is not built yet (measured 2026-11-20).** In the world, a worked debt
+recovers `post_write_off_recovery_share()` × face, which is 0.122 for every debt. Its archetype
+argument is not read, and no debt observable moves it. A sale is one register price for every debt.
+Both options are a constant share of face, so the best choice is the same for every debt. A
+per-debt estimate would either learn a flat share or assert a spread nobody published. There is a
+second problem. The company's 0.122 and the world's 0.122 are read from the same register row
+(`prov_coverage_final_bill_over_90d`), so the company's belief equals the world's truth by
+construction, and the world cannot defeat this choice. World first (W7): the world's recovery after
+write-off must vary with something a supplier can see, and be drawn apart from the company's prior.
+Only then does a per-debt rule have anything to find. Evidence for that variation: Energy UK Fig. 5
+(s.2.5) splits recovery by age, at under and over 12 months. It covers arrears, with an undisclosed
+definition, and not written-off closed balances. **GAP:** published GB energy recovery after
+write-off, split by contact, arrangement history, balance or age. **GAP:** an energy debt-sale price
+split between paying and non-paying portfolios. A company-side learned estimator was built by a
+parallel draw of the same item, before this measurement reached it. It is gated, but not landed,
+at branch `knife3-per-debt-sale` (9fcd4a53fa). It reads a cell off the company's own ledger at
+the last bill: months unpaid at close, and whether arrears were carried into the final bill. Each
+cell is shrunk to the book-wide figure, so in a flat world it is flat. It also never sells a debt
+the company flags as sensitive. It is held for the world-first successor, not landed now: in this
+world it could not fail in-run. The sensitive-circumstances exclusion is the one per-debt rule the
+evidence supports without a varying world, and it should land with that successor. Finding:
+`docs/staging/SEAT_FINDING_A_PER_DEBT_SALE_RULE_HAS_NOTHING_TO_DISCOVER_WHILE_THE_WORLD_RECOVERS_ONE_SHARE_OF_EVERY_DEBT_2026-11-20.md`.
+
+**The world's recovery now varies with the debt's age at close (2026-11-20).** A further pass
+looked for recovery after write-off split by something a supplier sees.
+- *Age, ESTABLISHED in direction, every source agrees.* Energy UK Fig. 5 (s.2.5): debt over 12
+  months old recovers 31%, 15% and 9% against 60%, 56% and 38% under 12 months (2022-23 to
+  2024-25), so 0.52, 0.27 and 0.24 of the younger debt. Centrica's closed-account coverage rises
+  with days beyond invoice (s.7.7 above; 0.316, 0.576, 0.878), but its last bucket is open at
+  90 days, so it does not split written-off debt. Ofgem's bottom-up debt-cost method would use
+  "debt levels by debt characteristics (ie age of debt, payment method and live/final)" with
+  "historical data on supplier recoverability rates" (Appendix 2, Debt-related costs, Dec 2024).
+  So the rates exist and are not published. Economic Insight for Yorkshire Water (PR24
+  Appendix 8e): "the older the debt gets, the less likely it is to recover it".
+- *Age since charge-off is a different quantity.* The FTC's price regression (*The Structure and
+  Practices of the Debt Buying Industry*, Jan 2013, Table 7; US, 3,399 portfolios) puts 3-6 year
+  debt about 4.8 cents per dollar below debt under 3 years, against a baseline of 7.9 cents. 6-15 years is 5.7 cents below and
+  15+ years 9.2 cents below. But the FTC measures age "since charge-off rather than the time since
+  default" (p. 42). Here that is the delay from write-off to placement, which is one company date for
+  every debt, so it does not separate debts.
+- *Balance: no effect is the evidence.* FTC Table 7 finds no significant price difference by face
+  value. The world does not vary recovery by balance. That is not an omission.
+- *Contact and arrangement history, and paying versus non-paying sale prices: still GAP.* Nothing
+  was found for GB with figures. A consumer site says a non-paying debt "may have been sold for
+  very little, just a penny or two in the pound", and one under a payment plan "for more" (Debt
+  Camel). That is directional only. The FTC also finds debt already worked by a contingency agency
+  sells 1.4 cents lower.
+
+**The design's choice.** A closed account's bill that was more than 12 months overdue when the
+account closed recovers `post_write_off_recovery_aged_over_young` (0.52, range 0.24-0.52)
+times the register share. A younger one recovers the register share. The age runs from the bill's
+own due date to the final bill, which the supplier reads off its own ledger. The 12-month split is
+Energy UK's own cut, not a chosen threshold. 0.52 is the least steep published year: the
+flattest gradient gives a per-debt rule the least to find (F11). The register share stays anchored on
+the younger cell. Centrica's 0.878 covers older balances too, so the true younger share is
+higher, and the world's book-wide recovery sits below the company's prior. On book 67d454905c,
+64 of 240 close-leg debts (GBP 1,975.50 of 8,794.84) are aged. The world recovers 0.109 per GBP
+against the company's 0.122. At 0.24 it is 0.101. So the company's belief is no longer the
+world's truth by construction. The world now has a real split for a per-debt rule to find. *(This
+line also said the held branch's estimator, keyed on months unpaid at close, would find it. It did
+not: see the next paragraph. Corrected 2026-11-20.)* Still owed: drawing the register share itself per world
+from its range (0.104-0.245), rather than reading the default. That is a change to the
+baseline world, so it goes with the curriculum record, not here.
+
+**The held per-debt rule, replayed on the varying world (2026-11-20): it does not land.** The
+branch `knife3-per-debt-sale` (9fcd4a53fa, now on origin) was replayed on book 67d454905c, under
+world f696fca4eb. The company's book was rebuilt from the billing ledger: bills, successful
+payments, and the agency's remittance posted as cash on its own date. The predictions were written
+first (finding below). There are three faults, and each is definitional:
+- *Window.* The world writes a close-leg debt off at final bill +365 days, places it at +30 and is
+  paid at +180. So the remittance arrives 575 days after the last bill. The company learns
+  post-close cash in the 365 days after the last bill. 0 of 215 remittances fall inside that
+  window.
+- *Denominator.* A cell's figure is customer cash over the whole balance owed at close, and most
+  of that balance is paid by the customer before write-off (582 closes, 215 written off). The
+  rule applies it to the written-off remainder, which by construction is what the customer did
+  NOT pay. Cells read 0.03 to 0.92.
+- *Cut.* The world splits by the age of the oldest unpaid bill at close (over 12 months). The
+  cells split by consecutive months unpaid, capped at 3. Aged debts sit in cells (0, carried),
+  (1, carried), (2, carried) and (3, carried), and in each of them aged and young debts get the
+  same figure.
+At 0.054, 0.070 and 0.093 the rule sells the same 149 debts (GBP 5,991.86 of 8,186.81), all
+in cell (3, carried) at 0.033. 118 of them (GBP 5,005.58) are young, and the world recovers
+0.122 on those if they are worked. So the rule would sell at 5.4p debts that are worth 12.2p. With
+the window widened to 600 days in the replay only, cell (3, carried) reads 0.084. Nothing then
+sells at 0.054 or 0.070, and the same 149 sell at 0.093. The denominator and cut faults remain.
+**What lands:** only the sensitive-circumstances exclusion. `sells_written_off_debt(...,
+sensitive=True)` never sells, at the rule and at the door. No world caller passes the flag yet. The
+company's Priority Services Register is not in reach of the post-run recovery stage, so in-run the
+exclusion is reached by tests only. That is stated, not hidden.
+**What a successor needs:** an estimate learned on the written-off remainder and the agency's
+remittance, over a window that covers placement and outcome, and cut by the oldest unpaid bill's
+age at close. That age is what Energy UK publishes. It is read off the company's own ledger
+(`fifo_unpaid_bills`).
+Finding: `docs/staging/SEAT_FINDING_THE_HELD_PER_DEBT_SALE_RULE_LEARNS_A_WINDOW_THE_AGENCY_NEVER_PAYS_INTO_2026-11-20.md`.
+
 ---
 
 ## 8. Gaps
@@ -1341,6 +1506,12 @@ All fetched 2026-10-05 unless stated otherwise.
   - NAO's 25%-on-plans restatement.
 - **Deceased customers: secondary guides only** (afterlossguide.co.uk, withfarra.co.uk). Treated as
   practice description, not evidence of scale.
+- **Debt sale practice (s.7.7, 2026-11-20).**
+  - TDX Group / Equifax, *Debt Sale* brochure:
+    <https://assets.equifax.com/marketing/united-kingdom/assets/tdx-group_debt_sale_brochure.pdf>.
+    A broker's own material: it is practice description.
+  - L.E.K. Consulting, *Why the UK Debt Purchase Market is Sustainable*:
+    <https://www.lek.com/sites/default/files/insights/pdf-attachments/1801_UK_Debt_Purchase_Market_Debt_Buying_Industry_Consulting_LEK_Executive_Inisghts.pdf>.
 
 ## Breathing Space (Debt Respite Scheme): what a supplier must do, volumes, Scotland, and whether our seam matches (2026-10-11)
 

@@ -96,3 +96,41 @@ re-run on this book with HEAD's `tools/couple_w2_36_d48.py`. The overall gap mov
 **What follows.** The W2_30 lever is unchanged: carry the premise's split onto the occupier's leg, and recalibrate
 0.70 → ~0.85. Both are DIRECTION `not_now`. This grade is the evidence to bring when that is re-opened: the
 fallback legs carry a 13-point seasonal swing, and the fitted ones carry none that clears its bound.
+
+## The 41 legs, attributed (autonomous worker, 2026-11-20)
+
+DIRECTION's `not_now` for the W2_30 gas lever asks for this attribution before the lever is built. It is
+read-only, using the two books' own records and the weather store at each commit. No new run was made.
+
+- **Which legs.** 41 gas legs are `population_70_30_split` on 6af7fd0bfd and `fabric_seasonal_split` on
+  67d454905c. No leg moved the other way. All 41 carried the refusal "no fabric trace" on 6af7fd0bfd.
+- **37 of 41: the ERA5 weather cells.** For each of these 37, the electricity twin's `fabric_eligibility`
+  verdict reads "no weather archive for this customer's location" on 6af7fd0bfd and "domestic premise with
+  fabric parameters and local weather" on 67d454905c. The gas and electricity paths share this predicate
+  (`run_phase2b._daily_gas_series_for`). The 37 premises resolve to 37 distinct cells. `WeatherWorld.for_cell`
+  was run over each commit's `sim/weather_world/` store, counting a cell as complete only when every field
+  was non-NaN on every day:
+
+  | store at | cells complete (of 37) |
+  |---|---:|
+  | 6af7fd0bfd | 0 |
+  | 843143e131 (W1_14: 39 more cells) | 28 |
+  | b484f20447 (W1_14: 14 more cells) | 37 |
+  | 67d454905c | 37 |
+
+  So the cause is W1_14's ERA5 pull. It is not the EPC register commits (11449fa884, 7d96a372e7). Across the
+  whole book, every one of the 58 electricity verdicts that changed between the books moved from "no weather
+  archive" to eligible, and none moved for a household-record reason.
+- **4 of 41: not attributed from the record.** SYN-2016-163, SYN-2016-171, SYN-2016-609 and PROS-2021-0120 are
+  gas-only premises. `fabric_eligibility` records electricity legs only, so the run does not say why their gas
+  leg had no trace. They share the weather predicate, so the cells are the likely cause, but this is not shown.
+  This is a record gap: for a gas-only leg, the gas refusal "no fabric trace" does not carry the eligibility
+  reason behind it.
+
+**What this means for the class comparison above.** The fabric class grew because the weather store grew, and
+the world's physics did not change. The 41 legs that moved bring their own fitted split. The fabric legs'
+Dec–May point is still inside its bound (+0.2%, n = 32). So the reading "the fitted split carries no seasonal
+residual that clears its bound" survives a larger fabric class. It is still weak evidence at that n. As W1_14's
+pull continues (483 electricity premises are still refused for "no weather archive" on 67d454905c, against 541
+on 6af7fd0bfd), more legs will leave the fallback. That will shrink the 70/30 population whether or not the
+0.70 → 0.85 recalibration lands. The next book's class sizes should be read with that in mind.

@@ -76,10 +76,13 @@ hidden (SIM-side only) behavioural archetype derived from the customer's
 income_stress_trajectory shape, then followed through a DCA placement /
 recovery-or-sale terminal stage:
   WRITTEN_OFF -> PLACED_WITH_DCA(+30d) -> RECOVERED(+180d)
-                                        -> SOLD(+90d)  [AVOIDANT, only once a sale price exists]
+                                        -> SOLD(+90d)  [when the SUPPLIER chooses to sell]
 `debt_archetype()` is never exposed to company/ code -- only its exhaust (the
 stage notes' GBP figures) is company-observable, same epistemic split as the
-rest of this engine. The recovery share and the sale price are READ from
+rest of this engine. Since 2026-11-19 (KNIFE3) it decides nothing past the write-off: whether a
+debt is sold or worked is the supplier's `sells_written_off_debt`, asked through its door with the
+price on offer. It used to be `archetype == "AVOIDANT"`, a label no supplier can see
+(debt_and_collections.md s.7.7). The recovery share and the sale price are READ from
 docs/market_research/assumption_toggles.yaml (`post_write_off_recovery_share`,
 `debt_sale_price_share`). Until 2026-10-08 they were typed here as 25.5p / 17.0p / 12.0p
 per GBP, above every published signal for the sale and at the top of it for the DCA
@@ -99,9 +102,11 @@ from company.interfaces.collections_communication import (
     bill_issued_for,
     closed_account_write_off_date,
     closing_write_off_by_bill,
+    dca_placement_date,
     ledger_notice_wording,
     ledger_notices,
     ledger_write_off_fallback,
+    sells_written_off_debt,
     statute_barred_write_off_date,
 )
 from simulation.bacs_processing_day import collected_on
@@ -266,7 +271,8 @@ _CORPORATE_METHODS = ("bacs", "chaps")
 
 # Phase [debt-branch] -- post-write-off DCA placement / recovery / sale. The stage gaps are
 # illustrative and unbenchmarked (docs/market_research/ASSUMPTIONS.md "Customer & Portfolio").
-DCA_PLACEMENT_DAYS = 30          # WRITTEN_OFF -> PLACED_WITH_DCA (illustrative, unbenchmarked -- see ASSUMPTIONS.md)
+# WRITTEN_OFF -> PLACED_WITH_DCA is the supplier's placement decision: `dca_placement_date`, through its
+# door (KNIFE3, 2026-11-19). What the agency then does, and when, stays the world's.
 DCA_OUTCOME_DAYS = 180           # PLACED_WITH_DCA -> RECOVERED (illustrative)
 DEBT_SALE_DAYS = 90              # PLACED_WITH_DCA -> SOLD (illustrative)
 
@@ -304,6 +310,32 @@ def post_write_off_recovery_share(convention: str | None = None) -> tuple[float,
     raise ValueError(
         f"no register row for a write-off taken at {convention!r}: a late write-off reads "
         "q3_post_write_off_recovery_share, which is wired to no convention yet")
+
+
+#: Energy UK's own cut for debt age (Fig. 5, debt_and_collections.md s.2.5): over or under 12 months
+#: old. A definition, not a magnitude: the ratio between the cells is the register's.
+AGED_AT_CLOSE_DAYS = 365
+
+
+def post_write_off_aged_ratio() -> tuple[float, str]:
+    """Recovery on a bill more than a year overdue at close, as a fraction of a younger one's.
+
+    Every published source has older debt recovering less; none splits written-off closed balances,
+    so this is a stated belief read from the register's range (debt_and_collections.md s.7.7)."""
+    row = _toggle_row("post_write_off_recovery_aged_over_young")
+    return float(row["default"]), row["basis_default"]
+
+
+def age_at_close_days(write_off: dict) -> int:
+    """How long the written-off bill had been overdue when its account closed: the supplier's own
+    ledger (the bill's due date, the final bill's issue date). Only the close leg has a close; a statute-barred
+    write-off is on a live account and has no post-write-off recovery, so it reads 0."""
+    final_bill_on = write_off.get("final_bill_on")
+    if final_bill_on is None:
+        return 0
+    due = write_off["due_date"]
+    due = date.fromisoformat(due) if isinstance(due, str) else due
+    return max((final_bill_on - due).days, 0)
 
 
 def debt_sale_price_share() -> tuple[float | None, str]:
@@ -366,13 +398,17 @@ def debt_archetype(trajectory: list[dict], year: int) -> str:
     return "NEUTRAL"
 
 
-def dca_recovered_amount(arrears_gbp: float, archetype: str) -> float:
+def dca_recovered_amount(arrears_gbp: float, age_at_close_days: int) -> float:
     """What the world recovers on `arrears_gbp` after its write-off.
 
-    `archetype` is accepted and not read: nothing published separates recovery by how the debtor
-    responds, so every archetype recovers the register's one share.
+    The register share, times `post_write_off_aged_ratio` when the bill was more than a year
+    overdue at close. Nothing about who owes it is read: no published figure separates recovery by
+    how the debtor responds, and balance has no significant effect (FTC 2013, Table 7).
     """
-    return round(arrears_gbp * post_write_off_recovery_share()[0], 2)
+    share = post_write_off_recovery_share()[0]
+    if age_at_close_days > AGED_AT_CLOSE_DAYS:
+        share *= post_write_off_aged_ratio()[0]
+    return round(arrears_gbp * share, 2)
 
 
 def debt_sale_proceeds(arrears_gbp: float) -> float | None:
@@ -381,15 +417,19 @@ def debt_sale_proceeds(arrears_gbp: float) -> float | None:
     return None if price is None else round(arrears_gbp * price, 2)
 
 
-def post_write_off_recovery_gbp(arrears_gbp: float, archetype: str) -> float:
-    """The terminal stage's proceeds. AVOIDANT debt is sold only when a sale price exists. Until then
-    it is worked like any other debt. Other SIM debt mechanisms (W2_12 change-of-tenancy exit debt,
+def _supplier_sells() -> bool:
+    """Whether the supplier sells at the price the register says a purchaser offers. Its choice, not
+    the world's: asked through the door, with no household attribute in the question."""
+    return sells_written_off_debt(debt_sale_price_share()[0])
+
+
+def post_write_off_recovery_gbp(arrears_gbp: float, *, age_at_close_days: int) -> float:
+    """The terminal stage's proceeds: the sale price if the supplier sells, else what the agency
+    recovers. Other SIM debt mechanisms (W2_12 change-of-tenancy exit debt,
     `simulation/final_bill_outcome.py`) fold this rather than choosing their own rates."""
-    if archetype == "AVOIDANT":
-        proceeds = debt_sale_proceeds(arrears_gbp)
-        if proceeds is not None:
-            return proceeds
-    return dca_recovered_amount(arrears_gbp, archetype)
+    if _supplier_sells():
+        return debt_sale_proceeds(arrears_gbp)
+    return dca_recovered_amount(arrears_gbp, age_at_close_days)
 
 
 def on_time_probability(stress: str) -> float:
@@ -407,16 +447,17 @@ def late_days_band(stress: str) -> tuple[int, int]:
     return _LATE_DAYS.get((stress or "LOW").upper(), _LATE_DAYS["LOW"])
 
 
-def _post_writeoff_stages(arrears_gbp: float, write_off_date: date, archetype: str) -> list[dict]:
+def _post_writeoff_stages(arrears_gbp: float, write_off_date: date, *,
+                          age_at_close_days: int) -> list[dict]:
     """Stages appended AFTER WRITTEN_OFF -- never changes the WRITTEN_OFF
     stage itself (date/position), only extends the cascade past it."""
-    dca_date = write_off_date + timedelta(days=DCA_PLACEMENT_DAYS)
+    dca_date = dca_placement_date(write_off_date)
     stages = [{"stage": "PLACED_WITH_DCA", "date": dca_date.isoformat(),
                "note": "Debt placed with third-party debt collection agency"}]
     price, _reason = debt_sale_price_share()
-    if archetype == "AVOIDANT" and price is not None:
+    if _supplier_sells():
         sold_date = dca_date + timedelta(days=DEBT_SALE_DAYS)
-        proceeds = post_write_off_recovery_gbp(arrears_gbp, archetype)
+        proceeds = post_write_off_recovery_gbp(arrears_gbp, age_at_close_days=age_at_close_days)
         stages.append({
             "stage": "SOLD", "date": sold_date.isoformat(), "amount_gbp": proceeds,
             "note": "Debt sold to purchaser -- GBP%.2f proceeds at %.1f%% of face value"
@@ -424,8 +465,8 @@ def _post_writeoff_stages(arrears_gbp: float, write_off_date: date, archetype: s
         })
     else:
         recovered_date = dca_date + timedelta(days=DCA_OUTCOME_DAYS)
-        share, _basis = post_write_off_recovery_share()
-        net = post_write_off_recovery_gbp(arrears_gbp, archetype)
+        net = post_write_off_recovery_gbp(arrears_gbp, age_at_close_days=age_at_close_days)
+        share = net / arrears_gbp if arrears_gbp else 0.0
         stages.append({
             "stage": "RECOVERED", "date": recovered_date.isoformat(), "amount_gbp": net,
             "note": "DCA recovered GBP%.2f (%.1f%% of the balance written off)"
@@ -729,9 +770,10 @@ _NOTICE_AMOUNT_NOTES = {"FIRST_NOTICE": ledger_notice_wording("FIRST_NOTICE"),
 
 
 def arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
-                    archetype: str = "NEUTRAL", *, method: str,
+                    *, method: str,
                     write_off_date: date | None = None,
-                    write_off_gbp: float | None = None) -> list[dict]:
+                    write_off_gbp: float | None = None,
+                    age_at_close_days: int = 0) -> list[dict]:
     """`method` is REQUIRED and keyword-only, deliberately.
 
     A default of `"direct_debit"` would have preserved the exact defect this
@@ -750,6 +792,9 @@ def arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
 
     `write_off_gbp` is what `balance_write_offs` wrote off, when that is less than the case: a
     level-DD leaver's over-collection discharged part of it (home_moves.md s.8.8b choice 4).
+
+    `age_at_close_days` is `age_at_close_days(write_off)` for the walk's record. A case with no
+    close (the due+90 fallback) was never a year overdue at one, so 0.
     """
     # Which notices went out, and when, is the supplier's dunning decision (2026-10-12): asked.
     stages = [opening_arrears_stage(method, due_date), *ledger_notices(due_date, arrears_gbp)]
@@ -765,7 +810,8 @@ def arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
         stages.append({"stage": "WRITTEN_OFF", "date": write_off_date.isoformat(),
                         "amount_gbp": written,
                         "note": "Debt written off -- bad debt provision raised"})
-        stages.extend(_post_writeoff_stages(written, write_off_date, archetype))
+        stages.extend(_post_writeoff_stages(written, write_off_date,
+                                            age_at_close_days=age_at_close_days))
     return stages
 
 
@@ -853,7 +899,7 @@ def with_credits_applied(stages: list[dict], face_gbp: float, credits: list[dict
 
 
 def ic_arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
-                       archetype: str = "NEUTRAL", *,
+                       *,
                        write_off_date: date | None = None) -> list[dict]:
     stages = [
         {"stage": "INVOICE_DISPUTED", "date": due_date.isoformat(),
@@ -871,7 +917,7 @@ def ic_arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
         stages.append({"stage": "WRITTEN_OFF",
                         "date": write_off_date.isoformat(),
                         "note": "Debt written off -- bad debt provision raised"})
-        stages.extend(_post_writeoff_stages(arrears_gbp, write_off_date, archetype))
+        stages.extend(_post_writeoff_stages(arrears_gbp, write_off_date, age_at_close_days=0))
     return stages
 
 
@@ -1205,7 +1251,7 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
     ``write_offs`` of a failed/disputed bill, ``credits_applied`` of that or of a paid bill.
 
     ``write_offs`` has one entry per bill that is WRITTEN OFF: ``{"date", "amount_gbp", "leg",
-    "outcome", "method", "due_date"}``, where ``amount_gbp`` is what is still unpaid on that bill
+    "outcome", "method", "due_date", "final_bill_on"}``, where ``amount_gbp`` is what is still unpaid on that bill
     once credits are netted. A failed bill that is not here is either still an open balance on a
     live account at the end of the run, or has been cleared by credit.
 
@@ -1329,11 +1375,11 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
             if item["remaining"] <= 0 and item in outstanding:
                 outstanding.remove(item)
 
-        def _write_off(item: dict, when: date, leg: str) -> None:
+        def _write_off(item: dict, when: date, leg: str, final_bill_on: date | None = None) -> None:
             r = item["row"]
             out[_key(r)] = {"date": when, "amount_gbp": item["remaining"], "leg": leg,
                             "outcome": r["outcome"], "method": r["method"],
-                            "due_date": r["due_date"]}
+                            "due_date": r["due_date"], "final_bill_on": final_bill_on}
 
         def _bar(until: date) -> None:
             for item in list(outstanding):
@@ -1533,7 +1579,8 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
         if leaver:
             # The company's own write-off date, a year after the final bill was issued: the date
             # the desk writes the same balance off on (debt_and_collections.md s.7.3).
-            closed_on = closed_account_write_off_date(bill_issued_for(horizon))
+            final_bill = bill_issued_for(horizon)
+            closed_on = closed_account_write_off_date(final_bill)
             # How much of each outstanding bill is written off is the company's (s.8.8b choice 4,
             # `closing_write_off_by_bill`): a level leaver's one balance goes over, off a level
             # schedule nothing does (KNIFE3, 2026-11-19).
@@ -1541,7 +1588,7 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                     [item["remaining"] for item in outstanding],
                     closing if cid in level else None):
                 outstanding[i]["remaining"] = amount
-                _write_off(outstanding[i], closed_on, LEG_CLOSE)
+                _write_off(outstanding[i], closed_on, LEG_CLOSE, final_bill)
     return out, credited
 
 
@@ -1750,8 +1797,8 @@ def compute_debt_recovery(bills: list[dict], behavioral: dict, churned_ids: set[
     `compute_emergent_bad_debt` books, keyed by (customer_id, year of the RECOVERED/SOLD stage).
 
     Only the close leg is placed with a collector. A statute-barred balance cannot be enforced,
-    so it is written off with no recovery stage. debt_archetype() is read at the write-off year,
-    SIM-side only.
+    so it is written off with no recovery stage. Whether it is sold or worked is the supplier's
+    choice (`sells_written_off_debt`); no household label is read.
     """
     result: dict[tuple[str, int], float] = {}
     for (cid, _pe, _c), wo in sorted(balance_write_offs(
@@ -1759,9 +1806,8 @@ def compute_debt_recovery(bills: list[dict], behavioral: dict, churned_ids: set[
             level_dd_collections=level_dd_collections, set_offs=set_offs).items()):
         if wo["leg"] != LEG_CLOSE:
             continue
-        trajectory = (behavioral.get(cid) or {}).get("income_stress_trajectory") or []
-        archetype = debt_archetype(trajectory, wo["date"].year)
-        terminal = _post_writeoff_stages(wo["amount_gbp"], wo["date"], archetype)[-1]
+        terminal = _post_writeoff_stages(wo["amount_gbp"], wo["date"],
+                                         age_at_close_days=age_at_close_days(wo))[-1]
         key = (cid, int(terminal["date"][:4]))
         result[key] = round(result.get(key, 0.0) + terminal["amount_gbp"], 2)
     return result

@@ -8,6 +8,82 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-20 — orientation: Three hours: 8 commits, 6 carrying work, 5 substantive
+
+<!-- head: 834610bd1209 -->
+
+*Written by the orientation seat from its own record (2026-11-20T03:22:47.583011+00:00; 8 commits, 5 substantive, since 2026-11-20T00:20:29.815978+00:00).*
+
+Commit split (product code by path): 0 supplier, 2 world, 0 both, 6 other.
+
+## What the stretch meant
+
+Three hours: 8 commits, 6 carrying work, 5 substantive. The split reads 0 supplier, 2 world, 6 other, and by content no supplier code moved. Nothing went backwards. The thesis test has not answered yet: the 0.12 pair is in its second child, at Nov 2023 at 03:22Z, so its read is close but not in this stretch. The useful result is a refuted premise, and the premise was mine. Last record's item 2 asked for a per-debt sale rule built from the company's own contact history. The worker measured first (9d3e4de57): the world recovers the same share of every written-off debt, and the company's 0.122 is the world's 0.122. So a per-debt rule has nothing to find, and it could not fail in a run. 834610bd1 added the published evidence (debt buyers exclude debts in sensitive circumstances; buyers collect about twice the price, so 11-19p per GBP, which brackets 0.122). A parallel draw had already built the learned rule; it is parked on branch knife3-per-debt-sale (9fcd4a53fa), which no remote holds. This is the thesis working as it should: inference cannot beat average where the world gives it nothing to infer. The world-first successor that makes recovery vary by what a supplier can see is in its landing gate right now (surgical_land on simulation/final_bill_outcome.py). The supplier rule waits on it, which is item 3. The gas item is done (22f1dfa98). Of the 433 fallback legs, the ERA5 pull can fill 319 and never 114, and the incoming occupier's heating share is a named GAP, so no constant gets built. W1_14 moved ERA5 to 474 of 919 cells. The previous focus was drawn on two of four items, both finished. The pair and the D48 switch-on are dated, not stalled. Lane 0 not_done rows: poesys-net-goes-behind-a-login waits on the director's Zero Trust sign-up (his open row), and its advisor file stays in docs/staging/advisor/ until that step is done. skip1 landed under a2c848965b last record. The checkout is 15 behind origin, so daemons run the pre-b8132407e collections code. That matters only for in-place edits, and item 3 says to work from origin.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 03:22 20 Nov -- unchanged; the 0.12 pair runs with the weighing off, so it cannot move this belief.
+- NOT corrected: THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 03:22 20 Nov -- unchanged. The pair's second child is at Nov 2023; its read is focus item 1.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 03:22 20 Nov -- unchanged; the 23 Nov recheck stands on 67d454905c or the next book.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 03:22 20 Nov -- unchanged as re-stated.
+- NOT corrected: THE MACHINE'S, NEW. The prepayment meter build (f0445b2dc) landed from its continuation during the stretch. The last record's not_now held that build until skip0 and the 0.12 pair had read, and its waits_for did not say so, so the queue could not see the hold. It draws on its own streams and changes no company code, so the value pair should be unaffected. That is the commit's own claim, and no pair has checked it. [Earlier tails are in decisions.jsonl.] 03:22 20 Nov -- the check (67d454905c against 7f0723b46e) is now focus item 4.
+- corrected: THE MACHINE'S (THIS SEAT'S), NEW. My 00:20 record asked for a per-debt sale rule built from the company's own records without first asking whether the world's recovery varies per debt. It does not (9d3e4de57): every debt recovers the world's 0.122. The item was also drawn twice in parallel, so one draw built a rule the other then showed could not fail. Corrected here: the measurement and the evidence are on origin (9d3e4de57, 834610bd1), and item 3 makes the rule wait for the world-first change. The double draw cost one build, and that build was kept on a branch.
+
+## Chosen against
+
+- Landing the per-debt sale rule from knife3-per-debt-sale now, before the world varies.
+- Building an occupier heating-share constant for the 114 gas legs ERA5 can never fill.
+- Switching on the corrected renewal churn belief (the AUC 0.333 row).
+- Reaping the 10 at-risk salvage worktrees, and working the repeating fork and supervisor alarms.
+- Fast-forwarding the shared checkout so the daemons load b8132407e.
+
+## Focus for the next stretch
+
+- `the-0-12-pair-is-read-and-the-advantage-is-published-with-its-interval`
+- `d48-the-electricity-blend-goes-on-in-the-published-policy`
+- `knife3-the-held-per-debt-sale-rule-lands-on-the-varying-world`
+- `prepayment-build-is-checked-against-the-value-figures`
+
+---
+
+## 2026-11-20 — orientation: Three hours: 12 commits, 11 carrying work, 6 substantive
+
+<!-- head: f165c9b1ee28 -->
+
+*Written by the orientation seat from its own record (2026-11-20T00:20:29.815978+00:00; 12 commits, 6 substantive, since 2026-11-19T21:24:22.310273+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 3 both, 9 other.
+
+## What the stretch meant
+
+Three hours: 12 commits, 11 carrying work, 6 substantive. The brief's split reads 0 supplier, 0 world, 3 both, 9 other; by content the supplier moved three times and nothing went backwards, but the thesis evidence is still zero new pounds. The supplier moves: D48's BSC blend is built behind an off switch with SPAR as the range [0.5, 3] and graded at both ends on 67d454905c (617ec5faa): the electricity unbilled gap is 0.276-0.361 against the hold's 0.388, and the E1 breach and flag sets are the hold's at both ends. That is an inference gain on the director's first billing-accuracy item, sitting switched off. KNIFE3 moved two more decisions company-side: when a written-off debt goes to an agency (31fbcbed1, byte-equal on replay), and whether it is sold or worked (b8132407e). The second one matters for the thesis. The world used to sell exactly the debts whose hidden archetype read AVOIDANT, which no supplier can see. That was access, and it is gone. But the company's rule is now one book-wide number (sell above 0.122), so it has no per-customer view yet. That is focus item 2. W3_3 was graded (3d75dfd74): the split is charged exactly and no domestic account reaches the deemed or flex writers, so B12's path is clear. The wrong row is re-stated, not closed. On gas, f165c9b1e attributes the 41 legs that left the 70/30 fallback to W1_14 filling ERA5 cells, with none moving for an EPC reason. So the gas residual shrinks as the ERA5 pull fills cells, and an unsourced occupier-split constant is the wrong lever. The thesis test, the 0.12 pair, is in its second child at Feb 2018. My last record said it would answer tonight, and it will not before about 08:00Z (listed wrong, corrected). sim-runner yields to the pair, so no new book builds before then either. The previous focus was all drawn, and three of four items are done: the D48 build, the W3_3 grade and a KNIFE3 row. The pair item stays because its subject has not happened yet. Lane 0 rows: skip1 landed under a2c848965b, and skip0 and the electricity trace are premise-spent on 9a361e356 and 3d967150f. poesys-net-goes-behind-a-login is not_done because its next step is the director's Zero Trust sign-up, his open row; its K8 note landed (8f65e09fa). The shared checkout is 7 behind origin, and the daemons run pre-b8132407e collections code. That matters only for a worker editing collections_journey in place, and the KNIFE3 continuation says to work from origin.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:20 19 Nov -- unchanged. 21:24 19 Nov -- unchanged; the 0.12 pair runs with the weighing off, so it does not touch this belief. 00:20 20 Nov -- unchanged; the 0.12 pair runs with the weighing off, so it cannot move this belief.
+- NOT corrected: THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 18:20 19 Nov -- the pair's W3_3 book had not built. 21:24 19 Nov -- the book built (67d454905c, 20:36Z), and the 0.12 pair launched at 20:42Z and is running. Its read is focus item 1. 00:20 20 Nov -- unchanged. The pair is in its second child (member 11111_22222, at Feb 2018 at 00:20Z), and its own prose puts the end near 08:00Z. Its read is focus item 1.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:20 19 Nov -- narrowed: N17 does not explain the electricity unbilled residual. 21:24 19 Nov -- unchanged; the recheck by 23 Nov stands, and 67d454905c is the book to recheck it on. 00:20 20 Nov -- unchanged. No new book can build before the pair ends (sim-runner yields to it), so the 23 Nov recheck stands on 67d454905c or the next book.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 18:20 19 Nov -- held by the fork deferral. 21:24 19 Nov -- the book its grade needs, carrying c71d2521d, built at 20:36Z; the grade is focus item 4. 19 Nov -- RE-STATED on the 67d454905c grade: the book holds no deemed or flex row (only the absent I&C demo accounts reach those writers), so the measured gap is GBP 0.00 per domestic account-day, not 0.47-0.60. Voids omit GBP 202.53 of fixed network over ten years. The hedged writer B12 reads carries the split exactly, so this row no longer blocks B12. The writers' defect stays latent and open. 00:20 20 Nov -- unchanged as re-stated: 0.00 per domestic account-day, voids GBP 202.53 over ten years, latent fix, off B12's path.
+- NOT corrected: THE MACHINE'S, NEW. The prepayment meter build (f0445b2dc) landed from its continuation during the stretch. The last record's not_now held that build until skip0 and the 0.12 pair had read, and its waits_for did not say so, so the queue could not see the hold. It draws on its own streams and changes no company code, so the value pair should be unaffected. That is the commit's own claim, and no pair has checked it. 18:20 19 Nov -- unchanged. 21:24 19 Nov -- my 18:20 tail said the pair "runs on a book that carries the build". It does not: the pair's tree is 870201d1e7, which predates f0445b2dc. The published book 67d454905c carries it, so the check is that book against 7f0723b46e (not_now this stretch). 00:20 20 Nov -- unchanged; the check is 67d454905c against 7f0723b46e, not_now again this stretch.
+- corrected: THE MACHINE'S (THIS SEAT'S), NEW. My 21:24 record said the 0.12 pair answers "tonight" and "the next three hours are when the pair answers". The pair's own prose puts its end at about 08:00Z 20 Nov, and at 00:20Z it is in its second child at Feb 2018. I read the launch time and not the run length. Corrected here: no reading of the advantage is due before about 08:00Z, and nothing in this record waits on one sooner.
+
+## Chosen against
+
+- Building the W2_30 occupier-split change from the 70/30 fallback to about 0.85 now that the attribution has landed.
+- Switching the D48 blend on immediately rather than after 20:00Z.
+- Switching on the corrected renewal churn belief (the AUC 0.333 row).
+- Checking the prepayment build against value figures (67d454905c against 7f0723b46e), and the N17 recheck.
+- Reaping the 10 at-risk salvage worktrees, a Pages-Function password gate, and the repeating supervisor and fork alarms.
+
+## Focus for the next stretch
+
+- `the-0-12-pair-is-read-and-the-advantage-is-published-with-its-interval`
+- `knife3-a-per-debt-sale-rule-from-the-companys-own-contact-history`
+- `d48-the-electricity-blend-goes-on-in-the-published-policy`
+- `gas-fallback-legs-are-recounted-after-each-era5-pass`
+
+---
+
 ## 2026-11-19 — orientation: Three hours: 10 commits, 8 carrying work, 3 substantive
 
 <!-- head: 357e49bce405 -->

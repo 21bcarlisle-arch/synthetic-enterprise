@@ -4,6 +4,8 @@
 
 Ruling: `docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md`.
 That file stays open until the gate is proved. This record is the first increment.
+The K8 note (routes gated, machine readers the gate will break, reversal):
+`docs/design/POESYS_NET_BEHIND_A_LOGIN_2026-11-19.md`.
 
 ## Landed (delivery seat, executor lane, 19 Nov)
 

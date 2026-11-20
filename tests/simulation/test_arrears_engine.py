@@ -243,7 +243,7 @@ def test_debt_archetype_single_high_year_reads_overwhelmed():
 
 
 def test_arrears_stages_written_off_unchanged_then_recovered_for_overwhelmed():
-    written_off = arrears_stages(100.0, date(2022, 1, 1), False, archetype='OVERWHELMED', method='direct_debit')
+    written_off = arrears_stages(100.0, date(2022, 1, 1), False, method='direct_debit')
     stage_names = [s['stage'] for s in written_off]
     assert stage_names == ['DD_FAILED', 'FIRST_NOTICE', 'SECOND_NOTICE', 'WRITTEN_OFF',
                            'PLACED_WITH_DCA', 'RECOVERED']
@@ -254,17 +254,17 @@ def test_arrears_stages_written_off_unchanged_then_recovered_for_overwhelmed():
 
 
 def test_arrears_stages_written_off_unchanged_then_recovered_for_neutral():
-    written_off = arrears_stages(100.0, date(2022, 1, 1), False, archetype='NEUTRAL', method='direct_debit')
+    written_off = arrears_stages(100.0, date(2022, 1, 1), False, method='direct_debit')
     stage_names = [s['stage'] for s in written_off]
     assert stage_names[-1] == 'RECOVERED'
     wo = next(s for s in written_off if s['stage'] == 'WRITTEN_OFF')
     assert wo['date'] == (date(2022, 1, 1) + timedelta(days=90)).isoformat()
 
 
-def test_arrears_stages_written_off_unchanged_then_worked_for_avoidant_while_no_sale_price():
-    """The register has no energy debt-sale price, so AVOIDANT debt is worked, not sold. The SOLD
-    branch is reached in test_post_write_off_recovery_reads_the_register.py once one is set."""
-    written_off = arrears_stages(100.0, date(2022, 1, 1), False, archetype='AVOIDANT', method='direct_debit')
+def test_arrears_stages_written_off_unchanged_then_worked_while_no_sale_price():
+    """The register has no energy debt-sale price, so the supplier sells nothing. The SOLD branch is
+    reached in test_post_write_off_recovery_reads_the_register.py once a price beats its recovery."""
+    written_off = arrears_stages(100.0, date(2022, 1, 1), False, method='direct_debit')
     stage_names = [s['stage'] for s in written_off]
     assert stage_names == ['DD_FAILED', 'FIRST_NOTICE', 'SECOND_NOTICE', 'WRITTEN_OFF',
                            'PLACED_WITH_DCA', 'RECOVERED']
@@ -273,14 +273,8 @@ def test_arrears_stages_written_off_unchanged_then_worked_for_avoidant_while_no_
     assert 'GBP' in written_off[-1]['note']
 
 
-def test_arrears_stages_default_archetype_is_neutral():
-    default = arrears_stages(100.0, date(2022, 1, 1), False, method='direct_debit')
-    explicit_neutral = arrears_stages(100.0, date(2022, 1, 1), False, archetype='NEUTRAL', method='direct_debit')
-    assert default == explicit_neutral
-
-
 def test_ic_arrears_stages_written_off_unchanged_then_recovered():
-    written_off = ic_arrears_stages(100.0, date(2022, 1, 1), False, archetype='NEUTRAL')
+    written_off = ic_arrears_stages(100.0, date(2022, 1, 1), False)
     stage_names = [s['stage'] for s in written_off]
     assert stage_names == ['INVOICE_DISPUTED', 'DISPUTE_NOTICE', 'WRITTEN_OFF',
                            'PLACED_WITH_DCA', 'RECOVERED']
@@ -288,8 +282,8 @@ def test_ic_arrears_stages_written_off_unchanged_then_recovered():
     assert wo['date'] == (date(2022, 1, 1) + timedelta(days=60)).isoformat()
 
 
-def test_ic_arrears_stages_written_off_unchanged_then_worked_for_avoidant_while_no_sale_price():
-    written_off = ic_arrears_stages(100.0, date(2022, 1, 1), False, archetype='AVOIDANT')
+def test_ic_arrears_stages_written_off_unchanged_then_worked_while_no_sale_price():
+    written_off = ic_arrears_stages(100.0, date(2022, 1, 1), False)
     stage_names = [s['stage'] for s in written_off]
     assert stage_names == ['INVOICE_DISPUTED', 'DISPUTE_NOTICE', 'WRITTEN_OFF',
                            'PLACED_WITH_DCA', 'RECOVERED']

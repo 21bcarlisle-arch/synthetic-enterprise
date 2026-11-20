@@ -496,7 +496,8 @@ def exit_debt_recovery_gbp(resolution: FinalBillResolution) -> float:
     shortfall = resolution.shortfall_gbp
     if shortfall <= 0 or resolution.debt_archetype is None:
         return 0.0
-    return post_write_off_recovery_gbp(shortfall, resolution.debt_archetype)
+    # The shortfall is the final bill itself, so it is not a year overdue at close.
+    return post_write_off_recovery_gbp(shortfall, age_at_close_days=0)
 
 
 __all__ = [

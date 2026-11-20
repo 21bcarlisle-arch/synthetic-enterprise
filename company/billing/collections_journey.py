@@ -296,6 +296,41 @@ def bill_issued_for(due: dt.date) -> dt.date:
     from company.billing.invoice import PAYMENT_TERMS_DAYS
     return due - dt.timedelta(days=PAYMENT_TERMS_DAYS)
 
+#: Days from a closed account's write-off to its placement with a debt collection agency. The
+#: company's own collections timing (KNIFE3, 2026-11-19: the world held it as its own until then).
+#: SIMPLIFICATION, not a benchmark: docs/market_research/ASSUMPTIONS.md row "DCA placement window"
+#: is a named GAP -- no published post-write-off placement timing was found; the nearest published
+#: figure (60-90 days) is for the earlier internal-fail -> referral step. Doing it properly needs a
+#: supplier's own referral-policy disclosure; the error direction is unknown.
+DCA_PLACEMENT_DAYS = 30
+
+
+def dca_placement_date(written_off: dt.date) -> dt.date:
+    """The day the company places a debt written off on `written_off` with a collection agency.
+    The world asks and keeps what the agency then recovers, and when."""
+    return written_off + dt.timedelta(days=DCA_PLACEMENT_DAYS)
+
+
+def sells_written_off_debt(offered_price_share: float | None, *, sensitive: bool = False) -> bool:
+    """Whether the company sells a written-off debt to a purchaser offering `offered_price_share` per
+    GBP of face value, rather than having an agency work it. With no offer it is worked.
+
+    A debt the company knows is in sensitive circumstances (`sensitive`: its own Priority Services
+    Register or vulnerability record, never the world's hidden state) is never sold, whatever the
+    offer. Sellers exclude "accounts not eligible for sale due to sensitive circumstances" (TDX
+    Group, Equifax, debt-sale brochure; debt_and_collections.md s.7.7).
+
+    It sells only when the offer is above what the company itself expects to recover per GBP on a
+    closed, aged balance (`PRIOR_POST_CLOSE_RECOVERY`). No household attribute is read, and the rule
+    is the same for every debt: the company has no per-debt recovery estimate yet. Agency commission
+    is a GAP and is not deducted, so this sells less often than a supplier who knew its commission
+    would (debt_and_collections.md s.7.7)."""
+    if offered_price_share is None or sensitive:
+        return False
+    from company.finance.cash_forecast_provision import PRIOR_POST_CLOSE_RECOVERY
+    return offered_price_share > PRIOR_POST_CLOSE_RECOVERY
+
+
 def statute_barred_gbp(ledger: AccountLedger, on: dt.date, payment_terms_days: int = 14) -> float:
     """What this account owes on `on` that is statute-barred: the FIFO-unpaid bills due at least six
     years before `on`, and only if no payment has landed on the account in those six years. Read off

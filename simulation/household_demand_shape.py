@@ -170,15 +170,47 @@ class SeasonalGasRefusal:
 
 #: The reason carried for a resi gas leg that SETTLED with neither a fitted split nor a refusal.
 #: Settlement falls to the population split for it (`run_gas_term`'s `heating_fraction=None`), so
-#: leaving it out of the record is exactly the silent fallback the record exists to show. The known
-#: case is the incoming occupier's `OCC-` leg (241 account-years of the 8a300fa561 book), which does
-#: not carry its premise's split: `docs/market_research/the_domestic_gas_year_heats_on_about_85_
-#: percent_not_70_2026-11-19.md` s.8. Whether it should is a design choice that lands with the
-#: W2_30 recalibration; this only stops it being invisible.
+#: leaving it out of the record is exactly the silent fallback the record exists to show. The case
+#: that found it was the incoming occupier's `OCC-` leg (241 account-years of the 8a300fa561 book,
+#: `docs/market_research/the_domestic_gas_year_heats_on_about_85_percent_not_70_2026-11-19.md` s.8);
+#: that leg now carries its premise's split or refusal (`carry_premise_split_to_occupier`), so a row
+#: with this reason is a leg whose premise had neither.
 SETTLED_WITHOUT_A_SPLIT_OR_A_REFUSAL = (
-    "settled on the population split with no split fitted and no refusal recorded for this leg "
-    "(an incoming occupier's leg does not carry its premise's split)"
+    "settled on the population split with no split fitted and no refusal recorded for this leg"
 )
+
+
+def carry_premise_split_to_occupier(
+    premise: str,
+    leg: str,
+    splits: dict[str, SeasonalGasSplit],
+    refusals: list[SeasonalGasRefusal],
+    *,
+    premise_split_is_stale: bool = False,
+) -> None:
+    """Give an incoming occupier's gas leg its premise's seasonal split, or a refusal naming why not.
+
+    The occupier's leg reads its premise's own fabric series (`_admit_incoming_occupant` copies
+    it), so refitting that leg would return the premise's fit to the decimal: carrying it is what
+    the world already asserts. That the world holds a dwelling's trace fixed across a change of
+    occupier is the GAP named in `docs/market_research/the_domestic_gas_year_heats_on_about_85_
+    percent_not_70_2026-11-19.md` s.9, not a number this sets.
+
+    ``premise_split_is_stale``: the premise id's split belongs to a home it has not yet been
+    refitted for (a moved gas leg's refit waits for its next term), so it is not this dwelling's.
+    """
+    if leg in splits or any(r.customer_id == leg for r in refusals):
+        return
+    if premise_split_is_stale:
+        refusals.append(SeasonalGasRefusal(
+            leg, "the premise's split is its previous home's, not yet refitted on this dwelling"))
+        return
+    premise_refusal = next((r for r in refusals if r.customer_id == premise), None)
+    if premise_refusal is not None:
+        refusals.append(SeasonalGasRefusal(
+            leg, f"the premise's own split was refused: {premise_refusal.reason}"))
+    elif premise in splits:
+        splits[leg] = splits[premise]
 
 
 def gas_shape_record(

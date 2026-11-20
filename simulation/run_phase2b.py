@@ -256,6 +256,7 @@ from simulation.household import (
 from simulation.household_demand import HouseholdDemandRegister
 from simulation.household_demand_shape import (
     SeasonalGasRefusal,
+    carry_premise_split_to_occupier,
     gas_shape_record,
     seasonal_gas_split,
     seasonal_gas_splits_for_book,
@@ -3129,6 +3130,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             FabricEligibility(leg, _v.is_eligible, _v.reason)
             for _v in list(fabric_eligibility_verdicts) if _v.customer_id == premise
         )
+        # ...and so is its seasonal gas split: the leg reads the premise's fabric series, so a refit
+        # would return the premise's fit. Before this, every OCC- gas leg settled on 0.70 (W2_30).
+        if commodity == "gas":
+            carry_premise_split_to_occupier(
+                premise, leg, gas_heating_fraction_by_customer, gas_shape_refusals,
+                premise_split_is_stale=premise in _gas_relocation_pending)
         next_hf[leg] = current_hf[leg] = RESET_HEDGE_FRACTION
         term_indices[leg] = 0
         evolution_logs[leg] = []

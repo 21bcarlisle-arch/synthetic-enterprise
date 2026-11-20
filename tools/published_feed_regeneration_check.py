@@ -313,6 +313,14 @@ NOT_A_FUNCTION_OF_ITS_COMMIT = {
         "publishes `age_days` — `date.today()` minus a committed `last_checked` — so its bytes are "
         "a function of the day it was published on, not of the commit it was published from"
     ),
+    "capabilities_door.json": (
+        "DEMOTED from COVERED_AT_THEIR_OWN_COMMIT 2026-11-18. f4f825b8b's `fixed_this_week` set its "
+        "window and `as_of` from the publish instant, so at its recorded commit 49d41097b the "
+        "displaced-clock run moved `/fixed_this_week/as_of` (18 Nov 2026 -> 23 Dec 2027) and "
+        "`/fixed_this_week/commits_to_the_model` (48 -> 0). The producer now ends the week at HEAD's "
+        "commit time; the first publish from that code reproduces at its commit and the own-commit "
+        "promotion leg reds until it is put back"
+    ),
 }
 
 
@@ -394,7 +402,7 @@ CANDIDATES_AT_THEIR_OWN_COMMIT = {
 #: here before it exists so that a reader who finds it missing knows it is owed rather than
 #: assuming the set is unguarded.
 COVERED_AT_THEIR_OWN_COMMIT: dict[str, str] = {
-    "capabilities_door.json": "generate_capabilities_door",
+    # capabilities_door.json demoted 2026-11-18: see NOT_A_FUNCTION_OF_ITS_COMMIT.
     "evidence.json": "generate_evidence_data",
 }
 
@@ -904,6 +912,18 @@ def _verdict(committed: bytes, first: bytes, second: bytes | None) -> tuple[str,
         return "UNPARSEABLE", {"error": str(exc)[:200]}
     against_committed = compare(was, now)
     if not (against_committed["changed"] or against_committed["removed"]):
+        # A first run that matches FRESH committed bytes says nothing about the clock: the
+        # displaced-clock run is the one that can. Returning before reading it is how
+        # `knowledge_review.json` (age_days) read AGREES again on 18 Nov, the day after a publish.
+        if second is not None:
+            try:
+                displaced = compare(now, json.loads(second))
+            except (ValueError, UnicodeDecodeError) as exc:
+                return "UNPARSEABLE", {"error": str(exc)[:200]}
+            if displaced["changed"] or displaced["removed"] or displaced["added"]:
+                return "NONDETERMINISTIC", {
+                    "run_to_run": [list(map(str, c)) for c in displaced["changed"][:5]],
+                }
         return "AGREES", {}
     if second is not None:
         try:

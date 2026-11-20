@@ -69,10 +69,10 @@ from simulation.arrears_engine import (
     paid_on,
 )
 from simulation.arrears_engine import (
-    arrears_stages as _arrears_stages,
+    age_at_close_days as _age_at_close_days,
 )
 from simulation.arrears_engine import (
-    debt_archetype as _debt_archetype,
+    arrears_stages as _arrears_stages,
 )
 from simulation.arrears_engine import (
     ic_arrears_stages as _ic_arrears_stages,
@@ -1213,8 +1213,6 @@ def generate(run_json_path=None, out_path=None):
             # A case that is not written off is still an open balance, and ends on BALANCE_OPEN.
             still_open = written_off is None
             wo_date = None if written_off is None else written_off["date"]
-            write_off_year = (wo_date or due_date + timedelta(days=90)).year
-            archetype = _debt_archetype(beh.get("income_stress_trajectory") or [], write_off_year)
             arr = {
                 "case_id": "ARR-%s-%s" % (cid, period_end),
                 "invoice_number": invoice_number,
@@ -1226,23 +1224,23 @@ def generate(run_json_path=None, out_path=None):
                 # PAYMENT_CHANNEL_DD_CONSISTENCY. Reading it from anywhere else
                 # would reintroduce the two-generator disagreement.
                 "stages": _arrears_stages(
-                    amount, due_date, still_open, archetype, method=method,
+                    amount, due_date, still_open, method=method,
                     write_off_date=wo_date,
                     write_off_gbp=(None if written_off is None
-                                   else min(amount, written_off["amount_gbp"]))),
+                                   else min(amount, written_off["amount_gbp"])),
+                    age_at_close_days=(0 if written_off is None
+                                       else _age_at_close_days(written_off))),
             }
             arrears_by_cid.setdefault(cid, []).append(arr)
         elif outcome_case == "dispute":
             still_open = written_off is None
             wo_date = None if written_off is None else written_off["date"]
-            write_off_year = (wo_date or due_date + timedelta(days=60)).year
-            archetype = _debt_archetype(beh.get("income_stress_trajectory") or [], write_off_year)
             arr = {
                 "case_id": "DIS-%s-%s" % (cid, period_end),
                 "invoice_number": invoice_number,
                 "arrears_gbp": round(amount, 2),
                 "opened_date": due_date.isoformat(),
-                "stages": _ic_arrears_stages(amount, due_date, still_open, archetype,
+                "stages": _ic_arrears_stages(amount, due_date, still_open,
                                               write_off_date=wo_date),
             }
             arrears_by_cid.setdefault(cid, []).append(arr)

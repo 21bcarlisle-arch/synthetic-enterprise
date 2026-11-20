@@ -1,280 +1,167 @@
 version: 1
-oriented_at: "2026-11-19T21:24:22.310273+00:00"
+oriented_at: "2026-11-20T03:22:47.583011+00:00"
 thesis_read: >-
-  Three hours: 10 commits, 8 carrying work, 3 substantive. The brief's split reads 1 supplier, 1 both, 8 other.
-  By content, the machine unblocked the thesis test, and the supplier moved twice. The thesis test is unblocked.
-  The fork with origin closed at 18:28Z (67d454905), sim-runner built its first book since 18 Nov on 67d454905c
-  (run complete 20:36Z), and the 0.12 pair launched at 20:42Z. The pair is the one armed test of whether the
-  per-customer arm beats the flat book. It is running now (value-test-cut012, at mid-2022 in its first child at
-  21:24Z), so nothing new is known yet about the advantage over the baseline. It still reads -GBP 1.35 (-3.03 to
-  +0.13). The pair runs on A's world, 870201d1e7, by design. That tree predates both c71d2521d and the prepayment
-  build f0445b2dc. So my last record was wrong that the pair would check the prepayment build. The published book
-  67d454905c carries the build, and that book is what can check it. Supplier work: KNIFE3 moved a fifth decision
-  company-side (c0d825b3d, the leaver's closing write-off, byte-equal on the 8a300fa561 replay). The rename into Lane 0
-  worked; the atom id never could. On electricity, the SPAR search found no public value (272145302). The SPAR sweep
-  (90838c686) then showed that the hold-or-blend choice does not turn on SPAR between 0.5 and 4. The blend lowers the
-  gap at every value in that range and leaves the E1 guard exactly as it is. So building it as a stated range is no
-  longer an invented constant, and the open director row says silence means build. It is item 2, behind a default-off
-  switch. On gas, my 18:20 thesis said the next book "should move the gas gap". The pre-registration filed at 20:42Z
-  (0c1e91449) predicted the opposite: 4accbb828 moves no settlement. The grade landing now (surgical_land pid 357188)
-  says all four of its predictions held: the residual is the world's 70/30 fallback, and it is not gone. My claim
-  is listed as wrong below. The previous focus was all drawn, and three of its four items are done. The book item
-  is done (the book built; the pair's reading is now item 1). The SPAR knowledge item is done (the GAP is recorded
-  with its search). The KNIFE3 item is done for one row and continues. The gas prediction is done and is being graded.
-  Lane 0 rows: skip1-is-graded-against-s12es-branches landed under a2c848965b (graded skip1, REFUTE, k = 0). The
-  poesys-net login row is not_done because its next step is the director's Zero Trust sign-up (his open row), not
-  work lying in the tree. Nothing went backwards. The stretch's thesis evidence is still zero new pounds, though,
-  and the next three hours are when the pair answers.
+  Three hours: 8 commits, 6 carrying work, 5 substantive. The split reads 0 supplier, 2 world, 6 other,
+  and by content no supplier code moved. Nothing went backwards. The thesis test has not answered yet:
+  the 0.12 pair is in its second child, at Nov 2023 at 03:22Z, so its read is close but not in this
+  stretch. The useful result is a refuted premise, and the premise was mine. Last record's item 2 asked
+  for a per-debt sale rule built from the company's own contact history. The worker measured first
+  (9d3e4de57): the world recovers the same share of every written-off debt, and the company's 0.122 is
+  the world's 0.122. So a per-debt rule has nothing to find, and it could not fail in a run. 834610bd1
+  added the published evidence (debt buyers exclude debts in sensitive circumstances; buyers collect
+  about twice the price, so 11-19p per GBP, which brackets 0.122). A parallel draw had already built
+  the learned rule; it is parked on branch knife3-per-debt-sale (9fcd4a53fa), which no remote holds.
+  This is the thesis working as it should: inference cannot beat average where the world gives it
+  nothing to infer. The world-first successor that makes recovery vary by what a supplier can see is
+  in its landing gate right now (surgical_land on simulation/final_bill_outcome.py). The supplier rule
+  waits on it, which is item 3. The gas item is done (22f1dfa98). Of the 433 fallback legs, the ERA5
+  pull can fill 319 and never 114, and the incoming occupier's heating share is a named GAP, so no
+  constant gets built. W1_14 moved ERA5 to 474 of 919 cells. The previous focus was drawn on two of
+  four items, both finished. The pair and the D48 switch-on are dated, not stalled. Lane 0 not_done
+  rows: poesys-net-goes-behind-a-login waits on the director's Zero Trust sign-up (his open row), and
+  its advisor file stays in docs/staging/advisor/ until that step is done. skip1 landed under a2c848965b
+  last record. The checkout is 15 behind origin, so daemons run the pre-b8132407e collections code.
+  That matters only for in-place edits, and item 3 says to work from origin.
 stretch_reviewed:
-  since: "2026-11-19T18:20:48.222530+00:00"
-  commits: 10
-  substantive: 3
+  since: "2026-11-20T00:20:29.815978+00:00"
+  commits: 8
+  substantive: 5
 focus:
 - id: the-0-12-pair-is-read-and-the-advantage-is-published-with-its-interval
   what: 'The 0.12 pair (long job value-test-cut012, log /var/tmp/longjob-value-test-cut012.log, driver
-    /var/tmp/vtc-driver/driver.py, worktree /var/tmp/value-test-cut012 at 870201d1e7) is running. Do not
-    relaunch it. Wait on its pid with tools/wait_for.py and a deadline. When it ends, run /var/tmp/vtc-driver/read_cut012.py
-    against /var/tmp/vtc-out-cut012/. Grade it against the 0.12 pair''s pre-registration in docs/design/THE_VALUE_TEST_REDESIGN.md
-    s.12f, in a new subsection beside it. Give the per-customer arm''s per-household-year change, the
-    flat book''s, and the advantage over the baseline, each with its interval and its draw and household
-    counts. Carry a `Graded: value-test` trailer. Then unlock the worktree, as its lock reason says. If
-    the job dies, read the log''s last frame, name the cause in the same section, and re-arm the pair.
-    Do not loosen it.'
-  why: 'This is the thesis''s own test: whether the per-customer arm beats the flat-rules baseline on
-    inference. The standing reading is -GBP 1.35 (-3.03 to +0.13), carried as the open wrong row. Done
-    means the graded section is on origin, giving the advantage with its interval whatever its sign. If
-    it is still negative, the section also names the next lever s.12e points to. A finished job with no
-    reader is not done.'
+    /var/tmp/vtc-driver/driver.py, worktree /var/tmp/value-test-cut012 at 870201d1e7) is running in its
+    second child, at Nov 2023 at 03:22Z. Do not relaunch it. Wait on the driver pid with tools/wait_for.py
+    and a deadline. When it ends, run /var/tmp/vtc-driver/read_cut012.py against /var/tmp/vtc-out-cut012/.
+    Grade the result in a new subsection beside s.12f of docs/design/THE_VALUE_TEST_REDESIGN.md. Give
+    the per-customer arm''s change per household-year, the flat book''s, and the advantage over the baseline,
+    each with its interval and its draw and household counts. Carry a `Graded: value-test held=<n> missed=<n>`
+    trailer. Then unlock the worktree, as its lock reason says. If the job died, name the cause from the
+    last frame in the log, in the same section, and re-arm the pair unchanged.'
+  why: 'This is the thesis''s own test: does the per-customer arm beat the flat-rules baseline by inference.
+    The standing reading is -GBP 1.35 (-3.03 to +0.13), which is the open wrong row. Done means the graded
+    section is on origin with the advantage and its interval, whatever its sign. If it is still negative,
+    the section names the next lever that s.12e points to.'
   lane: B_commercial
   side: supplier
-  written_at: 1795123735.674
-- id: d48-the-electricity-blend-is-built-across-spar-0-5-to-3
-  what: 'Build the D0019-shaped BSC Annex S-2 blend pre-registered in docs/staging/records/SEAT_PREREG_D48_THE_ELECTRICITY_RESIDUAL_BY_ESTIMATE_ROUTE_2026-11-19.md.
-    It replaces the unsourced 182-day hold in company/billing/unread_month_estimate.py and company/billing/monthly_bill_assembly.py
-    behind its own default-off switch. SPAR is carried as a stated range, [0.5, 3], and it declares its
-    origin (tools/domain_constant_origins.py) as a range drawn from SEAT_PREREG_D48_E1_BREACHES_AT_EACH_SPAR_2026-11-19.md,
-    not as a point. Amend docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md
-    first (K8): the design choice, and why a range and not a value. Then grade it read-only on docs/reports/run_output_67d454905c_20261119T184502Z.json
-    at both ends, with tools/d48_spar_blend_counterfactual.py. Report the electricity gap, the E1 breaches
-    and the flags at each end beside the pre-registered band, with a `Graded:` trailer. Leave the switch
-    off in the published policy. Turning it on is the next step, after the 0.12 pair has read.'
-  why: The electricity unbilled residual (gap 0.407) is the company setting aside reads it already holds.
-    That is an inference loss on the director's first billing-accuracy item. The sweep showed the blend
-    beats the hold at every SPAR in range without touching E1. His open row says silence means build at
-    both ends, and the switch keeps it reversible while he can still say "hold". Done means the knowledge
-    amendment, the switched build and the two-ended grade are on origin. A single SPAR value chosen anywhere
-    is not done.
+  written_at: 1795145204.846
+- id: d48-the-electricity-blend-goes-on-in-the-published-policy
+  what: 'Do not draw before 2026-11-20T20:00Z, and only if the director''s SPAR row has had no "hold".
+    In company/policy/decision_policy.py, set DecisionPolicy.bill_estimate_blends_the_eac_at_spar to 0.5
+    on the standing policies. Use 0.5 because it is the end of [0.5, 3] that claims least (F11). Keep
+    3.0 as the other published bound, via tools.d48_spar_blend_counterfactual --ends on each new book.
+    Before landing, pre-register in the D48 prereg record what the first book built with the switch on
+    should show: an electricity gap near 0.361 on a book like 67d454905c, and E1''s breach and flag sets
+    unchanged. Grade it on the first book that carries the switch, with a `Graded:` trailer.'
+  why: The blend beat the hold at both ends of the range and left E1 alone. The company is reading data
+    it already holds, so this is an inference gain on billing accuracy that is sitting switched off. Done
+    means the switch is on, on origin, and the first book's electricity gap is graded against the pre-registration
+    and published as a range.
   lane: D_billing_metering
   side: supplier
-  written_at: 1795123735.674
-- id: knife3-the-next-home-move-or-final-bill-decision-moves-company-side
-  what: 'Take the next unmoved row in docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md that is a home-move,
-    final-bill, collections or unbilled-energy decision still computed in simulation/. Leave out _would_offer
-    and retention_cut_at_the_flips in simulation/run_phase2b.py, because the value test is measuring them.
-    Five rows have moved: set-off (1c5351d18), write-off date (5e554a00b), due date (86e590a44), the reg
-    6D refund clock (434719446) and the leaver''s closing write-off (c0d825b3d). Move this one the way
-    c0d825b3d did: the company decides from its own ledger, and the world keeps the event and its timing.
-    Carry the REUSE block from tools/write_time_gate.py --explain. Pre-register byte-equality on the run_output_8a300fa561
-    replay, and name any row that moves. Mark the register row moved with its sha, and write the KNIFE3
-    map row.'
-  why: The advantage must come from inference, never access, and a supplier decision computed world-side
-    is access by construction. The Lane 0 rename put this through the draw at last. Done means one more
-    register row is moved on origin with its replay grade.
+  written_at: 1795145204.846
+- id: knife3-the-held-per-debt-sale-rule-lands-on-the-varying-world
+  what: 'First push local branch knife3-per-debt-sale (9fcd4a53fa) to origin under the same name, because
+    no remote holds it. Then wait until the world-first post-write-off recovery change (continuation world-first-post-write-off-recovery-that-varies-by-what-a-supplier-sees,
+    now in surgical_land on simulation/final_bill_outcome.py) is on origin. Do not draw before it is.
+    In a worktree from that origin commit, bring over the branch''s company-side pieces: cash_forecast_provision.post_close_cell,
+    RollRates.post_close_recovery_for, collections_journey.expected_post_close_recovery, and the sensitive-circumstances
+    exclusion on sells_written_off_debt. Before running anything, pre-register in the KNIFE3 finding how
+    far the learned cells should spread on the new world. Then replay a book, print which debts it would
+    sell at a price inside 5.4-9.3p and their GBP, and run the epistemic verifier. Land only if the cells
+    spread and both sell and work are reached. If they do not spread, land only the sensitive exclusion,
+    and record why.'
+  why: 'b8132407e removed the access, and 9d3e4de57 showed the per-debt rule has nothing to learn in a
+    flat world. Once the world varies by things a supplier can observe, this is a per-customer decision
+    made by inference: exactly the thesis''s claim. Done means the branch is safe on origin, the rule
+    (or the exclusion alone, with the reason) is on origin with its replay print and a passing verifier,
+    and the pre-registration is graded.'
   lane: H_harness
   side: supplier
-  written_at: 1795123735.674
-- id: w3-3-the-standing-charge-fix-is-graded-on-67d454905c
-  what: 'The first book carrying c71d2521d exists: docs/reports/run_output_67d454905c_20261119T184502Z.json,
-    built 19 Nov 20:36Z, four days before the continuation deemed-and-flex-rows-book-the-standing-charge
-    allowed itself to draw. Do that continuation''s grade now. On this book, read whether the deemed and
-    flex settlement rows book the standing charge the bill charges, and whether void rows keep the fixed
-    network share. Write the result into the W3_3 pre-registration in docs/staging/records/ that the continuation
-    names, with a `Graded:` trailer and the per-account daily difference against the GBP 0.47 to 0.60
-    a day it predicts. Then retire that continuation with --premise-spent and the grading sha.'
-  why: B12's renewal floor reads its margin on the unit rate, so its true unit cost waits on W3_3's split
-    being right. The settlement-versus-bill disagreement is the open wrong row that blocks it. The book
-    it needed has arrived early, so waiting to 23 Nov wastes four days. Done means the grade is on origin
-    and the wrong row is either corrected or re-stated with the measured residual.
-  lane: W3_industry_systems
-  side: world
-  unblocks: B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost
-    (its true unit cost on the renewal floor)
-  written_at: 1795123735.674
+  written_at: 1795145204.846
+- id: prepayment-build-is-checked-against-the-value-figures
+  what: Read docs/reports/run_output_67d454905c_20261119T184502Z.json against run_output_7f0723b46e_20261118T110420Z.json.
+    For each per-customer value figure that both books publish, and for net margin and churn, state the
+    change and whether f0445b2dc (prepayment meters) or another commit between the two trees can account
+    for it. Write the result into the f0445b2dc finding, or a new SEAT_RECORD under docs/staging/records/.
+    If the books differ in more than f0445b2dc and the change cannot be attributed, say "cannot yet say",
+    name the one-variable run that would settle it, and queue it. Build nothing.
+  why: An open wrong row says f0445b2dc was claimed, but never checked, to leave the value figures alone,
+    and the 0.12 pair runs on a tree that predates it. A pair result on 870201d1e7 has to mean the same
+    thing on the published book. Done means the record is on origin and the wrong row can be graded true,
+    or carried with a named run.
+  lane: B_commercial
+  side: supplier
+  written_at: 1795145204.846
 not_now:
-  - what: The W2_30 gas lever, moving the occupier split off the 70/30 fallback (about 0.70 to about 0.85), now that the
-      4accbb828 grade puts the gas residual on the world.
+  - what: Landing the per-debt sale rule from knife3-per-debt-sale now, before the world varies.
     why: >-
-      The grade is still landing, and 41 legs moved between books with no attributed cause. The 0.85 figure has no
-      source on any knowledge page that I found. Building it now would put an unsourced world constant under the
-      gas gap the supplier is graded on. It returns next stretch as a knowledge page first, with the 41-leg
-      attribution, and only then a build.
-  - what: Switching the electricity blend on in the published policy in the same step as building it.
+      9d3e4de57 measured a flat world. A rule that shrinks each cell to the book-wide figure cannot fail
+      there, and a control that cannot fail proves nothing. Item 3 lands it once the world-first change
+      is on origin, and pushes the branch now so the waiting costs nothing.
+  - what: Building an occupier heating-share constant for the 114 gas legs ERA5 can never fill.
     why: >-
-      The director's SPAR row is still open (raised 19:54Z), and the published book is what the next weekly publish
-      reads. Building it switched off and graded at both ends gets every piece of evidence for nothing, and the
-      switch-on is one line once he has had a day to say "hold".
-  - what: Re-arming or reshaping the 0.12 pair onto 67d454905c so it carries the prepayment build and W3_3.
+      22f1dfa98 found no published source for it, so the code carries a named GAP instead of a number
+      (knowledge first). 114 of 433 legs is too small a share to justify an invented figure under the
+      gas gap.
+  - what: Switching on the corrected renewal churn belief (the AUC 0.333 row).
     why: >-
-      The pair is in flight on A's world on purpose, so that s.12c's nine flips are the same households. Moving it
-      would throw away the run that answers the thesis question tonight. Whether the prepayment build moved the
-      value figures is a read of the published 67d454905c book against 7f0723b46e. It is cheap, but it does not
-      outrank the four above.
-  - what: A Pages-Function password gate for the site, so the login ruling finishes without the director's Zero Trust
-      sign-up.
+      Its pre-registered switch-on rule needs a departure interval clear of zero, and both grades
+      straddled zero. The 0.12 pair runs with the weighing off on purpose, so changing it now would
+      confound the one thesis test in flight.
+  - what: Reaping the 10 at-risk salvage worktrees, and working the repeating fork and supervisor alarms.
     why: >-
-      It would mint a live credential and change a real service's security posture, which G5 reserves. His open row
-      already offers it as the fallback if the sign-up insists on a card.
-  - what: Reaping or landing the 10 at-risk salvage worktrees, and the repeating supervisor-turns alarm.
+      Three of the trees share 870201d1e7 with the running pair, and a reap cannot be undone. The
+      alarms cost turns, not results. Neither outranks the pair read or a supplier landing.
+  - what: Fast-forwarding the shared checkout so the daemons load b8132407e.
     why: >-
-      Three of the value-test trees share base 870201d1e7 with the pair that is running, and a reap cannot be undone.
-      None of them blocks a supplier result. The supervisor alarm costs turns and loses no work. Both are cheaper to
-      handle after the pair reads, when cut012 unlocks.
+      The divergence only matters to a writer editing the collections code in place, and items name
+      origin worktrees. A forced move under three live writers and a running landing gate risks their
+      work for no supplier result.
 wrong:
-  - what: >-
-      THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC
-      0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:20 19 Nov -- unchanged.
-      21:24 19 Nov -- unchanged; the 0.12 pair runs with the weighing off, so it does not touch this belief.
+  - what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 03:22 20 Nov -- unchanged; the 0.12 pair runs with the weighing off, so it cannot move this belief.'
     corrected: false
-  - what: >-
-      THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year
-      (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP
-      1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 18:20 19 Nov
-      -- the pair's W3_3 book had not built. 21:24 19 Nov -- the book built (67d454905c, 20:36Z), and the 0.12
-      pair launched at 20:42Z and is running. Its read is focus item 1.
+  - what: 'THE COMPANY''S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 03:22 20 Nov -- unchanged. The pair''s second child is at Nov 2023; its read is focus item 1.'
     corrected: false
-  - what: >-
-      THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a
-      median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:20 19 Nov
-      -- narrowed: N17 does not explain the electricity unbilled residual. 21:24 19 Nov -- unchanged; the recheck by
-      23 Nov stands, and 67d454905c is the book to recheck it on.
+  - what: 'THE WORLD''S OR THE COMPANY''S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED''s 14.7%). [Earlier tails are in decisions.jsonl.] 03:22 20 Nov -- unchanged; the 23 Nov recheck stands on 67d454905c or the next book.'
     corrected: false
-  - what: >-
-      THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges
-      one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity
-      account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 18:20 19 Nov --
-      held by the fork deferral. 21:24 19 Nov -- the book its grade needs, carrying c71d2521d, built at 20:36Z;
-      the grade is focus item 4. 19 Nov -- RE-STATED on the 67d454905c grade: the book holds no deemed or flex row
-      (only the absent I&C demo accounts reach those writers), so the measured gap is GBP 0.00 per domestic account-day,
-      not 0.47-0.60. Voids omit GBP 202.53 of fixed network over ten years. The hedged writer B12 reads carries the
-      split exactly, so this row no longer blocks B12. The writers' defect stays latent and open.
+  - what: 'THE WORLD''S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12''s path. 03:22 20 Nov -- unchanged as re-stated.'
     corrected: false
-  - what: >-
-      THE MACHINE'S, NEW. The prepayment meter build (f0445b2dc) landed from its continuation during the stretch.
-      The last record's not_now held that build until skip0 and the 0.12 pair had read, and its waits_for did not
-      say so, so the queue could not see the hold. It draws on its own streams and changes no company code, so the
-      value pair should be unaffected. That is the commit's own claim, and no pair has checked it. 18:20 19 Nov --
-      unchanged. 21:24 19 Nov -- my 18:20 tail said the pair "runs on a book that carries the build". It does not:
-      the pair's tree is 870201d1e7, which predates f0445b2dc. The published book 67d454905c carries it, so the
-      check is that book against 7f0723b46e (not_now this stretch).
-    corrected: false
-  - what: >-
-      THE MACHINE'S (THIS SEAT'S), NEW. My 15:20 not_now declined to reconcile the primary checkout's fork commit
-      a2ed7654e0 by hand, saying its content was on origin and the reconciler owned it. sim-runner had already been
-      deferring on exactly that commit since 11:59Z, and kept deferring for six more hours, so no W3_3 book could
-      build for the 0.12 pair. I judged the commit harmless without reading the producer's log. 21:24 19 Nov --
-      corrected: 67d454905 closed the fork at 18:28Z, sim-runner built 67d454905c (run complete 20:36Z), and the
-      pair launched at 20:42Z.
+  - what: 'THE MACHINE''S, NEW. The prepayment meter build (f0445b2dc) landed from its continuation during the stretch. The last record''s not_now held that build until skip0 and the 0.12 pair had read, and its waits_for did not say so, so the queue could not see the hold. It draws on its own streams and changes no company code, so the value pair should be unaffected. That is the commit''s own claim, and no pair has checked it. [Earlier tails are in decisions.jsonl.] 03:22 20 Nov -- the check (67d454905c against 7f0723b46e) is now focus item 4. 04:10 20 Nov -- measured: 67d454905c with f0445b2dcb reverted, same seed, 2016: run_output equal on every figure, only the truth file''s prepayment_supply_events differs (SEAT_RECORD_THE_PREPAYMENT_METER_BUILD_CANNOT_MOVE_A_VALUE_FIGURE_ON_THE_PUBLISHED_BOOK_2026-11-20.md).'
     corrected: true
-  - what: >-
-      THE MACHINE'S (THIS SEAT'S), NEW. The 15:20 record put KNIFE3 in focus under its atom id while the anti-livelock
-      draw had stopped taking it (1,725 unchanged draws), so no draw could reach it and the steer drifted for a whole
-      stretch. 21:24 19 Nov -- corrected: the renamed Lane 0 item was drawn and landed c0d825b3d.
-    corrected: true
-  - what: >-
-      THE MACHINE'S (THIS SEAT'S), NEW. My 18:20 thesis_read said 4accbb828 had closed the gas fallback for incoming
-      occupiers, "so the next book should move the gas gap". 4accbb828 moves no settlement. The 20:42Z
-      pre-registration (0c1e91449) predicted that the residual is not gone and sits on the 70/30 fallback, and the
-      grade on 67d454905c, now landing, says all four of its predictions held. Corrected by that pre-registration,
-      ahead of the book.
+  - what: 'THE MACHINE''S (THIS SEAT''S), NEW. My 00:20 record asked for a per-debt sale rule built from the company''s own records without first asking whether the world''s recovery varies per debt. It does not (9d3e4de57): every debt recovers the world''s 0.122. The item was also drawn twice in parallel, so one draw built a rule the other then showed could not fail. Corrected here: the measurement and the evidence are on origin (9d3e4de57, 834610bd1), and item 3 makes the rule wait for the world-first change. The double draw cost one build, and that build was kept on a branch.'
     corrected: true
 for_the_director:
-- id: the-github-repository-is-still-public-gh
-  raised: '2026-11-18'
-  kind: reserved
-  decision_kind: g5
-  what: The GitHub repository is still public (gh, 18 Nov). The July plan to make it private and assert copyright
-    has sat parked since 11 Jul, waiting on your click and two decisions.
-  proposal: 'The repo is the IP the method lives in. The only blocker the machine found in July was a GitHub Actions
-    quota: site deploys used about twice the private allowance. That is fixed now, because deploys only fire on
-    the published files. Making the repo private is your click in GitHub settings. Asserting copyright on the site
-    needs the company''s legal name and a yes or no on blocking AI crawlers.'
-  recommendation: I recommend you make the repo private when it suits you, and tell me the legal entity name. I
-    will then re-measure the Actions minutes on the private plan before the site carries any copyright line.
-  based_on: 824be4a157
-  status: answered
-  resolution: Director, chat, 19 Nov 2026, 14:05 "It isn't a real company. Maybe we should add a password to website?"
-    and 14:07 "Repo public. Website password" (advisor-staged as ee46f6711). The repo stays public. No copyright
-    line names a company. poesys.net goes behind a login.
-  resolved: '2026-11-19'
-  commitment:
-    work_id: poesys-net-goes-behind-a-login
-    done_means: Every route of the Pages project (poesys.net, *.pages.dev and its previews, any Functions) refuses
-      an unauthenticated fetch, with the reading on origin. noindex and a robots disallow are served. The record
-      says the public repo still exposes the content. His one login has succeeded. DNS or payment steps, if any,
-      are raised and not taken.
-    due: '2026-11-26'
-  g5_class: irretractable_public_claim
-  evidence: docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md;
-    docs/staging/done/REPO_PRIVATE_AND_IP.md
-- id: the-site-login-you-ruled-on-19
-  raised: '2026-11-19'
-  kind: reserved
-  decision_kind: g5
-  what: 'The site login you ruled on 19 Nov cannot start until Cloudflare Zero Trust is switched on for the account,
-    and that sign-up screen may ask for a card, which is yours. A read-only probe (Actions run 44569003701) found
-    Access not enabled: every Access endpoint answers 403 access.api.error.not_enabled. Everything else the ruling
-    asked for has landed: robots disallow, noindex on every route, and the deploy check ready for a service token.'
-  proposal: 'One step for you: in the Cloudflare dashboard (dash.cloudflare.com), open Zero Trust, pick a team name
-    (poesys is fine) and choose the Free plan. If it asks for a card, decide whether to give one; the Free plan
-    covers up to 50 readers at no charge. Then either reply ''go'' so the console session sets up the Access application,
-    or create an API token with ''Access: Apps and Policies Edit'' and ''Access: Service Tokens Edit'' and add it
-    as an Actions secret. The machine then gates poesys.net, poesys-net.pages.dev and *.poesys-net.pages.dev with
-    one-time email codes, your address as the only reader, proves each route refuses an unauthenticated fetch, and
-    records how to reverse it (delete the Access application). No DNS change is expected.'
-  recommendation: I recommend you do the Zero Trust sign-up on the Free plan, and decline it if it insists on a
-    card; tell me if so and I will propose a Pages-Function password gate instead, which needs no card.
-  based_on: 57a89f463f
-  status: open
-  resolution: ''
-  g5_class: real_money
-  evidence: docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md;
-    docs/staging/records/SEAT_RECORD_THE_SITE_LOGIN_WHAT_LANDED_AND_WHAT_STAYS_PUBLIC_2026-11-19.md
-- id: canon-d11-says-the-public-site-exists
-  raised: '2026-11-19'
-  kind: canon_intent
-  decision_kind: strategy
-  what: Canon D11 says the public site exists so that an intelligent stranger can understand the project and follow
-    its progress. Your 19 Nov ruling puts poesys.net behind a login, so a stranger can no longer reach it. The repo
-    and the github.io copy stay public. Page copy that calls the site public is unchanged until D11 says what the
-    site is for now.
-  proposal: 'Amend D11 by adding one sentence after its first: ''Readers reach it by invitation, behind a login.
-    The repository and its github.io copy stay public, so the login keeps out search engines and casual visitors,
-    not a determined reader.'' The rest of D11 (no house vocabulary, weekly Monday publish, the banner) stays as
-    written, because an invited reader is still a stranger to the project. Once you agree, the machine updates the
-    site pages that call it public to say ''by invitation''.'
-  recommendation: I recommend you approve that one added sentence, and keep the newcomer test for invited readers.
-  based_on: 57a89f463f
-  status: open
-  resolution: ''
-  evidence: docs/design/DIRECTOR_CANON.md (D11); docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md
-- id: the-bsc-smoothing-parameter-spar-value-it
-  raised: '2026-11-19'
-  kind: strategy
-  decision_kind: outside_source
-  what: 'The BSC Smoothing Parameter (SPAR) value: it is the one number between us and fixing the electricity unbilled
-    residual, and no public source states it'
-  proposal: 'Measured since (19 Nov, same book): the choice no longer turns on SPAR''s exact value. At every SPAR
-    from 0.5 to 4 the blend lowers the electricity gap (0.407 today; 0.379 at 0.5, 0.289 at 3) and leaves the E1
-    estimate-run guard exactly as it is (the same 8 breaches and 27 flags). Only from about 6 upward does it re-open
-    breaches (13 at the limit). So I can build the D0019-shaped blend with SPAR as a stated range, [0.5, 3], run
-    at both ends, with the gap published as a range.'
-  recommendation: I recommend you reply with SPAR's value only if you know it offhand, and that we do not seek MDD
-    access (a licence is G5). Silence now means I build the blend at both ends of [0.5, 3] and publish the range;
-    the hold is beaten everywhere in it. Reply "hold" to keep the 182-day hold.
-  based_on: 2721453029
-  status: open
-  resolution: ''
-  evidence: docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 8 (search of URS,
-    LDD, Tech Spec, SMG, P40, MDD page; value only in licensed MDD); docs/staging/records/SEAT_PREREG_D48_THE_ELECTRICITY_RESIDUAL_BY_ESTIMATE_ROUTE_2026-11-19.md
-    (hold route holds 57% of the residual, billed/true 1.15); docs/staging/records/SEAT_PREREG_D48_E1_BREACHES_AT_EACH_SPAR_2026-11-19.md
-    (E1 breaches and the gap at each SPAR)
+  - id: the-site-login-you-ruled-on-19
+    raised: "2026-11-19"
+    kind: reserved
+    decision_kind: g5
+    what: "The site login you ruled on 19 Nov cannot start until Cloudflare Zero Trust is switched on for the account, and that sign-up screen may ask for a card, which is yours. A read-only probe (Actions run 44569003701) found Access not enabled: every Access endpoint answers 403 access.api.error.not_enabled. Everything else the ruling asked for has landed: robots disallow, noindex on every route, and the deploy check ready for a service token."
+    proposal: "One step for you: in the Cloudflare dashboard (dash.cloudflare.com), open Zero Trust, pick a team name (poesys is fine) and choose the Free plan. If it asks for a card, decide whether to give one; the Free plan covers up to 50 readers at no charge. Then either reply 'go' so the console session sets up the Access application, or create an API token with 'Access: Apps and Policies Edit' and 'Access: Service Tokens Edit' and add it as an Actions secret. The machine then gates poesys.net, poesys-net.pages.dev and *.poesys-net.pages.dev with one-time email codes, your address as the only reader, proves each route refuses an unauthenticated fetch, and records how to reverse it (delete the Access application). No DNS change is expected."
+    recommendation: I recommend you do the Zero Trust sign-up on the Free plan, and decline it if it insists on a card; tell me if so and I will propose a Pages-Function password gate instead, which needs no card.
+    based_on: 57a89f463f
+    status: open
+    resolution: ""
+    g5_class: real_money
+    evidence: docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md; docs/staging/records/SEAT_RECORD_THE_SITE_LOGIN_WHAT_LANDED_AND_WHAT_STAYS_PUBLIC_2026-11-19.md
+  - id: canon-d11-says-the-public-site-exists
+    raised: "2026-11-19"
+    kind: canon_intent
+    decision_kind: strategy
+    what: Canon D11 says the public site exists so that an intelligent stranger can understand the project and follow its progress. Your 19 Nov ruling puts poesys.net behind a login, so a stranger can no longer reach it. The repo and the github.io copy stay public. Page copy that calls the site public is unchanged until D11 says what the site is for now.
+    proposal: "Amend D11 by adding one sentence after its first: 'Readers reach it by invitation, behind a login. The repository and its github.io copy stay public, so the login keeps out search engines and casual visitors, not a determined reader.' The rest of D11 (no house vocabulary, weekly Monday publish, the banner) stays as written, because an invited reader is still a stranger to the project. Once you agree, the machine updates the site pages that call it public to say 'by invitation'."
+    recommendation: I recommend you approve that one added sentence, and keep the newcomer test for invited readers.
+    based_on: 57a89f463f
+    status: open
+    resolution: ""
+    evidence: docs/design/DIRECTOR_CANON.md (D11); docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md
+  - id: the-bsc-smoothing-parameter-spar-value-it
+    raised: "2026-11-19"
+    kind: strategy
+    decision_kind: outside_source
+    what: "The BSC Smoothing Parameter (SPAR) value: it is the one number between us and fixing the electricity unbilled residual, and no public source states it"
+    proposal: "Measured since (19 Nov, same book): the choice no longer turns on SPAR's exact value. At every SPAR from 0.5 to 4 the blend lowers the electricity gap (0.407 today; 0.379 at 0.5, 0.289 at 3) and leaves the E1 estimate-run guard exactly as it is (the same 8 breaches and 27 flags). Only from about 6 upward does it re-open breaches (13 at the limit). So I can build the D0019-shaped blend with SPAR as a stated range, [0.5, 3], run at both ends, with the gap published as a range."
+    recommendation: I recommend you reply with SPAR's value only if you know it offhand, and that we do not seek MDD access (a licence is G5). Silence now means I build the blend at both ends of [0.5, 3] and publish the range; the hold is beaten everywhere in it. Reply "hold" to keep the 182-day hold.
+    based_on: 2721453029
+    status: open
+    resolution: ""
+    evidence: docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 8 (search of URS, LDD, Tech Spec, SMG, P40, MDD page; value only in licensed MDD); docs/staging/records/SEAT_PREREG_D48_THE_ELECTRICITY_RESIDUAL_BY_ESTIMATE_ROUTE_2026-11-19.md (hold route holds 57% of the residual, billed/true 1.15); docs/staging/records/SEAT_PREREG_D48_E1_BREACHES_AT_EACH_SPAR_2026-11-19.md (E1 breaches and the gap at each SPAR)

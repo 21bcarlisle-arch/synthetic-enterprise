@@ -226,7 +226,7 @@ def test_exit_debt_recovery_reuses_the_existing_dca_cascade():
             pytest.fail("no shortfall produced in 200 HIGH-stress exits — physics not firing")
         assert resolution.debt_archetype == archetype
         assert 0 < exit_debt_recovery_gbp(resolution) == post_write_off_recovery_gbp(
-            resolution.shortfall_gbp, archetype) < resolution.shortfall_gbp
+            resolution.shortfall_gbp, age_at_close_days=0) < resolution.shortfall_gbp
 
 
 def test_no_recovery_claimed_without_a_shortfall_or_an_archetype():

@@ -63,7 +63,6 @@ def test_a_paid_bill_opens_no_arrears_case():
         chain["arrears_gbp"],
         date.fromisoformat("2023-03-14") + timedelta(days=14),
         still_open=True,
-        archetype="NEUTRAL",
         method="direct_debit",
     )
     stage_names = [s["stage"] for s in resolved]
