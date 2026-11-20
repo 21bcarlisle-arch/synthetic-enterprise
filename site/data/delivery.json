@@ -1,9 +1,69 @@
 {
- "generated_at": "2026-11-20T15:27:43.933444+00:00",
+ "generated_at": "2026-11-20T18:27:42.938946+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "270bf6a17",
+    "at": "2026-11-20T18:02:54Z",
+    "subject": "Four unparsed grades reach the learning loop: D48's is restated as d48 held=1 missed=1 from its own record, level-dd's \"not yet\" and W2_30's two `none` stay ungraded (no count was given), `Graded: none -- <reason>` now parses as an explicit no-grade, and the commit-msg gate refuses a Graded line the loop cannot parse",
+    "substantive": true
+   },
+   {
+    "sha": "c41e70832",
+    "at": "2026-11-20T17:27:18Z",
+    "subject": "A dual household answers its anniversary offer once: the gas leg takes its household's answer from the electricity leg, a decline carries to both fuels, an acceptance is re-read on the pair as one bill, and the one residue (pair over its default after the electricity contracted) is named on every riding_leg_answers row",
+    "substantive": true
+   },
+   {
+    "sha": "43ec8daad",
+    "at": "2026-11-20T16:44:13Z",
+    "subject": "delivery seat: merge origin/main into the VAT June 2027 landing (upstream does not touch its paths)",
+    "substantive": false
+   },
+   {
+    "sha": "b234d8dc8",
+    "at": "2026-11-20T16:42:58Z",
+    "subject": "delivery seat: merge origin/main into the VAT June 2027 landing (upstream does not touch its paths)",
+    "substantive": false
+   },
+   {
+    "sha": "0d4ffbe8a",
+    "at": "2026-11-20T16:42:10Z",
+    "subject": "KNIFE3 in-run, graded on book 6a588a832f: the agency's cash now reaches the company's book (recovered 11.5% of written off, against 0 on 67d454905c; I6 held), but the book publishes no write-off ref, remittance row or learner state, so I1 to I5 cannot be read from it",
+    "substantive": false
+   },
+   {
+    "sha": "f70d432b0",
+    "at": "2026-11-20T16:41:48Z",
+    "subject": "The GB electricity zero rate ends 30 June 2027, not 31 March: the commons now says so citing Notice 701/19 (updated 28 Oct 2026), the cap tool reads its VAT window from the commons instead of a hard-coded copy, and the validator's VAT grade takes the period's first day",
+    "substantive": true
+   },
+   {
+    "sha": "fa5463139",
+    "at": "2026-11-20T16:40:23Z",
+    "subject": "W2_30: on book 6a588a832f, 287 of 589 gas legs settle on their own fabric split (153 on 67d454905c) and 58 of the 116 OCC- legs carry their premise's fit; every fallback leg names its refusal -- the three live gas-split predictions hold, the fourth was withdrawn before the book",
+    "substantive": true
+   },
+   {
+    "sha": "76498601c",
+    "at": "2026-11-20T15:53:48Z",
+    "subject": "delivery seat: merge origin/main into the direction landing (upstream does not touch its paths)",
+    "substantive": false
+   },
+   {
+    "sha": "988f6fec6",
+    "at": "2026-11-20T15:51:51Z",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
+   {
+    "sha": "a958c950b",
+    "at": "2026-11-20T15:48:30Z",
+    "subject": "A CLAUDE.md line whose absence shows can move to a diff-triggered item instead of staying always-loaded: nine items, each firing on the past diff that touched what it guards, carrying 4,980 of 23,818 characters (~2,072 of ~9,908 tokens), and inert until trial E-e says move",
+    "substantive": true
+   },
    {
     "sha": "9739e7bad",
     "at": "2026-11-20T15:12:29Z",
@@ -183,137 +243,77 @@
     "at": "2026-11-20T09:21:29Z",
     "subject": "KNIFE3 in-run, step 1: the company writes a closed account off one invoice at a time, each under its own invoice_ref, so the per-debt learner can see the debt (both write-off paths posted one ref-less lump, which _written_off drops)",
     "substantive": true
-   },
-   {
-    "sha": "469170421",
-    "at": "2026-11-20T09:08:51Z",
-    "subject": "[ADVISOR-STAGED] Steer: gates judge from the base, property tests for billing, and diff-triggered checks",
-    "substantive": false
-   },
-   {
-    "sha": "52b55c250",
-    "at": "2026-11-20T09:06:17Z",
-    "subject": "[ADVISOR-STAGED] Steer: a fortnightly blind audit for overreach",
-    "substantive": false
-   },
-   {
-    "sha": "370436599",
-    "at": "2026-11-20T08:54:36Z",
-    "subject": "delivery seat: merge origin/main into the advisor-file close (upstream's side-door section and the done/ pointer touch different lines of the design note)",
-    "substantive": false
-   },
-   {
-    "sha": "e294dd738",
-    "at": "2026-11-20T08:53:29Z",
-    "subject": "Advisor channel: the 19 Nov site-login ruling moves to advisor/done -- its signed text (ee46f6711) is acted on, the gate is live (39337b8c6), and the owed first login stays on for_the_director",
-    "substantive": true
-   },
-   {
-    "sha": "5be769d15",
-    "at": "2026-11-20T08:18:56Z",
-    "subject": "Site gate side door: every pre-gate Pages deployment still serves the whole site anonymously (c156dcf3, 09a031ce answer 200 beside poesys.net's 401); a dispatched sweep deletes the deployments whose own address answers 200, then fails if any still does",
-    "substantive": true
-   },
-   {
-    "sha": "37f9ff6eb",
-    "at": "2026-11-20T08:17:27Z",
-    "subject": "delivery seat: merge origin/main into the site-login close (upstream does not touch its paths)",
-    "substantive": false
-   },
-   {
-    "sha": "39337b8c6",
-    "at": "2026-11-20T08:15:19Z",
-    "subject": "Site login live and read from outside: every route refuses an anonymous fetch (401), robots 200, the header reader 200; the 20 Nov ruling moves to done, and its three rows are closed",
-    "substantive": true
-   },
-   {
-    "sha": "b1e04fab3",
-    "at": "2026-11-20T08:09:26Z",
-    "subject": "Value test s.12f: the 0.12 pair graded. Bars 1 and 2 hold (6 of 9 flips; value arm +1.00, CI +0.27 to +2.05), and the advantage over the twin is -0.33 (-1.77 to +0.96), up from -1.35",
-    "substantive": true
-   },
-   {
-    "sha": "92ab3898c",
-    "at": "2026-11-20T08:05:16Z",
-    "subject": "delivery seat: merge origin/main into the ledger-shadow landing (upstream does not touch its paths)",
-    "substantive": false
-   },
-   {
-    "sha": "40afd359d",
-    "at": "2026-11-20T08:01:55Z",
-    "subject": "delivery seat: merge origin/main into the password gate, D11 and supplier-triage landings. DIRECTION.yaml: upstream's new for_the_director row kept; the D11 and SPAR rows answered on top of it by director_concerns --answer",
-    "substantive": false
    }
   ],
-  "substantive": 19,
-  "mechanical": 21,
+  "substantive": 20,
+  "mechanical": 20,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-11-20T15:23:55.572760+00:00",
+  "oriented_at": "2026-11-20T18:23:24.032888+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "Three hours: 12 commits, 9 carrying work, 6 substantive. The split reads 2 supplier, 0 world and 10 other, and 3 of the 10 are merges that changed nothing. Supplier-first slipped for a third stretch running, though by less. Both supplier commits matter. Property tests on billing (the director's 20 Nov steer, item 2) found two real money defects on their first run: a reviewed direct debit a pound a month too high, and three VAT readings of one period that disagreed. Both are fixed (9593c2856, 9739e7bad). That is billing accuracy, the first step of the priority order, and it shows the cheap way to find defects: state a property and let the generator look. The largest change is not a commit. The shared checkout rejoined origin at 13:42Z and the stalled book started on 6a588a832f; it reported SURVIVED at 15:13Z and is writing its output. Last stretch's item 1 is therefore met and leaves focus. That book is what every waiting supplier grade needed: the KNIFE3 remittance predictions I1-I6, the gas-fallback split, and N17's recheck. When it frees the box, the armed watcher (vtc-cut012-rep-watch) launches the 0.12 replication, about 23 h. On the thesis itself nothing moved. The per-customer arm still reads -GBP 0.33 (-1.77 to +0.96) against the flat-rules baseline, on the pair the cut was fitted to, and its one attributed gain (+GBP 1.00, nine retained households) is in-sample until the replication reads. So the advantage-from-inference claim is untested, not refuted. Of the previous focus, 2 of 4 were drawn. The checkout item finished. The dual household fix is landing now (a surgical_land has been gating for 35 min) and stays until it is on origin. D48 was dated to 20:00Z and has not ripened; the blend is still None on origin. The unparsed-grades item was never drawn, so it carries. Two draw-ledger rows still lack bindings from last stretch: the-0-12-pair-is-read... is spent by b1e04fab3, and poesys-net-goes-behind-a-login landed as ff5b0224b and 5be769d15. They are in item 4.",
+  "thesis_read": "Three hours: 10 commits, 7 carrying work, 5 substantive. The classifier reads 1 supplier, 1 world and 8 other, but two of the 'other' are supplier grades read on the new book (fa5463139, gas legs settling on their own split; 0d4ffbe8a, KNIFE3 debt recovery), so the honest balance is about four supplier commits to one world, and supplier-first held this stretch for the first time in four. Three of the four previous focus items are finished and leave focus. The gas-split grade held 3 of 3. The dual-household offer fix landed (c41e70832). The four unparsed grades reach the loop, and a malformed Graded line is now refused at commit (270bf6a17). The VAT commons now runs the zero rate to 30 June 2027 (f70d432b0). D48 stays because its 20:00Z date has not passed; the blend is still None on origin at company/policy/decision_policy.py:264. One grade came back half-blind. On 6a588a832f the agency's cash reaches the company's book for the first time (11.5% of written-off value recovered, against 0 before; I6 held). But I1 to I5 could not be read, because the run publishes no write-off refs, remittance rows or learner state. They were pre-registered against a book that could never answer them. The fix is gating now (surgical_land pid 724123). Against the thesis itself nothing moved, and nothing could have moved yet. The out-of-sample replication of the 0.12 cut is the one reading that tests whether inference beats the flat rules. It is running: pair 33333/44444 had reached September 2023 at 18:23Z, and 55555/66666 follows, so it reads around 15:00Z on 21 Nov. Until then the per-customer arm stands at -GBP 0.33 (-1.77 to +0.96) against the baseline, in-sample: untested, not refuted. Note what the replication can and cannot say. Its pre-registered grade is cut minus A. That says whether the 0.12 cut adds value on households it was not fitted to. It is not, by itself, the advantage over the flat-rules book. So item 1 asks for both numbers, and asks the reader to say plainly if the files cannot give the second.",
   "focus": [
    {
-    "id": "grade-knife3-and-the-gas-fallback-split-on-the-6a588a832f-book",
-    "what": "Once docs/reports/run_output_6a588a832f_*.json exists (tools.run_annual_report pid 2512283 is writing it; wait with tools.wait_for, never pgrep), grade two pre-registrations on it. First, I1-I6 of docs/staging/SEAT_FINDING_THE_HELD_PER_DEBT_SALE_RULE_LEARNS_A_WINDOW_THE_AGENCY_NEVER_PAYS_INTO_2026-11-20.md (the KNIFE3 remittance crossing, 7d99949ce). Second, the gas-fallback split prediction filed against 67d454905c. 6a588a832f descends from both 7d99949ce and 67d454905c; confirm that with git merge-base --is-ancestor before grading. Write each line's held or missed beside its prediction, unrevised, and land one commit per area with a parseable trailer: `Graded: <area> held=<n> missed=<n>`. Then record --premise-spent against that commit for continuations grade-knife3-in-run-i1-to-i6-on-the-first-book-after-7d99949ce7 and grade-the-gas-fallback-split-prediction-on-the-first-book-after-67d454905c. Their 21 Nov dates assumed the book would be later.",
-    "why": "The book the last stretch was unblocked to get is here, and these two supplier grades are what it was for: debt recovery and gas bill estimation, both judged on what the company can observe. Done means: both grades are on origin with parseable trailers, and both continuations are spent rather than redrawn tomorrow.",
+    "id": "the-0-12-replication-is-read-out-of-sample",
+    "what": "DO NOT DRAW BEFORE /var/tmp/vtc-out-cut012/member_55555_66666.json and control_55555_66666.json both exist (job longjob-value-test-cut012-rep; wait with tools.wait_for on the file, never pgrep). Then grade the replication against the prediction filed before the run in docs/design/THE_VALUE_TEST_REDESIGN.md, under 'The replication is launched on 33333/44444 and 55555/66666'. That prediction is: cut minus A, value arm, per pair, +GBP 0.60 (-0.60 to +1.80), refuted if the two-pair mean is below zero; the flat book (control arm) moves by less than GBP 0.10. Use grade_paired_cut012.py's method, with the pair and run directories as parameters, against /var/tmp/vta-out-flag1. Before grading, check each pair's sidecar tree_patch hashes to the pin, 2b312c4d...114d. fork_salvage can commit into that tree, and a pair whose sidecar records a different patch is ungradable: say so rather than grade it. Write the per-pair and two-pair numbers with their intervals beside the prediction, unrevised. Separately, publish the value arm minus the flat book at each pair if the member files carry both arms on the same households. If they do not, say in one line that the advantage over the baseline is not readable at these seeds, and name what run would read it. Land with `Graded: value-test held=<n> missed=<n>`, and only then unlock /var/tmp/value-test-cut012.",
+    "why": "This is the only reading this week that tests the thesis: does the per-customer arm, using what it inferred, beat flat rules on households its cut was not fitted to? Everything since s.12c has been in-sample on 11111/22222. Done means the s.12f section carries the replication's grade with intervals; the advantage over the baseline is either published with its interval or stated as unreadable, with the run that would read it; and the next lever is named from the result: the multi-term retention value (B11/C35) if the cut holds, the s.12e alternative if it is refuted.",
+    "lane": "B_commercial",
+    "side": "supplier",
+    "written_at": 1795199245.792
+   },
+   {
+    "id": "knife3-i1-to-i5-are-read-on-the-first-book-that-publishes-them",
+    "what": "A surgical_land titled 'KNIFE3 in-run: the run publishes the company's own debt-recovery record at its end' (pid 724123) has been gating since 17:43Z. Let it finish; do not start a second build, and if it is refused, fix the refusal it names. Once it is on origin, check that run_output carries, per WRITE_OFF_CREDIT, its GBP and whether it has an invoice_ref; that LivePaymentTriad.agency_remittances appear as rows; and that the learner's cells appear. Then, on the first published book whose run commit has that landing as an ancestor (git merge-base --is-ancestor), grade I1 to I5 of docs/staging/SEAT_FINDING_THE_HELD_PER_DEBT_SALE_RULE_LEARNS_A_WINDOW_THE_AGENCY_NEVER_PAYS_INTO_2026-11-20.md beside each prediction, unrevised, with `Graded: knife3-in-run held=<n> missed=<n>`. Then retire the continuation knife3-the-run-publishes-its-write-off-refs-remittances-and-learned-cells against those commits.",
+    "why": "Debt recovery is the first per-customer decision where the company now sees its own cash come back (11.5% of written-off value on 6a588a832f). Whether the held per-debt-sale rule learns a window the agency actually pays into is an inference question the book could not answer, because it published none of the records. Done means: the records are in run_output on origin, and I1 to I5 are graded on a book that carries them.",
     "lane": "C_customer_ops",
     "side": "supplier",
-    "written_at": 1795188445.554
+    "written_at": 1795199245.792
    },
    {
     "id": "d48-the-electricity-blend-goes-on-in-the-published-policy",
-    "what": "Do not draw before 2026-11-20T20:00Z. In company/policy/decision_policy.py, set DecisionPolicy.bill_estimate_blends_the_eac_at_spar to 0.5 on the standing policies. It is still None on origin 9e7cf29d4. 0.5 is the end of [0.5, 3] that claims least (F11). Keep 3.0 as the other published bound, through tools.d48_spar_blend_counterfactual --ends on each new book. Before landing, pre-register in the D48 prereg record what the first book built with the switch on should show. 617ec5faa9 read 0.276 to 0.361 against the hold's 0.388 on 67d454905c, so expect the 0.5 end near 0.361, with E1's breach and flag sets unchanged. Grade it on the first book that carries the switch, with a parseable trailer: `Graded: d48 held=<n> missed=<n>`.",
-    "why": "The blend beat the hold at both ends of the range and left E1 alone. The company would be reading data it already holds, so this is an inference gain on billing accuracy, and it is sitting switched off. 6a588a832f does not carry it (still None at company/policy/decision_policy.py:264). The commitment the-spar-blend-at-both-ends-of-the-range is due 27 Nov. Done means: the switch is on, on origin; the first book's electricity gap is graded; and the gap is published as a range.",
+    "what": "Do not draw before 2026-11-20T20:00Z. In company/policy/decision_policy.py, set DecisionPolicy.bill_estimate_blends_the_eac_at_spar to 0.5 on the standing policies; it is still None on origin 270bf6a17 (line 264). 0.5 is the end of [0.5, 3] that claims least (F11). Keep 3.0 as the other published bound, through tools.d48_spar_blend_counterfactual --ends on each new book. Before landing, pre-register in the D48 prereg record what the first book built with the switch on should show. 617ec5faa9 read 0.276 to 0.361 against the hold's 0.388 on 67d454905c (restated in 270bf6a17 as d48 held=1 missed=1), so expect the 0.5 end near 0.361, with E1's breach and flag sets unchanged. Grade it on the first book that carries the switch with `Graded: d48 held=<n> missed=<n>`.",
+    "why": "Billing accuracy is first in the priority order. The blend reads data the company already holds and beat the hold at both ends of the range, and it is still switched off. The commitment the-spar-blend-at-both-ends-of-the-range is due 27 Nov. Done means: the switch is on, on origin; the first book's electricity gap is graded; and it is published as a range.",
     "lane": "D_billing_metering",
     "side": "supplier",
-    "written_at": 1795188445.554
+    "written_at": 1795199245.792
    },
    {
-    "id": "a-dual-household-answers-its-anniversary-offer-once",
-    "what": "A surgical_land titled 'A dual household answers its anniversary offer once' (pid 3283597) has been gating since 14:48Z. Let it finish; do not start a second build. If it lands, check that the finding docs/staging/SEAT_FINDING_A_DUAL_HOUSEHOLDS_TWO_FUELS_ANSWER_THEIR_ANNIVERSARY_OFFERS_APART_2026-10-26.md moved to done/, that a test named for the two-answers defect is on origin, and that the epistemic verifier passed. Grade the pre-registered count of dual households that answer apart on the first book that carries the fix. 6a588a832f does not carry it, so that is the next book. If the landing is refused, read the refusal it names and fix that; do not rebuild from scratch.",
-    "why": "A household that gets one offer per fuel and answers each one alone is a renewal no real supplier makes. It also contaminates the value test's retention reading, which is now carried entirely by retained households. Done means: the fix is on origin, the finding is in done/, and the count is graded on the next book.",
-    "lane": "B_commercial",
-    "side": "supplier",
-    "written_at": 1795188445.554
-   },
-   {
-    "id": "the-four-unparsed-grades-reach-the-learning-loop",
-    "what": "Four grading commits carry trailers the learning loop cannot parse: 617ec5faa9 (D48), 47881a984c (level-dd), 22f1dfa987 and f165c9b1ee. Read each commit's own grading table. Then land one small record commit, docs/staging/records/SEAT_RECORD_FOUR_GRADES_RESTATED_IN_THE_PARSEABLE_TRAILER_2026-11-20.md, that restates each grade as written. Give each one a trailer of the form `Graded: <area> held=<n> missed=<n>`, and leave every count exactly as the original commit graded it. Where the original gives no count, say so and leave that grade out rather than invent one. Then check the commit-msg path: if nothing refuses a `Graded:` line without held= and missed=, add that one-leg refusal in the existing commit-msg gate. Separately, bind the two drawn rows that landed unbound: --premise-spent the-0-12-pair-is-read-and-the-advantage-is-published-with-its-interval b1e04fab3, and --landed poesys-net-goes-behind-a-login with ff5b0224b (and 5be769d15). Read each commit before binding it.",
-    "why": "Grades that do not parse are missing from the hit rates, and the STOP rule reads those hit rates. The item was not drawn last stretch. Done means: the learning loop's 7-day output lists none of these four as unparsed, a malformed `Graded:` line is refused at commit time, and the brief's drawn-never-landed block no longer shows those two rows as not_done.",
+    "id": "fork-salvage-never-commits-into-a-locked-worktree",
+    "what": "In background/fork_salvage.py, skip any worktree that `git worktree list --porcelain` reports as locked, and log one line naming it and its lock reason. Today the module never reads the lock, and on 20 Nov a SALVAGE(auto) commit inside /var/tmp/value-test-cut012 made the replication refuse its pin (exit 5) and cost a launch. Add one test that builds a locked worktree with an uncommitted diff and asserts salvage leaves its HEAD and diff untouched. Add a second test in which an unlocked twin IS salvaged, so the guard can be shown to let the ordinary case through.",
+    "why": "Every pinned run tree this project relies on (the value tests' trees) is locked precisely to stop this, and the salvager ignores the lock. The replication in item 1 is exposed to it until the last pair's sidecar is written. Done means: the lock is honoured on origin, both tests are on origin, and the open wrong row about salvaging into a pinned tree can be marked corrected.",
     "lane": "H_harness",
     "side": "other",
-    "written_at": 1795188445.554
+    "written_at": 1795199245.792
    }
   ],
   "not_now": [
    {
-    "what": "Building a forward, multi-term retention value into the offer rule.",
-    "why": "It is still in-sample on nine households. The replication launches when this book frees the box, so it reads within about a day. If it holds, the multi-term rule (B11/C35) leads the next focus. If it is refuted, building now would have been tuning to noise."
+    "what": "Building the multi-term retention value into the offer rule (B11/C35) now.",
+    "why": "The replication reads in about 21 hours and decides whether the cut it would build on is real. Building first would be tuning to an in-sample +GBP 1.00 on nine households. Item 1 names it as the next lever if the cut holds."
    },
    {
-    "what": "Putting the VAT commons correction (zero rate to June 2027) into focus.",
-    "why": "The book's window is 2016-2025, so no graded result depends on a 2026-27 date. It is already queued as a continuation. The holder that refused it 11 times was the VAT reading work, which landed at 15:12Z, so the next draw should take it without a steer."
+    "what": "Switching on the corrected renewal churn belief in the standing policy.",
+    "why": "Its pre-registered switch-on rule (a clean-book departure interval that clears zero) is still unmet, and the replication runs on arm A, which carries that belief. Changing the standing policy mid-replication would confound the next books with the thesis test."
    },
    {
-    "what": "Grading on 6a588a832f the 0.12 cut's advantage over the baseline, or the renewal churn belief.",
-    "why": "That book runs the standing policy, not the replication pairs, so it cannot answer either question. Reading it for them would publish a number that does not count what the question asks."
+    "what": "Starting a twin (flat-book) run at seeds 33333/44444 and 55555/66666 now, so the advantage over the baseline is readable out of sample.",
+    "why": "The box is holding one 11.8 GB peak and two do not fit. Item 1 first establishes whether the member files already carry both arms; only if they do not does a twin run earn its day of compute."
    },
    {
-    "what": "Fixing fork_salvage so it never commits into a locked run worktree.",
-    "why": "It is filed as a finding, and the one tree that matters is locked and has its watcher. A focus slot spent here would push out a supplier grade for a defect that has a working workaround."
+    "what": "Reaping the ten worktrees that hold unlanded commits.",
+    "why": "value-test-cut012 is the live replication tree, and three are its siblings at the same salvage. The rest are 15 to 28 Oct salvages, costing nothing. A reap cannot be undone, and item 1 unlocks the one that matters when it is spent."
    },
    {
-    "what": "Reaping the 10 worktrees that hold unlanded commits.",
-    "why": "value-test-cut012 is the replication's pinned tree and is needed in the next hours. The rest are 15 Oct to 28 Oct salvages. A reap cannot be undone, and none of them is costing anything now."
+    "what": "World work on N17 (year-to-year metered variance) or the deemed and flex standing charge.",
+    "why": "Neither blocks a supplier result in focus. N17 has its dated recheck on 23 Nov against 6a588a832f, and the settlement gap measures 0.00 per domestic account-day on the book."
    },
    {
-    "what": "World work on W2_30 (N17).",
-    "why": "No supplier result in focus is blocked on it. Its dated recheck is 23 Nov, and it can read this book then."
+    "what": "Acting on the 23 live repeating alarms.",
+    "why": "Every one files at LATENT, nothing is BLOCKING, and none sits on the path of the replication, the KNIFE3 landing or D48. The one that touches item 1 (salvaging into a pinned tree) is item 4."
    }
   ],
   "for_the_director": [
@@ -352,8 +352,8 @@
   "problems": [
    {
     "key": "triage:the-live-renewal-belief-ranks-leavers-backwards",
-    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 12:20 20 Nov -- unchanged; the replication runs with the weighing off, so it does not test this belief. 15:24 20 Nov -- unchanged.",
-    "last_at": "2026-11-20T15:23:55.572760+00:00",
+    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 15:24 20 Nov -- unchanged. 18:23 20 Nov -- unchanged; the replication's arm A carries the corrected ending-term belief, so it reads that belief only as the base the cut is measured from, not as a switch-on grade.",
+    "last_at": "2026-11-20T18:23:24.032888+00:00",
     "first_at": "2026-11-16T09:23:09.756957+00:00",
     "times_listed": 40,
     "corrected": false,
@@ -365,8 +365,8 @@
    },
    {
     "key": "triage:metered-electricity-barely-moves-year-to-year",
-    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 12:20 20 Nov -- unchanged; the 23 Nov recheck stands on 67d454905c or the next book, which item 1 unblocks. 15:24 20 Nov -- the next book (6a588a832f) is finishing; the 23 Nov recheck reads it.",
-    "last_at": "2026-11-20T15:23:55.572760+00:00",
+    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 15:24 20 Nov -- the next book (6a588a832f) is finishing; the 23 Nov recheck reads it. 18:23 20 Nov -- the book is published (run_output_6a588a832f_20261120T134224Z.json); the 23 Nov recheck reads it.",
+    "last_at": "2026-11-20T18:23:24.032888+00:00",
     "first_at": "2026-11-16T09:23:09.756957+00:00",
     "times_listed": 40,
     "corrected": false,
@@ -378,8 +378,8 @@
    },
    {
     "key": "triage:settlement-books-no-standing-charge-the-bill-charges",
-    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 12:20 20 Nov -- unchanged as re-stated. 15:24 20 Nov -- unchanged.",
-    "last_at": "2026-11-20T15:23:55.572760+00:00",
+    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 15:24 20 Nov -- unchanged. 18:23 20 Nov -- unchanged.",
+    "last_at": "2026-11-20T18:23:24.032888+00:00",
     "first_at": "2026-11-16T09:23:09.756957+00:00",
     "times_listed": 40,
     "corrected": false,
@@ -391,10 +391,10 @@
    },
    {
     "key": "text:with the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin",
-    "what": "THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. 12:20 20 Nov -- the attribution half is answered (9e7cf29d4: all +GBP 1.00 is on nine retained households, none is redraw noise); the replication died at launch and is re-armed behind the owed book. 15:24 20 Nov -- unchanged; vtc-cut012-rep-watch is armed and launches when the 6a588a832f book frees the box.",
-    "last_at": "2026-11-20T15:23:55.572760+00:00",
+    "what": "THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. 15:24 20 Nov -- vtc-cut012-rep-watch is armed and launches when the 6a588a832f book frees the box. 18:23 20 Nov -- launched 15:49Z; pair 33333/44444 at September 2023; reads about 15:00Z 21 Nov (focus item 1). Its pre-registered grade is cut minus A, not the advantage over the twin.",
+    "last_at": "2026-11-20T18:23:24.032888+00:00",
     "first_at": "2026-11-20T09:20:07.819595+00:00",
-    "times_listed": 4,
+    "times_listed": 5,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -404,11 +404,11 @@
    },
    {
     "key": "text:four grading commits carry trailers the learning loop cannot parse (617ec5faa9 d48, 47881a984c level-dd, 22f1dfa987, f165c9b1ee), so their grades are missing from the hit rates",
-    "what": "THE MACHINE'S, NEW. Four grading commits carry trailers the learning loop cannot parse (617ec5faa9 D48, 47881a984c level-dd, 22f1dfa987, f165c9b1ee), so their grades are missing from the hit rates. D48's grade is one of them. 12:20 20 Nov -- now focus item 4. 15:24 20 Nov -- not drawn this stretch; still focus, now item 4.",
-    "last_at": "2026-11-20T15:23:55.572760+00:00",
+    "what": "THE MACHINE'S, NEW. Four grading commits carry trailers the learning loop cannot parse (617ec5faa9 D48, 47881a984c level-dd, 22f1dfa987, f165c9b1ee), so their grades are missing from the hit rates. 18:23 20 Nov -- CORRECTED in 270bf6a17: D48 restated as d48 held=1 missed=1, the two `none` now parse as declared no-grades, level-dd's 'not yet' stays ungraded, and the commit-msg gate refuses a Graded line the loop cannot parse.",
+    "last_at": "2026-11-20T18:23:24.032888+00:00",
     "first_at": "2026-11-20T09:20:07.819595+00:00",
-    "times_listed": 4,
-    "corrected": false,
+    "times_listed": 5,
+    "corrected": true,
     "fate": null,
     "status": null,
     "retired": false,
@@ -417,10 +417,36 @@
    },
    {
     "key": "text:the 0.12 replication launched at 11:33z refused in 60 ms at 11:41z (exit 5), because fork_salvage committed salvage(auto) into its pinned run tree and the diff no longer matched the pin",
-    "what": "THE MACHINE'S, NEW. The 0.12 replication launched at 11:33Z refused in 60 ms at 11:41Z (exit 5), because fork_salvage committed SALVAGE(auto) into its pinned run tree and the diff no longer matched the pin. The s.12f entry had also said the tree \"is kept\", and by 11:30Z it was gone. The pin was restored and the launch re-armed (9e7cf29d4), but the salvage-into-a-pinned-tree defect is not fixed. 15:24 20 Nov -- unchanged.",
-    "last_at": "2026-11-20T15:23:55.572760+00:00",
+    "what": "THE MACHINE'S, NEW. The 0.12 replication launched at 11:33Z refused in 60 ms at 11:41Z (exit 5), because fork_salvage committed SALVAGE(auto) into its pinned run tree and the diff no longer matched the pin. The s.12f entry had also said the tree \"is kept\", and by 11:30Z it was gone. The pin was restored and the launch re-armed (9e7cf29d4), but the salvage-into-a-pinned-tree defect is not fixed. 18:23 20 Nov -- unchanged; background/fork_salvage.py does not read worktree locks at all. Now focus item 4.",
+    "last_at": "2026-11-20T18:23:24.032888+00:00",
     "first_at": "2026-11-20T12:20:35.333416+00:00",
+    "times_listed": 3,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:docs/domain_artefact_library/regulatory/uk_vat_rates.json ends the temporary gb electricity zero rate earlier than hmrc vat notice 701/19 (updated 28 oct 2026), which runs it to june 2027",
+    "what": "THE COMMONS', NEW. docs/domain_artefact_library/regulatory/uk_vat_rates.json ends the temporary GB electricity zero rate earlier than HMRC VAT Notice 701/19 (updated 28 Oct 2026), which runs it to June 2027. 18:23 20 Nov -- CORRECTED in f70d432b0: the commons ends it 30 June 2027 citing the Notice, and the cap tool reads its VAT window from the commons instead of a hard-coded copy.",
+    "last_at": "2026-11-20T18:23:24.032888+00:00",
+    "first_at": "2026-11-20T15:23:55.572760+00:00",
     "times_listed": 2,
+    "corrected": true,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:knife3's i1 to i5 were pre-registered against a book that publishes none of the records they read (no write-off refs, no remittance rows, no learner state), and the previous direction's item 1 told a worker to grade them on 6a588a832f",
+    "what": "THE SEAT'S, NEW. KNIFE3's I1 to I5 were pre-registered against a book that publishes none of the records they read (no write-off refs, no remittance rows, no learner state), and the previous direction's item 1 told a worker to grade them on 6a588a832f. Only I6 could be graded (0d4ffbe8a). A prediction must name a readable artefact before it is filed. The publishing fix is gating (pid 724123); focus item 2.",
+    "last_at": "2026-11-20T18:23:24.032888+00:00",
+    "first_at": "2026-11-20T18:23:24.032888+00:00",
+    "times_listed": 1,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -461,19 +487,6 @@
     "first_at": "2026-11-20T15:23:55.572760+00:00",
     "times_listed": 1,
     "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:docs/domain_artefact_library/regulatory/uk_vat_rates.json ends the temporary gb electricity zero rate earlier than hmrc vat notice 701/19 (updated 28 oct 2026), which runs it to june 2027",
-    "what": "THE COMMONS', NEW. docs/domain_artefact_library/regulatory/uk_vat_rates.json ends the temporary GB electricity zero rate earlier than HMRC VAT Notice 701/19 (updated 28 Oct 2026), which runs it to June 2027. The correction is queued (vat-zero-rate-extended-to-june-2027), and the draw refused it 11 times because the /var/tmp/se-seat-executor worktree held a diff on priced_days.",
-    "last_at": "2026-11-20T15:23:55.572760+00:00",
-    "first_at": "2026-11-20T15:23:55.572760+00:00",
-    "times_listed": 1,
-    "corrected": false,
     "fate": null,
     "status": null,
     "retired": false,
@@ -628,7 +641,7 @@
     "what": "THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 03:20 19 Nov -- graded corrected on its own criterion. A second stretch has passed with no written_at banner commit. D48's log has been read: it was killed at the unit's teardown and did not lose a race (new row below).",
     "last_at": "2026-11-19T03:20:44.845299+00:00",
     "first_at": "2026-11-16T09:23:09.756957+00:00",
-    "times_listed": 26,
+    "times_listed": 25,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -680,7 +693,7 @@
     "what": "THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 15:21 18 Nov -- corrected on the live book: 0 of 1,044 supply points share a serial, and 0 of 23,799 gas bills charge with no volume, on 6af7fd0bfd (3727cdbb3).",
     "last_at": "2026-11-18T15:21:49.370919+00:00",
     "first_at": "2026-11-16T09:23:09.756957+00:00",
-    "times_listed": 22,
+    "times_listed": 21,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -719,7 +732,7 @@
     "what": "THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: 0 legs, GBP 0.00 on the verified 6af7fd0bfd book (49d41097b).",
     "last_at": "2026-11-18T12:24:07.112567+00:00",
     "first_at": "2026-11-16T09:23:09.756957+00:00",
-    "times_listed": 21,
+    "times_listed": 20,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -732,7 +745,7 @@
     "what": "THE MACHINE'S, NEW. The live Capabilities page told the director \"Fixed in the 7 days to 11 Nov 2026 -- Nothing recorded\" after a week that fixed dozens of money classes. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: https://poesys.net/capabilities/ serves \"Fixed in the 7 days to 18 Nov 2026\" with dated items, and its lead says the thesis question in words, not book totals.",
     "last_at": "2026-11-18T12:24:07.112567+00:00",
     "first_at": "2026-11-16T09:23:09.756957+00:00",
-    "times_listed": 21,
+    "times_listed": 20,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -745,7 +758,7 @@
     "what": "THE COMPANY'S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 Nov book. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: origin's publish_provenance reads last_verified 6af7fd0bfd at 10:20:38Z with paused_since null, and the episode closed at 11:03Z.",
     "last_at": "2026-11-18T12:24:07.112567+00:00",
     "first_at": "2026-11-16T09:23:09.756957+00:00",
-    "times_listed": 21,
+    "times_listed": 20,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -979,7 +992,7 @@
     "what": "THE MACHINE'S, NEW. The orientation brief counts a retired finding as BLOCKING. The 205-of-238 refund finding was retired on origin by 63ede2e3b, but the shared tree still holds it in docs/staging/, so the brief lists 3 BLOCKING findings where origin has 2. The brief reads findings from the working copy, not from origin. [Earlier tails are in decisions.jsonl.] 21:23 16 Nov -- unchanged in kind. The brief again lists 3 BLOCKING, and one of them (WORKER_FINDING_THE_CANON_DRIFTS_FROM_THE_CODE_0A2E477ACB) is not in origin's staging root, only the shared tree's.",
     "last_at": "2026-11-16T21:23:08.620182+00:00",
     "first_at": "2026-11-16T09:23:09.756957+00:00",
-    "times_listed": 7,
+    "times_listed": 6,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -1044,7 +1057,7 @@
     "what": "THE MACHINE'S, NEW. At 07:05 sim-runner built a weekly book on f7e17b1316, a commit that carries the fix for none of the five rows that refused 8a300fa561. It ran for 6,728 s. The value-test twin queued on memory for that whole time and launched 39 s after the book finished. That book is now in the publisher. Prediction, filed before its grade: it is refused on at least INV_OVERDUE_WITHIN_BALANCE and INV_OVERDUE_WITHIN_PAGE_BALANCE. A routine book went ahead of the thesis test, and nothing asked whether it could change a refusing row. Focus item 3 owns the next book's launch condition. [Earlier tails are in decisions.jsonl.] 15:20 16 Nov: Corrected. The prediction held: process_run_complete refused that book at 12:31Z on rows 4, 7, 1 and 5 (SEAT_FINDING_THE_VAT_ROWS_LAST_BREACH_..., s.1). d20c70aec now admits a book only on a commit carrying every fix in background/next_book_requires.yaml, and never while a long job queues for room.",
     "last_at": "2026-11-16T15:20:57.425256+00:00",
     "first_at": "2026-11-16T09:23:09.756957+00:00",
-    "times_listed": 4,
+    "times_listed": 3,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1057,7 +1070,7 @@
     "what": "THE SEAT'S, NEW. The 18:22 record of 15 Nov was refused at landing by the same empty-field sweep it called fixed. Its own wrong row quoted the Harness page's hole literally, as a pair of empty square brackets, and the sweep read the quotation as the hole. The same record marked the five-refusal row corrected, which was premature: the 15:21 record landed (8503daa89) but the 18:22 one did not, so origin's DIRECTION.yaml is still the 15:21 record plus the 18:28 ruling close. This record quotes no empty field. It is corrected when this record is on origin. 06:23 16 Nov: The 03:24 record was refused too, at 03:51, by the same sweep (site/test_no_published_page_renders_an_empty_field.py) but on a different string: the Harness page renders 8503daa89's own commit subject, which quotes the bare brackets. No wording of the record can avoid that while the commit is listed on the page. Focus item 3 fixes it. Corrected when a record lands on origin by its own tick. 09:23 16 Nov: Corrected. 0cf940674 landed the 06:23 record by its own tick at 06:57. 20a54dd75 fixed the cause: a quoted empty list in any feed string now publishes as words.",
     "last_at": "2026-11-16T12:20:26.166814+00:00",
     "first_at": "2026-11-16T09:23:09.756957+00:00",
-    "times_listed": 3,
+    "times_listed": 2,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1070,7 +1083,7 @@
     "what": "THE MACHINE'S, NEW. The value test's twin has waited in its queue unit since 04:38Z without starting. resource_headroom reports two holds: landings come before experiments, and head_green_census (pid 82305, running since 03:31Z) holds a reservation of 11,981 MB. On a 24 GB guest, that leaves no room for the twin's declared peak of 11,500 MB. So a harness census outranks the thesis test, and nothing decided that order. Focus item 1 reverses it. 09:23 16 Nov: Corrected. The twin is running. It was held by the 07:05 weekly book and not mainly by the census (new row below).",
     "last_at": "2026-11-16T12:20:26.166814+00:00",
     "first_at": "2026-11-16T09:23:09.756957+00:00",
-    "times_listed": 3,
+    "times_listed": 2,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1083,7 +1096,7 @@
     "what": "THE MACHINE'S, NEW. Seven queued continuations say 'DO NOT DRAW BEFORE 06:00 on 16 Nov' to grade 'the 16 Nov book', but the publish they wait on was refused. Their stamp is the clock and not the artefact, so from 06:00 they are drawable against a page that still shows 6fe7827ab2. A stamp keyed to today's expected time and not to the property it needs is the shape CLAUDE.md warns about. Focus item 4 re-points or re-stamps each one. 09:23 16 Nov: Corrected. Six of the seven were graded on 8a300fa561's run artefacts and retired this stretch. The seventh, s6b, grades run artefacts too, so its clock stamp reads nothing unserved. catchup-vat-rows-drop-injection waits on a verified publish.",
     "last_at": "2026-11-16T12:20:26.166814+00:00",
     "first_at": "2026-11-16T09:23:09.756957+00:00",
-    "times_listed": 3,
+    "times_listed": 2,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1092,18 +1105,58 @@
     "reason": null
    }
   ],
-  "distinct": 57,
+  "distinct": 58,
   "triaged": 12,
   "triaged_by_fate": {
    "fix": 9,
    "fold": 2,
    "accept": 1
   },
-  "untriaged": 45,
-  "distinct_open": 14,
-  "rows": 408,
+  "untriaged": 46,
+  "distinct_open": 13,
+  "rows": 403,
   "triage_register": "read",
   "entries": [
+   {
+    "at": "2026-11-20T18:23:24.032888+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-11-20T18:23:24.032888+00:00",
+    "corrected": false,
+    "problem": "triage:metered-electricity-barely-moves-year-to-year"
+   },
+   {
+    "at": "2026-11-20T18:23:24.032888+00:00",
+    "corrected": false,
+    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
+   },
+   {
+    "at": "2026-11-20T18:23:24.032888+00:00",
+    "corrected": false,
+    "problem": "text:with the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin"
+   },
+   {
+    "at": "2026-11-20T18:23:24.032888+00:00",
+    "corrected": true,
+    "problem": "text:four grading commits carry trailers the learning loop cannot parse (617ec5faa9 d48, 47881a984c level-dd, 22f1dfa987, f165c9b1ee), so their grades are missing from the hit rates"
+   },
+   {
+    "at": "2026-11-20T18:23:24.032888+00:00",
+    "corrected": false,
+    "problem": "text:the 0.12 replication launched at 11:33z refused in 60 ms at 11:41z (exit 5), because fork_salvage committed salvage(auto) into its pinned run tree and the diff no longer matched the pin"
+   },
+   {
+    "at": "2026-11-20T18:23:24.032888+00:00",
+    "corrected": true,
+    "problem": "text:docs/domain_artefact_library/regulatory/uk_vat_rates.json ends the temporary gb electricity zero rate earlier than hmrc vat notice 701/19 (updated 28 oct 2026), which runs it to june 2027"
+   },
+   {
+    "at": "2026-11-20T18:23:24.032888+00:00",
+    "corrected": false,
+    "problem": "text:knife3's i1 to i5 were pre-registered against a book that publishes none of the records they read (no write-off refs, no remittance rows, no learner state), and the previous direction's item 1 told a worker to grade them on 6a588a832f"
+   },
    {
     "at": "2026-11-20T15:23:55.572760+00:00",
     "corrected": false,
@@ -3078,71 +3131,6 @@
     "at": "2026-11-16T09:23:09.756957+00:00",
     "corrected": false,
     "problem": "text:at 07:05 sim-runner built a weekly book on f7e17b1316, a commit that carries the fix for none of the five rows that refused 8a300fa561"
-   },
-   {
-    "at": "2026-11-16T09:23:09.756957+00:00",
-    "corrected": false,
-    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
-   },
-   {
-    "at": "2026-11-16T09:23:09.756957+00:00",
-    "corrected": false,
-    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
-   },
-   {
-    "at": "2026-11-16T09:23:09.756957+00:00",
-    "corrected": false,
-    "problem": "triage:metered-electricity-barely-moves-year-to-year"
-   },
-   {
-    "at": "2026-11-16T09:23:09.756957+00:00",
-    "corrected": false,
-    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
-   },
-   {
-    "at": "2026-11-16T09:23:09.756957+00:00",
-    "corrected": false,
-    "problem": "triage:the-account-page-drops-cash-the-household-repaid"
-   },
-   {
-    "at": "2026-11-16T09:23:09.756957+00:00",
-    "corrected": false,
-    "problem": "triage:the-brief-counts-a-finding-retired-on-origin-as-blocking"
-   },
-   {
-    "at": "2026-11-16T09:23:09.756957+00:00",
-    "corrected": false,
-    "problem": "triage:the-capabilities-page-says-nothing-was-fixed"
-   },
-   {
-    "at": "2026-11-16T09:23:09.756957+00:00",
-    "corrected": false,
-    "problem": "triage:a-landing-loses-its-race-to-origin"
-   },
-   {
-    "at": "2026-11-16T09:23:09.756957+00:00",
-    "corrected": true,
-    "problem": "text:the 18:22 record of 15 nov was refused at landing by the same empty-field sweep it called fixed"
-   },
-   {
-    "at": "2026-11-16T09:23:09.756957+00:00",
-    "corrected": false,
-    "problem": "text:the 16 nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 nov book"
-   },
-   {
-    "at": "2026-11-16T09:23:09.756957+00:00",
-    "corrected": true,
-    "problem": "text:the value test's twin has waited in its queue unit since 04:38z without starting"
-   },
-   {
-    "at": "2026-11-16T09:23:09.756957+00:00",
-    "corrected": true,
-    "problem": "text:seven queued continuations say 'do not draw before 06:00 on 16 nov' to grade 'the 16 nov book', but the publish they wait on was refused"
-   },
-   {
-    "at": "2026-11-16T09:23:09.756957+00:00",
-    "corrected": false,
-    "problem": "text:at 07:05 sim-runner built a weekly book on f7e17b1316, a commit that carries the fix for none of the five rows that refused 8a300fa561"
    }
   ],
   "refused_own_records": [
@@ -3167,19 +3155,51 @@
     "problems": []
    }
   ],
-  "outstanding": 345,
-  "corrected": 63,
+  "outstanding": 341,
+  "corrected": 62,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "grade-knife3-and-the-gas-fallback-split-on-the-6a588a832f-book",
+   "the-0-12-replication-is-read-out-of-sample",
+   "knife3-i1-to-i5-are-read-on-the-first-book-that-publishes-them",
    "d48-the-electricity-blend-goes-on-in-the-published-policy",
-   "a-dual-household-answers-its-anniversary-offer-once",
-   "the-four-unparsed-grades-reach-the-learning-loop"
+   "fork-salvage-never-commits-into-a-locked-worktree"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "grade-knife3-and-the-gas-fallback-split-on-the-6a588a832f-book",
+       "a-dual-household-answers-its-anniversary-offer-once",
+       "the-four-unparsed-grades-reach-the-learning-loop"
+      ],
+      "focus": [
+       "grade-knife3-and-the-gas-fallback-split-on-the-6a588a832f-book",
+       "d48-the-electricity-blend-goes-on-in-the-published-policy",
+       "a-dual-household-answers-its-anniversary-offer-once",
+       "the-four-unparsed-grades-reach-the-learning-loop"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "grade-knife3-and-the-gas-fallback-split-on-the-6a588a832f-book",
+     "a-dual-household-answers-its-anniversary-offer-once",
+     "the-four-unparsed-grades-reach-the-learning-loop"
+    ],
+    "focus": [
+     "grade-knife3-and-the-gas-fallback-split-on-the-6a588a832f-book",
+     "d48-the-electricity-blend-goes-on-in-the-published-policy",
+     "a-dual-household-answers-its-anniversary-offer-once",
+     "the-four-unparsed-grades-reach-the-learning-loop"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-20T15:23:55.572760+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-11-20T15:23:55.572760+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -3309,36 +3329,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-20T06:22:14.056314+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-11-20T06:22:14.056314+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "knife3-the-held-per-debt-sale-rule-lands-on-the-varying-world",
-       "prepayment-build-is-checked-against-the-value-figures"
-      ],
-      "focus": [
-       "the-0-12-pair-is-read-and-the-advantage-is-published-with-its-interval",
-       "d48-the-electricity-blend-goes-on-in-the-published-policy",
-       "knife3-the-held-per-debt-sale-rule-lands-on-the-varying-world",
-       "prepayment-build-is-checked-against-the-value-figures"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "knife3-the-held-per-debt-sale-rule-lands-on-the-varying-world",
-     "prepayment-build-is-checked-against-the-value-figures"
-    ],
-    "focus": [
-     "the-0-12-pair-is-read-and-the-advantage-is-published-with-its-interval",
-     "d48-the-electricity-blend-goes-on-in-the-published-policy",
-     "knife3-the-held-per-debt-sale-rule-lands-on-the-varying-world",
-     "prepayment-build-is-checked-against-the-value-figures"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-20T03:22:47.583011+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-11-20T03:22:47.583011+00:00"
    }
   ],
   "steered_recently": true,
@@ -3346,9 +3336,9 @@
  },
  "the_queues_link_to_the_map": {
   "available": true,
-  "population": 160,
-  "chained": 157,
-  "minted": 58,
+  "population": 159,
+  "chained": 156,
+  "minted": 57,
   "unminted": 99,
   "unminted_by_kind": {
    "alarm": 2,
@@ -3449,7 +3439,7 @@
   "by_epoch": {
    "2": 11,
    "3": 20,
-   "4": 27
+   "4": 26
   },
   "unchained": [
    {
@@ -3483,7 +3473,6 @@
     "SEAT_FINDING_AN_ELECTRIC_HOMES_WATER_HEATER_ADDS_TEXTURE_UNDER_THE_ACTIVE_USE_COUPLING_2026-10-15.md",
     "SEAT_FINDING_A_CLOSING_DUAL_FUEL_HOUSEHOLD_IS_REFUNDED_ON_ONE_FUEL_WHILE_IT_OWES_ON_THE_OTHER_2026-11-11.md",
     "SEAT_FINDING_A_CREDITED_ACCOUNT_IS_DUNNED_AND_THE_RUN_STOPS_ON_EP17_SEED_61106_2026-10-11.md",
-    "SEAT_FINDING_A_DUAL_HOUSEHOLDS_TWO_FUELS_ANSWER_THEIR_ANNIVERSARY_OFFERS_APART_2026-10-26.md",
     "SEAT_FINDING_A_GAS_HOMES_SEASON_MISS_IS_THE_WINTER_AND_LIGHTING_IS_THE_ONE_TERM_OFF_ITS_SOURCE_2026-10-09.md",
     "SEAT_FINDING_A_LEGACY_HOME_IS_HANDED_ITS_DRAWN_BAND_AS_ITS_EAC_AND_THE_EPC_MULTIPLIER_ADDS_A_SIXTH_ON_TOP_2026-10-16.md",
     "SEAT_FINDING_A_NEWLY_ROLLED_HOUSEHOLD_SPIKES_FOR_SIX_WEEKS_AND_THE_NINE_ARE_NOT_NEWLY_ROLLED_2026-10-02.md",
@@ -3615,12 +3604,12 @@
     },
     {
      "date": "2026-11-20",
-     "commit": "9739e7bad",
-     "population": 159,
-     "chained": 156,
-     "minted": 58,
+     "commit": "270bf6a17",
+     "population": 158,
+     "chained": 155,
+     "minted": 57,
      "unminted": 98,
-     "unread": 56
+     "unread": 55
     }
    ]
   },
