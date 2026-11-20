@@ -185,6 +185,11 @@ holidays (occupancy). That reading is a hypothesis. The national data establishe
 
 ## 7. The choices this page hands to the build, and what it leaves open
 
+**Built 2026-11-20.** Both bullets below landed together: `REFERENCE_MONTHLY_HDD` takes §5a's ET 7.1 column and
+`_GAS_BOILER_HEATING_FRACTION` is 0.85. On the reference year this gives Jan:Jul 7.22 and Jun–Aug 7.53%. The
+heat-pump term in `simulation/run_phase2b.py` reads the same constant. **GAP:** there is no heat-pump-specific source
+for that term's heating share. It is graded on the next book, against the prediction on W2_30's simplification file.
+
 - **The calibration target is the heating fraction on the normal-weather basis: 0.85, with a published range of
   0.82–0.87 over 2016–25.** It is not a Jan:Jul ratio. Jan:Jul is a check, and it must be computed on the same HDD
   basis as the target (7.2 at DESNZ normal). F11, erring against the thesis: the company's estimator already uses the

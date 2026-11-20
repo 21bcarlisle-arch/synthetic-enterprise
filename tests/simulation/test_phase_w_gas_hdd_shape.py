@@ -51,7 +51,7 @@ def _run_one_month(month_start: str, aq: int = 12000, segment: str = "resi") -> 
 
 class TestHDDConstants:
     def test_heating_fraction_calibrated(self):
-        assert 0.60 <= _GAS_BOILER_HEATING_FRACTION <= 0.80
+        assert 0.82 <= _GAS_BOILER_HEATING_FRACTION <= 0.87  # DESNZ ET 4.1/4.2 fit, 2016-25
 
     def test_hdd_ref_annual_positive(self):
         assert _HDD_REF_ANNUAL > 1000
@@ -176,3 +176,22 @@ class TestICGasUnchanged:
             assert r_wf[0]["daily_kwh"] < r_normal[0]["daily_kwh"], (
                 "I&C weather_factor=0.8 should reduce consumption vs 1.0"
             )
+
+
+def test_the_fraction_and_the_reference_year_reproduce_the_published_normal_gas_year():
+    """Defect caught: the heating fraction moved without REFERENCE_MONTHLY_HDD (or the reverse).
+
+    The two calibrate as a pair: 0.85 on the pre-2026-11-20 table gave Jan:Jul 10.6, and 0.70 on the
+    re-based table gives 4.3. DESNZ ET 4.1/4.2 domestic, normalised to 1991-2020 weather, gives 7.15-7.47
+    over 2023-25 (docs/market_research/the_domestic_gas_year_heats_on_about_85_percent_not_70_2026-11-19.md s.5).
+    """
+    import calendar
+
+    f = _GAS_BOILER_HEATING_FRACTION
+    annual = sum(REFERENCE_MONTHLY_HDD.values())
+
+    def month_share(m: int) -> float:
+        days = 28.25 if m == 2 else calendar.monthrange(2019, m)[1]
+        return f * REFERENCE_MONTHLY_HDD[m] / annual + (1.0 - f) * days / 365.25
+
+    assert 7.15 <= month_share(1) / month_share(7) <= 7.47

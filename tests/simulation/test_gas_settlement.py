@@ -56,8 +56,8 @@ def test_pass_through_fee_positive():
     assert GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH > 0
 
 
-def test_boiler_heating_fraction_seventy_pct():
-    assert _GAS_BOILER_HEATING_FRACTION == pytest.approx(0.70)
+def test_boiler_heating_fraction_is_in_the_published_fit_range():
+    assert 0.82 <= _GAS_BOILER_HEATING_FRACTION <= 0.87  # DESNZ ET 4.1/4.2 fit, 2016-25
 
 
 from datetime import date, timedelta

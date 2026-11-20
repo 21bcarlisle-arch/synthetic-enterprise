@@ -240,7 +240,7 @@ from simulation.feedback_survey import (
     dispatch_dd_shock_complaint,
     dispatch_nps_survey,
 )
-from simulation.gas_settlement import run_gas_term
+from simulation.gas_settlement import _GAS_BOILER_HEATING_FRACTION, run_gas_term
 from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
 from simulation.hh_consumption import (
     estimate_annual_kwh,
@@ -812,7 +812,8 @@ def _weather_adjusted_shape_fn(
             shape = [v * epc_mult for v in shape]
 
         # Phase I: ASHP electricity uplift -- HDD-weighted seasonal shape.
-        # 70% space-heating (scales with HDD, same basis as gas boiler gas), 30% DHW (flat).
+        # The gas boiler's heating fraction (scales with HDD), the rest DHW (flat). It reads the gas constant
+        # because the fraction and REFERENCE_MONTHLY_HDD calibrate as a pair. GAP: no heat-pump-specific source.
         # Replaces Phase G flat approximation. Annual total unchanged at ~5,500 kWh/yr.
         # Phase N: EV electricity demand -- flat load across all HH periods.
         # ~2,143 kWh/yr (7,500 mi / 3.5 mi/kWh). Applies from ev_acquired date.
@@ -823,8 +824,8 @@ def _weather_adjusted_shape_fn(
                 if _ashp_annual > 0:
                     _hdd_day = get_hdd(date_str, customer_id)
                     _hdd_ref = sum(REFERENCE_MONTHLY_HDD.values())
-                    _daily_heating = _ashp_annual * 0.70 * (_hdd_day / _hdd_ref)
-                    _daily_dhw = _ashp_annual * 0.30 / 365.25
+                    _daily_heating = _ashp_annual * _GAS_BOILER_HEATING_FRACTION * (_hdd_day / _hdd_ref)
+                    _daily_dhw = _ashp_annual * (1.0 - _GAS_BOILER_HEATING_FRACTION) / 365.25
                     _ashp_hh_kwh = (_daily_heating + _daily_dhw) / 48
                     shape = [v + _ashp_hh_kwh for v in shape]
                 # Phase P: overnight-weighted EV shape (90% periods 47-48, 1-14).

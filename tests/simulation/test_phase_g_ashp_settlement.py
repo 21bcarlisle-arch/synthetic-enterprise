@@ -11,6 +11,7 @@ Key invariant:
 
 import pytest
 from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd
+from simulation.gas_settlement import _GAS_BOILER_HEATING_FRACTION
 from simulation.household import (
     BoilerAge,
     BuildEra,
@@ -89,11 +90,11 @@ class TestASHPShapeUplift:
         assert all(d > 0 for d in diffs)
 
     def test_ashp_summer_daily_uplift_reflects_dhw_floor(self):
-        """Phase I: summer day uplift >= DHW floor (5500 * 30% / 365.25 / 48 per period)."""
+        """Phase I: summer day uplift >= DHW floor (the non-heating share of 5500 kWh / 365.25)."""
         gas_shape = self._shape(HeatingSystem.GAS_BOILER_COMBI)
         ashp_shape = self._shape(HeatingSystem.HEAT_PUMP_AIR)
         daily_uplift = sum(ashp_shape) - sum(gas_shape)
-        dhw_floor = ASHP_BASE_ELECTRICITY_KWH * 0.30 / DAYS_PER_YEAR
+        dhw_floor = ASHP_BASE_ELECTRICITY_KWH * (1.0 - _GAS_BOILER_HEATING_FRACTION) / DAYS_PER_YEAR
         # Summer (June 15) has low HDD -> mostly DHW, minimal heating
         assert daily_uplift >= dhw_floor * 0.9  # 10% tolerance for HDD rounding
 
@@ -135,8 +136,8 @@ class TestASHPShapeIndependence:
         shape = fn(TEST_DATE)
         hdd_day = get_hdd(TEST_DATE, "C1")
         hdd_ref = sum(REFERENCE_MONTHLY_HDD.values())
-        expected_hh = (ASHP_BASE_ELECTRICITY_KWH * 0.70 * hdd_day / hdd_ref
-                       + ASHP_BASE_ELECTRICITY_KWH * 0.30 / DAYS_PER_YEAR) / HH_PER_DAY
+        expected_hh = (ASHP_BASE_ELECTRICITY_KWH * _GAS_BOILER_HEATING_FRACTION * hdd_day / hdd_ref
+                       + ASHP_BASE_ELECTRICITY_KWH * (1.0 - _GAS_BOILER_HEATING_FRACTION) / DAYS_PER_YEAR) / HH_PER_DAY
         expected = [1.0 * epc_mult + expected_hh] * HH_PER_DAY
         for v, e in zip(shape, expected):
             assert v == pytest.approx(e, rel=1e-6)
