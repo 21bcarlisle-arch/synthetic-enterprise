@@ -20,6 +20,7 @@ python3 -P -`, so the observer itself is never the change's copy. Stdlib only, f
 from __future__ import annotations
 
 import ast
+import calendar
 import json
 import os
 import re
@@ -284,11 +285,51 @@ def observe(root: Path) -> dict:
     return record
 
 
+#: The steer's own condition for the flip: a week of real commits, read before enforcing.
+OBSERVE_DAYS = 7
+
+
+def summarise(records: list[dict]) -> dict:
+    """What the enforce decision reads: how often enforce would have refused, how often a deep
+    pytest closure was touched but not rerun, how often gate DATA was staged (GAP-1), and what
+    the observer cost. `ready` is the week's span, not a count -- a busy afternoon is not a week."""
+    if not records:
+        return {"commits": 0, "ready": False}
+    stamps = sorted(r["at"] for r in records)
+    first, last = (calendar.timegm(time.strptime(t, "%Y-%m-%dT%H:%M:%SZ"))
+                   for t in (stamps[0], stamps[-1]))
+    span_days = (last - first) / 86400
+    results = [r for rec in records for r in rec.get("results", [])]
+    secs = sorted(rec.get("observer_seconds", 0.0) for rec in records)
+    per_gate: dict[str, dict] = {}
+    for r in results:
+        g = per_gate.setdefault(r["gate"], {"rerun": 0, "deferred": 0, "would_refuse": 0})
+        g["deferred" if r.get("deferred") else "rerun"] += 1
+        g["would_refuse"] += bool(r.get("would_refuse"))
+    return {
+        "commits": len(records), "first": stamps[0], "last": stamps[-1],
+        "span_days": round(span_days, 2), "ready": span_days >= OBSERVE_DAYS,
+        "commits_with_a_rerun": sum(1 for rec in records if rec.get("results")),
+        "would_refuse": sum(1 for r in results if r.get("would_refuse")),
+        "deferred": sum(1 for r in results if r.get("deferred")),
+        "gate_data_touched_commits": sum(1 for rec in records if rec.get("gate_data_touched")),
+        "observer_seconds": {"median": secs[len(secs) // 2], "max": secs[-1],
+                             "total": round(sum(secs), 1)},
+        "per_gate": per_gate,
+    }
+
+
 def main(argv: list[str]) -> int:
     root = Path(_git(Path.cwd(), "rev-parse", "--show-toplevel").strip())
     if "--report" in argv:
         p = log_path(root)
-        print(p.read_text() if p.is_file() else "no base-judged reruns logged yet ({})".format(p))
+        if not p.is_file():
+            print("no base-judged commits logged yet ({})".format(p))
+        elif "--raw" in argv:
+            print(p.read_text())
+        else:
+            print(json.dumps(summarise([json.loads(x) for x in p.read_text().splitlines()
+                                        if x.strip()]), indent=2))
         return 0
     try:
         observe(root)

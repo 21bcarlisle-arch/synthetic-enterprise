@@ -73,6 +73,14 @@ the change. Under `surgical_land`, the hook *script* comes from the change too. 
   then it wrote only on a rerun, so five commits after it landed had left no log at all, and that
   silence could not be told from an observer that never ran. One probe on the real tree with
   nothing to rerun: 3.55 s.
+  **First reading, 20 Nov (9 commits over 56 minutes, `--report`):** 0 would-refuse, 4 deferred,
+  0 commits staging gate data, median observer cost 3.86 s. The maximum was 1,117 s, from one
+  commit that touched `tools/pre_commit_test_gate.py`. Its base rerun alone took 537 s and the
+  change rerun 568 s, so observe mode more than doubles the cost of any commit that touches the
+  test gate or one of its direct imports. Enforce does not carry this cost, because it runs the
+  base copy *instead of* the change's copy, not beside it. It is a cost of observing only.
+  `--report` now prints these counts and `ready`. `ready` is true only once the logged commits
+  span 7 days, because a busy afternoon is not a week. `--report --raw` prints the log itself.
 
 ## 5. Enforce
 

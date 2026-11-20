@@ -129,3 +129,28 @@ def test_a_broken_observer_never_reds_the_commit(repo):
     rc, _ = (subprocess.run([sys.executable, "-P", "-"], cwd=repo, input=OBSERVER.read_text(),
                             capture_output=True, text=True).returncode, None)
     assert rc == 0
+
+
+def _summarise():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("bjg", OBSERVER)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.summarise
+
+
+def test_the_report_is_ready_only_after_a_week_of_commits_and_counts_what_enforce_reads():
+    """Defect: the report calls the log ready on a busy afternoon, or drops a would-refuse."""
+    summarise = _summarise()
+    hit = {"gate": "g", "deferred": False, "would_refuse": True}
+    deep = {"gate": "t", "deferred": True, "would_refuse": None}
+    day0 = {"at": "2026-11-20T12:00:00Z", "results": [hit, deep], "gate_data_touched": ["x.mode"],
+            "observer_seconds": 4.0}
+    day7 = {"at": "2026-11-27T12:00:00Z", "results": [], "gate_data_touched": [],
+            "observer_seconds": 3.0}
+    busy = summarise([day0, dict(day7, at="2026-11-20T18:00:00Z")])
+    week = summarise([day0, day7])
+    assert not busy["ready"] and week["ready"]  # the branch can be taken, and is not taken early
+    assert (week["would_refuse"], week["deferred"], week["gate_data_touched_commits"]) == (1, 1, 1)
+    assert week["per_gate"]["g"]["would_refuse"] == 1 and week["observer_seconds"]["max"] == 4.0
+    assert summarise([]) == {"commits": 0, "ready": False}
