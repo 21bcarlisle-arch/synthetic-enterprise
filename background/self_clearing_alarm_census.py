@@ -240,6 +240,8 @@ class _FunctionScan:
         self.reads: set[str] = set()
         self.writes: set[str] = set()
         self.calls: set[str] = set()
+        # `module.fn()` keeps its receiver, so a name two modules define can still resolve.
+        self.qualified_calls: set[str] = set()
         self.except_writes: set[str] = set()   # writes lexically inside an `except` handler
         # PARAMETER-POSITION FACTS. `param_aliases` starts as the parameter names and grows only
         # through path-shaped assignments (`p = Path(path)`, `sp = path or DEFAULT`) -- never
@@ -385,6 +387,8 @@ class _FunctionScan:
         func = call.func
         if isinstance(func, ast.Attribute):
             self.calls.add(func.attr)
+            if isinstance(func.value, ast.Name):
+                self.qualified_calls.add("{}.{}".format(func.value.id, func.attr))
             self._record_callsite(func.attr, call)
             keys = self._keys(func.value)
             params = self._param_names(func.value)
@@ -478,6 +482,7 @@ def _scan_module(path: Path, project_dir: Path) -> dict[str, dict[str, Any]]:
             "direct_writes": sorted(scan.writes),
             "except_writes": sorted(scan.except_writes),
             "calls": sorted(scan.calls),
+            "qualified_calls": sorted(scan.qualified_calls),
         }
     return out
 
@@ -500,6 +505,16 @@ def _resolve_calls(facts: dict[str, dict[str, Any]]) -> dict[str, set[str]]:
                 targets.update(same)
             elif len(candidates) == 1:
                 targets.add(candidates[0])
+        # An ambiguous name is not a guess when the call names its module. `weekly_rhythm.tick()`
+        # from daily_self_note resolved until 28 Oct, when two_reader_review.py defined a second
+        # `tick`; the edge dropped and `.weekly_rhythm.json` left the class with no repair. Any
+        # module that reused `main`, `run` or `tick` could take a hit out the same way.
+        for dotted in f.get("qualified_calls", ()):
+            receiver, called = dotted.split(".", 1)
+            named = [c for c in by_name.get(called, [])
+                     if Path(facts[c]["module"]).stem == receiver]
+            if len(named) == 1:
+                targets.add(named[0])
         targets.discard(qual)
         edges[qual] = targets
     return edges
