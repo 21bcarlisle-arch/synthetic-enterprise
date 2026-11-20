@@ -8,6 +8,49 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-20 — orientation: Three hours: 12 commits, 9 carrying work, 6 substantive
+
+<!-- head: 9739e7bad4cb -->
+
+*Written by the orientation seat from its own record (2026-11-20T15:23:55.572760+00:00; 12 commits, 6 substantive, since 2026-11-20T12:20:35.333416+00:00).*
+
+Commit split (product code by path): 2 supplier, 0 world, 0 both, 10 other.
+
+## What the stretch meant
+
+Three hours: 12 commits, 9 carrying work, 6 substantive. The split reads 2 supplier, 0 world and 10 other, and 3 of the 10 are merges that changed nothing. Supplier-first slipped for a third stretch running, though by less. Both supplier commits matter. Property tests on billing (the director's 20 Nov steer, item 2) found two real money defects on their first run: a reviewed direct debit a pound a month too high, and three VAT readings of one period that disagreed. Both are fixed (9593c2856, 9739e7bad). That is billing accuracy, the first step of the priority order, and it shows the cheap way to find defects: state a property and let the generator look. The largest change is not a commit. The shared checkout rejoined origin at 13:42Z and the stalled book started on 6a588a832f; it reported SURVIVED at 15:13Z and is writing its output. Last stretch's item 1 is therefore met and leaves focus. That book is what every waiting supplier grade needed: the KNIFE3 remittance predictions I1-I6, the gas-fallback split, and N17's recheck. When it frees the box, the armed watcher (vtc-cut012-rep-watch) launches the 0.12 replication, about 23 h. On the thesis itself nothing moved. The per-customer arm still reads -GBP 0.33 (-1.77 to +0.96) against the flat-rules baseline, on the pair the cut was fitted to, and its one attributed gain (+GBP 1.00, nine retained households) is in-sample until the replication reads. So the advantage-from-inference claim is untested, not refuted. Of the previous focus, 2 of 4 were drawn. The checkout item finished. The dual household fix is landing now (a surgical_land has been gating for 35 min) and stays until it is on origin. D48 was dated to 20:00Z and has not ripened; the blend is still None on origin. The unparsed-grades item was never drawn, so it carries. Two draw-ledger rows still lack bindings from last stretch: the-0-12-pair-is-read... is spent by b1e04fab3, and poesys-net-goes-behind-a-login landed as ff5b0224b and 5be769d15. They are in item 4.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 12:20 20 Nov -- unchanged; the replication runs with the weighing off, so it does not test this belief. 15:24 20 Nov -- unchanged.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 12:20 20 Nov -- unchanged; the 23 Nov recheck stands on 67d454905c or the next book, which item 1 unblocks. 15:24 20 Nov -- the next book (6a588a832f) is finishing; the 23 Nov recheck reads it.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 12:20 20 Nov -- unchanged as re-stated. 15:24 20 Nov -- unchanged.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. 12:20 20 Nov -- the attribution half is answered (9e7cf29d4: all +GBP 1.00 is on nine retained households, none is redraw noise); the replication died at launch and is re-armed behind the owed book. 15:24 20 Nov -- unchanged; vtc-cut012-rep-watch is armed and launches when the 6a588a832f book frees the box.
+- NOT corrected: THE MACHINE'S, NEW. Four grading commits carry trailers the learning loop cannot parse (617ec5faa9 D48, 47881a984c level-dd, 22f1dfa987, f165c9b1ee), so their grades are missing from the hit rates. D48's grade is one of them. 12:20 20 Nov -- now focus item 4. 15:24 20 Nov -- not drawn this stretch; still focus, now item 4.
+- NOT corrected: THE MACHINE'S, NEW. The 0.12 replication launched at 11:33Z refused in 60 ms at 11:41Z (exit 5), because fork_salvage committed SALVAGE(auto) into its pinned run tree and the diff no longer matched the pin. The s.12f entry had also said the tree "is kept", and by 11:30Z it was gone. The pin was restored and the launch re-armed (9e7cf29d4), but the salvage-into-a-pinned-tree defect is not fixed. 15:24 20 Nov -- unchanged.
+- corrected: THE MACHINE'S, NEW. No book could start this stretch. Since 12:02Z, sim-runner has refused every cycle because a company file in the shared tree holds origin's bytes while HEAD is 43 commits behind, and 137 paths stop the fast-forward. Nothing raised it. The brief's divergence block was the only place it showed. Focus item 1. 15:24 20 Nov -- CORRECTED: the checkout rejoined origin (the-shared-checkout-rejoins-origin-so-the-book-runs retired 13:42Z) and sim-runner admitted the book on 6a588a832f at 13:42Z; it reported SURVIVED at 15:13Z.
+- corrected: THE COMPANY'S, NEW. A reviewed direct debit came out a pound a month too high on any year of an odd whole pound times twelve, because the review rounded half to even. Found by the first Hypothesis property test (9593c2856) and fixed there with math.ceil.
+- corrected: THE COMPANY'S, NEW. Three VAT readings of one billing period disagreed: an SME period of no length, the invoice fallback, and the biller's choice of date. Found by the property tests and reconciled in 9739e7bad.
+- NOT corrected: THE COMMONS', NEW. docs/domain_artefact_library/regulatory/uk_vat_rates.json ends the temporary GB electricity zero rate earlier than HMRC VAT Notice 701/19 (updated 28 Oct 2026), which runs it to June 2027. The correction is queued (vat-zero-rate-extended-to-june-2027), and the draw refused it 11 times because the /var/tmp/se-seat-executor worktree held a diff on priced_days.
+
+## Chosen against
+
+- Building a forward, multi-term retention value into the offer rule.
+- Putting the VAT commons correction (zero rate to June 2027) into focus.
+- Grading on 6a588a832f the 0.12 cut's advantage over the baseline, or the renewal churn belief.
+- Fixing fork_salvage so it never commits into a locked run worktree.
+- Reaping the 10 worktrees that hold unlanded commits.
+- World work on W2_30 (N17).
+
+## Focus for the next stretch
+
+- `grade-knife3-and-the-gas-fallback-split-on-the-6a588a832f-book`
+- `d48-the-electricity-blend-goes-on-in-the-published-policy`
+- `a-dual-household-answers-its-anniversary-offer-once`
+- `the-four-unparsed-grades-reach-the-learning-loop`
+
+---
+
 ## 2026-11-20 — orientation: Three hours: 18 commits, 13 carrying work, 9 substantive
 
 <!-- head: e03e7418526a -->
