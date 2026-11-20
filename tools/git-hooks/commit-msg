@@ -34,6 +34,12 @@ python3 tools/next_step_gate.py "$1" || exit 1
 # `python3 tools/director_document_gate.py --report`.
 python3 tools/director_document_gate.py "$1" || exit 1
 
+# GRADED-TRAILER GATE (2026-11-20): a `Graded:` line the learning loop cannot parse is missing
+# from the hit rates the STOP rule reads, and on origin it can only be answered by a later
+# `Restates:` commit. Four landed that way in two days. This runs the loop's own `parse`, so the
+# gate and the reader cannot disagree about what parses.
+python3 -c 'import sys; from background.learning_loop import refuse_message; sys.exit(refuse_message(sys.argv[1]))' "$1" || exit 1
+
 # STAMP THE HOOK-GATE MARK (2026-09-24). LAST LINE, AFTER the message gates above: the mark says the
 # WHOLE chain completed, so stamping before they ran would overstate it. Only stamps when the index
 # still writes out to the tree `pre-commit` recorded, which is what stops a record left behind by an

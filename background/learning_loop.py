@@ -16,6 +16,14 @@ fraction of its centre, so a hit rate is never read without the widths that boug
 
 A trailer that does not parse is returned under `unparsed` with its reason, never dropped:
 a malformed grade read as "no grade" would make the hit rate look better than it is.
+
+    Graded: none -- <reason>      the commit grades nothing, and says why; neither a grade nor a refusal
+    Restates: <sha>               this commit restates <sha>'s grade in the form above
+
+A commit cannot be amended once it is on origin, so a malformed grade is answered by a later commit
+carrying `Restates:`. Its refusals then move from `unparsed` to `restated`, beside the restating sha,
+rather than vanishing. The commit-msg gate runs `refuse_message` (this `parse`), so a new malformed
+`Graded:` line is refused before it lands instead of being read here a week later.
 """
 from __future__ import annotations
 
@@ -34,6 +42,7 @@ WINDOW_DAYS = 7
 
 _GRADED = re.compile(r"^Graded:\s*(\S+)\s+(.*)$", re.M)
 _COLD = re.compile(r"^Cold-read:\s*(\S+)\s+(.*)$", re.M)
+_RESTATES = re.compile(r"^Restates:\s*([0-9a-f]{7,40})\b", re.M)
 _KV = re.compile(r"(\w[\w-]*)=(\S+)")
 _INT_KEYS = ("held", "missed", "code", "reader", "regressed")
 
@@ -42,6 +51,10 @@ def parse(body: str) -> tuple[list[dict], list[dict], list[str]]:
     """(grades, cold reads, refusals) from one commit message."""
     grades, colds, bad = [], [], []
     for area, rest in _GRADED.findall(body):
+        if area.lower() == "none":
+            if not rest.strip().startswith("--") or not rest.strip()[2:].strip():
+                bad.append("Graded: none -- needs a reason after `--` saying why nothing is graded")
+            continue
         kv = dict(_KV.findall(rest))
         if "held" not in kv or "missed" not in kv:
             bad.append(f"Graded: {area} -- needs held= and missed=")
@@ -113,14 +126,15 @@ def measures(rev: str = "origin/main", days: int = WINDOW_DAYS, log_text: str | 
     except Exception as exc:  # noqa: BLE001 - the brief must still be written; say why it is blank
         return {"unreadable": str(exc)[:200]}
     areas: dict[str, dict] = {}
-    colds, unparsed = [], []
+    colds, refused, restates = [], [], {}
     fixes = regressed = 0
     for chunk in text.split("\x00"):
         if "\x01" not in chunk:
             continue
         sha, body = chunk.split("\x01", 1)
         grades, cold, bad = parse(body)
-        unparsed += [f"{sha} {b}" for b in bad]
+        refused += [(sha, b) for b in bad]
+        restates.update({r: sha for r in _RESTATES.findall(body)})
         colds += [{**c, "sha": sha} for c in cold]
         for g in grades:
             a = areas.setdefault(g["area"], {"held": 0, "missed": 0, "code_or_reader": 0,
@@ -135,6 +149,13 @@ def measures(rev: str = "origin/main", days: int = WINDOW_DAYS, log_text: str | 
                                                  g["held"] + g["missed"]))
             fixes += 1
             regressed += g["regressed"]
+    unparsed, restated = [], []
+    for sha, b in refused:
+        by = next((v for k, v in restates.items() if k.startswith(sha) or sha.startswith(k)), None)
+        if by:
+            restated.append(f"{sha} {b} [restated by {by}]")
+        else:
+            unparsed.append(f"{sha} {b}")
     for name, a in areas.items():
         n = a["held"] + a["missed"]
         a["hit_rate"] = round(a["held"] / n, 3) if n else None
@@ -165,6 +186,7 @@ def measures(rev: str = "origin/main", days: int = WINDOW_DAYS, log_text: str | 
         "escapes_per_cold_read": [c["new_classes"] for c in colds],
         "cold_reads": colds,
         "unparsed": unparsed,
+        "restated": restated,
         "repeat_failures": None,  # needs each insight's change date; ways_of_working.md, by hand
         "how_to_feed": "a grading commit carries `Graded: <area> held=<n> missed=<n> code=<n> "
                        "reader=<n> regressed=<n> width=<x>`; a cold read carries `Cold-read: "
@@ -172,3 +194,24 @@ def measures(rev: str = "origin/main", days: int = WINDOW_DAYS, log_text: str | 
                        "45 held of 80, 26 code-or-reader misses, 8-10 Nov.",
     }
 
+
+
+def check_message(text: str) -> list[str]:
+    """The refusals `parse` gives one commit message, comment lines dropped as git drops them."""
+    body = "\n".join(line for line in text.splitlines() if not line.startswith("#"))
+    return parse(body)[2]
+
+
+
+def refuse_message(path: str) -> int:
+    """The commit-msg gate's leg: 1, with each refusal named on stderr, if the message at `path`
+    carries a trailer `parse` refuses; else 0. Called from the hook by `python3 -c`, not as a
+    `__main__`, so this module stays a library."""
+    import sys
+
+    refusals = check_message(Path(path).read_text(encoding="utf-8", errors="replace"))
+    for r in refusals:
+        print(f"[learning-loop] trailer refused: {r}. The form is `Graded: <area> held=<n> "
+              f"missed=<n>` or `Graded: none -- <reason>` (background/learning_loop.py).",
+              file=sys.stderr)
+    return 1 if refusals else 0
