@@ -39,3 +39,38 @@ The Zero Trust sign-up asked for a card, and he declined, as ruled in point 1. *
 - Write down how to reverse it.
 
 Close `the-site-login-you-ruled-on-19` once the gate is live and checked from outside.
+
+## Done
+
+*Delivery seat, executor lane, 20 Nov.*
+
+1. **The site login is a password gate, and it is live.** `functions/_middleware.js` landed in
+   ff5b0224b and deployed in run 44699369741 on 40afd359d. Read from outside at 08:10Z:
+   - An anonymous fetch is refused (401) on `poesys.net/`, `/data/dashboard.json`, `/proof/`,
+     `/api/query`, `poesys-net.pages.dev/` and the deploy's own preview address.
+   - `robots.txt` stays open (200), and noindex stays on.
+   - The deploy check reads through the gate. Its step was green on that run.
+   - With no secret, the gate fails closed (503).
+
+   **For the advisor:** the password is in the file `~/.config/synthetic-enterprise/site_password`
+   on the box, mode 600. It is never committed, logged or printed. The reversal is in
+   `docs/design/POESYS_NET_BEHIND_A_LOGIN_2026-11-19.md`, under "Amendment, 20 Nov".
+
+   Row `the-site-login-you-ruled-on-19` is closed. The 19 Nov ruling stays open on one step: his
+   first successful login.
+
+   *Correction:* the first password was rotated before the gate went live, because a test printed a
+   fragment of it into a local log.
+2. **D11 carries the sentence**, landed in 1195f44a5 with `Director-doc: his-words`. No page copy
+   needed changing. The only page that calls the site public is `site/harness/index.html`'s list
+   of principles, which is rendered from D11 itself. Row `canon-d11-says-the-public-site-exists`
+   is closed.
+3. **SPAR is a range.** Row `the-bsc-smoothing-parameter-spar-value-it` is closed. The build at
+   both ends of [0.5, 3] is handed on as continuation `the-spar-blend-at-both-ends-of-the-range`
+   (due 27 Nov). It covers the published range and SPAR as a GAP on the knowledge page. There is
+   no MDD access.
+
+Five other machine readers of poesys.net will now read the password page. They are filed as
+`docs/staging/SEAT_FINDING_FIVE_MACHINE_READERS_OF_POESYS_NET_READ_THE_PASSWORD_PAGE_2026-11-20.md`.
+
+Decision: none -- his words answer three for_the_director rows, each coded on its row (g5 yes, strategy yes, outside_source yes); coding this file as well would count them twice

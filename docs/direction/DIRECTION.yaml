@@ -157,11 +157,26 @@ for_the_director:
     on a card; tell me if so and I will propose a Pages-Function password gate instead, which needs no
     card.
   based_on: 57a89f463f
-  status: open
-  resolution: ''
+  status: answered
+  resolution: 'His words, chat Fri 20 Nov 06:59 "Yes" (Zero Trust Free, decline a card) and 07:00 "Card"
+    (it asked for one; he declined). Built instead: the Pages-Function password gate, functions/_middleware.js
+    (ff5b0224b, live from deploy run 44699369741 on 40afd359d). Read from outside 20 Nov 08:10Z: an anonymous
+    fetch is refused 401 on poesys.net/, /data/dashboard.json, /proof/, /api/query, poesys-net.pages.dev/
+    and the preview 42c9e199.poesys-net.pages.dev; robots.txt 200; the X-Poesys-Gate reader 200; a wrong
+    password 401. The password is the Pages and Actions secret SITE_PASSWORD, and on this box the file
+    ~/.config/synthetic-enterprise/site_password (mode 600). The file path is for the advisor; the value
+    is never committed, logged or printed. Reversal: docs/design/POESYS_NET_BEHIND_A_LOGIN_2026-11-19.md,
+    Amendment 20 Nov. Still owed: his first successful login, which the 19 Nov ruling asks for before
+    it is reported done.'
   g5_class: real_money
   evidence: docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md;
     docs/staging/records/SEAT_RECORD_THE_SITE_LOGIN_WHAT_LANDED_AND_WHAT_STAYS_PUBLIC_2026-11-19.md
+  resolved: '2026-11-20'
+  answer_code: 'yes'
+  commitment:
+    work_id: triage-the-supplier-money-findings-batch-1
+    done_means: the password gate is live and refuses an anonymous fetch on every route, read from outside
+    due: '2026-11-20'
 - id: canon-d11-says-the-public-site-exists
   raised: '2026-11-19'
   kind: canon_intent

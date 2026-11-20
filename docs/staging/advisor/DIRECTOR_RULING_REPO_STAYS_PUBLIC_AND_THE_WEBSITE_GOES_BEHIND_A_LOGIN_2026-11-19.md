@@ -2,6 +2,13 @@
 
 # [DIRECTOR-RULING] The repository stays public, and the website goes behind a login
 
+*Status, 20 Nov 08:15Z (delivery seat): one step is left, the director's first successful login.
+The gate is a password page, not Access, because Zero Trust asked for a card (his 20 Nov "Card").
+It is live and refuses an anonymous fetch on every route, read from outside (the readings are in
+`docs/design/POESYS_NET_BEHIND_A_LOGIN_2026-11-19.md`). robots and noindex are on. D11 is amended. The
+advisor has the password file's path, and the advisor tells him how to read it. When the advisor
+relays that he got in, move this file to `done/`. No other work is owed here.*
+
 **Type:** RULING, through the advisor channel. It answers `for_the_director` row `the-github-repository-is-still-public-gh` (raised 18 Nov).
 
 ## The director's words (chat, Thu 19 Nov, verbatim)

@@ -129,3 +129,28 @@ Delete `functions/_middleware.js` and the "Set the site password gate's secret" 
 (`gh secret delete SITE_PASSWORD`) and the file on this box. To change the password, overwrite the
 file, run `gh secret set SITE_PASSWORD < ~/.config/synthetic-enterprise/site_password`, and
 dispatch the deploy workflow.
+
+### Readings after the gate (20 Nov 08:10Z, from outside, cache-busted)
+
+Deploy run 44699369741 on 40afd359d was green on every step, including the secret step and the
+post-deploy check reading through the gate.
+
+| route | anonymous | with `X-Poesys-Gate` |
+|---|---|---|
+| `https://poesys.net/` | 401, the password page | 200 |
+| `https://poesys.net/data/dashboard.json` | 401 | 200 |
+| `https://poesys.net/proof/` | 401 | not read |
+| `https://poesys.net/api/query` | 401 | not read |
+| `https://poesys-net.pages.dev/` | 401 | 200 |
+| `https://42c9e199.poesys-net.pages.dev/` (this deploy's own address) | 401 | not read |
+| `/robots.txt` on both hostnames | 200, by design | |
+| a wrong password in the header | 401 | |
+
+A branch preview (a deploy from any branch but `main`) has no production secret, so it fails
+closed with a 503. Nothing deploys from another branch today.
+
+The Actions log was searched for every 6-character fragment of the password, and none was found.
+*Correction, recorded beside the claim:* the first password was rotated before it went live. A
+pre-existing test's assertion diff printed a fragment of it into a local gate log on this box,
+because `reader_headers()` read the real file during the test. That test is now isolated from the
+file, the log is deleted, and the live password has never been printed.
