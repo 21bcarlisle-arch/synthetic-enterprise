@@ -252,3 +252,26 @@ for_the_director:
   status: open
   resolution: ''
   evidence: docs/design/ONE_WORK_SYSTEM_DECISION_MAP_2026-11-20.md D7 and D6; docs/market_research/one_backlog_and_flow_practice_2026-11-20.md
+- id: your-12-oct-ruling-build-the-world
+  raised: '2026-11-20'
+  kind: strategy
+  decision_kind: fidelity
+  what: 'Your 12 Oct ruling (build the world''s response to a bill shock, DD4b, before grading the payment-plan
+    engine) cannot be met as it stands: DD4b needs how much a large direct debit increase raises the odds
+    a household shops, and no published source gives that figure (searched 29 Sep; docs/market_research/does_a_bill_shock_event_raise_the_odds_a_household_shops.md).
+    So the engine''s shock-avoidance has been ungraded for five weeks and nothing schedules it.'
+  proposal: 'Build DD4b with that amplitude as a stated range, not a single number: from zero (a bill
+    shock changes nothing) up to a stated ceiling. Then grade the plan''s shock-avoidance at each end
+    of the range, the same way your ruling 2 already treats customer take-up. Publish the result as the
+    range, beside a GAP note saying the amplitude is unsourced.'
+  recommendation: I recommend building DD4b on a stated range that starts at zero and grading at both
+    ends. K2 says leaving the response out asserts zero, which is the one value we know is wrong. A range
+    that starts at zero errs against our own thesis (F11), and your take-up ruling already set the pattern.
+    Waiting for a sourced figure leaves the engine grade parked behind PB4 with no date.
+  based_on: '3704365993'
+  status: open
+  resolution: ''
+  evidence: 'DD_seasonal_cashflow_physics is blocked_on PB4 (simplifications entry 2026-11-18); household_segments.BILL_SHOCK_ENGAGEMENT_MULTIPLIER
+    is a declared None; the only live route, sim_satisfaction._BILL_SHOCK_DELTA = -0.10, has no stated
+    origin. Ruling text: docs/staging/done/SEAT_PROPOSAL_A_PERSONAL_PAYMENT_PLAN_AND_DEBT_AS_A_NEXT_BEST_ACTION_DESIGNED_AS_ONE_2026-10-11.md
+    section Director''s rulings.'
