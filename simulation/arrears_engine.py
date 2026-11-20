@@ -76,10 +76,13 @@ hidden (SIM-side only) behavioural archetype derived from the customer's
 income_stress_trajectory shape, then followed through a DCA placement /
 recovery-or-sale terminal stage:
   WRITTEN_OFF -> PLACED_WITH_DCA(+30d) -> RECOVERED(+180d)
-                                        -> SOLD(+90d)  [AVOIDANT, only once a sale price exists]
+                                        -> SOLD(+90d)  [when the SUPPLIER chooses to sell]
 `debt_archetype()` is never exposed to company/ code -- only its exhaust (the
 stage notes' GBP figures) is company-observable, same epistemic split as the
-rest of this engine. The recovery share and the sale price are READ from
+rest of this engine. Since 2026-11-19 (KNIFE3) it decides nothing past the write-off: whether a
+debt is sold or worked is the supplier's `sells_written_off_debt`, asked through its door with the
+price on offer. It used to be `archetype == "AVOIDANT"`, a label no supplier can see
+(debt_and_collections.md s.7.7). The recovery share and the sale price are READ from
 docs/market_research/assumption_toggles.yaml (`post_write_off_recovery_share`,
 `debt_sale_price_share`). Until 2026-10-08 they were typed here as 25.5p / 17.0p / 12.0p
 per GBP, above every published signal for the sale and at the top of it for the DCA
@@ -103,6 +106,7 @@ from company.interfaces.collections_communication import (
     ledger_notice_wording,
     ledger_notices,
     ledger_write_off_fallback,
+    sells_written_off_debt,
     statute_barred_write_off_date,
 )
 from simulation.bacs_processing_day import collected_on
@@ -383,15 +387,19 @@ def debt_sale_proceeds(arrears_gbp: float) -> float | None:
     return None if price is None else round(arrears_gbp * price, 2)
 
 
-def post_write_off_recovery_gbp(arrears_gbp: float, archetype: str) -> float:
-    """The terminal stage's proceeds. AVOIDANT debt is sold only when a sale price exists. Until then
-    it is worked like any other debt. Other SIM debt mechanisms (W2_12 change-of-tenancy exit debt,
+def _supplier_sells() -> bool:
+    """Whether the supplier sells at the price the register says a purchaser offers. Its choice, not
+    the world's: asked through the door, with no household attribute in the question."""
+    return sells_written_off_debt(debt_sale_price_share()[0])
+
+
+def post_write_off_recovery_gbp(arrears_gbp: float) -> float:
+    """The terminal stage's proceeds: the sale price if the supplier sells, else what the agency
+    recovers. Other SIM debt mechanisms (W2_12 change-of-tenancy exit debt,
     `simulation/final_bill_outcome.py`) fold this rather than choosing their own rates."""
-    if archetype == "AVOIDANT":
-        proceeds = debt_sale_proceeds(arrears_gbp)
-        if proceeds is not None:
-            return proceeds
-    return dca_recovered_amount(arrears_gbp, archetype)
+    if _supplier_sells():
+        return debt_sale_proceeds(arrears_gbp)
+    return dca_recovered_amount(arrears_gbp, "NEUTRAL")
 
 
 def on_time_probability(stress: str) -> float:
@@ -409,16 +417,16 @@ def late_days_band(stress: str) -> tuple[int, int]:
     return _LATE_DAYS.get((stress or "LOW").upper(), _LATE_DAYS["LOW"])
 
 
-def _post_writeoff_stages(arrears_gbp: float, write_off_date: date, archetype: str) -> list[dict]:
+def _post_writeoff_stages(arrears_gbp: float, write_off_date: date) -> list[dict]:
     """Stages appended AFTER WRITTEN_OFF -- never changes the WRITTEN_OFF
     stage itself (date/position), only extends the cascade past it."""
     dca_date = dca_placement_date(write_off_date)
     stages = [{"stage": "PLACED_WITH_DCA", "date": dca_date.isoformat(),
                "note": "Debt placed with third-party debt collection agency"}]
     price, _reason = debt_sale_price_share()
-    if archetype == "AVOIDANT" and price is not None:
+    if _supplier_sells():
         sold_date = dca_date + timedelta(days=DEBT_SALE_DAYS)
-        proceeds = post_write_off_recovery_gbp(arrears_gbp, archetype)
+        proceeds = post_write_off_recovery_gbp(arrears_gbp)
         stages.append({
             "stage": "SOLD", "date": sold_date.isoformat(), "amount_gbp": proceeds,
             "note": "Debt sold to purchaser -- GBP%.2f proceeds at %.1f%% of face value"
@@ -427,7 +435,7 @@ def _post_writeoff_stages(arrears_gbp: float, write_off_date: date, archetype: s
     else:
         recovered_date = dca_date + timedelta(days=DCA_OUTCOME_DAYS)
         share, _basis = post_write_off_recovery_share()
-        net = post_write_off_recovery_gbp(arrears_gbp, archetype)
+        net = post_write_off_recovery_gbp(arrears_gbp)
         stages.append({
             "stage": "RECOVERED", "date": recovered_date.isoformat(), "amount_gbp": net,
             "note": "DCA recovered GBP%.2f (%.1f%% of the balance written off)"
@@ -731,7 +739,7 @@ _NOTICE_AMOUNT_NOTES = {"FIRST_NOTICE": ledger_notice_wording("FIRST_NOTICE"),
 
 
 def arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
-                    archetype: str = "NEUTRAL", *, method: str,
+                    *, method: str,
                     write_off_date: date | None = None,
                     write_off_gbp: float | None = None) -> list[dict]:
     """`method` is REQUIRED and keyword-only, deliberately.
@@ -767,7 +775,7 @@ def arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
         stages.append({"stage": "WRITTEN_OFF", "date": write_off_date.isoformat(),
                         "amount_gbp": written,
                         "note": "Debt written off -- bad debt provision raised"})
-        stages.extend(_post_writeoff_stages(written, write_off_date, archetype))
+        stages.extend(_post_writeoff_stages(written, write_off_date))
     return stages
 
 
@@ -855,7 +863,7 @@ def with_credits_applied(stages: list[dict], face_gbp: float, credits: list[dict
 
 
 def ic_arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
-                       archetype: str = "NEUTRAL", *,
+                       *,
                        write_off_date: date | None = None) -> list[dict]:
     stages = [
         {"stage": "INVOICE_DISPUTED", "date": due_date.isoformat(),
@@ -873,7 +881,7 @@ def ic_arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
         stages.append({"stage": "WRITTEN_OFF",
                         "date": write_off_date.isoformat(),
                         "note": "Debt written off -- bad debt provision raised"})
-        stages.extend(_post_writeoff_stages(arrears_gbp, write_off_date, archetype))
+        stages.extend(_post_writeoff_stages(arrears_gbp, write_off_date))
     return stages
 
 
@@ -1752,8 +1760,8 @@ def compute_debt_recovery(bills: list[dict], behavioral: dict, churned_ids: set[
     `compute_emergent_bad_debt` books, keyed by (customer_id, year of the RECOVERED/SOLD stage).
 
     Only the close leg is placed with a collector. A statute-barred balance cannot be enforced,
-    so it is written off with no recovery stage. debt_archetype() is read at the write-off year,
-    SIM-side only.
+    so it is written off with no recovery stage. Whether it is sold or worked is the supplier's
+    choice (`sells_written_off_debt`); no household label is read.
     """
     result: dict[tuple[str, int], float] = {}
     for (cid, _pe, _c), wo in sorted(balance_write_offs(
@@ -1761,9 +1769,7 @@ def compute_debt_recovery(bills: list[dict], behavioral: dict, churned_ids: set[
             level_dd_collections=level_dd_collections, set_offs=set_offs).items()):
         if wo["leg"] != LEG_CLOSE:
             continue
-        trajectory = (behavioral.get(cid) or {}).get("income_stress_trajectory") or []
-        archetype = debt_archetype(trajectory, wo["date"].year)
-        terminal = _post_writeoff_stages(wo["amount_gbp"], wo["date"], archetype)[-1]
+        terminal = _post_writeoff_stages(wo["amount_gbp"], wo["date"])[-1]
         key = (cid, int(terminal["date"][:4]))
         result[key] = round(result.get(key, 0.0) + terminal["amount_gbp"], 2)
     return result

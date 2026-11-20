@@ -932,6 +932,64 @@ page should print is a separate question, not settled here (GAP).
     practitioner question once the overpayment is gone, because only then does it change an
     outcome.
 
+### 7.7 Selling a written-off debt or having an agency work it: whose choice, on what (2026-11-19)
+
+Say what it is first. **Working** a debt means the supplier keeps owning it and pays a debt
+collection agency (DCA) a commission on what the agency collects. **Selling** it means the
+debt is assigned to a debt purchaser for a lump sum per £ of face value. The purchaser then owns
+it and keeps whatever it collects. These are two different quantities. One is a recovery share
+that depends on the debtor and arrives late. The other is a price fixed on the day of sale.
+`q3_debt_sale_price_share_of_face` is the second, and it is not a recovery share.
+
+**What is published (ESTABLISHED).**
+- Suppliers do sell written-off energy debt. Centrica ARA 2017 Note 17 records £5m of proceeds,
+  but not the face value sold (`assumption_toggles.yaml`, `q3_debt_sale_price_share_of_face`).
+- A creditor sells debt "at a lower price for a lump sum", and the purchaser becomes the legal
+  owner (StepChange, *Can debts be sold on?*). An agency normally takes no assignment and charges
+  a fee or commission on recoveries. A creditor uses one when it cannot reach the debtor, cannot get
+  the debtor to cooperate, or wants to outsource collection (HMRC VAT Finance Manual VATFIN3255;
+  sale and assignment: VATFIN3215).
+- Purchase prices for unsecured consumer debt across all sectors run 5.4p–9.3p per £ (Lowell 2013,
+  Arrow Global 2017; the register's low and high). No energy-specific price is published.
+- After a closed account's balance is aged, a supplier expects to recover about 12p per £: one minus
+  Centrica's final-bill >90-day coverage, 0.878 at 2025 (range 0.755–0.896). The company already
+  holds this figure as `company/finance/cash_forecast_provision.PRIOR_POST_CLOSE_RECOVERY`.
+- Money Advice Trust (response to Ofgem's affordability and debt call for input, 2024) names debt
+  sale and DCA use as practices that still cause concern. No Ofgem licence condition on selling
+  domestic energy debt was found this pass.
+
+**What is not published (GAP).**
+- Any GB supplier's rule for WHICH debts it sells and which it works. Nothing was found on age,
+  balance, contact history, or a vulnerability flag. The register already says so: "No company
+  DCA-versus-sale decision exists".
+- DCA commission on energy debt. The illustrative 15% was removed on 2026-10-08.
+- An energy debt-sale price.
+
+**Which observables could decide it.** All of these are on the supplier's side of the wall: the
+balance written off and its date; whether the account is closed or statute-barred (the write-off
+leg); the supplier's own contact and arrangement history on the account; the supplier's own
+expected recovery (its provision coverage, then its book's observed recovery); and a purchaser's
+quote. The household's income-stress path is not among them. Before this date the world used it
+to choose: `debt_archetype == "AVOIDANT"` was sold. That was access, not inference
+(`docs/staging/done/SEAT_FINDING_THE_WORLD_CHOOSES_WHICH_WRITTEN_OFF_DEBT_IS_SOLD_FROM_A_LABEL_THE_SUPPLIER_CANNOT_SEE_2026-11-19.md`).
+
+**The design's choice, and why.**
+- The decision is the company's: `company/billing/collections_journey.sells_written_off_debt`,
+  which the world reaches through `company/interfaces/collections_communication`. The world keeps
+  the price on offer (the register row) and the proceeds.
+- The rule: sell when the offered price per £ is above the company's own expected recovery per £
+  on a closed, aged balance. Otherwise work the debt. With no offer (`None`, as today), work it.
+- No commission is taken off the agency side, because commission is a GAP. That makes working look
+  better than it is, so the rule sells less than a supplier who knows its commission would. This
+  errs against selling (F11). It is stated, not hidden.
+- The rule is the same for every debt. The company has no per-debt recovery estimate yet. One
+  built from contact and arrangement history is the next step, and it is named here as owed, not
+  done.
+- At real inputs (printed 2026-11-19): expected recovery 0.122. Offered price 0.054, 0.070 or
+  0.093 (the published range) gives WORK. 0.122 gives WORK (not above). 0.15 gives SELL. So at
+  any published purchase price, a supplier using this rule sells nothing. Whether that matches
+  practice cannot be told: Centrica's £5m of proceeds comes with no face value.
+
 ---
 
 ## 8. Gaps

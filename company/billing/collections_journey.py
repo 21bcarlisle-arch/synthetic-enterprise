@@ -311,6 +311,21 @@ def dca_placement_date(written_off: dt.date) -> dt.date:
     return written_off + dt.timedelta(days=DCA_PLACEMENT_DAYS)
 
 
+def sells_written_off_debt(offered_price_share: float | None) -> bool:
+    """Whether the company sells a written-off debt to a purchaser offering `offered_price_share` per
+    GBP of face value, rather than having an agency work it. With no offer it is worked.
+
+    It sells only when the offer is above what the company itself expects to recover per GBP on a
+    closed, aged balance (`PRIOR_POST_CLOSE_RECOVERY`). No household attribute is read, and the rule
+    is the same for every debt: the company has no per-debt recovery estimate yet. Agency commission
+    is a GAP and is not deducted, so this sells less often than a supplier who knew its commission
+    would (debt_and_collections.md s.7.7)."""
+    if offered_price_share is None:
+        return False
+    from company.finance.cash_forecast_provision import PRIOR_POST_CLOSE_RECOVERY
+    return offered_price_share > PRIOR_POST_CLOSE_RECOVERY
+
+
 def statute_barred_gbp(ledger: AccountLedger, on: dt.date, payment_terms_days: int = 14) -> float:
     """What this account owes on `on` that is statute-barred: the FIFO-unpaid bills due at least six
     years before `on`, and only if no payment has landed on the account in those six years. Read off

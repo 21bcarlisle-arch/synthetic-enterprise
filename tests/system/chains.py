@@ -500,7 +500,7 @@ def run_money_chain(
     due = date.fromisoformat(period_end) + timedelta(days=14)
     stages = arrears_engine.arrears_stages(
         arrears_gbp, due, still_open=False,
-        archetype="PERSISTENT", method=method,
+        method=method,
     )
 
     # link 5 — arrears → recovery / write-off
@@ -809,7 +809,6 @@ def run_lifecycle_chain(
         closing_balance_gbp,
         date.fromisoformat(leave_date) + timedelta(days=14),
         still_open=False,
-        archetype="NEUTRAL",
         method="direct_debit",
     )
 

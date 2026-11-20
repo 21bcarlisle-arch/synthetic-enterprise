@@ -187,3 +187,13 @@ def dca_placement_date(written_off):
     from company.billing.collections_journey import dca_placement_date as _placed
 
     return _placed(written_off)
+
+
+def sells_written_off_debt(offered_price_share):
+    """Whether the supplier sells a written-off debt to a purchaser offering `offered_price_share` per
+    GBP of face value (None: no offer), rather than having an agency work it. The world passes the
+    offer and takes back the choice; the supplier's own expected recovery stays behind the door, and
+    no household attribute is asked for."""
+    from company.billing.collections_journey import sells_written_off_debt as _sells
+
+    return _sells(offered_price_share)
