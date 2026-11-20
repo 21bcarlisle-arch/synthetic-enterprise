@@ -2084,3 +2084,30 @@ files. That tests the in-sample caution directly.
 is kept, because a replication needs the same patched tree.
 
 **Reverse:** nothing to reverse. The section is a reading, and the unlock is `git worktree lock` again.
+
+#### The replication is launched on 33333/44444 and 55555/66666 (20 Nov 11:33Z)
+
+**Corrected, beside the claim above.** The entry above says the worktree "is kept". By 11:30Z on 20 Nov it was
+gone: `/var/tmp/value-test-cut012` was no longer on disk or in `git worktree list`. It was recreated at
+`870201d1e7` with `/var/tmp/vtc-driver/cut012.patch` applied. Its diff hashes to the pin, `2b312c4d…114d`. Its
+`sim/cache` is a symlink to the shared tree's, which is the same overlay `surgical_land` uses.
+
+**What runs.** `/var/tmp/vtc-rep-driver/driver.py` is `/var/tmp/vtc-driver/driver.py` with one change: the parent
+runs 33333/44444 and then 55555/66666, and skips a pair already on disk. The child, the switches and the sidecar
+are unchanged. The pairs run one after the other because each declares an 11.8 GB peak, and two of those do not
+fit the guest. The job is `longjob-value-test-cut012-rep`, writing to `/var/tmp/vtc-out-cut012/`. The 11111/22222
+pair took 11.3 h, so this is about 23 h, and it queued behind a landing.
+
+**The comparators.** The `vta-out-flag1` files at both pairs carry the same world digest (`cdba75ebb9197b33`) as
+the cut012 pair. Their producing commit is `41734bbe71`, the one A's 11111/22222 run used. The grade is
+`grade_paired_cut012.py`'s method, with the pair and the run directories made parameters. It reads cut minus A
+only, because no twin exists at these seeds.
+
+**The prediction stands as filed above, before the run:** cut minus A, value arm, per pair, **+£0.60 (−£0.60 to
++£1.80)**. The hold is refuted if the two-pair mean is below zero. The flat book (control arm) is predicted to
+move by less than £0.10 either way. That second line is added now, before the run. It is the in-sample pair's
+−£0.02 restated, and it is what tells the cut acting on the value arm apart from the cut moving the world under
+both arms.
+
+**Reverse:** `systemctl --user stop longjob-value-test-cut012-rep`, then `git worktree remove --force
+/var/tmp/value-test-cut012`.
