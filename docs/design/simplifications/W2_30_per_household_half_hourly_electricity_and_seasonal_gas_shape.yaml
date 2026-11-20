@@ -138,4 +138,15 @@ map_notes:
     on 0.70 whatever the store holds) and PROS-2019-0321g (fitted, refused on its own trace). What would move those 114
     has no published source: docs/market_research/the_domestic_gas_year_heats_on_about_85_percent_not_70_2026-11-19.md
     section 9. PREDICTION for the next book, if the book holds the same legs and nothing else touches gas shape: fabric_seasonal_split >= 153 + 27 = 180,
-    and OCC- legs on the fallback stay 113.'
+    and OCC- legs on the fallback stay 113.
+
+    [Correction 2026-11-20, beside the claim: the "stay 113" half is withdrawn by the build below, which touches gas
+    shape on purpose. It was written before that build was drawn.]
+    BUILT 2026-11-20 (85-percent page s.8): `_admit_incoming_occupant` now carries the premise''s split, or its refusal
+    with the premise''s reason, onto the OCC- gas leg (`carry_premise_split_to_occupier`). The leg already reads the
+    premise''s fabric series and HDD cell, so a refit would return the premise''s fit; the s.9 GAP (whether an occupier''s
+    fraction differs from its predecessor''s) is carried, not filled. On 67d454905c, via occupier_successions: 37 of
+    the 113 OCC- legs have a fitted premise, 76 a refused one (75 no fabric trace, 1 no cold response).
+    PREDICTION for the next book with the same legs on at least that store: OCC- legs on fabric_seasonal_split >= 37,
+    and no OCC- leg carries SETTLED_WITHOUT_A_SPLIT_OR_A_REFUSAL. To reverse: remove the call in
+    _admit_incoming_occupant.'

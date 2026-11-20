@@ -345,3 +345,55 @@ def test_a_resi_gas_leg_that_settled_with_no_split_and_no_refusal_is_in_the_reco
         ("C2", "too few days"), ("OCC-C1-g", SETTLED_WITHOUT_A_SPLIT_OR_A_REFUSAL)]
     # Every leg that settled is in the record.
     assert {"C1", "C2", "OCC-C1-g"} <= set(provider)
+
+
+def test_an_incoming_occupiers_gas_leg_carries_its_premises_split_or_a_named_refusal():
+    """THE DEFECT (W2_30, 85-percent page s.8): `_admit_incoming_occupant` copied the premise's fabric
+    series to the `OCC-` leg but not its split, so 113 occupier legs of book 67d454905c settled on
+    0.70 whatever the store held. Mutations: drop the `splits[leg] = ...` line and the first leg
+    stays absent; drop the premise-refusal branch and the refused premise's occupier is silent;
+    drop the stale guard and the moved-but-not-refitted premise hands over its old home's fit."""
+    from simulation.household_demand_shape import (
+        SeasonalGasRefusal,
+        SeasonalGasSplit,
+        carry_premise_split_to_occupier,
+        gas_shape_record,
+    )
+
+    fit = SeasonalGasSplit("P1", 0.81, 2000.0, 365, 12.0, 0.9)
+    splits = {"P1": fit, "P4": fit}
+    refusals = [SeasonalGasRefusal("P2", "does not rise with cold")]
+    carry_premise_split_to_occupier("P1", "OCC-P1-g", splits, refusals)
+    carry_premise_split_to_occupier("P2", "OCC-P2-g", splits, refusals)
+    carry_premise_split_to_occupier("P3", "OCC-P3-g", splits, refusals)
+    carry_premise_split_to_occupier("P4", "OCC-P4-g", splits, refusals, premise_split_is_stale=True)
+
+    # The partition can be taken: carried, refused-with-the-premise's-reason, stale, and neither.
+    assert splits["OCC-P1-g"] is fit
+    by_leg = {r.customer_id: r.reason for r in refusals}
+    assert by_leg["OCC-P2-g"].endswith("does not rise with cold")
+    assert "previous home" in by_leg["OCC-P4-g"]
+    assert "OCC-P4-g" not in splits
+    assert "OCC-P3-g" not in splits and "OCC-P3-g" not in by_leg
+    # Carrying twice is a no-op, so a re-admitted leg cannot be given a second answer.
+    carry_premise_split_to_occupier("P2", "OCC-P1-g", splits, refusals)
+    assert splits["OCC-P1-g"] is fit and "OCC-P1-g" not in by_leg
+    # And the record reads the carried leg as fitted.
+    provider, _ = gas_shape_record(splits, refusals, ["OCC-P1-g", "OCC-P2-g", "OCC-P3-g"])
+    assert provider["OCC-P1-g"] == "fabric_seasonal_split"
+    assert provider["OCC-P2-g"] == provider["OCC-P3-g"] == "population_70_30_split"
+
+
+def test_the_incoming_occupier_path_carries_the_gas_split_through_the_rule():
+    """Holds the one call site: `_admit_incoming_occupant` copies everything keyed by meter point,
+    and this is the copy that was missing. Mutation: delete the call and this goes red."""
+    import ast
+    from pathlib import Path
+
+    src = Path(__file__).resolve().parents[2] / "simulation" / "run_phase2b.py"
+    tree = ast.parse(src.read_text())
+    [admit] = [n for n in ast.walk(tree)
+               if isinstance(n, ast.FunctionDef) and n.name == "_admit_incoming_occupant"]
+    calls = [n for n in ast.walk(admit) if isinstance(n, ast.Call)
+             and isinstance(n.func, ast.Name) and n.func.id == "carry_premise_split_to_occupier"]
+    assert calls, "an incoming occupier's gas leg no longer carries its premise's split"
