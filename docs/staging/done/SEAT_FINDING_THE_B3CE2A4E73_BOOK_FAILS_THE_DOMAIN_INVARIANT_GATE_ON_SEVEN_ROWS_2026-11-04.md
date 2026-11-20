@@ -1,4 +1,6 @@
-**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+**Severity:** RECORDED · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+
+> **TRIAGE 2026-11-20 (delivery seat), was BLOCKING -- FIXED. The 18 Nov book 6af7fd0bfd passed the publisher's gate (43fa9534d9): enforce true, refuse false, 0 unexcepted; each of the seven rows is CLEAN or inside its ceiling. Record: `docs/staging/SEAT_RECORD_TRIAGE_OF_THE_BLOCKING_FINDINGS_2026-11-20.md`.**
 
 # The b3ce2a4e73 book would be refused by the domain-invariant gate: 203 unexcepted breaches on seven rows (2026-11-04)
 
