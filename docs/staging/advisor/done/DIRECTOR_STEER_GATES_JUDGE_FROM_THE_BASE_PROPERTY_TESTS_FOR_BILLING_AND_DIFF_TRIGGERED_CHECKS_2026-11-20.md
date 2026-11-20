@@ -123,5 +123,17 @@ Item 1 is on in observe mode; items 2 and 3 and the "Also" items are live contin
   - `diff-triggered-checks-in-the-claude-md-trial` (item 3);
   - `three-rounds-then-stop-and-no-retry-until-green` (the "Also" items).
 - The reading-log row is appended.
+- **Also, answered 20 Nov** (`docs/staging/SEAT_FINDING_NOTHING_ON_THE_LIVE_EXECUTOR_STOPS_AFTER_THREE_FAILED_ROUNDS_AT_ONE_ITEM_2026-11-20.md`):
+  - **Three rounds, then stop: NOT so.** The two-strike halt (`background/executor_governor.py:55`)
+    runs only in the inactive `executor-daemon`. The pass ceiling covers map atoms only, files
+    nothing, and fails open. On the live `seat_executor`, a `LANDED NOTHING` turn is re-offered
+    with no count. 34 ids had 3 or more empty turns in a row, and one had 43 overnight (11-12 Oct).
+    Proposed and handed on as `three-empty-turns-stop-the-id-and-file-it`.
+  - **No retry-until-green: confirmed.** No rerun or flaky plugin is installed and no `--reruns` or
+    `mark.flaky` is in use. `surgical_land`'s three attempts retry only a moved base, never a red
+    gate (`tools/surgical_land.py:273`). No flaky test was found to root-cause.
+  - The same work was queued twice, as `gates-judge-from-the-base-also` and
+    `three-rounds-then-stop-and-no-retry-until-green`. It landed under the first, and the second
+    is credited to that landing.
 
 Decision: harness yes
