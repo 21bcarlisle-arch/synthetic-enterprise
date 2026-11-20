@@ -990,6 +990,22 @@ to choose: `debt_archetype == "AVOIDANT"` was sold. That was access, not inferen
   any published purchase price, a supplier using this rule sells nothing. Whether that matches
   practice cannot be told: Centrica's £5m of proceeds comes with no face value.
 
+**Why the per-debt rule is not built yet (measured 2026-11-20).** In the world, a worked debt
+recovers `post_write_off_recovery_share()` × face, which is 0.122 for every debt. Its archetype
+argument is not read, and no debt observable moves it. A sale is one register price for every debt.
+Both options are a constant share of face, so the best choice is the same for every debt. A
+per-debt estimate would either learn a flat share or assert a spread nobody published. There is a
+second problem. The company's 0.122 and the world's 0.122 are read from the same register row
+(`prov_coverage_final_bill_over_90d`), so the company's belief equals the world's truth by
+construction, and the world cannot defeat this choice. World first (W7): the world's recovery after
+write-off must vary with something a supplier can see, and be drawn apart from the company's prior.
+Only then does a per-debt rule have anything to find. Evidence for that variation: Energy UK Fig. 5
+(s.2.5) splits recovery by age, at under and over 12 months. It covers arrears, with an undisclosed
+definition, and not written-off closed balances. **GAP:** published GB energy recovery after
+write-off, split by contact, arrangement history, balance or age. **GAP:** an energy debt-sale price
+split between paying and non-paying portfolios. Finding:
+`docs/staging/SEAT_FINDING_A_PER_DEBT_SALE_RULE_HAS_NOTHING_TO_DISCOVER_WHILE_THE_WORLD_RECOVERS_ONE_SHARE_OF_EVERY_DEBT_2026-11-20.md`.
+
 ---
 
 ## 8. Gaps
