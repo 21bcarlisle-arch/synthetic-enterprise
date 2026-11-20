@@ -69,6 +69,9 @@ from simulation.arrears_engine import (
     paid_on,
 )
 from simulation.arrears_engine import (
+    age_at_close_days as _age_at_close_days,
+)
+from simulation.arrears_engine import (
     arrears_stages as _arrears_stages,
 )
 from simulation.arrears_engine import (
@@ -1224,7 +1227,9 @@ def generate(run_json_path=None, out_path=None):
                     amount, due_date, still_open, method=method,
                     write_off_date=wo_date,
                     write_off_gbp=(None if written_off is None
-                                   else min(amount, written_off["amount_gbp"]))),
+                                   else min(amount, written_off["amount_gbp"])),
+                    age_at_close_days=(0 if written_off is None
+                                       else _age_at_close_days(written_off))),
             }
             arrears_by_cid.setdefault(cid, []).append(arr)
         elif outcome_case == "dispute":

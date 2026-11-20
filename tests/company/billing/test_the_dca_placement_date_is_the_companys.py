@@ -31,7 +31,7 @@ def test_the_worlds_placement_stage_is_the_companys_date():
     # Catches: the world keeping its own placement window beside the company's (two homes free to
     # drift). Keyed to the property: the world's PLACED_WITH_DCA date is whatever the company says.
     write_off = dt.date(2021, 6, 10)
-    stages = ae._post_writeoff_stages(100.0, write_off)
+    stages = ae._post_writeoff_stages(100.0, write_off, age_at_close_days=0)
     assert stages[0]["stage"] == "PLACED_WITH_DCA"
     assert stages[0]["date"] == dca_placement_date(write_off).isoformat()
     assert not hasattr(ae, "DCA_PLACEMENT_DAYS"), "the world holds its own copy of the window again"
@@ -40,7 +40,7 @@ def test_the_worlds_placement_stage_is_the_companys_date():
 def test_the_agency_outcome_runs_from_the_placement_the_company_chose():
     # Catches: the world dating the recovery from the write-off instead of from the placement.
     write_off = dt.date(2021, 6, 10)
-    terminal = ae._post_writeoff_stages(100.0, write_off)[-1]
+    terminal = ae._post_writeoff_stages(100.0, write_off, age_at_close_days=0)[-1]
     expected = write_off + dt.timedelta(days=DCA_PLACEMENT_DAYS + ae.DCA_OUTCOME_DAYS)
     assert terminal["date"] == expected.isoformat()
 
@@ -65,8 +65,10 @@ def test_the_world_reaches_the_sale_choice_only_through_the_door():
 
 def test_the_world_asks_no_household_label_when_it_sells():
     # Catches: the hidden archetype returning to the sell-or-work choice. The world's terminal stage
-    # takes the balance and the write-off date, and nothing about who owes it.
+    # takes the balance, the write-off date and the bill's age at close (the supplier's own ledger),
+    # and nothing about who owes it.
     import inspect
-    assert list(inspect.signature(ae._post_writeoff_stages).parameters) == ["arrears_gbp",
-                                                                           "write_off_date"]
-    assert list(inspect.signature(ae.post_write_off_recovery_gbp).parameters) == ["arrears_gbp"]
+    assert list(inspect.signature(ae._post_writeoff_stages).parameters) == [
+        "arrears_gbp", "write_off_date", "age_at_close_days"]
+    assert list(inspect.signature(ae.post_write_off_recovery_gbp).parameters) == [
+        "arrears_gbp", "age_at_close_days"]

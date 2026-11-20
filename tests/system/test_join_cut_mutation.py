@@ -207,7 +207,7 @@ def test_money_fires_when_recovery_exceeds_what_was_ever_owed(monkeypatch):
     from simulation import arrears_engine
 
     monkeypatch.setattr(
-        arrears_engine, "dca_recovered_amount", lambda arrears, archetype: arrears * 2.0
+        arrears_engine, "dca_recovered_amount", lambda arrears, age_at_close_days: arrears * 2.0
     )
     chain = chains.run_money_chain()
     with pytest.raises(AssertionError, match="JOIN CUT \\(write-off → recovery\\)"):
