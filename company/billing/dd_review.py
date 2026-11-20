@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from datetime import date
 from enum import Enum
@@ -33,9 +34,14 @@ class DDReviewResult:
 
 
 def _recommended_monthly(actual_annual: float) -> float:
-    """Round up to nearest pound for DD amount."""
+    """Round up to nearest pound for DD amount.
+
+    `math.ceil`, not `round(monthly + 0.5)`: Python rounds a half to even, so a year of exactly
+    GBP 132 (11.0 a month) came out at 12 while GBP 144 came out at 12 -- a pound a month over
+    whenever the year was an odd whole pound times twelve (found by the property test,
+    tests/company/billing/test_billing_and_payment_properties.py, 20 Nov)."""
     monthly = actual_annual / 12.0
-    return round(monthly + 0.5)   # ceiling-round to pound
+    return math.ceil(monthly)
 
 
 def priced_annual_inc_vat_at_rates(
