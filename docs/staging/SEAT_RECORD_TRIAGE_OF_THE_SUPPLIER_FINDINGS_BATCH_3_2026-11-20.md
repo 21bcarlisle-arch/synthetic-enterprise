@@ -94,6 +94,8 @@ origin/main.
   map correction for the next pass: reopen it, or mint the residual.
 - **Stale invariant text:** INV_UNIT_RATE_FIXED (`DOMAIN_INVARIANTS.yaml:1104`) still says the commons
   has no gas allowance, but #15 established that it has one.
+  *Fixed 2026-11-20: the text is corrected and `ev_unit_rate_fixed` now floors a gas fix on the
+  INV_UNIT_RATE_SVT_GAS row of the window it was struck in. On 6af7fd0bf, 35 of 736 gas fixes flag.*
 - **A stale report:** `docs/reports/bill_validation_comparison.json` (3 Sep) shows 295 VAT
   differences, and the docstring of `tools/bill_validation_comparison.py` says the same. The live
   count is 3,020.

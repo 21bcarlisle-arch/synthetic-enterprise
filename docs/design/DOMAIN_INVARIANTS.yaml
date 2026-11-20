@@ -914,7 +914,7 @@ invariants:
   grades: ledger
   statement: 'A domestic fixed tariff the customer chose is outside the cap: its floor is the wholesale cost when it was PRICED, not when it is delivered, and it has no regulatory ceiling.'
   applies_to:
-    commodity: electricity (floor); gas (no floor sourced)
+    commodity: electricity and gas (floor each)
     segment: domestic
     tariff: fixed (chosen fixed term; NOT a 28AD Default Fixed Term Contract)
   basis: p/kWh ex-VAT
@@ -1101,13 +1101,13 @@ invariants:
     Term Default Tariff costs no more than the supplier''s Relevant Cheapest Evergreen Tariff) needs a rollover flag the export does not carry.'
   severity:
     below_lower: flag (loss-leading fixes were lawful and occurred; the floor is a question, not an impossibility)
-  gas: GAP for both bounds (no gas commodity allowance in the commons); lower = 0 by logic.
+  gas: 'Floor = the INV_UNIT_RATE_SVT_GAS (or _PRE_CAP) `lower` of the window containing tariff_effective_from: the commons'' gas_by_payment_method commodity minimum, carried since 2026-10-27 (this line said no gas allowance existed until 2026-11-20, which was stale). Upper is the same GAP as electricity. On the 6af7fd0bf book, 35 of 736 gas fixes flag, the deepest being mid-2023 fixes at 0.59x: the cap''s allowance lags its observation window, so a fix struck as wholesale fell can sit under it lawfully.'
   export_fields:
   - unit_rate_p_per_kwh
   - tariff_effective_from
   - tariff kind
   checkable: true
-  gap: upper bound (no regulatory ceiling); gas floor; rollover-default fixes not identifiable
+  gap: upper bound (no regulatory ceiling); the floor lags wholesale by the cap's observation window; rollover-default fixes not identifiable
   source: docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md; docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md; docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json
 - id: INV_UNIT_RATE_EPG_HOUSEHOLD
   family: unit_rate

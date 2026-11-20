@@ -470,10 +470,11 @@ def ev_unit_rate_svt_elec_multi(inv, book):
     return tally
 
 
-def ev_unit_rate_fixed(inv, book, pre_cap_rows=()):
-    """Electricity: floor of the window the fix was STRUCK in, over the whole term (flag). A fix
-    struck before 2019 takes the pre-cap back-cast floor, the same quantity for that window. Gas:
-    positive only (the file has no gas floor)."""
+def ev_unit_rate_fixed(inv, book, pre_cap_rows=(), gas_rows=()):
+    """Floor of the window the fix was STRUCK in, over the whole term (flag). A fix struck before
+    2019 takes the pre-cap back-cast floor, the same quantity for that window. Gas reads the gas SVT
+    rows' commodity floor (the commons has carried it since 2026-10-27); a gas fix struck where no
+    gas row covers it is graded positive only."""
     tally = Tally("fixed term, graded once at the window it was struck in")
     rows = _rows(inv) + list(pre_cap_rows)
     for a in book:
@@ -485,9 +486,12 @@ def ev_unit_rate_fixed(inv, book, pre_cap_rows=()):
             rate = _num(t.get("unit_rate_p_per_kwh"))
             where = "{} {} fixed from {}".format(a.cid, a.fuel, t["tariff_effective_from"])
             if a.fuel == "gas":
-                tally.band(where, rate, 0.0, None, tol_abs=-1e-12)
-                continue
-            row = _row_on(rows, t["_from"])
+                row = _row_on(gas_rows, t["_from"])
+                if row is None:
+                    tally.band(where, rate, 0.0, None, tol_abs=-1e-12)
+                    continue
+            else:
+                row = _row_on(rows, t["_from"])
             tally.band(where, rate, None if row is None else _num(row.get("lower")), None,
                        below="flag")
     return tally
@@ -3484,7 +3488,9 @@ def run(invariants: list[dict], raw_book: dict[str, dict]) -> list[dict]:
     fields |= {"printed_" + k if k == "invoices" else k for a in raw_book.values()
                for k, v in (a.get("printed") or {}).items() if v}
     extra = {
-        "INV_UNIT_RATE_FIXED": {"pre_cap_rows": _rows(by_id.get("INV_UNIT_RATE_SVT_ELEC_PRE_CAP", {}))},
+        "INV_UNIT_RATE_FIXED": {"pre_cap_rows": _rows(by_id.get("INV_UNIT_RATE_SVT_ELEC_PRE_CAP", {})),
+                                "gas_rows": _rows(by_id.get("INV_UNIT_RATE_SVT_GAS", {}))
+                                + _rows(by_id.get("INV_UNIT_RATE_SVT_GAS_PRE_CAP", {}))},
         "INV_CROSS_FUEL_PRICE_SCALE": {"gas_rows": _rows(by_id.get("INV_UNIT_RATE_SVT_GAS", {})),
                                        "elec_rows": _rows(by_id.get("INV_UNIT_RATE_SVT_ELEC", {}))},
     }

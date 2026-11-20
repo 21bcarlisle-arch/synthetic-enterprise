@@ -401,6 +401,24 @@ def test_gas_grades_each_payment_method_against_its_own_column_and_flags_under_t
     assert outcomes["under_floor"][0] == 0 and outcomes["under_floor"][1] > 0
 
 
+def test_a_gas_fix_is_floored_on_the_gas_svt_row_of_the_window_it_was_struck_in():
+    """Defect named: INV_UNIT_RATE_FIXED grading a gas fix positive-only when the commons carries
+    a gas commodity floor (2026-10-27). A fix under that floor flags (lawful loss-leading, never a
+    breach); a fix struck where no gas row covers it falls back to positive-only."""
+    gas_svt = {"id": "INV_UNIT_RATE_SVT_GAS", "rows": [_row(2.0, 4.0)]}
+    fixed = {"id": "INV_UNIT_RATE_FIXED", "rows": [_row(5.0, None)]}
+
+    def verdict(rate, year=2020):
+        acct = _account("G", "gas", rate=rate, tariff="fixed", kwh_per_month=900.0, year=year)
+        r = next(r for r in runner.run([gas_svt, fixed], {"G": acct})
+                 if r["id"] == "INV_UNIT_RATE_FIXED")
+        return r["breached"], r["flagged"]
+
+    under, over, uncovered = verdict(1.5), verdict(2.5), verdict(1.5, year=2021)
+    assert under[1] and not over[1] and not uncovered[1], (under, over, uncovered)
+    assert under[0] == over[0] == uncovered[0] == 0
+
+
 def test_the_meter_class_is_the_terms_own_not_the_accounts():
     """SLC 28AD grades by tariff. Defect named: an account that changes from single-rate to two
     registers mid-life had its single-rate SVT spell graded against the multi-register cap (and
