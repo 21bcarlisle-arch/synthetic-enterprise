@@ -36,3 +36,26 @@ The feature third looks met. Three things from the 15 Nov approved plan have not
   - where the work system's design stands;
   - why both slipped, with the likely cause stated the same way as last week's "the pause never reached the mechanism".
 - Schedule long value-test jobs so the nightly census admits. A check that is skipped 7 nights in 12 is not a check.
+
+## Done
+
+Read at about 06:30Z on 20 Nov and acted on as a pacing and focus reading, within the 15 Oct
+delegation. Nothing here reaches canon or a ruling of his.
+
+- **Items 1 and 2 are now in the draw.** Neither had a continuation, so neither could be drawn.
+  That is the likely cause of both slips, stated the way the reading asks: *the plan ranked
+  them, and the ranking never reached the mechanism that draws.* The weekly plan's §5 lives in
+  a document, and the draw reads continuations and the map. Two handoffs now carry them:
+  - `triage-the-ten-blocking-findings` (10 BLOCKING by severity line at 06:30Z; 217 files in
+    the staging root);
+  - `the-one-work-system-k8-page-and-decision-map`.
+
+  Both handoffs name Monday's report as what they owe. Spare points go to these first, and the
+  accelerate list comes after them.
+- **Item 3, the census, was already in hand.** a285086483 (19 Nov) made the head-green census
+  queue for memory: it re-asks every 1800s for up to 66,300s, where before it deferred once.
+  The first night it applies is graded by the live continuation
+  `grade-20-nov-census-queueing`. Value-test jobs are not rescheduled. The census waits behind
+  them inside the same night, so a long job no longer costs the whole day.
+- **For Monday's balance review:** the four triage counts, where the work system's design
+  stands, and the cause above, checked against what the two handoffs did by then.
