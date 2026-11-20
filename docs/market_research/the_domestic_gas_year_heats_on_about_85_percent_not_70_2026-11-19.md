@@ -169,6 +169,33 @@ inherits the premise's fraction is a design choice to state on the relocation pa
 `home_moves.md`). Either way, every gas leg that settles must appear in the record. It changes the gas book, so it
 lands with the recalibration and is graded on the same post-skip0 book.
 
+## 9. GAP: what a published source sets an incoming occupier's heating fraction to
+
+*Added 2026-11-20 for the legs the ERA5 pull can never move. The count is in the W2_30 simplification note,
+`l3_gate_note` (SPLIT 2026-11-20).* On book 67d454905c, 433 gas legs settle on the 0.70 fallback. 319 of them wait only on
+weather cells, which W1_14's pull fills. 114 never will: 113 `OCC-` legs (§8: the occupier's leg does not carry the
+premise's split) and one leg whose own trace shows no cold response. For the `OCC-` legs the question is what an
+incoming household's heating fraction is in a dwelling whose fabric the world already knows.
+
+**No published source sets it.** What exists, and what each piece does and does not establish:
+
+| source | what it establishes | why it does not set the fraction |
+|---|---|---|
+| This page, §4 (DESNZ ET 4.1/4.2 × ET 7.1) | the national domestic heating fraction is 0.85 (0.82–0.87, 2016–25) | a population average over all gas households. It is not conditioned on the dwelling or on a change of occupier |
+| DECC, NEED *Annex C, Change of occupancy analysis* | gas use fell on average 2,100 kWh after a property sale, against 600 kWh in matched unsold properties. Property characteristics usually stay the same, so the difference is the occupiers | annual LEVEL only. NEED carries no monthly shape, so it says nothing about the heating SHARE |
+| Sonderegger (1978), as reviewed by Huebner et al. (eceee 2015) | about 18% of the variability in gas use was attributed to occupants, estimated from houses that changed occupants | a loose estimate of variance in level, from one US sample. Not a share of the year that follows HDD |
+| Dutch and Danish change-of-occupancy decompositions (TU Delft *A+BE* journal) | occupant effects on heating use are larger in more efficient buildings | not UK, and about level, not the seasonal split |
+
+**What is established, as a stated belief with a range.** The fraction is fabric plus occupancy (the world fits it on
+the household's own trace). The fabric part does not change at a move. So the premise's fitted fraction is the best
+available prior for the occupier's leg, and the national 0.85 (0.82–0.87) is the floor-of-knowledge fallback for a
+premise with no fit. Both are inferences from the world's own two-term form. Neither is a published occupier figure.
+
+**GAP, named.** How far an incoming household's heating fraction sits from its predecessor's in the same dwelling.
+Closing it needs same-dwelling, before-and-after monthly or daily gas, of the kind SERL holds. SERL is accredited
+access and not pursued (canon §6). So the build that §8 names states its choice as a design choice ("inherit the
+premise's fit") and carries this GAP. It does not cite a number. Nothing is built here.
+
 ## Sources
 
 - DESNZ, *Energy Trends Table 4.2, Natural gas supply and demand*, `ET_4.2_OCT_26.xlsx` (published 29 Oct 2026),
@@ -185,3 +212,10 @@ lands with the recalibration and is graded on the same post-skip0 book.
 **Reproduce.** Download the three workbooks. Read `Domestic` from ET 4.2 `Month (GWh)` and ET 4.1 `Quarter (GWh)`.
 Read the first block of ET 7.1 `Data Heating Degree Days` (daily average × days in month). Least-squares fit
 `[HDD, days]` per year with no intercept, then apply the `f_normal` formula in §3.
+- DECC, *National Energy Efficiency Data-Framework, Annex C: Change of occupancy analysis*,
+  https://assets.publishing.service.gov.uk/media/5a8061f1ed915d74e622e222/Annex_C_Change_of_occupancy_analysis.pdf,
+  found 2026-11-20 by search. The figures in §9 are as the search summary quoted them; the PDF was not opened.
+- Huebner et al., eceee 2015 Summer Study, https://proceedings.eceee.org/docs/2015/5-083-15_Huebner.pdf (citing
+  Sonderegger 1978), found 2026-11-20 by search. Not opened.
+- Dutch/Danish change-of-occupancy decomposition, *A+BE Architecture and the Built Environment*,
+  https://journals.open.tudelft.nl/abe/article/download/6673/5470, found 2026-11-20 by search. Not opened.
