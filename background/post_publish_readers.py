@@ -271,11 +271,21 @@ def doorbell_clause(state: dict | None = None, *, path: Path | None = None,
     """One line when the last post-publish reader run went red or could not run, or graded a
     book the site no longer serves; else None.
 
-    Silent only on a run that RAN on the live book and found nothing. No store at all is also
-    silent: on a box that has never published since this landed there is nothing yet to report,
+    Silent only on a run that RAN on the live book and found nothing. An unreadable store is not
+    silent. No store at all is: on a box that has never published since this landed there is nothing yet to report,
     and the publish path is what writes it. `live` defaults to the site's provenance; when that
     cannot be read, no staleness is claimed (the provenance's own reader fails closed)."""
-    state = load(path) if state is None else state
+    if state is None:
+        state = load(path)
+        if state is None:
+            # Absent is silent (nothing has published yet); a store that EXISTS and cannot be
+            # read is not -- `load` gave None for both, so a corrupt store read as all-clear.
+            from background.episode_prior import load_episode_prior, prior_unreadable
+
+            if prior_unreadable(load_episode_prior(path or OBSERVED_PATH)[1]):
+                return ("POST-PUBLISH READERS: the store {} is unreadable, so what the last "
+                        "publish's readers found is unknown -- the published book is UNGRADED, "
+                        "not green".format(path or OBSERVED_PATH))
     if not state:
         return None
     sha = str(state.get("git_hash") or "?")[:9]

@@ -360,6 +360,7 @@ def test_every_real_census_hit_is_covered():
         ".seat_work_in_hand.json": "test_the_census_lost_five_hits_to_the_parameter_seam.py",
         ".origin_race_episode.json":
             "test_a_benign_lost_push_race_is_not_paged_as_blocked_work.py",
+        ".head_red_observed.json": "test_the_head_red_store_keeps_an_unreadable_prior.py",
     }
     for exempt_path, sibling_name in sorted(covered_by_a_sibling.items()):
         sibling = Path(__file__).parent / sibling_name

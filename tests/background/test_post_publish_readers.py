@@ -166,3 +166,14 @@ def test_a_grade_of_a_book_the_site_no_longer_serves_reads_as_ungraded(tmp_path)
     assert ppr.live_run_git() is None and ppr.doorbell_clause(clean) is None
     ppr.LIVE_PROVENANCE_PATH = _live(tmp_path, "6fe7827ab2")
     assert "UNGRADED" in ppr.doorbell_clause(clean), "the default reads the site's provenance"
+
+
+def test_an_unreadable_store_rings_and_an_absent_one_does_not(tmp_path):
+    """`load` answers None for a missing store and a corrupt one alike, and the doorbell read that
+    None as all-clear. Both priors are asserted reachable: absent stays silent, unreadable rings."""
+    absent = tmp_path / "absent.json"
+    corrupt = tmp_path / "corrupt.json"
+    corrupt.write_text('{"outcome": "ran", "reds": ["FAILED t')
+    assert ppr.doorbell_clause(path=absent, live="abc1234567") is None
+    clause = ppr.doorbell_clause(path=corrupt, live="abc1234567")
+    assert clause and "unreadable" in clause and "UNGRADED" in clause

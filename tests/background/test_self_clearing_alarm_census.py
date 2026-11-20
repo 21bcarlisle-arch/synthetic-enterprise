@@ -473,3 +473,24 @@ def test_the_annotation_check_is_WIRED_INTO_the_gate(monkeypatch, capsys):
     assert "LOADER QUESTION HAS NEVER BEEN ASKED" in out
     assert "subject set is shrinking" not in out, (
         "the banner must name the rung that fired, or a reader repairs the wrong thing")
+
+
+def test_a_module_qualified_call_resolves_when_another_module_shares_the_name():
+    """`weekly_rhythm.tick()` from daily_self_note lost its edge on 28 Oct, when
+    two_reader_review.py defined a second `tick`, and `.weekly_rhythm.json` left the class with no
+    repair. The receiver names the module, so the tie is not a guess. A bare ambiguous call, and
+    a receiver that names neither module, still resolve to nothing."""
+    def fn(module, name, calls=(), qualified=()):
+        return {"module": module, "name": name, "calls": list(calls),
+                "qualified_calls": list(qualified)}
+    facts = {
+        "background/weekly_rhythm.py::tick": fn("background/weekly_rhythm.py", "tick"),
+        "background/two_reader_review.py::tick": fn("background/two_reader_review.py", "tick"),
+        "background/note.py::run": fn("background/note.py", "run", ["tick"], ["weekly_rhythm.tick"]),
+        "background/note.py::bare": fn("background/note.py", "bare", ["tick"]),
+        "background/note.py::other": fn("background/note.py", "other", ["tick"], ["helper.tick"]),
+    }
+    edges = census._resolve_calls(facts)
+    assert edges["background/note.py::run"] == {"background/weekly_rhythm.py::tick"}
+    assert edges["background/note.py::bare"] == set()
+    assert edges["background/note.py::other"] == set()

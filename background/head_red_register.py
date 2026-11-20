@@ -81,7 +81,8 @@ def _now_iso(now: datetime | None = None) -> str:
 
 # ── the OBSERVATION store (machine-written, and only ever additive about what it saw) ────────
 def load_observed(path: Path | None = None) -> dict:
-    """The observation store, or an empty one. A missing/unreadable store is EMPTY.
+    """The observation store, or an empty one. A missing or unreadable store is EMPTY, and an
+    unreadable one is moved aside first and stamped `prior_unreadable` on the rebuilt store.
 
     Fail direction is toward reporting MORE work, never less: an unreadable store loses the
     ages and the first-seen dates, so every current red reads as brand new and the register is
@@ -90,6 +91,20 @@ def load_observed(path: Path | None = None) -> dict:
     """
     empty = {"runs": [], "tests": {}}
     data = _read_store(path or OBSERVED_PATH)
+    lost = None
+    if data is None:
+        # PRESENT BUT UNREADABLE is not absent. The next `save_observed` would overwrite it, and
+        # every `runs_red` age -- the doorbell's severity -- would restart at 1 with the evidence
+        # gone. The bytes are moved aside first and the rebuilt store says so on the register.
+        from background.episode_prior import (
+            load_episode_prior,
+            preserve_unreadable,
+            prior_unreadable,
+        )
+
+        primary = Path(path or OBSERVED_PATH)
+        if prior_unreadable(load_episode_prior(primary)[1]):
+            lost = {"at": _now_iso(), "preserved_as": preserve_unreadable(primary)}
     if data is None and path is None:
         # The legacy tracked path, read-only, and ONLY if it is credible. See `_is_credible`:
         # the shared tree's copy carries nine completed runs and their ages, and abandoning it
@@ -98,7 +113,9 @@ def load_observed(path: Path | None = None) -> dict:
         legacy = _read_store(LEGACY_OBSERVED_PATH)
         data = legacy if _is_credible(legacy) else None
     if data is None:
-        return empty
+        data = empty
+    if lost:
+        data["prior_unreadable"] = lost
     data.setdefault("runs", [])
     data.setdefault("tests", {})
     return data
@@ -375,6 +392,14 @@ def render(store: dict, accepted, *, now: datetime | None = None) -> str:
         lines += ["| {} | {} |".format(a.get("at", "?"), str(a.get("reason") or "?")
                                        .replace("|", "/")[:200]) for a in stale[-14:]]
         lines.append("")
+    lost = store.get("prior_unreadable")
+    if isinstance(lost, dict):
+        lines += [
+            "**The observation store was unreadable at {}** and was rebuilt empty: ages and "
+            "first-seen dates before then are not in this register. The unreadable bytes were "
+            "kept as `{}`.".format(lost.get("at", "?"), lost.get("preserved_as") or "(could not be kept)"),
+            "",
+        ]
     if last.get("partial"):
         lines += [
             "**The last run was PARTIAL**: the suite reached {} test(s) before its bound. A red "
