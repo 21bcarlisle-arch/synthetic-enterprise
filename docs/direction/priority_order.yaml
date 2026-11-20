@@ -61,6 +61,12 @@ correctness_stretch:
 # ~10-point reserve unspent (drawn from Saturday). Ranked, and decided in the weekly balance review
 # (the Friday step, background/weekly_rhythm.py), never on the day. Empty until the first review.
 accelerate: []
+# The weekly balance review's split, as the one work system's share table (decision map D6 step 3:
+# the row furthest below its share is drawn next). Copied from the review it names, never set here.
+weekly_split:
+  review: docs/operations/WEEKLY_BALANCE_REVIEW_2026-11-16.md
+  week_from: "2026-11-16"
+  shares: {correctness: 42, supplier_feature: 18, world_feature: 15, harness: 15, knowledge: 10}
 # 2026-10-30: the director's ruling (07:26) and steer (07:30) name the customer-outcomes loop: knowledge,
 # then the world reacts to a pain point, then the supplier experiments against it. Drawn after the exit
 # test above unless one is needed to close it. The new-account estimate baseline (knowledge §10 of

@@ -6442,6 +6442,24 @@ def _self_refill_draw() -> str | None:
     When the lane is empty -- no live direction, every item an atom, or all of them claimed -- the
     return value is byte-identical to the ladder's, which is what it was before this existed.
     """
+    drawn = _self_refill_draw_unshadowed()
+    _shadow_the_one_work_system(drawn)
+    return drawn
+
+
+def _shadow_the_one_work_system(drawn: str | None) -> None:
+    """D9 step 2 of docs/design/ONE_WORK_SYSTEM_DECISION_MAP_2026-11-20.md: log what
+    `work_items.next_item()` would pick beside what the ladder drew. Changes nothing, and a failure
+    is logged by name rather than allowed to cost the draw."""
+    try:
+        from background.work_items import shadow_record
+        shadow_record(drawn)
+    except Exception as exc:  # the shadow must never take the real draw down with it
+        log(f"ONE WORK SYSTEM SHADOW failed ({exc.__class__.__name__}: {exc}); the ladder's draw "
+            "stands unchanged")
+
+
+def _self_refill_draw_unshadowed() -> str | None:
     if _priority_zero_active():
         # AN EMERGENCY IS THE WHOLE MESSAGE. Rungs 1/1b/1d exist because a wedged publish gate, a
         # dead producer or a persistent operational red each stop the project outright, and they

@@ -1,0 +1,9 @@
+# The one work system's cut-over flags, one per source (decision map D9,
+# docs/design/ONE_WORK_SYSTEM_DECISION_MAP_2026-11-20.md). Read by background/work_items.py.
+#
+#   off     the old ladder alone
+#   shadow  the old ladder draws; next_item() is logged beside it and changes nothing
+#
+# There is no `on` yet: the day side by side comes first, and `on` is built in the commit that
+# stops the staging root being a queue and writes its items to docs/work/items/.
+staging_findings: shadow
