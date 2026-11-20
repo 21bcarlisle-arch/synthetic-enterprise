@@ -74,14 +74,15 @@ def test_an_unparseable_period_gets_the_earliest_basis_not_the_latest():
 
 
 def test_electricity_vat_is_not_a_constant_across_the_published_periods():
-    """Zero-rated from October 2026 to March 2027; 5% either side of it.
+    """Zero-rated from October 2026 to June 2027 (Notice 701/19, read from the commons); 5% either side.
 
     Same shape as the divisor: a flat 1.05 is right for 31 of the 33 periods and silently wrong for
     the other two, and only the derived INCLUDING-VAT figure moves.
     """
     assert subject.vat_multiplier("2025-10-01") == subject.VAT_MULTIPLIER_DEFAULT
     assert subject.vat_multiplier("2026-10-01") != subject.VAT_MULTIPLIER_DEFAULT
-    assert subject.vat_multiplier("2027-04-01") == subject.VAT_MULTIPLIER_DEFAULT
+    assert subject.vat_multiplier("2027-04-01") != subject.VAT_MULTIPLIER_DEFAULT
+    assert subject.vat_multiplier("2027-07-01") == subject.VAT_MULTIPLIER_DEFAULT
 
 
 def _windows(tmp_path, monkeypatch, rows):

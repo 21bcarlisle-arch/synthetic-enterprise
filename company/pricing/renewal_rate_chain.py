@@ -142,7 +142,7 @@ def cap_ceiling_ex_vat(
     none for it.
 
     The VAT divided out is the rate on `on_date` for this fuel: domestic electricity is zero-rated
-    from 2026-10-01 to 2027-03-31, and dividing that window's cap by 1.05 understated the
+    from 2026-10-01 to 2027-06-30, and dividing that window's cap by 1.05 understated the
     electricity ceiling by about 4.8%.
     """
     if multi_register:

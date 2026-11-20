@@ -51,11 +51,10 @@ STANDARD = vat_rate_for_segment("SME")
 
 pennies = st.integers(min_value=0, max_value=500_000).map(lambda p: p / 100)
 days_2016_2025 = st.dates(min_value=dt.date(2016, 1, 1), max_value=dt.date(2025, 12, 31))
-# Through the first three months of the zero rate. Brief 10 ends it 31 Mar 2027; Notice 701/19
-# (updated 28 Oct 2026) says 30 Jun 2027, and the commons still says March. Apr-Jun 2027 is left
-# undrawn until the commons is corrected (vat-zero-rate-extended-to-june-2027), not pinned either way.
-priced_days = st.dates(min_value=dt.date(2016, 1, 1), max_value=dt.date(2027, 3, 31))
-ZERO_RATED_ELECTRICITY = (dt.date(2026, 10, 1), dt.date(2027, 3, 31))
+# Through the whole zero rate and a year past it. Notice 701/19 (updated 28 Oct 2026) ends it
+# 30 Jun 2027, after Brief 10's 31 Mar; the rule below is written from the notice, not the commons.
+priced_days = st.dates(min_value=dt.date(2016, 1, 1), max_value=dt.date(2028, 6, 30))
+ZERO_RATED_ELECTRICITY = (dt.date(2026, 10, 1), dt.date(2027, 6, 30))
 fuels = st.sampled_from(sorted(SME_VAT_DE_MINIMIS_KWH_PER_DAY))
 
 

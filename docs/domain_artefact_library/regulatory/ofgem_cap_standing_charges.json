@@ -9,7 +9,7 @@
    "gas": "Gas_Other_Nil"
   },
   "payment_method": "'Other Payment Method', i.e. direct debit",
-  "vat": "EX-VAT. The model's components are ex-VAT. Ofgem's PUBLISHED standing charges include VAT (5%, and 0% on electricity from 2026-10-01 to 2027-03-31).",
+  "vat": "EX-VAT. The model's components are ex-VAT. Ofgem's PUBLISHED standing charges include VAT (5%, and 0% on electricity from 2026-10-01 to 2027-06-30).",
   "statistic": "The median over the sheet's 15 Total rows: the 14 charge-restriction regions AND the model's own 'GB average' row. That is the population tools/ofgem_cap_unit_rate_composition reads (its `regions: 15`), and it is what reproduces simulation/policy_costs' 2016-2024 tables to the penny. The regions-only median differs on electricity by up to 0.22p/day in a calendar year (0.5p in 2025) and not at all on gas. Electricity's regional spread is wide (about 36-59p in 2023), so neither statistic is any one household's charge.",
   "overlap": "The model carries a historical column 'October 2018 - March 2019' AND the cap's first column 'January 2019 - March 2019'. In v1.31 the two carry identical values for both fuels, so which one a reader takes for January-March 2019 does not matter; counting both double-weights the quarter (gas 2019 reads 25.03p instead of 25.14p).",
   "pre_cap": "Columns starting before 2019-01-01 are Ofgem's back-cast of its own methodology (the model's 'Historical examples ... for illustration only'), a notional cap level and not what suppliers charged.",

@@ -108,16 +108,16 @@ def test_vat_rate_for_segment():
 
 def test_domestic_electricity_is_zero_rated_only_inside_its_dated_window():
     """DEFECT: the reader took no date and no fuel, so domestic electricity read 5% from
-    2026-10-01 to 2027-03-31, when SI 2026/987 zero-rates it (uk_vat_rates.json
+    2026-10-01 to 2027-06-30, when SI 2026/987 and Notice 701/19 zero-rate it (uk_vat_rates.json
     `dated_exceptions`). The first leg proves the exception can be taken at all; the rest prove it
     is bounded to its fuel, its segment and its two edges.
 
     MUTATION: drop the exception loop and the first leg reds; drop `ex_fuel == fuel` and the gas
     leg reds; make `start <= on` strict and the 2026-10-01 leg reds."""
     assert vat_rate_for_segment("resi", fuel="electricity", on=date(2026, 10, 1)) == 0.0
-    assert vat_rate_for_segment("resi", fuel="electricity", on=date(2027, 3, 31)) == 0.0
+    assert vat_rate_for_segment("resi", fuel="electricity", on=date(2027, 6, 30)) == 0.0
     assert vat_rate_for_segment("resi", fuel="electricity", on=date(2026, 9, 30)) == 0.05
-    assert vat_rate_for_segment("resi", fuel="electricity", on=date(2027, 4, 1)) == 0.05
+    assert vat_rate_for_segment("resi", fuel="electricity", on=date(2027, 7, 1)) == 0.05
     assert vat_rate_for_segment("resi", fuel="gas", on=date(2026, 12, 1)) == 0.05
     assert vat_rate_for_segment("SME", fuel="electricity", on=date(2026, 12, 1)) == 0.20
 

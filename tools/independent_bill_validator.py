@@ -196,7 +196,8 @@ def _published(name: str) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def statutory_vat_rate(*, segment: str, commodity: str, kwh: float, days: float) -> dict:
+def statutory_vat_rate(*, segment: str, commodity: str, kwh: float, days: float,
+                       on: str | None = None) -> dict:
     """The VAT rate the published law says applies — derived from the record, never from us.
 
     Two artefacts and they do different jobs, which their own text is careful about: `uk_vat_rates`
@@ -209,11 +210,23 @@ def statutory_vat_rate(*, segment: str, commodity: str, kwh: float, days: float)
 
     Returns the rate with the reason it applies, because a validator that says "5%" and not "5%
     because domestic supply is reduced-rated regardless of quantity" cannot be argued with.
+
+    Given the period's first day `on`, a supply that reaches the reduced band also takes the
+    commons' dated exception for its fuel: GB electricity that qualifies for the reduced rate,
+    domestic or business under the de minimis, is zero-rated from 1 Oct 2026 to 30 Jun 2027
+    (Brief 10 scope; Notice 701/19 end date). Without `on` the answer is the undated band, right for
+    every day of 2016-2025 and wrong for a forward electricity month in that window.
     """
     rates = _published("uk_vat_rates.json")["rates"]
     reduced, standard = rates["reduced"]["rate"], rates["standard"]["rate"]
+    dated = ""
+    if on is not None and _vat_on(commodity, on) != reduced:
+        reduced = _vat_on(commodity, on)
+        dated = " (rated {:.0%} on {} by the commons' dated exception for {})".format(
+            reduced, on, commodity)
     if segment == "resi":
-        return {"rate": reduced, "why": "domestic supply is reduced-rated regardless of quantity",
+        return {"rate": reduced,
+                "why": "domestic supply is reduced-rated regardless of quantity" + dated,
                 "source": "vat_fuel_and_power_de_minimis.json / uk_vat_rates.json"}
     limits = _published("vat_fuel_and_power_de_minimis.json")["de_minimis_by_fuel"]
     fuel = limits.get(commodity)
@@ -225,7 +238,7 @@ def statutory_vat_rate(*, segment: str, commodity: str, kwh: float, days: float)
     if per_day <= limit:
         return {"rate": reduced,
                 "why": "business supply averaging {:.1f} kWh/day is at or below the published "
-                       "de minimis of {} kWh/day".format(per_day, limit),
+                       "de minimis of {} kWh/day".format(per_day, limit) + dated,
                 "source": "vat_fuel_and_power_de_minimis.json"}
     return {"rate": standard,
             "why": "business supply averaging {:.1f} kWh/day exceeds the published de minimis of "
@@ -760,7 +773,7 @@ def rebuild_period(period: dict, *, segment: str) -> dict:
                "to rebuild it from, so it is not rebuilt."})
 
     vat = statutory_vat_rate(segment=segment, commodity=period.get("commodity") or "electricity",
-                             kwh=volume or 0.0, days=days or 0.0)
+                             kwh=volume or 0.0, days=days or 0.0, on=period.get("period_start"))
     lines.append({
         "label": "VAT", "status": RATE_CHECKED if vat["rate"] is not None else UNCHECKABLE,
         "statutory_rate": vat["rate"], "why": vat["why"], "source": vat["source"],

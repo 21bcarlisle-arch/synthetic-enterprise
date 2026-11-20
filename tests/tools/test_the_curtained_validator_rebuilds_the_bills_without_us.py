@@ -150,6 +150,21 @@ def test_a_business_supply_BELOW_the_de_minimis_is_reduced_rated():
     assert got["rate"] == 0.05 and "at or below the published de minimis" in got["why"]
 
 
+def test_electricity_that_reaches_the_reduced_band_is_zero_rated_inside_the_dated_window():
+    """DEFECT: the validator took no date, so a forward GB electricity month from 1 Oct 2026 to
+    30 Jun 2027 (Notice 701/19) was graded at 5% where the biller, correctly, charged 0%: domestic,
+    and business under the de minimis (Brief 10 scope). The first leg proves the dated branch can
+    be taken; the rest bound it to its fuel, its band and its edges."""
+    rate = lambda seg, fuel, kwh, on: v.statutory_vat_rate(  # noqa: E731
+        segment=seg, commodity=fuel, kwh=kwh, days=30.0, on=on)["rate"]
+    assert rate("resi", "electricity", 300.0, "2027-06-30") == 0.0
+    assert rate("SME", "electricity", 300.0, "2026-10-01") == 0.0
+    assert rate("resi", "electricity", 300.0, "2027-07-01") == 0.05
+    assert rate("resi", "electricity", 300.0, "2026-09-30") == 0.05
+    assert rate("resi", "gas", 300.0, "2026-12-01") == 0.05
+    assert rate("SME", "electricity", 3400.0, "2026-12-01") == 0.20
+
+
 def test_the_rate_always_carries_the_reason_and_the_source():
     """A validator that says "5%" and not "5% because domestic supply is reduced-rated regardless
     of quantity" cannot be argued with, and a disagreement it raises cannot be adjudicated."""

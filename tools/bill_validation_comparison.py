@@ -328,7 +328,8 @@ def compare_account(customer_id: str, record: dict, *, raw_of=None, reconstruct=
         volume, _why = validator._volume_from_reads(period)
         vat = validator.statutory_vat_rate(
             segment=segment, commodity=period.get("commodity") or "electricity",
-            kwh=volume or 0.0, days=period.get("days_in_period") or 0.0)
+            kwh=volume or 0.0, days=period.get("days_in_period") or 0.0,
+            on=period.get("period_start"))
         bills.append({
             "invoice_number": bill.get("invoice_number"),
             "period_start": bill.get("period_start"), "period_end": bill.get("period_end"),

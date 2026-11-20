@@ -31,7 +31,7 @@
       "what": "Domestic electricity in Great Britain is zero-rated",
       "rate_band": "zero",
       "from": "2026-10-01",
-      "to": "2027-03-31",
+      "to": "2027-06-30",
       "fuel": "electricity",
       "applies_to": "domestic supply in Great Britain",
       "not": [
@@ -41,10 +41,18 @@
       ],
       "time_of_supply": "A billing period spanning 2026-10-01 may be split by the date the energy was consumed; HMRC recommends meter readings.",
       "law": "The Value Added Tax (Supplies of Domestic Electricity) Order 2026, SI 2026/987 (made 7 Sep 2026, in force 1 Oct 2026); the enabling section was not read, legislation.gov.uk was not fetched",
+      "end_date": "30 June 2027, from HMRC VAT Notice 701/19 as updated 28 Oct 2026: 'The temporary zero rate applies from 1 October 2026 to 30 June 2027', after the Budget 2026 extension. Brief 10 (fetched 2026-10-25) said 31 March 2027 and this entry carried that date until 2026-11-20. GAP: the amending order that moves the end date was not read; the date rests on HMRC's notice, not on the instrument.",
       "source": {
         "document": "Revenue and Customs Brief 10 (2026): temporary zero rate of VAT for domestic electricity in Great Britain",
         "url": "https://www.gov.uk/government/publications/revenue-and-customs-brief-10-2026-temporary-zero-rate-of-vat-for-domestic-electricity-in-great-britain/temporary-zero-rate-of-vat-for-domestic-electricity-in-great-britain",
         "fetched": "2026-10-25"
+      },
+      "end_date_source": {
+        "document": "HMRC VAT Notice 701/19: fuel and power (introductory box on the temporary zero rate)",
+        "url": "https://www.gov.uk/guidance/vat-on-fuel-and-power-notice-70119",
+        "page_updated": "2026-10-28",
+        "fetched": "2026-11-20",
+        "reading": "docs/market_research/back_billing_and_liability.md s18"
       }
     },
     {

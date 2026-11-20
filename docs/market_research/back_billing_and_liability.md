@@ -1096,9 +1096,10 @@ same day.
   "suppliers may determine the VAT liability of supplies based on the date the energy is
   consumed", and HMRC recommends meter readings for the split. **[H]**
 - **The end date has moved.** Notice 701/19 as updated on 28 Oct 2026 says "The temporary zero
-  rate applies from 1 October 2026 to 30 June 2027", after the Budget 2026 extension. Brief 10 and
-  the commons (`uk_vat_rates.json`) still say 31 March 2027. **[H]** that HMRC's guidance now says
-  30 June. **GAP:** the amending order was not read.
+  rate applies from 1 October 2026 to 30 June 2027", after the Budget 2026 extension. Brief 10
+  still says 31 March 2027. **[H]** that HMRC's guidance now says 30 June. The commons
+  (`uk_vat_rates.json`) carries 30 June from 20 Nov 2026, and the cap tool reads its window from
+  there rather than keeping its own copy. **GAP:** the amending order was not read.
 
 **What the rules leave open.** The notice says nothing about which rate applies when the quantity or
 the period length is unknown, and nothing about a standing charge with no consumption (s5.4 and
@@ -1131,13 +1132,16 @@ domestic electricity month was billed at 5%, not 0%. `generate_bill` always has 
 count, so on the 2016-2025 run the no-volume path was reachable only through
 `monthly_bill_assembly._vat_rate_of`. The dated path had no effect on 2016-2025.
 
-**Other readers of the window that this change does not touch.** These are the follow-on item
-`vat-zero-rate-extended-to-june-2027`:
-- `tools/ofgem_cap_unit_rate_composition.VAT_MULTIPLIER_WINDOWS`, a fifth copy of the window,
-  hard-coded and ending 2027-04-01.
-- `tools/independent_bill_validator._vat_on`. It reads the commons, but only for the domestic
-  segment.
-- The commons' own end date.
+**Other readers of the window that this change did not touch, and what became of them**
+(`vat-zero-rate-extended-to-june-2027`, 20 Nov 2026):
+- `tools/ofgem_cap_unit_rate_composition.VAT_MULTIPLIER_WINDOWS` was a fifth copy of the window,
+  hard-coded and ending 2027-04-01. It now reads the commons, so there is one end date.
+- `tools/independent_bill_validator._vat_on` reads the commons for the cap ceilings, which are a
+  domestic instrument, so domestic-only is right there. The validator's own VAT grade,
+  `statutory_vat_rate`, took no date at all; it now takes the period's first day, and a supply
+  that reaches the reduced band (domestic, or business under the de minimis) takes the dated
+  exception, as the biller does.
+- The commons' end date is 30 June 2027, citing Notice 701/19.
 
 **Sources.**
 - HMRC, VAT Notice 701/19 *Fuel and power*, https://www.gov.uk/guidance/vat-on-fuel-and-power-notice-70119,

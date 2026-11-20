@@ -156,11 +156,22 @@ FUELS = {
 #: (https://www.gov.uk/government/news/new-pm-cuts-tax-on-household-electricity-bills-to-give-breathing-space-on-cost-of-living)
 #: and visible in the workbook: for October–December 2026 the model's "GB average, inc VAT"
 #: electricity row is IDENTICAL to its ex-VAT row, while gas on the same row still carries 5%.
-#: Each entry is (from, to-exclusive, multiplier); anything outside them is `VAT_MULTIPLIER_DEFAULT`.
-VAT_MULTIPLIER_DEFAULT = 1.05
-VAT_MULTIPLIER_WINDOWS: tuple[tuple[str, str, float], ...] = (
-    ("2026-10-01", "2027-04-01", 1.00),
-)
+#: The window's END is read from the commons (`uk_vat_rates.json` `dated_exceptions`), not copied:
+#: a hard-coded copy here ended 2027-04-01 after HMRC Notice 701/19 (updated 28 Oct 2026) moved the
+#: end to 30 June 2027. Each entry is (from, to-INCLUSIVE, multiplier) for electricity; anything
+#: outside them is `VAT_MULTIPLIER_DEFAULT`, the reduced band.
+VAT_RATES_COMMONS = PROJECT / "docs" / "domain_artefact_library" / "regulatory" / "uk_vat_rates.json"
+
+
+def _vat_multiplier_windows() -> tuple[float, tuple[tuple[str, str, float], ...]]:
+    law = json.loads(VAT_RATES_COMMONS.read_text())
+    rates = law["rates"]
+    windows = tuple((e["from"], e["to"], 1.0 + rates[e["rate_band"]]["rate"])
+                    for e in law.get("dated_exceptions") or [] if e.get("fuel") == "electricity")
+    return 1.0 + rates["reduced"]["rate"], windows
+
+
+VAT_MULTIPLIER_DEFAULT, VAT_MULTIPLIER_WINDOWS = _vat_multiplier_windows()
 
 #: How closely derived-x-VAT must reproduce the published cap level before the decomposition is
 #: believed, as a proportion. Set from what a correct read actually achieves (better than 0.5%
@@ -353,7 +364,7 @@ def vat_multiplier(period_start: str | None, fuel: str = "electricity") -> float
     if fuel != "electricity":
         return VAT_MULTIPLIER_DEFAULT
     for begins, ends, multiplier in VAT_MULTIPLIER_WINDOWS:
-        if period_start and begins <= period_start < ends:
+        if period_start and begins <= period_start <= ends:
             return multiplier
     return VAT_MULTIPLIER_DEFAULT
 
@@ -617,12 +628,12 @@ def measure() -> dict:
         "basis": {
             "vat": (
                 "Components are EX-VAT, and VAT ON ELECTRICITY IS NOT A CONSTANT: it is 5% except "
-                "from 2026-10-01 to 2027-03-31, where it is ZERO under the Government's "
+                "from 2026-10-01 to 2027-06-30, where it is ZERO under the Government's "
                 "announcement, as stated in the v1.31 model's own `1a` note and visible in the "
                 "workbook (for October-December 2026 the model's GB-average INCLUDING-VAT "
                 "electricity row equals its ex-VAT row, while gas on the same row still carries "
                 "5%). A caller converting the ex-VAT unit rates published here to an "
-                "including-VAT figure at a flat 1.05 is wrong for those two periods. Shares are "
+                "including-VAT figure at a flat 1.05 is wrong for every period inside it. Shares are "
                 "unaffected by VAT at any rate; unit rates are not."
             ),
             "meter": "single-rate electricity",

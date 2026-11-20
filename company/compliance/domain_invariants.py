@@ -1297,7 +1297,7 @@ def vat_rate_for_segment(
     -> the standard rate, before the SME de minimis (`check_vat`).
 
     Given `fuel` and `on`, a domestic supply also takes the commons' dated exceptions: domestic
-    electricity in GB is zero-rated from 2026-10-01 to 2027-03-31 (SI 2026/987). Without them the
+    electricity in GB is zero-rated from 2026-10-01 to 2027-06-30 (SI 2026/987; Notice 701/19). Without them the
     answer is the undated band, which is right for every day of 2016-2025 and wrong for a forward
     electricity day in that window, so a caller pricing a forward year must pass both. One without
     the other is refused: half a date is how the undated reading survives looking dated."""
