@@ -31,3 +31,16 @@ added 32. The deadline therefore binds only if the daily quota cuts each day off
 hour. That cut-off is still unknown: 19 Nov's daily stop came after a day already partly used. The test
 stays the same: read today's total when its "stopped daily" line appears in `/tmp/era5_loop/status`.
 At 37 or more, close this finding as not binding.
+
+## Done (2026-11-20, the commit that moves this file)
+
+**Not binding; closed on the stated test.** `/tmp/era5_loop/status` reads `stopped daily 2026-11-20T02:25`.
+20 Nov's three passes each fetched 32 cells and stopped on the 33rd. Passes 00:05 and 01:02 hit the
+hourly bucket, and pass 02:02 hit the daily quota. Their opening counts were 401, 369 and 337, so the
+day's total is **96**, against the 37 a day the correction needs. The daily quota cut the day off after
+about three hourly buckets. At 96 a day, the 305 book cells still owed take four more days (21 to
+24 Nov), well inside the 29 Nov deadline. The runner is left as it is.
+
+The remaining 64 of today's cells (R217 to R321: 474 → 538 of 919 carry ERA5, none lost, cells and
+regimes unchanged) land in this commit. W2_30's re-count still waits on a `complete` line in the status
+file.
