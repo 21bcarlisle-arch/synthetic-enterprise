@@ -1,4 +1,6 @@
-**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+**Severity:** RECORDED · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+
+> **TRIAGE 2026-11-20 (delivery seat), was BLOCKING -- FIXED. On the published 6af7fd0bfd book R1's row reads 0 of 1,132, R5's 0 of 20, billed ex-VAT 0 of 1,306, and no exception names R3-R5. R2's EPG print scatter is excepted under INV_UNIT_RATE_EPG_HOUSEHOLD with its retirement named. Record: `docs/staging/SEAT_RECORD_TRIAGE_OF_THE_BLOCKING_FINDINGS_2026-11-20.md`.**
 
 # The second cold read's rows find a late direct debit, an unshown price guarantee and estimates too close to the month (2026-10-28)
 

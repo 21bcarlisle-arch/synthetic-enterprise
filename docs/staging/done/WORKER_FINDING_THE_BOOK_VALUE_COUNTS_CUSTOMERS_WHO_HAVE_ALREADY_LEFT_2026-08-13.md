@@ -1,4 +1,6 @@
-**Severity:** BLOCKING · **Lane:** B_commercial
+**Severity:** RECORDED · **Lane:** B_commercial
+
+> **TRIAGE 2026-11-20 (delivery seat), was BLOCKING -- OBSOLETE. The page it named (site/company/index.html) is gone, no page renders company.json's household block, and its clv_gbp is null. If a drill-down returns, item 3 here is its spec. Record: `docs/staging/SEAT_RECORD_TRIAGE_OF_THE_BLOCKING_FINDINGS_2026-11-20.md`.**
 
 > **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- UNBLOCKED.** Still open as written: `DRILLDOWN_ID = "C1"` is hardcoded at `tools/generate_company_data.py:43`, and `still_supplied` is not read by either generator. Nothing upstream blocks it.
 

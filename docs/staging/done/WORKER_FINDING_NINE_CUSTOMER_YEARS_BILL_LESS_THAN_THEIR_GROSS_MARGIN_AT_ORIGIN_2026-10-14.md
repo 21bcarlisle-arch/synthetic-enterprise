@@ -1,4 +1,6 @@
-**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `D46_the_validator_holds_against_the_varied_population` · **Claim:** none (found by the billing-ledger move, 2026-10-14)
+**Severity:** RECORDED · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `D46_the_validator_holds_against_the_varied_population` · **Claim:** none (found by the billing-ledger move, 2026-10-14)
+
+> **TRIAGE 2026-11-20 (delivery seat), was BLOCKING -- FIXED (650fdcdd7f, e6785dce51, 6208ea6dd2). The defect4 sweep passes 14 of 14 on the committed 6af7fd0bfd ledger (.gz); the C7 rows lapse by construction. Record: `docs/staging/SEAT_RECORD_TRIAGE_OF_THE_BLOCKING_FINDINGS_2026-11-20.md`.**
 
 **Discharged:** `tests/company/billing/test_a_held_estimate_is_reconciled_as_billed_nothing.py::test_a_held_estimate_is_reconciled_as_billed_nothing_and_a_sent_one_as_what_was_sent`,
 `tests/company/billing/test_a_void_stubs_estimate_is_priced_at_its_own_tariff.py::test_a_void_stubs_estimate_is_charged_at_the_rows_tariff_and_a_row_without_one_keeps_the_true_bill` -- both billing causes are repaired at origin (650fdcdd7, e6785dce5) under these controls, and the defect4 sweep reds a tenth inversion. What remains is deleting the nine KNOWN_OPEN_INVERSIONS rows once a ledger billed by that code is committed (the 2026-10-19 publish); that is a dated follow-up, not an untrustworthy control, so it no longer draws ahead of the lane (worker, 2026-10-16).

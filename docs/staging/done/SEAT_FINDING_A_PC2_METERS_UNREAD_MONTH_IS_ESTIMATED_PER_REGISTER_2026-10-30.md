@@ -1,4 +1,6 @@
-**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+**Severity:** RECORDED · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+
+> **TRIAGE 2026-11-20 (delivery seat), was BLOCKING -- FIXED (32ddfa8ca2). On the published 6af7fd0bfd book P1 held (INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS 0 of 31,641) and P3 held (E7 row 0). The heated homes' summer residual is E2 of the printed-register finding, still open at root. Record: `docs/staging/SEAT_RECORD_TRIAGE_OF_THE_BLOCKING_FINDINGS_2026-11-20.md`.**
 
 # A PC2 meter's unread month is estimated per register on PC2's published shape: the build and the predictions for the next fresh run (2026-10-30)
 

@@ -1,4 +1,6 @@
-**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+**Severity:** RECORDED · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+
+> **TRIAGE 2026-11-20 (delivery seat), was BLOCKING -- FIXED (e400c589d8, 308a3f168e). On the published 6af7fd0bfd book INV_E7_METER_BILLED_ON_TWO_REGISTERS reads 0 of 28,227 and INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER 0 of 461; N1 and N3 held. Record: `docs/staging/SEAT_RECORD_TRIAGE_OF_THE_BLOCKING_FINDINGS_2026-11-20.md`.**
 
 # A supply point settled on Profile Class 2 is billed on its Day and Night registers: the build, the blind row, and the predictions for the next fresh run (2026-10-30)
 

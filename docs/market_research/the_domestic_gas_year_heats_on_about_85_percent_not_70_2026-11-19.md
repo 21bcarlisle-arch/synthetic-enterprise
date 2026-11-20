@@ -118,6 +118,55 @@ table gives a Jan/Jul of 10.6, not 7.2. The world settles each premise on its *o
 reference, so the reference table only sets the normalisation and the fallback for premises without a sky. **GAP:**
 `REFERENCE_MONTHLY_HDD` carries no source in its comment, and its summer months sit below the DESNZ normal.
 
+## 5a. The 1991–2020 normal, month by month, against the world's reference table (added 2026-11-20)
+
+§7 says `REFERENCE_MONTHLY_HDD` needs a source or a re-basis on ET 7.1 before the fraction moves. This is the
+table that re-basis would use. It comes from the same workbook as §2 (`ET_7.1_OCT_26.xlsx`, sheet
+`Data Heating Degree Days`, column `30-year mean`; Note 3: "Average for that calendar period for the years 1991 to
+2020"). ET 7.1 gives the average HDD **per day**, so each month's total is that value × days, with February at 28.25.
+No world constant changes here.
+
+| month | ET 7.1 HDD/day | ET 7.1 month total | world `REFERENCE_MONTHLY_HDD` | world minus ET 7.1 |
+|---|---:|---:|---:|---:|
+| Jan | 10.59 | 328.3 | 350 | +21.7 |
+| Feb | 10.33 | 291.9 | 315 | +23.1 |
+| Mar | 8.74 | 271.1 | 275 | +3.9 |
+| Apr | 6.61 | 198.3 | 200 | +1.7 |
+| May | 3.87 | 120.1 | 118 | −2.1 |
+| Jun | 1.71 | 51.3 | 30 | −21.3 |
+| Jul | 0.61 | 18.9 | 5 | −13.9 |
+| Aug | 0.67 | 20.9 | 5 | −15.9 |
+| Sep | 1.93 | 57.9 | 38 | −19.9 |
+| Oct | 4.64 | 143.9 | 140 | +3.9 |
+| Nov | 7.93 | 238.0 | 249 | +11.0 |
+| Dec | 10.33 | 320.3 | 341 | +20.7 |
+| **year** | | **2,060.8** | **2,066** | +5.2 |
+
+The annual totals agree to 0.3%. The world's table moves about 75 HDD from Jun–Sep into Nov–Feb. So the world's
+"normal" year is more peaked than the published one, and the fraction calibrated on it (0.70, §5) is lower than the
+fraction calibrated on the published normal (0.85). That is why the two have to move together.
+
+**What the world's comment claims, and what this shows.** The comment on `REFERENCE_MONTHLY_HDD` says "UK 1991-2020
+HDD climate normals (base 15.5°C, England & Wales). Sourced from Met Office HDD/CDD tabulations and Ofgem annual
+consumption data." ET 7.1 is DESNZ's tabulation of Met Office station data at the same base and over the same 30
+years, and it does not reproduce the table. **GAP:** this page cannot say the comment is false. ET 7.1's station
+set (Note 2, a map) may differ from an England & Wales series, and no England & Wales monthly normal has been read
+here. Either way, the comment's citation cannot be reached, and the one published 1991–2020 monthly series that has
+been read differs from the table by up to 23 HDD a month.
+
+**Where the table is read** (HEAD 2a214e0c16): `simulation/gas_settlement.py` (`_HDD_REF_ANNUAL`, the annual
+normalisation of the heating term); `sim/weather_hdd.py` (the per-day fallback for a premise with no weather in the
+store, `REFERENCE_MONTHLY_HDD[month] / 30.0`); `simulation/run_phase2b.py` line 823 (`_hdd_ref`);
+`tools/strategy_cash_hole_2021_22.py` (a harness tool, not the world). A re-basis changes the fallback days' HDD by
+month, and their seasonal shape with it. The annual normaliser moves by only 0.25%.
+
+**A second copy of the 0.70, for the build to decide on.** `simulation/run_phase2b.py` (around line 824) settles a
+heat-pump household's electricity with its own two-term form: `_ashp_annual * 0.70 * (hdd / ref)` plus
+`0.30 / 365.25` flat. It does not call `resi_daily_gas_kwh`, so moving `_GAS_BOILER_HEATING_FRACTION` leaves it at
+0.70. This page's 0.85 is fitted to the **gas** year. It does not establish a heat pump's heating share, whose flat
+term (hot water from a heat pump) is a different quantity. **GAP:** the heat-pump fraction has no source here.
+Whoever moves the gas constant must decide this copy explicitly rather than leave it behind by accident.
+
 ## 6. What the published series says the two-term form gets wrong
 
 The two-term residual (actual minus fit, as a share of the year) repeats in all three years:

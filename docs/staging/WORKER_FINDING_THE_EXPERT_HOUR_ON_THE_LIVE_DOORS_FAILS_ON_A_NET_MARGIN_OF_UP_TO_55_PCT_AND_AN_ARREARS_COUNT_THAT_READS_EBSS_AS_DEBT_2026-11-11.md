@@ -1,4 +1,6 @@
-**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** 2 · **Atom:** `SITE1_expert_doors`
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 2 · **Atom:** `SITE1_expert_doors`
+
+> **TRIAGE 2026-11-20 (delivery seat) -- REAL, rank 2 of 2; BLOCKING -> LATENT. The two wrong published figures that made it BLOCKING are fixed on the live feeds (601929ce0b, published 43fa9534d9): net_margin_pct is withheld with its status, and in_arrears reads 59 of 1,306 on Ofgem's 91-day definition. Open on SITE1_expert_doors: B2, B3 and a fresh blind Hour. No knowledge gap; the withheld margin waits on the standing-charge seam (W3_3). Record: `docs/staging/SEAT_RECORD_TRIAGE_OF_THE_BLOCKING_FINDINGS_2026-11-20.md`.**
 
 # The Expert Hour on the live doors fails: published net margin runs to 55% and the arrears count reads the EBSS credit as debt (2026-11-11)
 

@@ -1,4 +1,6 @@
-**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+**Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used`
+
+> **TRIAGE 2026-11-20 (delivery seat) -- REAL, rank 1 of 2; BLOCKING -> LATENT. E1, E3, E4 and E5 are done (on the published 6af7fd0bfd book: opening = previous closing 0 of 55,486, ToU bands 0 of 90, follows-latest-actuals 0 of 31,641). E2 is open: INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER reads 8 of 4,428, excepted at its ceiling, 7 of them electrically heated homes estimated on the class shape. The publish is not refused, so it blocks nothing; it is D48's. A knowledge GAP sits behind it: whether a GB supplier's billing estimate follows the home's own shape (how_a_supplier_shapes_an_estimate_for_an_unread_month.md). Record: `docs/staging/SEAT_RECORD_TRIAGE_OF_THE_BLOCKING_FINDINGS_2026-11-20.md`.**
 
 # The printed-register fix exposes estimates set from one read and prints 6,436 opening reads nobody took (2026-10-28)
 

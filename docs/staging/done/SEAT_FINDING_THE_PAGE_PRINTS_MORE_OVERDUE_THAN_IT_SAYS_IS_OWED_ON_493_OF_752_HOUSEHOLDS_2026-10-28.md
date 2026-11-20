@@ -1,4 +1,6 @@
-**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+**Severity:** RECORDED · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+
+> **TRIAGE 2026-11-20 (delivery seat), was BLOCKING -- FIXED. INV_OVERDUE_WITHIN_PAGE_BALANCE reads 0 of 6,115 on the published 6af7fd0bfd book (was 10,180 of 32,741); the last causes went with the level-DD dunning chain d8264b525e, 8e73c52356, 78f82e4242, 189b32460e, 703edeb89b. Record: `docs/staging/SEAT_RECORD_TRIAGE_OF_THE_BLOCKING_FINDINGS_2026-11-20.md`.**
 
 # The page prints more overdue than it says is owed, on 493 of 752 households (2026-10-28)
 
