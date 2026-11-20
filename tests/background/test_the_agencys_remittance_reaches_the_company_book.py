@@ -95,3 +95,29 @@ def test_a_statute_barred_write_off_is_not_placed_with_the_agency():
     triad.write_off_closed_balances(dt.date(2025, 12, 31))
     assert "A::1" not in _remitted_by_ref(triad, None)
     assert {"A::2", "A::3"} <= set(_remitted_by_ref(triad, None))
+
+
+def test_the_run_end_record_publishes_refs_remittances_the_learned_cells_and_the_sale_split():
+    """KNIFE3 I1-I5 need these on the book. One control over the partition: the record carries every
+    write-off with its ref, every remittance as a row on a ref the company wrote off, a learned lag,
+    BOTH age cells, and at an offer between the two cells' expectations the aged debt sold AND the
+    young one worked. Defect: any of the four missing, or a sale split that cannot differ by cell."""
+    triad = _triad()
+    end = dt.date(2025, 12, 31)
+    triad.write_off_closed_balances(end)
+    rec = triad.debt_recovery_record(end, payment_method_of=lambda a, d: "direct_debit",
+                                     offers=(0.0, 0.5))
+    assert {r["invoice_ref"] for r in rec["write_offs"]} == {"A::1", "A::2", "A::3"}
+    assert rec["share_of_gbp_with_invoice_ref"] == 1.0
+    assert len(rec["agency_remittances"]) == 3
+    assert rec["remitted_gbp"] == rec["remitted_gbp_on_a_ref_written_off"] > 0
+    learned = rec["learned"]
+    assert learned["remittance_lag_days"] == DCA_OUTCOME_DAYS + (
+        dca_placement_date(end) - end).days
+    aged, young = learned["by_cell"]["over_a_year_past_due"], learned["by_cell"]["under_a_year_past_due"]
+    assert aged["expected_recovery"] < young["expected_recovery"]
+    mid = (aged["expected_recovery"] + young["expected_recovery"]) / 2
+    rec = triad.debt_recovery_record(end, payment_method_of=lambda a, d: "direct_debit",
+                                     offers=(mid,))
+    split = {d["over_a_year_past_due"]: d["sold_at"][f"{mid:.3f}"] for d in rec["sale_decisions"]}
+    assert split == {True: True, False: False}

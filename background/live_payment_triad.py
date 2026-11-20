@@ -1027,6 +1027,25 @@ class LivePaymentTriad:
                 self._agency_remittances.append(
                     (account, w.invoice_ref, terminal["stage"], paid_on, gbp))
 
+    def debt_recovery_record(self, through: date, *, payment_method_of, offers=()) -> dict:
+        """The company's own debt-recovery records at `through` (`PaymentObservationConsumer.
+        debt_recovery_record`), with each agency remittance that crossed as a row. Call after
+        `write_off_closed_balances(through)`, which places the write-offs and crosses their cash.
+
+        `remitted_gbp_on_a_ref_written_off` is the remitted GBP whose invoice ref the company had
+        written off: the rest posted as ordinary payments, which the per-debt learner cannot see."""
+        out = self._consumer.debt_recovery_record(through, payment_method_of=payment_method_of,
+                                                  offers=offers)
+        written = {(r["account"], r["invoice_ref"]) for r in out["write_offs"] if r["invoice_ref"]}
+        rows = [{"account": a, "invoice_ref": ref, "stage": stage, "date": on.isoformat(),
+                 "gbp": round(gbp, 2), "on_a_ref_written_off": (a, ref) in written}
+                for a, ref, stage, on, gbp in self._agency_remittances]
+        out["agency_remittances"] = rows
+        out["remitted_gbp"] = round(sum(r["gbp"] for r in rows), 2)
+        out["remitted_gbp_on_a_ref_written_off"] = round(
+            sum(r["gbp"] for r in rows if r["on_a_ref_written_off"]), 2)
+        return out
+
     @property
     def agency_remittances(self) -> List[tuple]:
         """`(account, invoice ref, stage, date, GBP)` for each agency remittance that crossed."""

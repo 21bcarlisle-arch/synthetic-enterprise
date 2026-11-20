@@ -1702,6 +1702,28 @@ def _company_provision_by_year_end(triad, effective_end: str, payment_method_of,
     return {"by_date": stocks, "closing": stocks[end.isoformat()], "write_offs_posted": write_offs}
 
 
+#: The middle offer the debt-recovery record asks the sale rule about: a probe inside the published
+#: all-sector range (`debt_sale_price_range`), kept at the point the s.7.7 tables were printed at so
+#: the run reads beside them. Not an estimate of any price.
+_SALE_PROBE_INTERIOR = 0.070
+
+
+def _company_debt_recovery(triad, effective_end: str, payment_method_of) -> dict:
+    """The company's written-off debts, the agency remittances that crossed, what its per-debt
+    learner reads off its own ledger at the end, and what the sale rule does at the published low,
+    an interior probe and the published high (`LivePaymentTriad.debt_recovery_record`). A failed
+    read is recorded with its reason and does not kill a finished run."""
+    from simulation.arrears_engine import debt_sale_price_range
+    low, high = debt_sale_price_range()
+    offers = tuple(o for o in (low, _SALE_PROBE_INTERIOR, high) if o is not None)
+    try:
+        return triad.debt_recovery_record(date.fromisoformat(effective_end),
+                                          payment_method_of=payment_method_of, offers=offers)
+    except Exception as exc:  # noqa: BLE001 -- a reporting read must not kill a completed run
+        print(f"WARNING [company debt recovery] could not be read: {exc!r}")
+        return {"unavailable_because": repr(exc)}
+
+
 def _box_admission():
     """`resource_headroom.queued` for one run, declared at the shipped budget's measured peak
     (`budgeted_run_peak_mb`; the `sim_run` class weight when no curve prices it). Over-declares for
@@ -6632,6 +6654,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             _payment_triad, effective_end, _book_method_of,
             crisis_overlay=policy.provision_crisis_overlay,
             arrears_overlay=policy.provision_arrears_overlay),
+        # KNIFE3: the company's own debt-recovery records at the end, AFTER `company_provision`,
+        # whose write-off sweep posts the write-offs and crosses the agency's cash these read.
+        "company_debt_recovery": _company_debt_recovery(
+            _payment_triad, effective_end, _book_method_of),
         "total_net": total_net,
         "final_treasury": final_treasury,
         "starting_treasury": STARTING_TREASURY_GBP,

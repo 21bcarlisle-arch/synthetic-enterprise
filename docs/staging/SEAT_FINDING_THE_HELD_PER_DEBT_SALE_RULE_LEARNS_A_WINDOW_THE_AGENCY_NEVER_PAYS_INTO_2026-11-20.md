@@ -288,3 +288,15 @@ records. None is world truth. That is a small reporting build plus one book. The
 `grade-knife3-in-run-i1-to-i6-on-the-first-book-after-7d99949ce7` is recorded premise-spent against this
 grade, because the first such book has come and been read as far as it can be. The unread five carry
 forward under this build, not under that id.
+
+## The run now publishes what I1 to I5 read (2026-11-20, build landed)
+
+`run_output["company_debt_recovery"]`, read at the run's end after `company_provision`'s sweep
+(`LivePaymentTriad.debt_recovery_record` -> `PaymentObservationConsumer.debt_recovery_record`), all
+company-side: `write_offs` (GBP, `invoice_ref`, reason) with `share_of_gbp_with_invoice_ref` (I1);
+`learned.remittance_lag_days` (I2); `learned.by_cell` with each cell's `expected_recovery` (I3);
+`sale_decisions[*].sold_at` at the register's low 0.054, the probe 0.070 and the high 0.093 (I4);
+`agency_remittances` rows with `on_a_ref_written_off`, and `remitted_gbp` beside
+`remitted_gbp_on_a_ref_written_off` (I5). Sale decisions pass `sensitive=False` (the ledger does not
+hold the vulnerability register). The predictions above stay unrevised; grading needs the first book
+whose run commit carries this build.

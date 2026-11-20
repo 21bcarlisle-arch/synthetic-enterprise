@@ -346,6 +346,13 @@ def debt_sale_price_share() -> tuple[float | None, str]:
     return float(row["default"]), row["basis_default"]
 
 
+def debt_sale_price_range() -> tuple[float | None, float | None]:
+    """The published low and high sale price per GBP of face value (all-sector purchase prices;
+    the register row says why no energy figure exists), for reporting what a sale rule would do."""
+    row = _toggle_row("q3_debt_sale_price_share_of_face")
+    return row.get("low"), row.get("high")
+
+
 def stress_for_year(behavioral: dict, year: int) -> str:
     trajectory = behavioral.get("income_stress_trajectory") or []
     for entry in trajectory:

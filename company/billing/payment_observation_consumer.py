@@ -2353,6 +2353,61 @@ class PaymentObservationConsumer:
                 memo=self.__dict__.setdefault("_roll_rate_memo", {}))
         return out
 
+    def debt_recovery_record(self, on: dt.date, *, payment_method_of,
+                             offers: Sequence[float] = ()) -> dict:
+        """What this company's own books say about its written-off debt on `on`, for publishing at a
+        run's end (KNIFE3; debt_and_collections.md s.7.7): every write-off with its GBP and
+        `invoice_ref`, the per-debt learner's reading (`cash_forecast_provision.learn`), and, for each
+        written-off debt the learner can see, whether `sells_written_off_debt` would sell it at each
+        offered price per GBP in `offers`. Ledger and register only; nothing of the world's is read.
+
+        The sale decisions pass `sensitive=False`: this ledger does not hold the vulnerability
+        register, so a debt the rule would refuse to sell as sensitive is shown as its price
+        decision. The learner sees a write-off only if its ref names a bill on the same ledger;
+        `write_offs` lists them all, so the two counts differ by exactly the ones it cannot see."""
+        from company.billing.collections_journey import sells_written_off_debt
+        from company.finance.cash_forecast_provision import _written_off, learn
+
+        rows, debts = [], []
+        for account in self.ledger_book.accounts():
+            ledger = self.ledger_book.ledger(account)
+            for e in ledger.events_through(on):
+                if e.event_type == LedgerEventType.WRITE_OFF_CREDIT:
+                    rows.append({"account": account, "date": e.valid_time.isoformat(),
+                                 "gbp": round(float(e.amount_gbp), 2),
+                                 "invoice_ref": e.invoice_ref or None, "reason": e.reason})
+            debts.extend((account, *d) for d in _written_off(ledger, on))
+        rates = learn(self.ledger_book, as_of=on, payment_method_of=payment_method_of)
+        total = sum(r["gbp"] for r in rows)
+        with_ref = sum(r["gbp"] for r in rows if r["invoice_ref"])
+        cells = {}
+        for cell, (wo, got, n) in sorted(rates.written_off_by_cell.items()):
+            cells["over_a_year_past_due" if cell.over_a_year_past_due else "under_a_year_past_due"] = {
+                "written_off_gbp": round(wo, 2), "recovered_gbp": round(got, 2), "debts": n,
+                "expected_recovery": round(rates.written_off_recovery_for(cell), 4)}
+        sales = []
+        for account, wo_on, gbp, cell, _cash in debts:
+            expected = rates.written_off_recovery_for(cell)
+            sales.append({"account": account, "written_off_on": wo_on.isoformat(),
+                          "gbp": round(gbp, 2), "over_a_year_past_due": cell.over_a_year_past_due,
+                          "expected_recovery": round(expected, 4),
+                          "sold_at": {f"{o:.3f}": sells_written_off_debt(o, expected) for o in offers}})
+        return {
+            "as_of": on.isoformat(),
+            "write_offs": rows,
+            "written_off_gbp": round(total, 2),
+            "written_off_gbp_with_invoice_ref": round(with_ref, 2),
+            "share_of_gbp_with_invoice_ref": round(with_ref / total, 4) if total > 0 else None,
+            "learned": {
+                "remittance_lag_days": rates.remittance_lag_days,
+                "written_off_gbp": round(rates.written_off_gbp, 2),
+                "recovered_gbp": round(rates.written_off_recovered_gbp, 2),
+                "debts": rates.written_off_debts,
+                "written_off_recovery": round(rates.written_off_recovery, 4),
+                "by_cell": cells},
+            "sale_decisions": sales,
+        }
+
     def write_off_closed_balances(self, on: dt.date) -> List[LedgerEvent]:
         """Write off what each closed account still owes once its final bill is a year old
         (`arrears_engine.closed_balance_write_offs`), reading this class's ledger as it stood on
