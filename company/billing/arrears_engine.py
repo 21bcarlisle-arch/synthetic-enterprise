@@ -1356,6 +1356,34 @@ def closed_balance_due_for_write_off(
     return (owed, max(bills)) if owed > 0.005 else None
 
 
+def owed_by_invoice(ledger: AccountLedger, on: dt.date, owed: float) -> List[tuple]:
+    """`(invoice_ref or None, GBP)` pieces summing to `owed`, the closed balance written off on `on`.
+
+    One piece per invoice the ledger's own allocation (remittance-else-oldest-first) still has open,
+    so cash after the write-off can be earmarked to the debt it pays and the debt's age read off its
+    own bill (`cash_forecast_provision._written_off` drops a write-off with no ref). Where the open
+    invoices hold more than `owed` (a credit note or unplaced cash nets the balance down), the
+    excess comes off the oldest first, as the FIFO balance takes credit. Where they hold less (bills
+    with no ref), the rest is one piece with no ref. Newest invoice first. Read, like the balance, off
+    the events recorded by `on`, so a sweep run late splits as a sweep on the day would have."""
+    seen = AccountLedger(ledger.account_id)
+    for e in ledger.events_through(on):
+        if e.transaction_time.date() <= on:
+            seen.post(e)
+    pieces: List[tuple] = []
+    left = round(owed, 2)
+    open_items = [oi for oi in seen.allocate(as_of=on).open_items if oi.outstanding_gbp > 0.005]
+    for oi in sorted(open_items, key=lambda oi: (oi.issue_date, oi.invoice_ref), reverse=True):
+        if left <= 0.005:
+            break
+        take = round(min(oi.outstanding_gbp, left), 2)
+        pieces.append((oi.invoice_ref, take))
+        left = round(left - take, 2)
+    if left > 0.005:
+        pieces.append((None, left))
+    return pieces
+
+
 def closed_balance_write_offs(
     book: LedgerBook,
     on: dt.date,
@@ -1374,12 +1402,14 @@ def closed_balance_write_offs(
         if due is None:
             continue
         owed, final_bill = due
-        event = build_write_off_event(
-            account, owed, WriteOffReason.UNECONOMIC_TO_PURSUE, on, transaction_time,
-            note=f"closed-account balance unpaid {(on - final_bill).days} days after the final "
-                 f"bill of {final_bill.isoformat()}")
-        if book.post(event):
-            posted.append(event)
+        for ref, gbp in owed_by_invoice(book.ledger(account), on, owed):
+            event = build_write_off_event(
+                account, gbp, WriteOffReason.UNECONOMIC_TO_PURSUE, on, transaction_time,
+                invoice_ref=ref,
+                note=f"closed-account balance unpaid {(on - final_bill).days} days after the final "
+                     f"bill of {final_bill.isoformat()}")
+            if book.post(event):
+                posted.append(event)
     return posted
 
 

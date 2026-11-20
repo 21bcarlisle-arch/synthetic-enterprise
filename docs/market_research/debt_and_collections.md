@@ -1130,6 +1130,25 @@ an informational `recovery_note` in `generate_payment_ledger_data`. Until it cro
 earmarked ledger event, the in-run learner resolves nothing and every debt is decided at the prior.
 Agency commission is still not deducted.
 
+**In-run, the company's own write-off was the first gap (2026-11-20).** The replay posted each
+written-off bill under its ref. The company's own closed-account write-offs did not: the month-end
+sweep and the desk each posted one balance-level write-off per account with no ref, which the
+learner drops. So even a remittance that crossed would have had no debt to land on. **GAP:** nothing
+in the knowledge layer or the regulation commons says how a supplier splits a write-off across
+invoices. It is an internal journal choice, and this page has not searched for published practice
+on it. What the design chooses, and why:
+- *One write-off per invoice still open*, sized by the ledger's own open-item allocation
+  (remittance first, else oldest first), which is the same allocation the customer's statement
+  uses. Where a credit note or unplaced cash nets the balance below the open items, the excess
+  comes off the oldest invoice first, as the FIFO balance takes credit. Where the open items hold
+  less than the balance (bills with no ref), the rest is one write-off with no ref. The total and
+  the date are unchanged.
+- *Read off what was recorded by the write-off day*, like the balance, so a sweep run after the
+  run splits as one on the day would have.
+`arrears_engine.owed_by_invoice`; tests:
+`tests/company/billing/test_a_closed_account_is_written_off_one_invoice_at_a_time.py`. The
+remittance crossing is the second step, pre-registered in the finding named above.
+
 ---
 
 ## 8. Gaps

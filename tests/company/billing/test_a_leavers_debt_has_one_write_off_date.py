@@ -68,7 +68,12 @@ def test_the_desk_writes_a_closed_balance_off_on_the_company_date_and_nothing_el
 
     assert closed[0]["on"] == company_date == "2018-06-01"
     assert closed[0]["written_off_gbp"] == 240.0
-    assert [(e.valid_time.isoformat(), e.amount_gbp) for e in left_wo] == [(company_date, 240.0)]
+    # One date for the whole balance, written off one invoice at a time (each under its own ref, so
+    # the per-debt learner can see it: test_a_closed_account_is_written_off_one_invoice_at_a_time).
+    assert {e.valid_time.isoformat() for e in left_wo} == {company_date}
+    assert round(sum(e.amount_gbp for e in left_wo), 2) == 240.0
+    assert len({e.invoice_ref for e in left_wo}) == len(left_wo) == 6 and all(
+        e.invoice_ref for e in left_wo)
     assert "uneconomic_to_pursue" in left_wo[0].reason
     # Nothing is chased after the company has written the balance off.
     assert max(s["on"] for s in left) == company_date
