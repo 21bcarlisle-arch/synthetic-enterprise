@@ -14,11 +14,11 @@ not maintained -- so it tells you what the project IS, not what it is currently 
 | Anchor | What it is for | Last really changed | Age (days) | Verdict |
 |---|---|---|---|---|
 | `docs/PROJECT_OVERVIEW.md` | This document | 2026-10-28 | 23 | OLD |
-| `docs/design/DIRECTOR_CANON.md` | The director's canon in one home, every ruling quoted with its id and date | 2026-11-14 | 6 | UNDATED |
+| `docs/design/DIRECTOR_CANON.md` | The director's canon in one home, every ruling quoted with its id and date | 2026-11-20 | 0 | UNDATED |
 | `docs/design/THE_MODEL_ON_A_PAGE.md` | The model on a page — the mission, the three currencies and the two timeframes, in the director's frame | 2026-11-15 | 5 | UNDATED |
 | `docs/operations/OPERATING_MODEL.md` | How the seat operates — what it gets on with, what it escalates to the director with a proposal, what is reserved, and the end-to-end check it owns | 2026-10-19 | 32 | UNDATED |
 | `docs/operations/MONDAY_NOTE_FOR_THE_DIRECTOR.md` | The director's Monday note — what he decided this week and whether it landed, what waits on him, what the seat closed on its own recommendation, and what the machine owes overdue; rewritten when Monday's step opens (`background/weekly_rhythm.py`) | 2026-10-28 | 23 | UNDATED |
-| `docs/direction/priority_order.yaml` | The director's priority order as the map expresses it, and whether the draw follows it (`tools/draw_follows_the_order.py`) | 2026-11-17 | 3 | UNDATED |
+| `docs/direction/priority_order.yaml` | The director's priority order as the map expresses it, and whether the draw follows it (`tools/draw_follows_the_order.py`) | 2026-11-20 | 0 | UNDATED |
 | `docs/reports/ANNUAL_REPORT.md` | The book's own annual report, regenerated each publish | 2026-11-18 | 2 | UNDATED |
 | `docs/market_research/ASSUMPTIONS.md` | Every sourced assumption the world is built on, with its anchor and its gaps | 2026-11-19 | 1 | FRESH |
 | `docs/status/LATEST.md` | What just happened and what the machine is working on now | 2026-11-18 | 2 | FRESH |
