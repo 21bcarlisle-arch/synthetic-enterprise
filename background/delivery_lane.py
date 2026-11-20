@@ -5892,6 +5892,35 @@ def held_refusals_since(cutoff: float, *, path: Path | None = None) -> list[dict
     return sorted(out, key=lambda r: -float(r.get("last_refused_at") or 0.0))
 
 
+def empty_turn_note(skipped: list[tuple[dict, str]]) -> str:
+    """The doorbell line naming every item the draw skipped after its empty turns."""
+    if not skipped:
+        return ""
+    named = "; ".join(f"`{item.get('id')}` ({why})" for item, why in skipped)
+    return (f"EMPTY-TURN STOP: the draw skipped {len(skipped)} item(s) -- {named}. Rewrite the row "
+            "or land against it to offer it again. ")
+
+
+#: Items `next_item` skipped on its last walk because they came back empty too often, with why.
+LAST_EMPTY_TURN_SKIPS: list[tuple[dict, str]] = []
+
+
+def _empty_turn_runs(path: Path | None) -> dict:
+    """The executor log's empty-turn runs, on the production call only. Never raises.
+
+    An explicit `path` is a test's isolated claim store and must not read the live log, the same
+    rule `held_in_other_stores` follows; a test that wants runs patches this function.
+    """
+    if path is not None:
+        return {}
+    try:
+        from background import seat_executor
+
+        return seat_executor.empty_streaks()
+    except Exception:  # noqa: BLE001 - fail open: a lane that offers nothing is the worse silence
+        return {}
+
+
 def next_item(now: float | None = None, path: Path | None = None, *,
               admit=None) -> dict | None:
     """The highest-ranked focus item that is not an atom and not already claimed, or None.
@@ -5981,6 +6010,22 @@ def next_item(now: float | None = None, path: Path | None = None, *,
     LAST_FINISHED_SKIPS.clear()
     LAST_STRETCH_SKIPS.clear()
     LAST_AREA_STOP_SKIPS.clear()
+    LAST_EMPTY_TURN_SKIPS.clear()
+    # THREE EMPTY TURNS STOP AN ID (director, 20 Nov; `seat_executor.EMPTY_TURNS_BEFORE_STOP`).
+    # A skip like an embargo, asked in BOTH sources, so dropping one copy cannot bring it back.
+    empty_runs = _empty_turn_runs(path)
+
+    def _emptied(item) -> bool:
+        if not empty_runs or item.get("id") not in empty_runs:
+            return False
+        from background import seat_executor
+
+        why = seat_executor.stopped_after_empty_turns(
+            item, empty_runs, landed_at=last_landing(item["id"], path=store)[0])
+        if why:
+            LAST_EMPTY_TURN_SKIPS.append((item, why))
+        return bool(why)
+
     probed: list[list[dict]] = []
     vocabulary: list[tuple[dict[str, int], int]] = []
 
@@ -6009,7 +6054,7 @@ def next_item(now: float | None = None, path: Path | None = None, *,
                 if (item.get("id") and item["id"] not in taken and not _embargoed(item, now)
                         and not _stretched(item)
                         and (admit is None or admit(item)) and not _result_landed(item)
-                        and not _finished(item)
+                        and not _finished(item) and not _emptied(item)
                         and not _held(item)):
                     return item
         except Exception:
@@ -6046,7 +6091,7 @@ def next_item(now: float | None = None, path: Path | None = None, *,
                     and item["id"] not in retired and not _embargoed(item, now)
                     and item["id"] not in held_ids
                     and (admit is None or admit(item)) and not _result_landed(item)
-                    and not _finished(item)
+                    and not _finished(item) and not _emptied(item)
                     and not _held(item)):
                 return item
         return None
@@ -6073,7 +6118,7 @@ def next_item(now: float | None = None, path: Path | None = None, *,
         LAST_AREA_STOP_SKIPS.append((item, stops[area]))
         sub = _queued_map(area) or area_map_item(area, stops[area])
         if (sub["id"] in taken or sub["id"] in retired or _embargoed(sub, now)
-                or _finished(sub) or _held(sub)):
+                or _finished(sub) or _emptied(sub) or _held(sub)):
             return False
         return sub
 
@@ -6140,7 +6185,8 @@ def draw(now: float | None = None, path: Path | None = None, *, claim: bool = Tr
         held = (held_note(list(LAST_HELD_SKIPS), list(LAST_HELD_CONTEXT))
                 + finished_note(list(LAST_FINISHED_SKIPS))
                 + stretch_note(list(LAST_STRETCH_SKIPS))
-                + area_stop_note(list(LAST_AREA_STOP_SKIPS)))
+                + area_stop_note(list(LAST_AREA_STOP_SKIPS))
+                + empty_turn_note(list(LAST_EMPTY_TURN_SKIPS)))
         if item is None:
             return None
         if not claim:

@@ -226,6 +226,93 @@ def ids_run_since(cutoff: float, *, path: Path | None = None) -> list[str]:
     return sorted(found)
 
 
+#: Three empty turns in a row, then the id stops being offered. Origin: the director's 20 Nov steer
+#: quoting Osmani ("a failing check after three rounds brings in a human"). It is a practitioner
+#: convention, not a measured optimum: on the replayed log, 5 keeps 61 of the 89 empty turns saved
+#: and holds 2 landings instead of 16. See
+#: `docs/market_research/three_empty_turns_then_stop_2026-11-20.md` §3 and its GAP, which is
+#: measured live before any change is put to him.
+EMPTY_TURNS_BEFORE_STOP = 3
+
+
+def empty_streaks(*, path: Path | None = None) -> dict[str, list[tuple[float, str]]]:
+    """Each id's trailing run of `LANDED NOTHING` lines, oldest first, as `(when, line)`.
+
+    A `FINISHED` line for the id empties its run, because `FINISHED` is written only when the bound
+    paths moved. `RUNNING` and the stand-downs neither add nor reset: a stand-down is not a turn.
+    Only non-empty runs are returned. Never raises. A missing log reads as no runs, which is the
+    fail-open direction: a lane that stops offering work is the worse silence.
+    """
+    log_file = path or _shared_tree_log()
+    try:
+        text = log_file.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return {}
+    runs: dict[str, list[tuple[float, str]]] = {}
+    for line in text.splitlines():
+        match = _TURN_LINE.match(line)
+        if not match:
+            continue
+        if match["finished"]:
+            runs.pop(match["finished"], None)
+        elif match["nothing"]:
+            try:
+                when = calendar.timegm(time.strptime(match["stamp"], "%Y-%m-%d %H:%M"))
+            except ValueError:
+                continue
+            runs.setdefault(match["nothing"], []).append((float(when), line[2:]))
+    return runs
+
+
+def stopped_after_empty_turns(item: dict, runs: dict[str, list[tuple[float, str]]], *,
+                              landed_at: float = 0.0) -> str | None:
+    """Why `item` is not offered again after its empty turns, or None if it may be offered.
+
+    Stopped when its run has reached `EMPTY_TURNS_BEFORE_STOP`. It is released by a REWRITE (the
+    row's `written_at` is after the last empty turn's minute: the seat or a session reworded it, or
+    wrote a fresh continuation) or by a LANDING bound to the id after that minute by another route.
+    It is never released by the clock: a timed expiry is the 43-turn night again, one window at a
+    time.
+    """
+    run = runs.get(str(item.get("id") or ""))
+    if not run or len(run) < EMPTY_TURNS_BEFORE_STOP:
+        return None
+    # Minute resolution: anything inside the last empty turn's minute reads as before it, so the
+    # stop holds when the order cannot be told.
+    last = run[-1][0] + 60.0
+    if float(item.get("written_at") or 0.0) > last or float(landed_at or 0.0) > last:
+        return None
+    return (f"{len(run)} empty turns in a row, the last at "
+            f"{time.strftime('%Y-%m-%d %H:%M', time.gmtime(run[-1][0]))} UTC, and the item has not "
+            "been rewritten or landed since")
+
+
+def file_empty_turns(work_id: str, run: list[tuple[float, str]], *,
+                     staging_dir: Path | None = None) -> Path | None:
+    """File the stop as one staging finding, listing the id and its three reasons. Never raises.
+
+    Through `alarm_repetition.escalate`, so every stopped id is a member of one living document
+    (family `three-empty-turns`) and not a document per id.
+    """
+    from background import alarm_repetition
+
+    reasons = "\n".join(line for _, line in run[-EMPTY_TURNS_BEFORE_STOP:])
+    message = (
+        f"[SEAT-EXECUTOR] {work_id} came back empty {len(run)} turns in a row and is no longer "
+        "offered\n"
+        "It is offered again when its row is rewritten (a later written_at) or a landing is bound "
+        "to it. Read the reasons: an item drawn before its input exists wants a DO NOT DRAW "
+        "BEFORE <path> line; a fix that does not land wants a person.\n"
+        f"{reasons}"
+    )
+    try:
+        return alarm_repetition.escalate(message, key=f"three-empty-turns:{work_id}",
+                                         first_ts=run[0][0], staging_dir=staging_dir)
+    except Exception as exc:  # noqa: BLE001 - the stop holds whether or not the filing does
+        log(f"COULD NOT FILE the empty-turn stop for {work_id}: {exc!r}")
+        return None
+
+
 def _interactive_seat_is_live(now: float | None = None) -> bool:
     """Is a human-driven seat session holding this seat right now?
 
@@ -1153,6 +1240,15 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
             # worth reading: a refusal that still let the work be discharged would be a louder
             # version of the same eleven hours.
             log(detail)
+            # THREE EMPTY TURNS STOP THE ID (director, 20 Nov). The stop itself is the skip in
+            # `delivery_lane.next_item`; this files it, once, on the turn that reaches the count.
+            run = empty_streaks().get(work_id) or []
+            if len(run) == EMPTY_TURNS_BEFORE_STOP:
+                filed = file_empty_turns(work_id, run)
+                log(f"STOPPED {work_id}: {len(run)} empty turns in a row, so it is no longer "
+                    "offered until its row is rewritten or a landing is bound to it -- "
+                    + (f"filed {filed.name}" if filed else "added to the live three-empty-turns "
+                       "finding (or the filing failed; see above)"))
             return True, detail
         detail = f"{work_id}: {how} -- {why}"
 

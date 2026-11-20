@@ -76,3 +76,15 @@ rule would have suppressed at least 89 turns, and it would have refused no id th
 within its next three turns. That second half is the claim to check.
 
 Handed on as `three-empty-turns-stop-the-id-and-file-it`.
+
+## Done
+
+Built 20 Nov as `three-empty-turns-stop-the-id-and-file-it`. `background/seat_executor.py`
+(`EMPTY_TURNS_BEFORE_STOP`, `empty_streaks`, `stopped_after_empty_turns`, `file_empty_turns`, called
+from `run_once` after `LANDED NOTHING`); the skip is in `background/delivery_lane.next_item`
+(`_emptied`, both sources). Test: `tests/background/test_three_empty_turns_stop_the_id.py`. All nine
+mutations fire. K8: `docs/market_research/three_empty_turns_then_stop_2026-11-20.md`.
+
+**The pre-registration, graded.** (a) holds: 89 empty turns come after a third empty turn. (b) is
+**refuted**: 16 of the 34 stopped ids landed within their next three turns. The replay at 4, 5 and
+6 is in the K8 page §3. Step 3 (raise to `for_the_director`) was not built; the reason is in §4.6.
