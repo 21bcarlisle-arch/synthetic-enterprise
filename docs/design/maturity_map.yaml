@@ -1615,8 +1615,9 @@
   dial_inherited: 50
   provenance: director_ruling
   blocked_on: [W1_14_weather_cells_for_household_heat_load]
-  block_reason: "1 premise in 4 carries its own shape: run 7f0723b46e settles 538/722 electricity premises
-    on PC1 and 361/473 gas legs on 70/30, 541 for want of an ERA5 cell (454/596 owed). See l3_gate_note."
+  block_reason: "Half the gas book carries its own shape: book 6a588a832f settles 287/589 gas legs on their
+    own split (302 on the fallback, 243 for want of a fabric trace); 67d454905c put 237/722 electricity
+    premises on fabric_physics. 305/596 book cells owed ERA5 at d79e2bb433. See l3_gate_note."
   depends_on: []
   couples_with: [W1_5_premise_demand_shape, W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over, D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used]
   file_scope:
