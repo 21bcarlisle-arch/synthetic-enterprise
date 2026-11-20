@@ -1,4 +1,6 @@
-**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+**Severity:** RECORDED · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+
+> **TRIAGE 2026-11-20 (delivery seat), was BLOCKING -- FIXED (ed8684442b). INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW reads 0 of 32,592 on the published 6af7fd0bfd book. Record: `docs/staging/SEAT_RECORD_TRIAGE_OF_THE_BLOCKING_FINDINGS_2026-11-20.md`.**
 
 **Discharged:** `tests/company/pricing/test_a_default_tariff_is_one_list_price_before_the_cap.py::test_a_pre_cap_svt_segment_contracts_at_its_list_price_whatever_the_accounts_history` and `tests/tools/test_the_domain_invariant_runner_reads_only_the_raw_export_and_every_evaluator_can_fire.py::test_the_svt_one_price_standing_charge_is_graded_to_the_penny_over_a_one_day_bill`. The fresh run at 3dc5a92948 grades the SVT row 0 of 33,627 (section at the foot). The EPG row is excepted at its ceiling, and the EV count is the open life-event finding.
 
