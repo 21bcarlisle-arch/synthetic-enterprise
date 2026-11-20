@@ -125,6 +125,17 @@ BASELINE_ALLOWLIST: dict[tuple[str, str], str] = {
         "copy is how one VAT rule became five). Post-seam and deliberate, "
         "not debt: it moves only if the formula gets a home both domains own."
     ),
+    (
+        "company/billing/monthly_bill_assembly.py",
+        "company.pricing.tou_desk",
+    ): (
+        "BILLING->PRICING: the bill asks whether the meter is Economy 7 "
+        "(meter_is_economy_7, a read of the registered profile class on the "
+        "customer record the caller passes in). No pricing state crosses. "
+        "Imported so the offer that sells the Day/Night pair and the bill that "
+        "charges it read one E7 rule. Post-seam and deliberate (32ddfa8ca2), "
+        "not debt: it moves only if a metering module both domains own exists."
+    ),
     # The own-book default belief (2026-10-03) crosses both ways: the walk reads
     # billing's ledger, and each charge is read on pricing's per-method provision
     # rows. Remedy: move `observe_book` (the ledger walk) into billing and hand
