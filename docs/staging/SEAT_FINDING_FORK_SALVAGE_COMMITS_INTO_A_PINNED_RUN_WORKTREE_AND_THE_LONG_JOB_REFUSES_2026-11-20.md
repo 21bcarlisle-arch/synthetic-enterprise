@@ -28,3 +28,17 @@ tree alone", and both scratch trees on this value test were locked for exactly t
 **Recommendation (one leg).** In `scan_worktrees`, skip any worktree whose porcelain record carries
 `locked`, and print its lock reason in the sweep log. To show the guard can be taken, its test asserts
 that a locked, dirty, detached worktree is skipped while an unlocked one beside it is salvaged.
+
+**Fixed, ec432f21a (on origin, 20 Nov).** `scan_worktrees` reads the porcelain `locked` line. `salvage_all`
+reports every locked tree as `SKIPPED_LOCKED`, whether or not it is dirty, and the sweep log prints one
+`SKIPPED <path> (locked: <reason>)` line for each. `tests/background/test_fork_salvage_never_commits_into_a_locked_worktree.py`
+builds a locked, detached, dirty tree and an unlocked twin beside it. The locked tree's HEAD, diff and
+status come out byte-identical, and the twin is salvaged. With the guard removed, both tests go red. The
+`wrong` row about salvaging into a pinned tree (DIRECTION.yaml) can now be marked corrected. That file
+belongs to the seat, so I have left it alone.
+
+**Open, not yet established.** At the time of the fix, 0 of the ~200 registered worktrees are
+`.claude/worktrees/agent-*`, so this does not show whether Claude Code locks its own agent forks. If it
+does, this guard also skips the trees salvage exists for. The first sweep log that names an `agent-*`
+tree as `SKIPPED` would show this. The remedy would be to skip only locks whose reason is not the
+harness's own.
