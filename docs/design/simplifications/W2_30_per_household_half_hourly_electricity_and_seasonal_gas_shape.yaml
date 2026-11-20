@@ -149,4 +149,14 @@ map_notes:
     the 113 OCC- legs have a fitted premise, 76 a refused one (75 no fabric trace, 1 no cold response).
     PREDICTION for the next book with the same legs on at least that store: OCC- legs on fabric_seasonal_split >= 37,
     and no OCC- leg carries SETTLED_WITHOUT_A_SPLIT_OR_A_REFUSAL. To reverse: remove the call in
-    _admit_incoming_occupant.'
+    _admit_incoming_occupant.
+
+    GRADED 2026-11-20 on book 6a588a832f (descends from 67d454905c and from 0b271e3fe5, checked with merge-base
+    --is-ancestor). It holds all 586 of 67d454905c''s gas legs plus 3 new OCC- legs, so 589 in all. The predictions
+    are kept above unrevised. (1) fabric_seasonal_split >= 180: HELD, at 287. Without the 58 OCC- legs it is still 229,
+    so it held on the ERA5 pull alone. (2) "OCC- legs on the fallback stay 113": WITHDRAWN before the book (the
+    correction above) and not counted. It reads 58, so it would have missed. (3) OCC- legs on fabric_seasonal_split
+    >= 37: HELD, at 58. That is 21 more than the 37 premises fitted on 67d454905c''s store, because the pull has since
+    fitted more premises. (4) No OCC- leg carries SETTLED_WITHOUT_A_SPLIT_OR_A_REFUSAL: HELD. 0 rows carry it, and each
+    of the 302 fallback legs has a refusal row with its reason (243 no fabric trace, 58 the premise''s own refusal
+    carried, 1 no cold response).'
