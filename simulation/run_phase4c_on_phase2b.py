@@ -509,8 +509,8 @@ def gas_advance_floor_request(policy) -> bool:
 
 def bsc_blend_spar_request(policy) -> float | None:
     """The SPAR at which a hold-route electricity month is billed from the BSC-blended EAC, by the
-    company switch (`DecisionPolicy.bill_estimate_blends_the_eac_at_spar`). None, the default on
-    every standing policy, keeps the 182-day hold."""
+    company switch (`DecisionPolicy.bill_estimate_blends_the_eac_at_spar`). 0.5, the low end of the
+    stated range, on every standing policy since 2026-11-20; None keeps the 182-day hold."""
     from simulation.run_phase2b import CURRENT_POLICY
 
     return (policy or CURRENT_POLICY).bill_estimate_blends_the_eac_at_spar

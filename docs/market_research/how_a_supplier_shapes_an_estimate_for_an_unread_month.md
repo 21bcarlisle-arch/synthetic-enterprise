@@ -308,9 +308,16 @@ more.
   the lowest pre-registered non-zero column. 3 is the highest pre-registered column, below the
   SPAR 4–6 point where E1 re-opens. The code refuses any SPAR outside the range and names its
   reason. Every grade is reported at both ends, and published as a range, never at a midpoint.
-- **The switch.** `DecisionPolicy.bill_estimate_blends_the_eac_at_spar` is `None` (the hold) on
-  every standing policy. An experiment sets an end of the range. Turning it on in the published
-  policy is a later step, taken after a fresh book has read the blend at both ends.
+- **The switch.** `DecisionPolicy.bill_estimate_blends_the_eac_at_spar` was `None` (the hold) on
+  every standing policy until 2026-11-20. It is now **0.5 on every standing policy**, the low end of
+  the range. That is the end that claims least (F11): the smaller pull from the registration
+  figure toward the company's own reads. It beat the hold on both books read so far
+  (6af7fd0bfd 0.379 against 0.407; 67d454905c 0.361 against 0.388), and E1's breach and flag sets
+  were unchanged. Choosing 0.5 does not state SPAR's value. 3.0 stays the other published bound, read
+  off each new book by `tools.d48_spar_blend_counterfactual --ends --book-spar 0.5`. The hold
+  (`None`) stays reachable as an arm. The first book built with the switch on is pre-registered in
+  `docs/staging/records/SEAT_PREREG_D48_THE_ELECTRICITY_RESIDUAL_BY_ESTIMATE_ROUTE_2026-11-19.md`
+  ("Switched on").
 
 **GAP, unchanged:** SPAR's value; whether billing follows the settlement EAC as industry practice
 (§5: one supplier); and whether the registration EAC this world hands over is a fair stand-in for

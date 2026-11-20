@@ -17,8 +17,9 @@ docs/staging/records/SEAT_PREREG_D48_E1_BREACHES_AT_EACH_SPAR_2026-11-19.md.
 What moves: electricity, profile class 1 or 3, estimated bills on the hold route (an actual read
 exists and the actual reads span < MIN_ADVANCE_DAYS). Gas, PC2, route 1 and no-read bills are as
 billed. The opening EAC is read back off the company's own hold-route bill (kWh / profile weight),
-so SPAR 0 is today's book by construction. A zero advance does not move the EAC: the company's own
-rule (`estimate_unread_kwh`: a zero advance is a missing measurement).
+so SPAR 0 is today's book by construction. On a book built WITH the blend, `--book-spar` names its
+SPAR: the read-back figure is un-blended to the opening one, and that SPAR is the book. A zero
+advance does not move the EAC: the company's own rule (`estimate_unread_kwh`: a zero advance is a missing measurement).
 """
 from __future__ import annotations
 
@@ -55,10 +56,16 @@ def _is_actual(b: dict) -> bool:
     return b.get("billing_basis") != "estimated"
 
 
-def counterfactual_kwh(bills: list[dict], true_kwh: dict, spar: float) -> tuple[dict, dict]:
-    """{period_end: re-billed kWh} for one account's hold-route bills, and counters."""
+def counterfactual_kwh(
+    bills: list[dict], true_kwh: dict, spar: float, book_spar: float = 0.0,
+) -> tuple[dict, dict]:
+    """{period_end: re-billed kWh} for one account's hold-route bills, and counters.
+
+    `book_spar` is the SPAR the book was BUILT at (0 for the hold). On a book built with the blend
+    on, the figure read back off the first hold-route bill already carries every earlier advance,
+    so it is un-blended back to the opening figure before the replay at `spar`."""
     out, seen = {}, {"zero_advances": 0, "hold_bills": 0}
-    if spar == 0 or bills[0].get("commodity") != "electricity":
+    if spar == book_spar or bills[0].get("commodity") != "electricity":
         return out, seen
     start = _d(bills[0].get("account_held_from") or bills[0]["period_start"])
     eac, prev_read, first_actual, last_actual = None, start, None, None
@@ -86,6 +93,8 @@ def counterfactual_kwh(bills: list[dict], true_kwh: dict, spar: float) -> tuple[
             # The opening figure the company billed on, read back off its own bill. Every advance
             # before this bill is replayed onto it from the account's first read.
             eac = b["total_consumption_kwh"] / w_period
+            if book_spar:
+                eac = _unblend(bills, true_kwh, start, _d(pend), eac, book_spar)
             eac = _replay(bills, true_kwh, start, _d(pend), eac, spar, seen)
         seen["hold_bills"] += 1
         out[pend] = eac * w_period
@@ -104,6 +113,34 @@ def _replay(bills, true_kwh, start, upto, eac, spar, seen) -> float:
                 seen["zero_advances"] += 1
             eac = blend_advances_into_eac("electricity", eac, [(prev, _d(b["period_end"]), advance)], spar)
             prev, pending = _d(b["period_end"]) + timedelta(days=1), []
+    return eac
+
+
+def _advances_before(bills, true_kwh, start, upto) -> list[tuple[date, date, float]]:
+    out, prev, pending = [], start, []
+    for b in bills:
+        if _d(b["period_end"]) >= upto:
+            break
+        pending.append(true_kwh.get(b["period_end"]) or 0.0)
+        if _is_actual(b):
+            out.append((prev, _d(b["period_end"]), sum(pending)))
+            prev, pending = _d(b["period_end"]) + timedelta(days=1), []
+    return out
+
+
+def _unblend(bills, true_kwh, start, upto, eac, book_spar) -> float:
+    """The opening figure under a blended `eac`: s4.3.7's step inverted, newest advance first.
+    Refused, naming why, where a step's weight is 1, because that step kept nothing of what came
+    before it."""
+    for a_start, a_end, kwh in reversed(_advances_before(bills, true_kwh, start, upto)):
+        fyc = profile_weight("electricity", a_start, a_end)
+        if kwh <= 0 or fyc <= 0:
+            continue
+        w = min(1.0, fyc * book_spar)
+        if w >= 1.0:
+            raise ValueError(f"advance {a_start}..{a_end} carries weight 1 at the book's SPAR "
+                             f"{book_spar}: the opening figure cannot be recovered from the bill")
+        eac = (eac - w * kwh / fyc) / (1 - w)
     return eac
 
 
@@ -127,7 +164,7 @@ class _Dressed:
         self.printed = {"invoices": invoices}
 
 
-def sweep(book: dict, spars=SPAR_SWEEP) -> list[dict]:
+def sweep(book: dict, spars=SPAR_SWEEP, book_spar: float = 0.0) -> list[dict]:
     rows, truth, _belief, noskill, _s = account_errors(book)
     elec = np.array([r["fuel"] == "electricity" for r in rows])
     den = float(np.abs(noskill - truth)[elec].sum())
@@ -142,7 +179,7 @@ def sweep(book: dict, spars=SPAR_SWEEP) -> list[dict]:
         num, c6, accts, zero, hold = 0.0, None, [], 0, 0
         for cid, bills in by_acct.items():
             bills.sort(key=lambda b: b["period_end"])
-            rebilled, seen = counterfactual_kwh(bills, true[cid], spar)
+            rebilled, seen = counterfactual_kwh(bills, true[cid], spar, book_spar)
             zero, hold = zero + seen["zero_advances"], hold + seen["hold_bills"]
             accts.append(_Dressed(cid, bills, rebilled))
             if bills[0].get("commodity") != "electricity":
@@ -175,9 +212,12 @@ def main(argv=None) -> None:
     ap.add_argument("--json", type=Path)
     ap.add_argument("--ends", action="store_true",
                     help="grade the control and the two ends of the built range only")
+    ap.add_argument("--book-spar", type=float, default=0.0,
+                    help="the SPAR the book was built at (DecisionPolicy.bill_estimate_blends_the_eac_at_spar); "
+                         "0 for a book built on the hold")
     args = ap.parse_args(argv)
     result = sweep(json.loads(Path(args.book).read_text(encoding="utf-8")),
-                   SPAR_ENDS if args.ends else SPAR_SWEEP)
+                   SPAR_ENDS if args.ends else SPAR_SWEEP, args.book_spar)
     for r in result:
         print(f"SPAR {r['spar']:>4}: elec gap {r['elec_gap']:.3f}  C6 |res| {r['c6_residual_kwh']:,.0f} kWh  "
               f"E1 runs {r['runs_checked']} breaches {r['breaches']} "

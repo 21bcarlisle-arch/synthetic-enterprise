@@ -259,9 +259,12 @@ class DecisionPolicy:
     #: PC1/PC3 electricity month is billed from the BSC-blended EAC at this SPAR
     #: (`unread_month_estimate.bsc_blended_eac_kwh`), not the registry figure. SPAR is a GAP, so
     #: only a value in `SPAR_WEIGHT_RATE_STATED_RANGE` is accepted, and an experiment sets one end of
-    #: it. None (the hold) on every standing policy until a fresh book has read both ends.
+    #: it. On every standing policy since 2026-11-20 at 0.5, the low end of that range: the end that
+    #: claims least (F11), which beat the hold on 6af7fd0bfd and 67d454905c with E1's breach and flag
+    #: sets unchanged. 3.0 stays the other published bound, read off each book by
+    #: `tools.d48_spar_blend_counterfactual --ends --book-spar 0.5`; None is the hold.
     #: Knowledge: how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 8.
-    bill_estimate_blends_the_eac_at_spar: float | None = None
+    bill_estimate_blends_the_eac_at_spar: float | None = 0.5
 
     #: C35 (2026-10-17): at a renewal, an advice action that costs us may travel with the smallest
     #: monthly rise on the Fixed Retention Tariff that brings our side to zero, capped by the

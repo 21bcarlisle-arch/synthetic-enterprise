@@ -193,3 +193,53 @@ is stated anywhere.
 step, taken after the 0.12 pair has read. A fresh run with the switch set at each end is what
 grades the build end to end: route 1, the catch-up and the DD path, which this harness does not
 move.
+
+## Switched on, 2026-11-20: SPAR 0.5 on every standing policy. Pre-registered before any book carries it
+
+*Filed by the delivery lane `d48-the-electricity-blend-goes-on-in-the-published-policy`, before any
+book has been built with the switch on. Nothing above this line was edited.*
+
+**What changed.** The default of `DecisionPolicy.bill_estimate_blends_the_eac_at_spar` went from
+`None` (the hold) to 0.5, the low end of `SPAR_WEIGHT_RATE_STATED_RANGE`. That is the end that
+claims least (F11). Every standing policy inherits it. The hold stays reachable as `None`.
+
+**The harness, made able to read such a book.** On a book built with the blend, the figure the
+harness reads back off the first hold-route bill already carries every earlier advance. So
+`--ends` would have blended those advances twice. `counterfactual_kwh(..., book_spar=)` and
+`--book-spar` now un-blend the read-back figure to the opening one, by §4.3.7's step inverted,
+before the replay. On that book, the book's own SPAR is the book, and SPAR 0 is the hold
+reconstructed. Test: `test_a_book_built_with_the_blend_is_read_back_to_the_hold_and_to_itself`.
+It is mutation-checked: dropping the un-blend reds it.
+
+**The command, on the first book built from a commit carrying the switch:**
+`python3 -m tools.d48_spar_blend_counterfactual --book <book> --ends --book-spar 0.5`.
+
+**What that book should show.** These are all stated against the book's OWN reconstructed hold
+(SPAR 0), as the grade above advised. The denominator moves between books.
+
+1. **Calibration (precondition, not a prediction).** The SPAR 0.5 row reproduces the book. The
+   harness returns no re-billed bills at the book's own SPAR, so its gap is the book's gap. The
+   reconstructed hold's SPAR-3 row should match a re-run with `--book-spar 0` on the hold arm to
+   within 1%, where such a book exists. If no hold book exists, this half is not checked, and the
+   grade says so.
+2. **The gap at 0.5 is below the reconstructed hold.** It falls by between 4% and 10% of the
+   hold's gap. On the two books read so far the fall was 6.9% (0.407 → 0.379) and 7.0%
+   (0.388 → 0.361). As a level, expect about 0.36, in [0.33, 0.39], if the denominator stays near
+   67d454905c's.
+3. **The SPAR-3 end is below the 0.5 end.** It falls by between 22% and 34% of the reconstructed
+   hold (−29.0% and −28.9% on the two books).
+4. **E1 is unchanged.** At SPAR 0.5 and at 3, the breach set and the flag set equal the
+   reconstructed hold's, and no breach sits on a moved account that the hold does not also carry.
+   The graded runner figure (`docs/reports/domain_invariants.json` on that book) shows no new
+   breach class on hold-route electricity runs.
+5. **What this harness cannot see, stated before it is read.** A full run moves the catch-up and
+   the DD path as well as the hold-route bill. So the book's own electricity gap (W2_36 ↔ D48,
+   `tools/couple_w2_36_d48.py`) may differ from row 2's harness figure. A difference larger than
+   0.02 is a finding about the engine's advances against the harness's (`trailing_actual_periods`
+   against summed true kWh between reads). It does not refute rows 2 to 4.
+
+**Refuted if:** the gap at 0.5 is at or above the reconstructed hold, or E1 adds any breach at
+either end. Then the switch goes back to `None` with the grade beside it.
+
+**Published as a range:** the book's electricity gap at SPAR 0.5 to 3, beside its hold. Never a
+point. Graded with `Graded: d48 held=<n> missed=<n>` over predictions 2, 3 and 4.

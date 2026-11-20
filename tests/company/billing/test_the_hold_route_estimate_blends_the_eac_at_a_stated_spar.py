@@ -112,16 +112,20 @@ def test_a_spar_outside_the_stated_range_is_refused_with_its_reason(monkeypatch,
         _december(monkeypatch, bsc_blend_spar=spar)
 
 
-def test_the_standing_policy_keeps_the_hold():
-    """Defect: the switch defaults on before a fresh book has read both ends. Turning it on is a
-    pre-registered step of its own, not an edit to this default."""
+def test_the_standing_policy_blends_at_the_end_of_the_range_that_claims_least():
+    """Defect: the standing policy bills on a SPAR the evidence does not support, or on a point
+    inside the range that claims more than the least (F11). Since 2026-11-20 it is the range's
+    low end, and the hold stays reachable as None."""
     import dataclasses
 
+    from company.billing.unread_month_estimate import SPAR_WEIGHT_RATE_STATED_RANGE
     from company.policy.decision_policy import DecisionPolicy
     from simulation.run_phase2b import CURRENT_POLICY
     from simulation.run_phase4c_on_phase2b import bsc_blend_spar_request
 
     field = {f.name: f for f in dataclasses.fields(DecisionPolicy)}["bill_estimate_blends_the_eac_at_spar"]
-    assert field.default is None
-    assert bsc_blend_spar_request(CURRENT_POLICY) is None
-    assert bsc_blend_spar_request(None) is None
+    assert field.default == min(SPAR_WEIGHT_RATE_STATED_RANGE)
+    assert bsc_blend_spar_request(CURRENT_POLICY) == min(SPAR_WEIGHT_RATE_STATED_RANGE)
+    assert bsc_blend_spar_request(None) == min(SPAR_WEIGHT_RATE_STATED_RANGE)
+    hold = dataclasses.replace(CURRENT_POLICY, bill_estimate_blends_the_eac_at_spar=None)
+    assert bsc_blend_spar_request(hold) is None
