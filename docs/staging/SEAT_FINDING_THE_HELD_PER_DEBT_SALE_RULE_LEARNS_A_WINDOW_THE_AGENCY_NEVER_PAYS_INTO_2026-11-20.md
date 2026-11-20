@@ -300,3 +300,16 @@ company-side: `write_offs` (GBP, `invoice_ref`, reason) with `share_of_gbp_with_
 `remitted_gbp_on_a_ref_written_off` (I5). Sale decisions pass `sensitive=False` (the ledger does not
 hold the vulnerability register). The predictions above stay unrevised; grading needs the first book
 whose run commit carries this build.
+
+## Re-drawn 2026-11-20 ~19:40Z: the build is on origin, no book carries it yet
+
+The publish build is on origin/main as 1624411d26 (merged as 8138357c8b). `run_output["company_debt_recovery"]`
+is written at `simulation/run_phase2b.py` after `company_provision`. It holds the I1 to I5 fields listed in the
+section above. Its test (`tests/background/test_the_agencys_remittance_reaches_the_company_book.py`) passes
+5/5 on that base. No published book descends from it: the newest is
+`run_output_6a588a832f_20261120T134224Z.json`, made before it, and no `run_phase2b` is running. Every
+`next_book_requires.yaml` row names a commit that is on origin, so sim-runner's next book will carry it.
+I1 to I5 stay ungraded. Grading belongs to the live continuation
+`grade-knife3-i1-to-i5-on-the-first-book-carrying-1624411d2`, held until 09:00 on 2026-11-21. That
+continuation already supersedes `knife3-the-run-publishes-its-write-off-refs-remittances-and-learned-cells`.
+This draw duplicated it, so it is dropped here rather than worked twice.
