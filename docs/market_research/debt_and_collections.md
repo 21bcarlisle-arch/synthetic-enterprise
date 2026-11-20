@@ -1149,6 +1149,14 @@ on it. What the design chooses, and why:
 `tests/company/billing/test_a_closed_account_is_written_off_one_invoice_at_a_time.py`. The
 remittance crossing is the second step, pre-registered in the finding named above.
 
+**The agency's remittance crosses in-run (2026-11-20), closing the GAP above in code.** The live
+triad places each closed-account write-off with the world's agency. The agency's cash (the world's
+one cascade: placed at +30, worked to +180, on the bill's own age at close) reaches the company as a
+remittance quoting the invoice ref, which is what an agency's remittance statement carries. It posts
+as cash earmarked to the written-off bill. Cash dated after the run's end does not cross. The
+learner's in-run reading is pre-registered (I1 to I6 in the finding) and is not yet graded on a
+book. Agency commission is still not deducted.
+
 ---
 
 ## 8. Gaps
