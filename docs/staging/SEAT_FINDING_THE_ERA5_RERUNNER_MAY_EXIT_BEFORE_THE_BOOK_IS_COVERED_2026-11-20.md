@@ -18,3 +18,16 @@ it ends below 38, the deadline is the binding limit. The fix is to restart the r
 deadline. It is reversible (`systemctl --user stop era5-rerunner`) and needs nobody's word. If it ends at
 38 or more, the deadline does not bind and nothing changes. Whoever draws the next landing reads the
 count against this line.
+
+## Correction, 00:45Z on 20 Nov: "ten passes" was wrong
+
+The 00:05Z pass ended at 00:34Z on the **hourly** bucket, not on the daily quota. It added 32 cells, and
+the last 12 (R199 to R215) are landed beside this correction. `run2.sh` re-runs at the top of each hour
+after an hourly stop. So a day is up to about 24 passes until the daily quota stops it, not one pass.
+The ten things left before the deadline are days, not passes.
+
+369 cells are owed. Ten days cover them if each day averages 37 or more. The first hour of today alone
+added 32. The deadline therefore binds only if the daily quota cuts each day off soon after its first
+hour. That cut-off is still unknown: 19 Nov's daily stop came after a day already partly used. The test
+stays the same: read today's total when its "stopped daily" line appears in `/tmp/era5_loop/status`.
+At 37 or more, close this finding as not binding.
