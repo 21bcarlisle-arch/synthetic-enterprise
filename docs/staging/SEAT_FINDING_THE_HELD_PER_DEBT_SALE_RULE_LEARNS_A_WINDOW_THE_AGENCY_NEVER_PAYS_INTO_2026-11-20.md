@@ -245,3 +245,46 @@ agency's remittance crosses as cash on its own date, earmarked to that bill). Th
 above (I1 to I6) is already written. Nothing more is owed in code, so this draw takes the
 premise-spent disposition. Grading I1 to I6 is handed on as
 `grade-knife3-in-run-i1-to-i6-on-the-first-book-after-7d99949ce7`.
+
+## I1 to I6, graded on book 6a588a832f (2026-11-20 16:40Z; the predictions above are unrevised)
+
+Book: `docs/reports/run_output_6a588a832f_20261120T134224Z.json`. 6a588a832f descends from 7d99949ce7 and
+4ea473bf18 (checked with `git merge-base --is-ancestor`). The prior book is 67d454905c, made before either increment.
+
+**What this book can show.** The run output publishes the company's provision stocks
+(`company_provision`, with written-off and recovered to date) and its collections journeys. It does NOT
+publish the company's ledger events, so it has no `WRITE_OFF_CREDIT` refs. It does not publish
+`LivePaymentTriad.agency_remittances`, and it has no in-run `learn()` result: no lag, no cells and no sale
+decisions. So five of the six lines cannot be read from this book. They are not graded, and are not counted as held.
+
+- **I1 (>= 95% of GBP written off carries an `invoice_ref`): CANNOT TELL on this book.** No write-off event is
+  published. Indirect evidence only: agency cash crossed (I6), and `_agency_remits` places only a write-off
+  whose ref the world billed, so at least some write-offs carry refs. That does not give a share.
+- **I2 (learned lag in [200, 240], centre 210): CANNOT TELL.** No in-run `learn()` is published.
+- **I3 (aged cell in [0.04, 0.09], young in [0.10, 0.15], aged < young): CANNOT TELL.** For the same reason.
+- **I4 (nothing sold at 0.054; at 0.070 and 0.093 aged sold, young worked): CANNOT TELL.** No sale decision
+  is taken or published in-run.
+- **I5 (< 5% of remitted GBP lost to a ref the company did not write off): CANNOT TELL.**
+  `agency_remittances` is not published, so remitted GBP cannot be set against posted recoveries.
+- **I6 (recovered to date at the run's end is 8% to 12% of written off to date): HELD.** It reads GBP 2,331.31
+  of GBP 20,184.95, which is 11.55%. On 67d454905c it read GBP 0.00 of GBP 21,327.72. The reader
+  (`arrears_engine.written_off_and_recovered`) counts any cash recorded after a write-off. It read zero
+  before, so the GBP 2,331.31 is the agency's remittance crossing, not cash from reopened accounts. By year
+  end, the recovered share rises from 3.7% (2018) to 7.9% (2019) and 8.3% (2020), then 11.6% (2021). After
+  that it sits between 10.6% and 11.6%. That fits a 210-day lag behind write-offs that are front-loaded.
+  The second half of I6, "the IFRS 9 charge falls by that amount", is not graded separately. It follows
+  from the charge's formula (written off less recovered). On the published figure,
+  `provisioned_bad_debt_gbp` moved from 135,695.28 to 134,343.87 (-1,351.41). But the two books also
+  differ in what was written off (GBP 1,142.77 less), so I cannot attribute that move to the remittance.
+
+**Tally:** 1 held, 0 missed, 5 not readable on this book. The in-run per-debt learner is not yet shown to
+learn the world's age gradient. What is shown is that the agency's cash now reaches the company's book.
+
+**What would let I1 to I5 be graded:** the run publishes, at its end, (a) each company write-off's GBP
+and whether it carries a ref, (b) `agency_remittances` as rows, and (c) the company's own
+`cash_forecast_provision.learn(as_of=end)` reading: remittance lag, cell figures, and
+`sells_written_off_debt` at 0.054 / 0.070 / 0.093 per written-off debt. All of these are the company's own
+records. None is world truth. That is a small reporting build plus one book. The continuation
+`grade-knife3-in-run-i1-to-i6-on-the-first-book-after-7d99949ce7` is recorded premise-spent against this
+grade, because the first such book has come and been read as far as it can be. The unread five carry
+forward under this build, not under that id.
