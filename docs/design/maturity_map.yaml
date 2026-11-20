@@ -318,11 +318,12 @@
   level_current: 2
   level_target: 3
   loop_stage: build
-  blocked_on: null
+  blocked_on: [PB4_engagement_separated_from_elasticity]
+  block_reason: "DD4b, the only buildable residual, needs the amplitude by which a material DD change raises the odds a level-DD household shops. It is unpublished (searched 29 Sep) and is PB4 residual (b). Simplifications entry of 2026-11-18."
   dial_inherited: 3
   records_rehomed: [evidence]
   file_scope: [company/billing, saas, simulation, tests]
-  simplifications_count: 12
+  simplifications_count: 13
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real UK supplier running level direct debit: each household''s cash builds credit through summer and draws down through winter, that held credit is a liability owed back, an annual review reconciles estimate against reality, and a supplier can look cash-rich while being balance-sheet insolvent"
   # 2026-07-29 depends_on narrowed [W2_12_change_of_tenancy_debt_physics] -> [] (dd_dependency_overblock_split mint, propose-then-proceed window ELAPSED 2026-07-29 00:16Z, no director revision). W2_12 is DD2-ONLY per this atom's own scope ("DD2 ... non-zero opening balance from W2_12"); the whole-atom dependency falsely over-blocked DD1/DD3/DD4/DD-H (five sub-parts that need no opening balance), producing a false-empty BUILD draw. W2_12 re-attaches to DD2 at the documented split-on-build-draw; DD2 then waits honestly behind W2_12 (itself blocked_on director_level_up) while DD1/DD3/DD4/DD-H build. Baseline-fidelity/dependency-modelling fix (R13), git-reversible, no wall touched; level moves stay blocked_on director_level_up (R16, no self-bump).
