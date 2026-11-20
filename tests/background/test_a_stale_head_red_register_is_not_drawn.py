@@ -135,6 +135,28 @@ def test_the_plugin_is_loaded_by_the_census_and_streams_every_test(tmp_path):
         "the register's own modules must run first so a bound cannot cut them off")
 
 
+def test_a_test_that_patches_open_does_not_end_the_census(tmp_path):
+    """The call-phase report fires before teardown, so a test that monkeypatches `builtins.open`
+    is still patched when the stream is written. On 20 Nov that raised inside the hook and the
+    INTERNALERROR ended the suite at test 6033. MUTATION: write with the builtin `open` in
+    `pytest_runtest_logreport` -- the session dies and `test_after` is never reached."""
+    (tmp_path / "test_a.py").write_text(
+        "def test_patches_open(monkeypatch):\n"
+        "    def _boom(*a, **kw):\n        raise OSError('no fd')\n"
+        "    monkeypatch.setattr('builtins.open', _boom)\n\n"
+        "def test_after():\n    pass\n")
+    progress = tmp_path / "progress.tsv"
+    env = dict(os.environ, PYTHONPATH=str(hgc.PROJECT_DIR))
+    env.update({hgc.PROGRESS_ENV: str(progress)})
+    env.pop(hgc.FIRST_ENV, None)
+    done = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "tools.head_census_progress",
+                           "-p", "no:cacheprovider", str(tmp_path)],
+                          cwd=str(tmp_path), env=env, capture_output=True, text=True, timeout=120)
+    assert "INTERNALERROR" not in done.stdout + done.stderr
+    assert hgc.parse_progress(progress.read_text())["reached"] == [
+        "test_a.py::test_after", "test_a.py::test_patches_open"]
+
+
 @pytest.mark.parametrize("ends", ["killed", "finishes", "exits_early"])
 def test_a_killed_suite_reports_what_it_reached_and_a_finished_one_does_not(tmp_path, capsys,
                                                                             monkeypatch, ends):

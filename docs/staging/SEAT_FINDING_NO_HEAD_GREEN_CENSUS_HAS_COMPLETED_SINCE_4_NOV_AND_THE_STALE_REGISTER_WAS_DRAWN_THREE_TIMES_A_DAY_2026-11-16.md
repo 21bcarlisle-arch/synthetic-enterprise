@@ -225,3 +225,56 @@ I give (a) about 50%. The value-test schedule is not something I can see from he
 two nights running, the conflict is with launch order, not with the census's patience. The next
 lever is then a `wait_as` place in the landings-style register for long-job launches, and that is
 a design question to raise, not a retry to lengthen.
+
+## 11. Grading §10 against the 20 Nov census (20 Nov 22:40 GMT, claim `grade-20-nov-census-queueing`)
+
+**The new code ran.** The shared tree's HEAD at 03:30 was `3d75dfd74e` (reflog, 19 Nov 23:05).
+`a28508648` is an ancestor of it, and the journal's first line is the new code's `QUEUED` line, not
+the old `DEFERRED`. So the night tests the change.
+
+**Outcome (a), and the 50% call went the right way.** At 03:39:06 the census logged
+`QUEUED head_green_census`, naming `longjob-value-test-cut012.service` (11 800 MB declared, 417 min
+in against 800). That job ended at 07:59:08. The census was admitted at its next poll. The log does
+not record the admission time, so it can only be bounded at 07:59 or later. The suite ran and the
+unit finished at 11:31:47 (7h52m wall clock, 8G peak). It wrote a **PARTIAL** row to the register:
+6 033 tests reached, 13 owed, HEAD `19e317f44`. The longest red, `test_internal_seam_verifier::
+test_current_tree_passes`, is now at 21 runs. Queueing was enough on this night. The launch-order
+lever §10 held in reserve is not needed yet: §10 makes it a design question only after (b) on two
+nights running, and this was not one.
+
+**But the suite did not end at its bound. The census itself killed it.** The tail shows
+`OSError: no fd` raised from `_boom` in
+`tests/background/test_the_reconciler_manufactured_the_fork_it_existed_to_close.py:170`, a test that
+monkeypatches `builtins.open` to prove the reconciler fails closed. The census's progress plugin
+(`tools/head_census_progress.py`, 16 Nov) writes its line in `pytest_runtest_logreport`. For the call
+phase, that hook fires **before** the test's teardown undoes the patch, so the plugin's `open()` was
+the patched one. An exception inside a hook is an INTERNALERROR, which ends the session with the
+patch still in place. `conftest.pytest_sessionfinish` then failed on the same `open`, so no summary
+line was printed. Reproduced here: that module alone under `-p tools.head_census_progress` with
+`HEAD_CENSUS_PROGRESS` set gives the identical INTERNALERROR, and without the plugin all 13 tests
+pass. **So every census since 16 Nov that got as far as this module stopped there.** 6 033 is the
+position of this module in the census's order, not a measure of the box or the bound.
+
+**Fixed here.** The plugin binds the real `open` when it is imported (`_OPEN = open`), before any test
+can patch the name. Control:
+`test_a_test_that_patches_open_does_not_end_the_census` (in
+`tests/background/test_a_stale_head_red_register_is_not_drawn.py`) runs a real pytest in which a
+test patches `open`, then asserts there is no INTERNALERROR and that the test after it is reached.
+The mutation back to the builtin `open` fails the control. After the fix, the reconciler module
+passes 13/13 under the plugin.
+
+**What this suggests about 17 Nov, not established.** §7 recorded an exit with no summary line after
+1h21m, on the first night the plugin was live, and it listed INTERNALERROR as one candidate. This
+defect fits that, but the 17 Nov output was discarded, so it remains a likely cause, not a shown one.
+§2 (why the suite doubled) is still a GAP. A run that stops at a fixed test cannot measure it.
+
+**Pre-registration for the 21 Nov 03:30 census (written 20 Nov 22:40, before it runs).** It depends
+on the fix being on the shared tree's HEAD by 03:30, so check that first. If it is not there, the
+night tests nothing about the fix.
+`longjob-value-test-cut012-rep.service` is running now, so I expect `QUEUED` again (≈ 70%).
+Q1: once the suite runs, the journal carries no `OSError: no fd` and no INTERNALERROR from
+`head_census_progress`. Q2: the run reaches **more than 6 033** tests. Refutation of the fix is Q2
+failing while the tail names the same module. Q2 failing at some *other* test that patches a builtin
+the plugin uses would be the same class of defect, found at a new place. Q3 (≈ 40%): it COMPLETES with
+a summary line inside the 17 400 s bound. I give this a low weight because §2's doubling is still
+unexplained.

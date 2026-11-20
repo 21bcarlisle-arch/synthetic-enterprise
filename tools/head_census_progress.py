@@ -19,6 +19,12 @@ PROGRESS_ENV = "HEAD_CENSUS_PROGRESS"
 #: enclosing directory argument and runs it in tree order (measured: `tests/tools/
 #: test_capability_index.py tests/tools/` runs it at position 902 of 8744), so argv order cannot.
 FIRST_ENV = "HEAD_CENSUS_FIRST"
+#: The real `open`, bound when pytest loads this plugin and before any test runs. The call-phase
+#: report fires BEFORE the test's teardown, so a test that monkeypatches `builtins.open` (the
+#: reconciler's fail-closed test does) is still patched when this hook writes. Calling the patched
+#: name raised inside a hook, which is an INTERNALERROR that ends the session: the 20 Nov census,
+#: admitted at last, stopped at test 6033 of the suite for exactly this reason.
+_OPEN = open
 
 
 def pytest_collection_modifyitems(session, config, items):
@@ -34,5 +40,5 @@ def pytest_runtest_logreport(report):
     if not path:
         return
     if report.when == "call" or report.outcome != "passed":
-        with open(path, "a") as fh:
+        with _OPEN(path, "a") as fh:
             fh.write("{}\t{}\t{}\n".format(report.when, report.outcome, report.nodeid))
