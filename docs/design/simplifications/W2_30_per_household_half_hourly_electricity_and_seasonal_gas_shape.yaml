@@ -121,4 +121,8 @@ map_notes:
     this row''s L3 asks for criteria 1 and 2 plus a cold-eyes pass on the fitted distribution. Criterion 2 landed in
     a698590552. To reverse: put the clause back in map_comment_note''s EXIT.
     TO UNBLOCK: once the store covers the book, rerun and count the providers again. Criterion 1 is met when the
-    refusals that remain have reasons other than weather (no household record, HH-metered, non-domestic).'
+    refusals that remain have reasons other than weather (no household record, HH-metered, non-domestic).
+    RECOUNT 2026-11-20 on 67d454905c: 237 of 722 electricity premises on fabric_physics, 153 of 586 gas legs on
+    fabric_seasonal_split, 483 refusals still for want of weather (541 before). All 41 gas legs that left the fallback
+    since 6af7fd0bfd moved because their ERA5 cells were filled (37 shown cell by cell; 4 gas-only legs carry no
+    verdict to show it). Record: SEAT_PREREG_W2_36_D48_THE_GAS_RESIDUAL_BY_SHAPE_PROVIDER_ON_THE_FIRST_BOOK_CARRYING_4ACCBB828_2026-11-19.md.'
