@@ -189,11 +189,13 @@ def dca_placement_date(written_off):
     return _placed(written_off)
 
 
-def sells_written_off_debt(offered_price_share):
+def sells_written_off_debt(offered_price_share, expected_recovery=None, *, sensitive=False):
     """Whether the supplier sells a written-off debt to a purchaser offering `offered_price_share` per
     GBP of face value (None: no offer), rather than having an agency work it. The world passes the
-    offer and takes back the choice; the supplier's own expected recovery stays behind the door, and
-    no household attribute is asked for."""
+    offer and takes back the choice. `expected_recovery` is the supplier's own per-debt figure
+    (`collections_journey.expected_post_close_recovery`, off its ledger) when the caller holds the
+    supplier's book. `sensitive` is the supplier's OWN record (its Priority Services Register or
+    vulnerability flag), never the world's hidden state; no household attribute is asked for."""
     from company.billing.collections_journey import sells_written_off_debt as _sells
 
-    return _sells(offered_price_share)
+    return _sells(offered_price_share, expected_recovery, sensitive=sensitive)

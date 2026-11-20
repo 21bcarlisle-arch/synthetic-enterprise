@@ -954,13 +954,26 @@ that depends on the debtor and arrives late. The other is a price fixed on the d
 - After a closed account's balance is aged, a supplier expects to recover about 12p per £: one minus
   Centrica's final-bill >90-day coverage, 0.878 at 2025 (range 0.755–0.896). The company already
   holds this figure as `company/finance/cash_forecast_provision.PRIOR_POST_CLOSE_RECOVERY`.
+- Sellers segment what they sell, and they exclude "accounts not eligible for sale due to sensitive
+  circumstances". A broker sells to a panel with "segmentation aligned to seller's core
+  requirements, purchaser appetite and portfolio composition" (TDX Group, Equifax, *Debt Sale*
+  brochure, read 2026-11-20). So which debts are sold is a per-debt choice in practice, and
+  vulnerability is a reason not to sell.
+- UK purchasers have collected about two times what they paid over 84 months, falling below two by
+  2014 (L.E.K., *Why the UK Debt Purchase Market is Sustainable*, Executive Insights XVIII/1). At
+  5.4p–9.3p that is about 11p–19p per £ collected, which brackets the 12p above. The two published
+  figures agree; neither is energy-specific.
 - Money Advice Trust (response to Ofgem's affordability and debt call for input, 2024) names debt
   sale and DCA use as practices that still cause concern. No Ofgem licence condition on selling
   domestic energy debt was found this pass.
 
 **What is not published (GAP).**
 - Any GB supplier's rule for WHICH debts it sells and which it works. Nothing was found on age,
-  balance, contact history, or a vulnerability flag. The register already says so: "No company
+  balance or contact history. The only published exclusion is the general one above: sensitive
+  circumstances.
+- How much recovery differs between debts by payment status at close, balance or contact. No
+  published gradient was found (searched 2026-11-20). So the design learns one, rather than
+  setting one. The register already says so: "No company
   DCA-versus-sale decision exists".
 - DCA commission on energy debt. The illustrative 15% was removed on 2026-10-08.
 - An energy debt-sale price.
@@ -982,9 +995,35 @@ to choose: `debt_archetype == "AVOIDANT"` was sold. That was access, not inferen
 - No commission is taken off the agency side, because commission is a GAP. That makes working look
   better than it is, so the rule sells less than a supplier who knows its commission would. This
   errs against selling (F11). It is stated, not hidden.
-- The rule is the same for every debt. The company has no per-debt recovery estimate yet. One
-  built from contact and arrangement history is the next step, and it is named here as owed, not
-  done.
+- **Per-debt expected recovery (2026-11-20).** The rule compares the offer with THIS debt's
+  expected recovery, `collections_journey.expected_post_close_recovery`. The company reads the
+  debt's cell off its own ledger at the last bill (`cash_forecast_provision.post_close_cell`). The
+  cell is two things: the months unpaid at close (0–3, the existing `missed_state`; 0 means the
+  account was still paying), and whether arrears were carried into the final bill. The cell's
+  figure is the book's own recovery on closes it has resolved in that cell. It is shrunk to the
+  book-wide recovery, and that in turn is shrunk to the 12p prior. The cuts are definitions, not
+  magnitudes. Until the book shows two cells recovering differently, every debt gets the same
+  figure, so no gradient is invented (tested).
+- **Sensitive circumstances are never sold**, at any price. The flag is the company's own record
+  (its Priority Services Register or vulnerability flag), never the world's hidden state.
+- **Contact and arrangement history are not in the cell, and that is a GAP, not a choice.** The
+  desk records its contact attempts, but no world door answers them (`CONTACT_RESPONSE_GAP`,
+  `ARRANGEMENT_ACCEPTANCE_GAP` in `collections_journey`). So "unanswered" would be true of every
+  account, and a cut on it would split nothing.
+- **What the run does not yet do.** The world's three callers of the terminal stage hold no
+  company book: `arrears_stages`, `compute_debt_recovery` and `final_bill_outcome`. So the world
+  still asks with no per-debt figure, and gets the book-wide rule. All three must pass the same
+  figure, or the stages and the recovery map would disagree. That wiring is the next increment.
+  Today it changes nothing: the register offers no price, so every debt is worked. Also, the
+  world's agency recovery is one flat share for every debt (`dca_recovered_amount`: "nothing
+  published separates recovery by how the debtor responds"). Inside the run the cells therefore
+  cannot diverge, and the per-debt rule will give the book-wide answer until the world varies
+  recovery by something the company can see.
+- At real inputs, a synthetic book (printed 2026-11-20) has eight paying-at-close accounts
+  recovering 30% and eight carried-arrears accounts recovering 2%. Expected recovery is 0.274 and
+  0.026, and the book-wide figure is 0.070. At 5.4p, 7p and 9.3p the carried-arrears debts are
+  SOLD and the paying ones WORKED. With both recovering 10%, both get 0.100, and at any price they
+  get the same answer.
 - At real inputs (printed 2026-11-19): expected recovery 0.122. Offered price 0.054, 0.070 or
   0.093 (the published range) gives WORK. 0.122 gives WORK (not above). 0.15 gives SELL. So at
   any published purchase price, a supplier using this rule sells nothing. Whether that matches
@@ -1399,6 +1438,12 @@ All fetched 2026-10-05 unless stated otherwise.
   - NAO's 25%-on-plans restatement.
 - **Deceased customers: secondary guides only** (afterlossguide.co.uk, withfarra.co.uk). Treated as
   practice description, not evidence of scale.
+- **Debt sale practice (s.7.7, 2026-11-20).**
+  - TDX Group / Equifax, *Debt Sale* brochure:
+    <https://assets.equifax.com/marketing/united-kingdom/assets/tdx-group_debt_sale_brochure.pdf>.
+    A broker's own material: it is practice description.
+  - L.E.K. Consulting, *Why the UK Debt Purchase Market is Sustainable*:
+    <https://www.lek.com/sites/default/files/insights/pdf-attachments/1801_UK_Debt_Purchase_Market_Debt_Buying_Industry_Consulting_LEK_Executive_Inisghts.pdf>.
 
 ## Breathing Space (Debt Respite Scheme): what a supplier must do, volumes, Scotland, and whether our seam matches (2026-10-11)
 

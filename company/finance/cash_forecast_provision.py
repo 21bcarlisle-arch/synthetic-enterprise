@@ -84,6 +84,18 @@ PRIOR_CLOSED_ACCOUNTS = 1.0
 #: A post-close recovery is read over this many days after the account's last bill.
 POST_CLOSE_RECOVERY_DAYS = 365
 
+
+class PostCloseCell(NamedTuple):
+    """What the company's own ledger says about a closed account's debt at its last bill, used to
+    tell one written-off debt's expected recovery from another's (KNIFE3, 2026-11-20;
+    debt_and_collections.md s.7.7). Two cuts, both definitional; neither sets a recovery level.
+    That comes from the book's own resolved closes, shrunk to the book-wide figure."""
+    #: Consecutive months unpaid at the last bill (`missed_state`, 0..3): 0 means the account was
+    #: still paying when it closed. Purchasers price "paying" accounts apart (s.7.7).
+    months_unpaid_at_close: int
+    #: Whether more is owed at close than the final bill itself, i.e. arrears were carried into it.
+    carried_arrears: bool
+
 #: The early-warning signals, strongest first: when two fall in one window the first listed is read.
 SIGNAL_CODE_0_AGAIN = "arudd_code_0_again_inside_a_month"
 SIGNAL_CODE_0 = "arudd_code_0_refer_to_payer"
@@ -255,6 +267,8 @@ class RollRates:
     closed_due_gbp: float = 0.0       # balances owed at close, resolved
     closed_recovered_gbp: float = 0.0  # cash later received against them
     closed_accounts: int = 0
+    #: The same resolved closes split by `PostCloseCell`: cell -> [due GBP, recovered GBP, accounts].
+    closed_by_cell: Dict["PostCloseCell", List[float]] = field(default_factory=dict)
 
     @property
     def transitions(self) -> int:
@@ -296,6 +310,17 @@ class RollRates:
             return PRIOR_POST_CLOSE_RECOVERY
         observed = self.closed_recovered_gbp / self.closed_due_gbp
         return (PRIOR_CLOSED_ACCOUNTS * PRIOR_POST_CLOSE_RECOVERY + n * observed) / (PRIOR_CLOSED_ACCOUNTS + n)
+
+    def post_close_recovery_for(self, cell: Optional["PostCloseCell"]) -> float:
+        """Share of a closing balance in `cell` later recovered: the cell's own money-weighted share,
+        shrunk to the book-wide `post_close_recovery` by account count with the same weight the
+        book-wide figure gives the published prior. A cell the book has never resolved, or no cell,
+        is the book-wide figure."""
+        book = self.post_close_recovery
+        due, got, n = self.closed_by_cell.get(cell, (0.0, 0.0, 0)) if cell is not None else (0.0, 0.0, 0)
+        if n == 0 or due <= 0:
+            return book
+        return (PRIOR_CLOSED_ACCOUNTS * book + n * (got / due)) / (PRIOR_CLOSED_ACCOUNTS + n)
 
 
 def _amount_due(hist: _History, method: str, on: dt.date, month_end: dt.date) -> float:
@@ -366,7 +391,28 @@ def learn(book: LedgerBook, *, as_of: dt.date,
                 rr.closed_due_gbp += due
                 rr.closed_recovered_gbp += min(due, got)
                 rr.closed_accounts += 1
+                cell = post_close_cell(book.ledger(account), last)
+                if cell is not None:
+                    acc = rr.closed_by_cell.setdefault(cell, [0.0, 0.0, 0])
+                    acc[0] += due
+                    acc[1] += min(due, got)
+                    acc[2] += 1
     return rr
+
+
+def post_close_cell(ledger: AccountLedger, closed_on: dt.date) -> Optional[PostCloseCell]:
+    """The `PostCloseCell` of an account whose last bill is on or before `closed_on`, off the
+    company's own ledger. None with no bill, or nothing owed at the last bill."""
+    hist = _History.of(ledger, closed_on)
+    last = hist.last_bill(closed_on)
+    if last is None:
+        return None
+    owed = sum(g for _, g in fifo_unpaid_bills(ledger, last))
+    if owed <= 0.005:
+        return None
+    state = missed_state(hist, last)
+    final_bill = sum(g for d, g in hist.bills if d == last)
+    return PostCloseCell(0 if state is None else state, owed > final_bill + 0.005)
 
 
 def _step_outcome(hist: _History, on: dt.date, as_of: dt.date) -> Optional[str]:

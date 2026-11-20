@@ -311,19 +311,42 @@ def dca_placement_date(written_off: dt.date) -> dt.date:
     return written_off + dt.timedelta(days=DCA_PLACEMENT_DAYS)
 
 
-def sells_written_off_debt(offered_price_share: float | None) -> bool:
+def expected_post_close_recovery(ledger: AccountLedger, closed_on: dt.date,
+                                 rates=None) -> float:
+    """What the company expects to recover per GBP on THIS closed account's written-off debt: its
+    book's resolved closes in the same `PostCloseCell` (months unpaid at the last bill; arrears
+    carried into the final bill or not), shrunk to its book-wide recovery, which is itself shrunk to
+    the published prior. `rates` is the company's `RollRates`; without one, or before the book has
+    resolved a close, it is `PRIOR_POST_CLOSE_RECOVERY` for every debt. Read off the company's own
+    ledger only (KNIFE3, 2026-11-20; debt_and_collections.md s.7.7)."""
+    from company.finance.cash_forecast_provision import PRIOR_POST_CLOSE_RECOVERY, post_close_cell
+    if rates is None:
+        return PRIOR_POST_CLOSE_RECOVERY
+    return rates.post_close_recovery_for(post_close_cell(ledger, closed_on))
+
+
+def sells_written_off_debt(offered_price_share: float | None,
+                           expected_recovery: float | None = None, *,
+                           sensitive: bool = False) -> bool:
     """Whether the company sells a written-off debt to a purchaser offering `offered_price_share` per
     GBP of face value, rather than having an agency work it. With no offer it is worked.
 
-    It sells only when the offer is above what the company itself expects to recover per GBP on a
-    closed, aged balance (`PRIOR_POST_CLOSE_RECOVERY`). No household attribute is read, and the rule
-    is the same for every debt: the company has no per-debt recovery estimate yet. Agency commission
-    is a GAP and is not deducted, so this sells less often than a supplier who knew its commission
-    would (debt_and_collections.md s.7.7)."""
-    if offered_price_share is None:
+    It sells only when the offer is above what the company itself expects to recover per GBP on
+    this debt: `expected_recovery`, from `expected_post_close_recovery`, or the book-wide
+    `PRIOR_POST_CLOSE_RECOVERY` when the caller has no per-debt figure. No household attribute is
+    read. Agency commission is a GAP and is not deducted, so this sells less often than a supplier
+    who knew its commission would (debt_and_collections.md s.7.7).
+
+    A debt the company knows is in sensitive circumstances (`sensitive`: on its own Priority
+    Services Register or vulnerability record) is never sold, whatever the offer: sellers exclude
+    "accounts not eligible for sale due to sensitive circumstances" (TDX Group, Equifax, debt-sale
+    brochure; s.7.7)."""
+    if offered_price_share is None or sensitive:
         return False
-    from company.finance.cash_forecast_provision import PRIOR_POST_CLOSE_RECOVERY
-    return offered_price_share > PRIOR_POST_CLOSE_RECOVERY
+    if expected_recovery is None:
+        from company.finance.cash_forecast_provision import PRIOR_POST_CLOSE_RECOVERY
+        expected_recovery = PRIOR_POST_CLOSE_RECOVERY
+    return offered_price_share > expected_recovery
 
 
 def statute_barred_gbp(ledger: AccountLedger, on: dt.date, payment_terms_days: int = 14) -> float:
