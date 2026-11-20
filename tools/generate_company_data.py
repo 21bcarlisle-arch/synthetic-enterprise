@@ -15,8 +15,9 @@ all real:
      docs/state/billing_ledger.json (billed vs banked/collected cash).
   2. trading & risk         -- dashboard.trading (hedge fraction, VaR limit,
      forward-curve basis-risk error).
-  3. household drill-down    -- site/data/customer_sample.json (a real named
-     customer, C1) + billing_ledger.json (its billed/banked/arrears history).
+  3. household drill-down    -- site/data/customer_sample.json (one named
+     account, chosen by `_featured_account`) + billing_ledger.json (its
+     billed/banked/arrears history and its supply status).
   4. compliance organs       -- dashboard.regulatory (SLC obligations register)
      + dashboard.risk_tiered_compliance (tiered controls, held bills).
 
@@ -36,11 +37,11 @@ SAMPLE_PATH = PROJECT / "site" / "data" / "customer_sample.json"
 LEDGER_PATH = PROJECT / "docs" / "state" / "billing_ledger.json"
 OUT_PATH = PROJECT / "site" / "data" / "company.json"
 
-# The household we drill into. C1 is a real named account present in every
-# source (customer_sample, billing_ledger, dashboard lifetime table): a
-# residential, dual-fuel, direct-debit, smart-metered household acquired
-# 2016-01-01 -- old enough to have a full ten-year story with real arrears.
-DRILLDOWN_ID = "C1"
+# The household we drill into was hardcoded "C1" until 2026-11-18. On the 6af7fd0bf book C1's last
+# bill is in April 2016, four months after it joined, and the feed called it "a real named account"
+# with a ten-year story; every founder account (C1-C9, C_IC1-4) has left. The account is now chosen
+# by `_featured_account` from what the supplier's own ledger shows it still bills.
+# WORKER_FINDING_THE_BOOK_VALUE_COUNTS_CUSTOMERS_WHO_HAVE_ALREADY_LEFT_2026-08-13.md, item 3.
 
 
 def _load(path):
@@ -184,15 +185,65 @@ def _trading_risk(dashboard):
     )
 
 
-def _household(sample, ledger):
-    """The household drill-down, absorbed as-is: one real named account seen from
-    every angle -- demographics, lifetime P&L (settled net), and its own three
-    clocks (billed vs banked cash) with the real arrears cases behind them."""
-    cust = (((sample or {}).get("customers")) or {}).get(DRILLDOWN_ID)
-    if not cust:
-        return dict(available=False, id=DRILLDOWN_ID)
+def _supply_status(ledger):
+    """{billing account: (still billed, last bill period end)} and the book's edge, from the
+    supplier's OWN invoices: one rule, `saas.enterprise_value.ceased_billing_accounts`, fed each
+    leg's bill period ends in place of settlement dates (both legs of a dual-fuel account must go
+    quiet). The edge is the latest bill period end anywhere in the ledger, so the rule compares
+    bills with bills."""
+    from saas.customer_reaction import _billing_account_id
+    from saas.enterprise_value import ceased_billing_accounts
 
-    led = (((ledger or {}).get("customers")) or {}).get(DRILLDOWN_ID, {})
+    records = [{"customer_id": cid, "settlement_date": str(inv["period_end"])[:10]}
+               for cid, rec in (((ledger or {}).get("customers")) or {}).items()
+               for inv in rec.get("invoices") or () if inv.get("period_end")]
+    if not records:
+        return {}, None
+    ceased = ceased_billing_accounts(records)
+    last = {}
+    for r in records:
+        a = _billing_account_id(r["customer_id"])
+        last[a] = max(last.get(a, ""), r["settlement_date"])
+    return {a: (a not in ceased, d) for a, d in last.items()}, max(last.values())
+
+
+def _featured_account(sample, ledger):
+    """(account id, still billed, last bill period end, book edge, rule): the residential account
+    the supplier has billed longest among those it still bills, earliest acquisition first, then
+    id. Only where no residential account is still billed is a ceased one featured, and its
+    `still_supplied` says so; with no ledger nothing is featured, because nothing can say whether
+    the account is still a customer."""
+    from saas.enterprise_value import SUPPLY_CONTINUITY_DAYS
+
+    status, edge = _supply_status(ledger)
+    custs = ((sample or {}).get("customers")) or {}
+    resi = sorted((c.get("acquisition_date") or "9999", a) for a, c in custs.items()
+                  if a in status and c.get("segment") == "resi")
+    supplied = [a for _, a in resi if status[a][0]]
+    rule = ("the residential account billed longest among those the supplier still bills "
+            "(a bill period ending within {} days of the ledger's last)".format(SUPPLY_CONTINUITY_DAYS))
+    if supplied:
+        a = supplied[0]
+    elif resi:
+        a = resi[0][1]
+        rule = "no residential account is still billed; the longest-standing one, which has left"
+    else:
+        return None, None, None, edge, "no residential account in both the sample and the ledger"
+    return a, status[a][0], status[a][1], edge, rule
+
+
+def _household(sample, ledger):
+    """The household drill-down: one named account seen from every angle -- demographics,
+    lifetime P&L (settled net), its own three clocks (billed vs banked cash) with the real arrears
+    cases behind them, and whether the supplier still supplies it. A forward value (CLV, churn
+    probability, expected lifetime) is only meaningful for an account still supplied, so the
+    status travels in the same block as the value."""
+    account, supplied, last_bill, edge, rule = _featured_account(sample, ledger)
+    cust = (((sample or {}).get("customers")) or {}).get(account) if account else None
+    if not cust:
+        return dict(available=False, id=account, why=rule)
+
+    led = (((ledger or {}).get("customers")) or {}).get(account, {})
     arrears = led.get("arrears_history", []) or []
     # Latest satisfaction + latest income stress, honestly the tail of the series.
     sat = cust.get("satisfaction_score_trajectory", []) or []
@@ -202,6 +253,10 @@ def _household(sample, ledger):
     return dict(
         available=True,
         id=cust.get("account_id"),
+        still_supplied=supplied,
+        last_bill_period_end=last_bill,
+        ledger_last_bill_period_end=edge,
+        selected_as=rule,
         segment=cust.get("segment"),
         commodity=cust.get("commodity"),
         dual_fuel=cust.get("dual_fuel"),
@@ -248,7 +303,10 @@ def _household(sample, ledger):
                 "site/data/customer_sample.json (demographics, lifetime P&L, CLV)",
                 "docs/state/billing_ledger.json (billed vs banked, arrears history)",
             ],
-            note="A real named account. Lifetime net is settlement-derived "
+            note=("A named account the supplier still bills. " if supplied else
+                  "A named account the supplier NO LONGER supplies (last bill period ended "
+                  "{}); its forward value describes a customer who has left. ".format(last_bill))
+                 + "Lifetime net is settlement-derived "
                  "(settled clock); billed/banked are its own invoice-ledger cash clocks.",
         ),
     )

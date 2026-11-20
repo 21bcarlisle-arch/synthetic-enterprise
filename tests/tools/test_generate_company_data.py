@@ -294,3 +294,62 @@ def test_arrears_fail_closed_on_empty_ledger_r15():
     ok = _arrears_distribution({}, _ledger({"C1": (100.0, 50.0, "resi"),
                                             "C2": (100.0, 90.0, "resi")}))
     assert ok["missing_lines"] and len(ok["missing_lines"]) >= 3
+
+
+# --- the featured household is one the supplier still supplies -------------------------------
+# WORKER_FINDING_THE_BOOK_VALUE_COUNTS_CUSTOMERS_WHO_HAVE_ALREADY_LEFT_2026-08-13.md item 3: the
+# drill-down was hardcoded "C1", whose last bill on the 6af7fd0bf book is April 2016.
+
+def _billed_until(ends_by_leg):
+    """A ledger whose legs each carry one bill per given period end."""
+    return {"customers": {leg: {"invoices": [{"period_end": e} for e in ends]}
+                          for leg, ends in ends_by_leg.items()}}
+
+
+def _resi(acquired_by_id):
+    return {"customers": {a: {"account_id": a, "segment": "resi", "acquisition_date": d}
+                          for a, d in acquired_by_id.items()}}
+
+
+def test_every_featured_outcome_can_be_reached():
+    """THE PARTITION, whole: a rule that always picked a supplied account, or never did, or always
+    found one, passes any one leg below."""
+    from tools.generate_company_data import _household
+
+    sample = _resi({"OLD": "2016-01-01", "NEW": "2019-01-01"})
+    both = _billed_until({"OLD": ["2016-04-30"], "NEW": ["2025-06-07"]})
+    gone = _billed_until({"OLD": ["2016-04-30"], "NEW": ["2017-01-31", "2025-01-31"],
+                          "X": ["2025-06-07"]})
+    seen = {(h.get("available"), h.get("still_supplied"))
+            for h in (_household(sample, both), _household(sample, gone), _household(sample, {}))}
+    assert seen == {(True, True), (True, False), (False, None)}
+
+
+def test_an_older_account_that_has_left_is_not_featured_over_one_still_supplied():
+    """MUTATION: rank on acquisition date alone (the old "longest story" choice) and OLD, gone
+    since April 2016, is featured again."""
+    from tools.generate_company_data import _household
+
+    h = _household(_resi({"OLD": "2016-01-01", "NEW": "2019-01-01"}),
+                    _billed_until({"OLD": ["2016-04-30"], "NEW": ["2025-06-07"]}))
+    assert (h["id"], h["still_supplied"], h["last_bill_period_end"]) == ("NEW", True, "2025-06-07")
+    assert "still bills" in h["passport"]["note"]
+
+
+def test_a_featured_account_that_has_left_says_so_beside_its_value():
+    from tools.generate_company_data import _household
+
+    h = _household(_resi({"OLD": "2016-01-01"}),
+                   _billed_until({"OLD": ["2016-04-30"], "OTHER": ["2025-06-07"]}))
+    assert h["still_supplied"] is False
+    assert "NO LONGER supplies" in h["passport"]["note"] and "2016-04-30" in h["passport"]["note"]
+
+
+def test_a_dual_fuel_account_is_supplied_while_either_leg_is_billed():
+    """The electricity leg went quiet in 2020 and the gas leg is still billed: one billing account,
+    still supplied. MUTATION: key status by leg and the electricity id reads as gone."""
+    from tools.generate_company_data import _household
+
+    h = _household(_resi({"DF": "2016-01-01"}),
+                   _billed_until({"DF": ["2020-01-31"], "DFg": ["2025-06-07"]}))
+    assert (h["id"], h["still_supplied"]) == ("DF", True)

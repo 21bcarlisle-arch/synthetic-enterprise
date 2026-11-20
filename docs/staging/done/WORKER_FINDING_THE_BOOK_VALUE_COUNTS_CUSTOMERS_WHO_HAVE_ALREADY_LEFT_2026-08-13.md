@@ -2,6 +2,32 @@
 
 > **TRIAGE 2026-11-20 (delivery seat), was BLOCKING -- OBSOLETE. The page it named (site/company/index.html) is gone, no page renders company.json's household block, and its clv_gbp is null. If a drill-down returns, item 3 here is its spec. Record: `docs/staging/SEAT_RECORD_TRIAGE_OF_THE_BLOCKING_FINDINGS_2026-11-20.md`.**
 
+> **20 Nov, delivery seat (rejoining the shared checkout).** The 18 Nov build recorded below was staged in the shared
+> tree and never landed, so the triage above read `DRILLDOWN_ID = "C1"` on origin and treated item 3 as a spec. The
+> build lands with this edit (`tests/tools/test_generate_company_data.py`, 21 passed). The page's fate stays OBSOLETE;
+> the feed now names its account's supply status.
+
+> **DISCHARGED 2026-11-18 (worker tick, RUNG 1c blocking draw). Item 3 is built; nothing is left open.**
+> The hardcoded `DRILLDOWN_ID = "C1"` is gone. `tools/generate_company_data.py::_featured_account`
+> now picks the residential account the supplier has billed longest among those it still bills.
+> Supply status comes from the supplier's OWN invoices, through the one existing rule
+> (`saas.enterprise_value.ceased_billing_accounts`, fed bill period ends; both legs of a dual-fuel
+> account must go quiet). The household block now carries `still_supplied`, `last_bill_period_end`
+> and `selected_as`. The passport says "NO LONGER supplies" whenever a ceased account has to be
+> featured.
+> Measured on the 6af7fd0bf ledger: 263 of 766 billing accounts are still billed at the ledger
+> edge, 2025-06-07. C1's last bill period ended on 2016-04-20, four months after it joined. That
+> date matches the run's own `by_billing_account.C1.last_settlement_date`, which this rule does not
+> read. The featured account is now SYN-2016-001: joined 2016-01-01, still billed at the edge, 114
+> invoices and 38 arrears cases. `site/data/company.json` was regenerated, and only `household`
+> (and `generated_at`) changed.
+> Controls are in `tests/tools/test_generate_company_data.py`. One partition test covers all three
+> outcomes: supplied, ceased-and-says-so, and none. Two mutations were each run and each turned its
+> named test red: ranking on acquisition alone, and keying status per leg.
+> **Item 1 (the R11 live fetch) is moot, not skipped.** No page renders this block any more.
+> site/company/index.html no longer exists, and `/model/company/` sends readers to `/explore/`.
+> The block survives only as a data feed, and that feed now states the account's status.
+
 > **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- UNBLOCKED.** Still open as written: `DRILLDOWN_ID = "C1"` is hardcoded at `tools/generate_company_data.py:43`, and `still_supplied` is not read by either generator. Nothing upstream blocks it.
 
 ## Status history, kept as written (the published run output is now `docs/reports/run_output_latest.json.gz`)
