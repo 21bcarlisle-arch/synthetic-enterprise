@@ -178,9 +178,18 @@ for_the_director:
   recommendation: I recommend you approve that one added sentence, and keep the newcomer test for invited
     readers.
   based_on: 57a89f463f
-  status: open
-  resolution: ''
+  status: answered
+  resolution: 'His words, chat Fri 20 Nov 06:59 GMT: "Yes, yes, range" (the second yes is this row). D11
+    now carries the sentence as proposed, landed with Director-doc: his-words. The newcomer test is kept
+    for invited readers. Page copy: no site page outside the canon-derived harness list calls the site
+    public, and that list renders D11 itself.'
   evidence: docs/design/DIRECTOR_CANON.md (D11); docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md
+  resolved: '2026-11-20'
+  answer_code: 'yes'
+  commitment:
+    work_id: d11-for-invited-readers
+    done_means: docs/design/DIRECTOR_CANON.md D11 carries the invited-readers sentence on origin/main
+    due: '2026-11-20'
 - id: the-bsc-smoothing-parameter-spar-value-it
   raised: '2026-11-19'
   kind: strategy
@@ -196,12 +205,21 @@ for_the_director:
     not seek MDD access (a licence is G5). Silence now means I build the blend at both ends of [0.5, 3]
     and publish the range; the hold is beaten everywhere in it. Reply "hold" to keep the 182-day hold.
   based_on: 2721453029
-  status: open
-  resolution: ''
+  status: answered
+  resolution: 'His words, chat Fri 20 Nov 06:59 GMT: "Yes, yes, range" (range is this row). No value offered.
+    Build the D0019-shaped blend at both ends of SPAR [0.5, 3] and publish the gap as a range; SPAR is
+    a GAP with that range on the knowledge page; no MDD access (G5).'
   evidence: docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 8 (search
     of URS, LDD, Tech Spec, SMG, P40, MDD page; value only in licensed MDD); docs/staging/records/SEAT_PREREG_D48_THE_ELECTRICITY_RESIDUAL_BY_ESTIMATE_ROUTE_2026-11-19.md
     (hold route holds 57% of the residual, billed/true 1.15); docs/staging/records/SEAT_PREREG_D48_E1_BREACHES_AT_EACH_SPAR_2026-11-19.md
     (E1 breaches and the gap at each SPAR)
+  resolved: '2026-11-20'
+  answer_code: 'yes'
+  commitment:
+    work_id: the-spar-blend-at-both-ends-of-the-range
+    done_means: the electricity unbilled residual is published as a range from runs at SPAR 0.5 and 3,
+      and how_a_supplier_shapes_an_estimate_for_an_unread_month.md marks SPAR a GAP with [0.5, 3]
+    due: '2026-11-27'
 - id: the-one-work-system-s-decision-map
   raised: '2026-11-20'
   kind: canon_intent

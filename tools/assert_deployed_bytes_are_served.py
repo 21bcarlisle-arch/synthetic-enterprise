@@ -452,6 +452,20 @@ def recent_commits(path: str) -> list[str]:
     ).stdout.split()
 
 
+#: Where the site password lives on this box (mode 600, director addendum 20 Nov 07:00). CI reads
+#: it from the Actions secret SITE_PASSWORD instead. Never committed, logged or printed.
+SITE_PASSWORD_FILE = os.path.expanduser("~/.config/synthetic-enterprise/site_password")
+
+
+def site_password() -> str | None:
+    """The password the gate in `functions/_middleware.js` asks for, or None when this reader has none."""
+    value = os.environ.get("SITE_PASSWORD")
+    if not value and os.path.isfile(SITE_PASSWORD_FILE):
+        with open(SITE_PASSWORD_FILE, encoding="utf-8") as fh:
+            value = fh.read()
+    return value.strip() or None if value else None
+
+
 def reader_headers() -> dict[str, str]:
     """A reader's request headers, plus the Cloudflare Access service token when CI holds one.
 
@@ -461,6 +475,9 @@ def reader_headers() -> dict[str, str]:
     from this repository. With no token set, the request is unchanged.
     """
     headers = {"User-Agent": "poesys-deploy-assert"}
+    password = site_password()
+    if password:
+        headers["X-Poesys-Gate"] = password
     cid, secret = os.environ.get("CF_ACCESS_CLIENT_ID"), os.environ.get("CF_ACCESS_CLIENT_SECRET")
     if cid and secret:
         headers["CF-Access-Client-Id"] = cid

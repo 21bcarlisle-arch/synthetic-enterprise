@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `D46_the_validator_holds_against_the_varied_population` · **Claim:** none (found while landing `a-held-estimate-is-known-at-assembly-knowledge-and-prereg-first`)
 
+**Disposition:** fixed -- Both causes fixed by 5624e36046 (part_paid_gbp on failed payments; SME VAT); post-publish tests 2427a5830e close the no-census half. INV_VAT_RATE CLEAN on 6af7fd0bfd. (supplier triage batch 1, 20 Nov 2026)
+
 **Causes (2026-10-16, delivery seat):** two, neither the held estimate. (1) The walk moved a failed
 payment by 0.00; the ledger counts its `part_paid_gbp`. All 12 disagreeing accounts, each gap
 exactly the part paid. (2) The VAT control read SME as always 20%; C5's two bills are under the

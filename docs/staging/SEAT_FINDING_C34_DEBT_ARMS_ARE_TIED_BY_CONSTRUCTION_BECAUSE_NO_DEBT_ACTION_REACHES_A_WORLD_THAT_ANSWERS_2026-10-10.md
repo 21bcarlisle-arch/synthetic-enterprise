@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** C_customer_ops · **Epoch:** 4 · **Atom:** `C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv` · **Claim:** `c34-debt-branch-is-the-runs-collections-decision`
 
+*Triage, 20 Nov 2026 (supplier batch 1, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_1_2026-11-20.md): **parked**. Waits on a sourced plan take-up and instalment keep rate (all None in simulation/plan_offer_response.PUBLISHED_BASIS), or a curriculum world the director names. C34 parked 17 Oct. Knowledge gap: yes. Revisit 2026-12-18.*
+
 # C34's debt branch: the two arms tie by construction, because no debt action reaches a world that answers
 
 **Fate (2026-10-12, clear-the-decks):** ATOM -- LEVEL MOVE 1->2 REFUSED 2026-10-10 (simplifications yaml); unblocks only on sourced take-up/keep rate or director-named curriculum world (for_the_director) (P2)

@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build`
+
+*Triage, 20 Nov 2026 (supplier batch 1, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_1_2026-11-20.md): **parked**. Still true: the cash-forecast provision has no oldest-unpaid-age state and no external roll-rate prior, and is not the run's provision. Waits on W2_38 (payment draw reads price). Atom E6. Knowledge gap: yes (no published GB roll rates). Revisit 2026-12-04.*
 **Knowledge:** none -- a grade of a built estimator; the method is in docs/market_research/bad_debt_provisioning.md
 
 # The cash-forecast provision does not yet beat the age bands: it lags in calm years and ranks worse (2026-10-13)

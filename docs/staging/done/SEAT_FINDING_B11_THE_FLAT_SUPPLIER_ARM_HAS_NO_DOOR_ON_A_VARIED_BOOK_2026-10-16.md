@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 4 · **Atom:** `B11_forward_clv_backtested_on_held_back_history` · **Subjects:** `EP17_varied_population_draw` · **Claim:** `b11-the-flat-baseline-is-pre-registered-for-the-ep17-switch` (Lane 0 delivery)
 
+**Disposition:** fixed -- FLAT_SUPPLIER_POLICY and the seed_family columns: bf0997494b, f692b1b80e, abe7ce5336. (supplier triage batch 1, 20 Nov 2026)
+
 # The flat-supplier arm has no door on a varied book, and the value cycle's "flat" control still targets per customer
 
 Found 2026-10-16, while writing

@@ -79,6 +79,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from background.episode_prior import load_episode_prior  # noqa: E402
+from tools.assert_deployed_bytes_are_served import reader_headers  # noqa: E402
 
 SITE = ROOT / "site"
 CAPTURE = ROOT / "docs" / "observability" / "edge_traffic.jsonl"
@@ -306,7 +307,9 @@ def probe(paths: list[str], host: str = "https://poesys.net") -> dict[str, dict]
         row = {}
         for label, url in (("plain", f"{host}{path}"), ("busted", f"{host}{path}?cb=probe")):
             try:
-                with urllib.request.urlopen(url, timeout=20) as resp:
+                # Through the password gate (20 Nov): without it every path reads 401, retired or not.
+                req = urllib.request.Request(url, headers=reader_headers())
+                with urllib.request.urlopen(req, timeout=20) as resp:
                     row[label] = resp.status
             except urllib.error.HTTPError as exc:
                 row[label] = exc.code

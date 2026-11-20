@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - site/**
+      - functions/**
       - docs/PROJECT_STATE.md
   # A fix to the deploy itself touches no site/** path, so without this the site stays on the
   # failed push's predecessor until the next publish (b1c3e4832). A dispatch has no
@@ -24,6 +25,21 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set the site password gate's secret
+        # Director ruling 19 Nov, addendum 20 Nov 07:00: every route sits behind the password gate
+        # in functions/_middleware.js. Without the secret the gate fails closed and serves nothing,
+        # so a deploy with no SITE_PASSWORD is refused here, by name, before anything is uploaded.
+        # The value goes by stdin, never on a command line or into the log.
+        run: |
+          if [ -z "$SITE_PASSWORD" ]; then
+            echo "::error::Actions secret SITE_PASSWORD is unset: the password gate would serve nothing. Refusing to deploy."
+            exit 1
+          fi
+          printf '%s' "$SITE_PASSWORD" | npx wrangler pages secret put SITE_PASSWORD --project-name=poesys-net
+        env:
+          SITE_PASSWORD: ${{ secrets.SITE_PASSWORD }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - name: Deploy site/ to Cloudflare Pages
         # Staged without any file over Pages' 25 MiB limit, which refuses the WHOLE upload
         # (run 38474007478: one 57.7 MiB ledger held every page on a week-old snapshot).
@@ -66,5 +82,8 @@ jobs:
           DEPLOY_BASE_REF: ${{ github.event.before }}
           # Behind Cloudflare Access (director ruling 2026-11-19), the check reads the site
           # with a service token. While these secrets are unset it reads as an anonymous reader.
+          # Access was never enabled (it asked for a card); the gate is the password function, and the
+          # check reads through it with the same secret.
+          SITE_PASSWORD: ${{ secrets.SITE_PASSWORD }}
           CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
           CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}

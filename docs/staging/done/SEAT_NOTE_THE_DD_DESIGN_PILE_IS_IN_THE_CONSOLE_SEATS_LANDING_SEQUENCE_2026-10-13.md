@@ -1,5 +1,7 @@
 **Severity:** RECORDED · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `DD_seasonal_cashflow_physics`
 
+**Disposition:** fixed -- term_end_iso and the forward rate are wired into the DD review by c6317ca9ff (dd_review.review_forecast_inputs, read by dd_balance_book and dd_book_legs). (supplier triage batch 1, 20 Nov 2026)
+
 # The DD design pile is in the console seat's landing sequence, so this tick did not land a rival copy
 
 **Fate (2026-10-15):** ATOM -- folds into `DD_seasonal_cashflow_physics` (re-pointed 2026-10-15; an ATOM fate names its atom).

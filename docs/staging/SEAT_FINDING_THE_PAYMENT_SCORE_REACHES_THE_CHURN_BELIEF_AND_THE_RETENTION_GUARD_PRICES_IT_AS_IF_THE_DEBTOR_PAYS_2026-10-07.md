@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** C_customer_ops · **Epoch:** 4 · **Atom:** `C29_decisions_stop_being_lookup_tables` · **Direction item:** `the-payment-score-reaches-a-decision-or-says-why-not` · **Claim:** released on landing
 
+*Triage, 20 Nov 2026 (supplier batch 1, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_1_2026-11-20.md): **parked**. Waits on the re-armed retention-netting arm (prereg 460c370441; launch gates unmet, 81042a7c3c). If it moves no debtor offer, an arrears-state rule on the guard is a G9 question for the director. Atom C29. Revisit 2026-11-27.*
+
 # The payment score reaches the churn belief, and the retention guard prices it as if the debtor pays
 
 **Fate (2026-10-12, clear-the-decks):** ATOM -- P2 unverified: a cited commit is not on origin (4c300feb9). retention guard now nets the company's own bad-debt belief (relanded 6870d3c8b)

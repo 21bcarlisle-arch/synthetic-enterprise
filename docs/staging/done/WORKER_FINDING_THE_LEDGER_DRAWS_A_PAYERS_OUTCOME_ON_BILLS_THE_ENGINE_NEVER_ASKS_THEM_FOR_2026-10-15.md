@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `unminted`
 
+**Disposition:** fixed -- Bills inside the occupier window go to the deemed account, not a drawn payer: 7cec44a4b8 (tools/generate_billing_ledger.py:605). INV_OVERDUE_WITHIN_PAGE_BALANCE CLEAN, 0 of 6,115, on 6af7fd0bfd. (supplier triage batch 1, 20 Nov 2026)
+
 # The ledger draws a payer's outcome on bills the engine never asks them for
 
 *Worker, 2026-10-15, left over from `the-live-books-ledger-and-pnl-write-offs-disagree-for-48-accounts`

@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** B_commercial · **Epoch:** unassigned · **Atom:** `B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost`
+
+**Disposition:** obsolete -- A method lesson about a scratch script never in the repo. Answered by WORKER_RESULT ...ZERO_OF_23...; save grades since read expected value (ee995aadc9, 0674199b89). (supplier triage batch 1, 20 Nov 2026)
 **Knowledge:** acquisition-and-retention-economics -- `docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md` §5c (the published save rate, 0.4–1.3% proxy)
 
 # A save grade counts realised saves where the log already holds the expected ones (2026-10-15)

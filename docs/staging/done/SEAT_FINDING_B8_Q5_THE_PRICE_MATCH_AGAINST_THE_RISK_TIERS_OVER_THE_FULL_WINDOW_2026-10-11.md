@@ -1,5 +1,7 @@
 **Severity:** RECORDED · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** `B8_discovered_price_sensitivity_holdout`
 
+**Disposition:** obsolete -- A recommendation the file itself withdrew (13 Oct). d5ba38b12c found price-match minus risk tiers negative on all four fresh seeds; CURRENT_POLICY keeps risk_tiers. (supplier triage batch 1, 20 Nov 2026)
+
 # B8 Q5: the renewal cut sized by price match, against the risk tiers, over 2016-2025 across seeds
 
 **Fate (2026-10-12, clear-the-decks):** ATOM -- price_match sizing recommended over risk_tiers on all 3 seeds, but CURRENT_POLICY.retention_cut_sizing is still "risk_tiers" -- flip not actioned, awaiting director/next build turn (P2)

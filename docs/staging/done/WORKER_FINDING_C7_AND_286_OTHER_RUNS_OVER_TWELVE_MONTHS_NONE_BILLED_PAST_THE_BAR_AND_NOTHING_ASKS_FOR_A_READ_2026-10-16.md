@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used`
+
+**Disposition:** obsolete -- A census record: no bill crosses the 12-month bar (INV_BACK_BILLING_12M 0 breached of 38,367 on 6af7fd0bfd) and the read-duty register landed in c5963a5c0a. Read-chase effort stays a GAP in read_access_and_theft_duties.md. (supplier triage batch 1, 20 Nov 2026)
 **Knowledge:** back-billing-and-liability
 
 # C7 and 286 other runs over twelve months: none is billed past the 12-month bar, and nothing in the company asks for a read (2026-10-16)
