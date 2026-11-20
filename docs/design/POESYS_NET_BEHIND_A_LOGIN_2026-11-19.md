@@ -160,6 +160,10 @@ deployment's own address anonymously, deletes the ones that answer 200, then re-
 and fails if any still serves. It is keyed to that property, not to a date. The deleted
 deployments can be rebuilt from git (`site/` at the commit each one names). The cost is losing
 one-click rollback to a pre-gate deployment, and a rollback to one would take the gate down anyway.
+*Swept, 20 Nov 09:01Z:* the read-only run (44701674785) read 3,668 deployments: 3,667 answered 200
+anonymously and 2 answered 401. The delete run (44702018437) deleted 3,667 and refused 0. Its re-read
+found every remaining deployment refusing an anonymous fetch. Read from outside afterwards:
+`c156dcf3` and `09a031ce` answer 404, `42c9e199` 401, and `poesys.net` and `poesys-net.pages.dev` 401.
 
 The Actions log was searched for every 6-character fragment of the password, and none was found.
 *Correction, recorded beside the claim:* the first password was rotated before it went live. A

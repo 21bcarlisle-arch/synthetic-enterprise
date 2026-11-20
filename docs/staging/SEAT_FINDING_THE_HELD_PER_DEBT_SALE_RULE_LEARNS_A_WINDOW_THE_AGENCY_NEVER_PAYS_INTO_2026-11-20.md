@@ -209,3 +209,30 @@ Predictions:
   ordinary payment and the learner does not see it. Predicted: under 5% of remitted GBP is lost this
   way. If more is lost, I3's cells blur towards the book-wide figure, and that disagreement is the
   finding.
+
+## In-run successor: both increments landed (2026-11-20); grading waits for the next book
+
+- Increment 1, 4ea473bf18: one write-off per open invoice, under its ref (six mutations fire).
+- Increment 2, this commit: `LivePaymentTriad._agency_remits` places each closed-account write-off the
+  company posted with an invoice the world raised, and runs the world's one cascade
+  (`_post_writeoff_stages`) on that bill's own age at close. It then crosses the terminal stage's cash
+  as a `RemittanceAdvice` quoting the invoice ref, through the consumer's ordinary wire path, so it
+  posts as a `PAYMENT_CREDIT` earmarked to the bill. A remittance dated after the run's end does not
+  cross. A statute-barred write-off is not placed. Six mutations fire. Tests:
+  `tests/background/test_the_agencys_remittance_reaches_the_company_book.py`.
+- What the world reads to place a debt: the company's own write-off on its ledger. That is the
+  company's placement instruction, the one thing a real agency is told. The age and the recovery are
+  the world's own.
+
+I0 cannot be read separately now: increment 2 landed on top of increment 1 before any book was made.
+Said here rather than graded.
+
+One more prediction, written before any run (I6): the published bad-debt charge moves. The run's
+provision stocks are read after `write_off_closed_balances`, so `recovered_to_date_gbp`, which the
+IFRS 9 charge subtracts (`test_the_ifrs9_basis_subtracts_recoveries`), now carries the agency's cash.
+Predicted: on the next book, recovered-to-date at the run's end is 8% to 12% of written-off-to-date.
+That is below the 0.112 book-wide share because the remittances of the last 210 days have not
+arrived. On a book where it read 0 before, the IFRS 9 charge falls by that amount.
+
+**Owed:** grade I1 to I6 on the first book made at or after this commit. That is a box run, queued
+behind the census. Nothing more is owed in code for this item.

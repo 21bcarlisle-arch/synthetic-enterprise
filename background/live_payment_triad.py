@@ -120,6 +120,7 @@ from interface.contracts.payment_observable_seam import (
 from interface.contracts.wall_envelope import WallRequest
 from simulation.arrears_engine import (
     PAY_ON_RECEIPT_METHOD,
+    _post_writeoff_stages,
     mover_final_bill_outcome,
     open_on_contract_gbp,
 )
@@ -133,6 +134,7 @@ from simulation.payment_behaviour_source import (
     DIRECT_DEBIT,
     INSUFFICIENT_FUNDS,
     PREPAYMENT,
+    PaymentEvent,
     generate_payment_event,
     generate_payment_method,
     later_settlement_date,
@@ -721,6 +723,12 @@ class LivePaymentTriad:
 
     def __init__(self, dd_failure_window_days: int = _RUN_SPANNING_WINDOW_DAYS) -> None:
         self._ledger_book = LedgerBook()
+        # The world's record of each bill it raised (invoice ref -> due date) and each account's
+        # last bill, for the agency that works a written-off debt (`_agency_remits`).
+        self._bill_due_by_ref: dict = {}
+        self._last_issue_by_account: dict = {}
+        self._placed_with_agency: set = set()
+        self._agency_remittances: List[tuple] = []
         # The plan-offer answers cross the company's one seam, as every world answer does (EP4).
         # A yes is recorded on the world's own book of agreed plans, which the later-settlement
         # queue asks before any lump crosses (`_deliver_settlements_through`).
@@ -977,7 +985,52 @@ class LivePaymentTriad:
                 break
             posted += len(self._consumer.write_off_closed_balances(month_end))
             year, month = year + month // 12, month % 12 + 1
+        self._agency_remits(through)
         return posted
+
+    def _agency_remits(self, through: date) -> None:
+        """The agency's remittance on each closed-account debt the company wrote off, crossed to the
+        company as cash on its own date and earmarked to the written-off invoice.
+
+        The world's one cascade decides it (`arrears_engine._post_writeoff_stages`: placed at +30,
+        worked to +180, or sold if the supplier sells), on the bill's own age at close in the world's
+        record. It crosses as a `RemittanceAdvice` quoting the invoice ref, the reference an agency's
+        remittance statement carries, so the company's ledger posts it as a `PAYMENT_CREDIT` against
+        that bill. That is what the per-debt learner (`cash_forecast_provision._written_off`) reads.
+        A remittance dated after `through` has not arrived and does not cross. A statute-barred
+        write-off is not placed: it is on a live account. A write-off on an invoice the world never
+        billed (no ref, or a ref it does not hold) has no agency debt to work. Idempotent: each
+        write-off is placed once."""
+        for account in self._ledger_book.accounts():
+            for w in self._ledger_book.ledger(account).events():
+                if (w.event_type != LedgerEventType.WRITE_OFF_CREDIT
+                        or w.event_id in self._placed_with_agency
+                        or w.invoice_ref not in self._bill_due_by_ref
+                        or "uneconomic_to_pursue" not in (w.reason or "")):
+                    continue
+                self._placed_with_agency.add(w.event_id)
+                due = self._bill_due_by_ref[w.invoice_ref]
+                age = max((self._last_issue_by_account.get(account, due) - due).days, 0)
+                terminal = _post_writeoff_stages(w.amount_gbp, w.valid_time,
+                                                 age_at_close_days=age)[-1]
+                gbp, paid_on = terminal.get("amount_gbp"), date.fromisoformat(terminal["date"])
+                if gbp is None or gbp <= 0.005 or paid_on > through:
+                    continue
+                remitted = PaymentEvent(
+                    customer_id=account, period_index=0, due_date=paid_on.isoformat(),
+                    amount_gbp=gbp, payment_method="bank_transfer", result="success", days_late=0,
+                    payment_date=paid_on.isoformat(), dd_failure_reason=None)
+                for wire in emit_wire_responses(remitted, SeamAdapterInput(
+                        account_id=account, correlation_id=f"agency:{w.event_id}",
+                        bank_reference=w.invoice_ref)):
+                    self._consumer.observe_wire(wire)
+                self._agency_remittances.append(
+                    (account, w.invoice_ref, terminal["stage"], paid_on, gbp))
+
+    @property
+    def agency_remittances(self) -> List[tuple]:
+        """`(account, invoice ref, stage, date, GBP)` for each agency remittance that crossed."""
+        return list(self._agency_remittances)
 
     def provision_stock(self, on: date, *, payment_method_of, crisis_overlay: bool = False,
                         arrears_overlay: bool = False) -> dict:
@@ -1434,6 +1487,10 @@ class LivePaymentTriad:
             method = PREPAYMENT
         invoice_ref = f"{customer_id}::{period_index}"
         issue_date = due_date - timedelta(days=PAYMENT_TERMS_DAYS)
+        # The world's own record of each bill, for the agency that works it once it is written off.
+        self._bill_due_by_ref[invoice_ref] = due_date
+        if issue_date > self._last_issue_by_account.get(account_id, date.min):
+            self._last_issue_by_account[account_id] = issue_date
 
         # DD4b (`simulation/dd_shock_response.py`): the household's own answer to a DD shock, as a
         # `BillEffect` for this billed month, or None. A cancelled mandate is paid on receipt like a
