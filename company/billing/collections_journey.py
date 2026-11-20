@@ -311,24 +311,54 @@ def dca_placement_date(written_off: dt.date) -> dt.date:
     return written_off + dt.timedelta(days=DCA_PLACEMENT_DAYS)
 
 
-def sells_written_off_debt(offered_price_share: float | None, *, sensitive: bool = False) -> bool:
+def expected_post_close_recovery(ledger: AccountLedger, closed_on: dt.date,
+                                 rates=None, bill_on: dt.date | None = None) -> float:
+    """What the company expects to recover per GBP on a written-off debt of this closed account:
+    the cash its book's resolved write-offs in the same `PostCloseCell` (the bill over or under a
+    year past due at the last bill, `closed_on`) brought in after write-off, over the amount written
+    off, shrunk to the book-wide figure, which is itself shrunk to the published prior. With
+    `bill_on`, the debt is that bill; without, it is everything unpaid at `closed_on`, weighted by
+    GBP. `rates` is the company's `RollRates`; without one, or before the book has resolved a
+    write-off, it is `PRIOR_POST_CLOSE_RECOVERY` for every debt. Read off the company's own ledger
+    only (KNIFE3, 2026-11-20; debt_and_collections.md s.7.7)."""
+    from company.finance.cash_forecast_provision import (
+        PRIOR_POST_CLOSE_RECOVERY,
+        bill_cell,
+        debt_cells,
+    )
+    if rates is None:
+        return PRIOR_POST_CLOSE_RECOVERY
+    if bill_on is not None:
+        return rates.written_off_recovery_for(bill_cell(bill_on, closed_on))
+    owed = debt_cells(ledger, closed_on)
+    total = sum(g for _d, g, _c in owed)
+    if total <= 0:
+        return rates.written_off_recovery
+    return sum(g * rates.written_off_recovery_for(c) for _d, g, c in owed) / total
+
+
+def sells_written_off_debt(offered_price_share: float | None,
+                           expected_recovery: float | None = None, *,
+                           sensitive: bool = False) -> bool:
     """Whether the company sells a written-off debt to a purchaser offering `offered_price_share` per
     GBP of face value, rather than having an agency work it. With no offer it is worked.
 
-    A debt the company knows is in sensitive circumstances (`sensitive`: its own Priority Services
-    Register or vulnerability record, never the world's hidden state) is never sold, whatever the
-    offer. Sellers exclude "accounts not eligible for sale due to sensitive circumstances" (TDX
-    Group, Equifax, debt-sale brochure; debt_and_collections.md s.7.7).
+    It sells only when the offer is above what the company itself expects to recover per GBP on
+    this debt: `expected_recovery`, from `expected_post_close_recovery`, or the book-wide
+    `PRIOR_POST_CLOSE_RECOVERY` when the caller has no per-debt figure. No household attribute is
+    read. Agency commission is a GAP and is not deducted, so this sells less often than a supplier
+    who knew its commission would (debt_and_collections.md s.7.7).
 
-    It sells only when the offer is above what the company itself expects to recover per GBP on a
-    closed, aged balance (`PRIOR_POST_CLOSE_RECOVERY`). No household attribute is read, and the rule
-    is the same for every debt: the company has no per-debt recovery estimate yet. Agency commission
-    is a GAP and is not deducted, so this sells less often than a supplier who knew its commission
-    would (debt_and_collections.md s.7.7)."""
+    A debt the company knows is in sensitive circumstances (`sensitive`: on its own Priority
+    Services Register or vulnerability record) is never sold, whatever the offer: sellers exclude
+    "accounts not eligible for sale due to sensitive circumstances" (TDX Group, Equifax, debt-sale
+    brochure; s.7.7)."""
     if offered_price_share is None or sensitive:
         return False
-    from company.finance.cash_forecast_provision import PRIOR_POST_CLOSE_RECOVERY
-    return offered_price_share > PRIOR_POST_CLOSE_RECOVERY
+    if expected_recovery is None:
+        from company.finance.cash_forecast_provision import PRIOR_POST_CLOSE_RECOVERY
+        expected_recovery = PRIOR_POST_CLOSE_RECOVERY
+    return offered_price_share > expected_recovery
 
 
 def statute_barred_gbp(ledger: AccountLedger, on: dt.date, payment_terms_days: int = 14) -> float:

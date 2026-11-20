@@ -84,6 +84,19 @@ PRIOR_CLOSED_ACCOUNTS = 1.0
 #: A post-close recovery is read over this many days after the account's last bill.
 POST_CLOSE_RECOVERY_DAYS = 365
 
+
+class PostCloseCell(NamedTuple):
+    """What the company's own ledger says about one written-off bill, used to tell one debt's
+    expected recovery from another's (KNIFE3, 2026-11-20; debt_and_collections.md s.7.7). One cut,
+    definitional, setting no recovery level: that comes from the book's own written-off debts,
+    shrunk to the book-wide figure."""
+    #: Whether the bill was more than a year past its due date at the account's last bill. Energy UK Fig. 5 splits recovery at 12 months (s.2.5); consecutive months unpaid, the
+    #: cut this replaced, caps at 3 and cannot see it.
+    over_a_year_past_due: bool
+
+#: Energy UK Fig. 5's age cut (s.2.5): debt over 12 months old recovers 0.24-0.52 of younger debt.
+AGED_DEBT_DAYS_PAST_DUE = 365
+
 #: The early-warning signals, strongest first: when two fall in one window the first listed is read.
 SIGNAL_CODE_0_AGAIN = "arudd_code_0_again_inside_a_month"
 SIGNAL_CODE_0 = "arudd_code_0_refer_to_payer"
@@ -255,6 +268,14 @@ class RollRates:
     closed_due_gbp: float = 0.0       # balances owed at close, resolved
     closed_recovered_gbp: float = 0.0  # cash later received against them
     closed_accounts: int = 0
+    #: Written-off bills whose remittance window has passed: GBP written off, cash against them after.
+    written_off_gbp: float = 0.0
+    written_off_recovered_gbp: float = 0.0
+    written_off_debts: int = 0  # written-off bills, the unit the shrinkage counts
+    #: The same split by `PostCloseCell`: cell -> [written off GBP, recovered GBP, bills].
+    written_off_by_cell: Dict["PostCloseCell", List[float]] = field(default_factory=dict)
+    #: Days from write-off to the latest cash the book has seen after one; None before any.
+    remittance_lag_days: Optional[int] = None
 
     @property
     def transitions(self) -> int:
@@ -297,6 +318,26 @@ class RollRates:
         observed = self.closed_recovered_gbp / self.closed_due_gbp
         return (PRIOR_CLOSED_ACCOUNTS * PRIOR_POST_CLOSE_RECOVERY + n * observed) / (PRIOR_CLOSED_ACCOUNTS + n)
 
+    @property
+    def written_off_recovery(self) -> float:
+        """Share of a written-off amount later received as cash: the book's money-weighted share over
+        its resolved written-off bills, shrunk to the published prior by their count."""
+        n = self.written_off_debts
+        if n == 0 or self.written_off_gbp <= 0:
+            return PRIOR_POST_CLOSE_RECOVERY
+        observed = self.written_off_recovered_gbp / self.written_off_gbp
+        return (PRIOR_CLOSED_ACCOUNTS * PRIOR_POST_CLOSE_RECOVERY + n * observed) / (PRIOR_CLOSED_ACCOUNTS + n)
+
+    def written_off_recovery_for(self, cell: Optional["PostCloseCell"]) -> float:
+        """`written_off_recovery` for debts in `cell`: the cell's own money-weighted share, shrunk to
+        the book-wide figure by bill count with the weight the book-wide figure gives the prior.
+        A cell the book has never resolved, or no cell, is the book-wide figure."""
+        book = self.written_off_recovery
+        wo, got, n = self.written_off_by_cell.get(cell, (0.0, 0.0, 0)) if cell is not None else (0.0, 0.0, 0)
+        if n == 0 or wo <= 0:
+            return book
+        return (PRIOR_CLOSED_ACCOUNTS * book + n * (got / wo)) / (PRIOR_CLOSED_ACCOUNTS + n)
+
 
 def _amount_due(hist: _History, method: str, on: dt.date, month_end: dt.date) -> float:
     """What the account is expected to be asked for in the month ending `month_end`."""
@@ -326,6 +367,7 @@ def learn(book: LedgerBook, *, as_of: dt.date,
     """Every transition the company could have resolved by `as_of`, off its own ledger. With
     `signals_of`, the steps signals are read for are learned as well, beside the chain."""
     rr = RollRates(as_of=as_of)
+    write_offs = []
     for account in book.accounts():
         hist = _History.of(book.ledger(account), as_of)
         if not hist.bills:
@@ -366,7 +408,71 @@ def learn(book: LedgerBook, *, as_of: dt.date,
                 rr.closed_due_gbp += due
                 rr.closed_recovered_gbp += min(due, got)
                 rr.closed_accounts += 1
+        write_offs.extend(_written_off(book.ledger(account), as_of))
+    _learn_written_off(rr, write_offs, as_of)
     return rr
+
+
+def _written_off(ledger: AccountLedger, as_of: dt.date):
+    """Each written-off bill on the account's own ledger by `as_of`, as `(write-off date, GBP written
+    off, cell, [(date, GBP)] of cash after the write-off earmarked to that bill)`. A write-off with
+    no `invoice_ref` is left out: cash after it cannot be told from cash for any other debt."""
+    ev = ledger.events_through(as_of)
+    bills = {e.invoice_ref: e.valid_time for e in ev if e.event_type == _BILL and e.invoice_ref}
+    out = []
+    for w in ev:
+        if w.event_type != LedgerEventType.WRITE_OFF_CREDIT or w.invoice_ref not in bills:
+            continue
+        last = _History.of(ledger, w.valid_time).last_bill(w.valid_time)
+        cash = [(e.valid_time, float(e.amount_gbp)) for e in ev if e.event_type == _CASH
+                and e.valid_time > w.valid_time and w.invoice_ref in e.remittance]
+        out.append((w.valid_time, float(w.amount_gbp), bill_cell(bills[w.invoice_ref], last), cash))
+    return out
+
+
+def _learn_written_off(rr: RollRates, write_offs, as_of: dt.date) -> None:
+    """Recovery on written-off debt, one debt per written-off bill, over the book's own
+    write-off-to-remittance lag.
+
+    The amount is the one written off and the recovery is cash received after the write-off against
+    that bill: the customer had already not paid what was written off, so customer cash before it is
+    not evidence of what the agency will bring in (the finding of 2026-11-20 measured the old
+    closing-balance share at 0.03-0.92 on customer cash). NAMED SIMPLIFICATION: the window is the
+    longest gap from a write-off to cash against it that the book has seen, so a debt is resolved
+    once its agency has had as long as any agency took; one stray late payment lengthens it for
+    every debt, which resolves fewer, never wrongly. Placement is not read: write-off to cash spans
+    it."""
+    gaps = [(d - wo).days for wo, _amt, _cell, cash in write_offs for d, _g in cash]
+    if not gaps:
+        return
+    rr.remittance_lag_days = lag = max(gaps)
+    for wo, amount, cell, cash in write_offs:
+        end = wo + dt.timedelta(days=lag)
+        if amount <= 0.005 or end > as_of:
+            continue
+        got = min(amount, sum(g for d, g in cash if d <= end))
+        rr.written_off_gbp += amount
+        rr.written_off_recovered_gbp += got
+        rr.written_off_debts += 1
+        acc = rr.written_off_by_cell.setdefault(cell, [0.0, 0.0, 0])
+        acc[0] += amount
+        acc[1] += got
+        acc[2] += 1
+
+
+def bill_cell(bill_on: dt.date, closed_on: dt.date) -> PostCloseCell:
+    """The `PostCloseCell` of a bill issued `bill_on` on an account whose last bill was `closed_on`."""
+    past_due = (closed_on - (bill_on + dt.timedelta(days=PAYMENT_TERMS_DAYS))).days
+    return PostCloseCell(past_due > AGED_DEBT_DAYS_PAST_DUE)
+
+
+def debt_cells(ledger: AccountLedger, on: dt.date) -> List[Tuple[dt.date, float, PostCloseCell]]:
+    """`(bill date, unpaid GBP, cell)` for each bill still unpaid on `on`, its age read at the
+    account's last bill on or before `on`, off the company's own ledger. Empty with nothing owed."""
+    last = _History.of(ledger, on).last_bill(on)
+    if last is None:
+        return []
+    return [(d, g, bill_cell(d, last)) for d, g in fifo_unpaid_bills(ledger, on) if g > 0.005]
 
 
 def _step_outcome(hist: _History, on: dt.date, as_of: dt.date) -> Optional[str]:

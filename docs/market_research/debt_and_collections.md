@@ -1097,6 +1097,39 @@ age at close. That age is what Energy UK publishes. It is read off the company's
 (`fifo_unpaid_bills`).
 Finding: `docs/staging/SEAT_FINDING_THE_HELD_PER_DEBT_SALE_RULE_LEARNS_A_WINDOW_THE_AGENCY_NEVER_PAYS_INTO_2026-11-20.md`.
 
+**The successor: one debt per written-off bill, learned over the agency's own lag (2026-11-20).**
+Choices the design makes, and why:
+- *The unit is the written-off bill.* The company's write-off is a `WRITE_OFF_CREDIT` carrying the
+  bill's `invoice_ref`, and the agency's remittance is cash earmarked to it (`remittance`). Its
+  recovery is that cash, received after the write-off, over the amount written off. Customer cash
+  before write-off is no longer in it.
+- *The window is learned, not set.* It is the longest gap between a write-off and cash against it
+  that the book has seen (210 days on 67d454905c: placement +30, outcome +180). Placement is not
+  read, because write-off to cash spans it. No simulation constant is read. A debt is resolved only
+  once that lag has passed. Before the first remittance, nothing is resolved and the published
+  prior stands.
+- *The cut is the bill's own age at close:* over or under 12 months past due (issue + payment terms)
+  at the account's last bill. This is Energy UK Fig. 5's split. **Correction to the line above:**
+  "the oldest unpaid bill's age, read off `fifo_unpaid_bills`" was wrong. FIFO credits a customer's
+  payments to the oldest bill. The supplier's collections cases, like the world's, are per invoice,
+  and the unpaid one is often the old bill while later bills were paid. An account-level FIFO cut
+  put 23 aged debts in the young cell. Accounts holding several write-offs mix aged and young bills
+  (7 of 73), so a per-account cut cannot separate them either.
+- Shrinkage is unchanged in shape. A cell is shrunk to the book-wide figure, which is shrunk to the
+  0.122 prior, each with one debt's weight. The provision's own post-close figure
+  (`post_close_recovery`, closing balance over 365 days) is untouched. It answers a different
+  question, what a closed balance yields in total, and nothing in this change re-measures it.
+Replay (book 67d454905c, world f696fca4eb, learned at 2025-07-04): lag 210 days; 198 debts
+resolved; young cell 0.1219 (154 debts, observed 0.122), aged cell 0.0645 (44, observed 0.0634).
+- At 0.054: SELL 0, WORK 215.
+- At 0.070 and 0.093: SELL the 54 aged debts (GBP 1,739.50), WORK the 161 young ones (GBP 6,447.31).
+Out of sample (learned at 2022-06-30, applied to the 33 debts written off later), the split is the
+same: at 0.070, all 16 aged debts are sold and all 17 young ones worked.
+**GAP still open:** in-run, the agency's remittance does not reach the company's book as cash. It is
+an informational `recovery_note` in `generate_payment_ledger_data`. Until it crosses as an
+earmarked ledger event, the in-run learner resolves nothing and every debt is decided at the prior.
+Agency commission is still not deducted.
+
 ---
 
 ## 8. Gaps

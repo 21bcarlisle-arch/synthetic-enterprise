@@ -93,3 +93,74 @@ estimator could learn it until that remittance crosses as a ledger event.
 
 Knowledge: `docs/market_research/debt_and_collections.md` s.7.7, "The held per-debt rule, replayed
 on the varying world".
+
+## Successor pre-registration (written before the successor's replay ran; verbatim)
+
+```
+KNIFE3 successor, pre-registered 2026-11-20 before any replay of it ran. Same book (67d454905c), world
+f696fca4eb. Company change: learn() reads each written-off account's recovery as cash received AFTER
+its WRITE_OFF_CREDIT over the written-off amount (not customer cash over the closing balance); an
+account is resolved once write-off + the book's own observed write-off-to-remittance lag has passed
+(the lag is learned off the book, not read from a world constant); and the cell is the oldest unpaid
+bill's age at the last bill, over or under 12 months past due (Energy UK Fig. 5's published cut),
+read off the company's own fifo_unpaid_bills. The replay posts the write-off as WRITE_OFF_CREDIT on
+the world's WRITTEN_OFF date and the agency's RECOVERED amount as cash on its own date.
+
+S1. The learned lag is one value near 210 d (write-off +30 placement +180 outcome), in [200, 240].
+S2. The aged cell (over 12 months past due at close) reads in [0.04, 0.09], centre 0.063; the young
+    cell reads in [0.10, 0.15], centre 0.122. Aged < young in every case.
+S3. The direction's text says "so nothing sells at 5.4p or 7p". My own arithmetic disagrees at 7p: an
+    aged debt expected at 0.063 is SOLD at 0.070 (0.070 > 0.063). Predicted: at 0.054 SELL 0 and WORK
+    all; at 0.070 and 0.093 SELL every aged debt and WORK every young one. If the aged cell reads
+    above 0.070, 7p sells nothing and the direction's line holds.
+Landing rule (direction): land only if aged and young separate in the learned cells AND both SELL and
+WORK are reached at a published price (0.054 / 0.070 / 0.093). If either fails, land nothing more
+and record why here.
+```
+
+S4 (pre-registered after S1-S3 were read, before this run): the S1-S3 replay learns at 2025-07-04 and
+decides on the same debts, so it is in-sample. Out of sample: learn at as_of 2022-06-30, then decide only
+the debts written off after that date. Predicted: the aged cell, if it has resolved at least 5 debts by
+then, reads below 0.070 and the young cell above 0.093; at 0.070 every later aged debt is sold and every
+later young one worked. If the aged cell has fewer than 5, it sits near the book-wide figure and 0.070
+sells nothing.
+
+## The successor's replay, graded
+
+Script: `/var/tmp/k3succ/replay_succ.py` (machine-local; it is `replay_kept.py` plus the write-off
+posted as `WRITE_OFF_CREDIT` with its bill's `invoice_ref`, and the remittance earmarked to that
+bill), and `/var/tmp/k3succ/oos.py`. Print: `/var/tmp/k3succ/replay.log`.
+
+```
+as_of 2025-07-04 learned lag 210 book-wide 0.1117 resolved write-offs 198 GBP 7346.01 recovered 820.2
+  cell (False,) n 154 written off 6047.44 got 737.82 observed 0.122 learned 0.1219
+  cell (True,) n 44 written off 1298.57 got 82.38 observed 0.0634 learned 0.0645
+price 0.054: SELL 0 GBP 0.00 (aged 0) | WORK 215 GBP 8186.81
+price 0.07: SELL 54 GBP 1739.50 (aged 54) | WORK 161 GBP 6447.31
+price 0.093: SELL 54 GBP 1739.50 (aged 54) | WORK 161 GBP 6447.31
+OOS learn at 2022-06-30 lag 210 resolved 181 {(False,): (143, 0.122, 0.1219), (True,): (38, 0.0634, 0.0647)}
+price 0.07: later debts 33 SELL 16 (aged 16 of 16) WORK 17
+```
+
+- **S1 HELD.** The lag is 210 days.
+- **S2 HELD.** Aged 0.0645, young 0.1219. Both sit near their centres.
+- **S3 HELD, and the direction's line "nothing sells at 7p" was WRONG.** 0.070 is above 0.0645, so
+  every aged debt sells at 7p. Only 5.4p sells nothing.
+- **S4 HELD.**
+
+**A correction to the pre-registration's design, made after its first run and kept here.** My first
+build cut each ACCOUNT by its oldest FIFO-unpaid bill. That build read young 0.1137 and aged
+0.1118, and sold nothing at any price, so it failed the landing rule. There were two reasons:
+- FIFO credits payments to the oldest bill. The world's (and the company's) collections case is
+  per invoice, and the unpaid invoice is often the old one.
+- 7 of 73 accounts hold both aged and young write-offs.
+
+The build that landed makes one debt per written-off bill, using the ledger's existing
+`invoice_ref` and `remittance` fields. The pre-registered S1-S4 numbers were written for that
+design's intent: the cells separating aged from young. They were not refitted.
+
+**Disposition: the per-debt rule lands.** The cells separate aged from young, and both SELL and
+WORK are reached at 0.070 and at 0.093, both published prices. Ten tests guard it. Each
+deliberately injected defect (a "mutation") made at least one test fail: earmark, cut, per-cell
+figure, lag, cash before write-off, and cap. In-run the learner still resolves nothing, because the
+agency's remittance is not posted to the company's book. That is the next item.
