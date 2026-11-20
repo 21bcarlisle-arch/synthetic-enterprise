@@ -63,6 +63,9 @@ HDD_BASE_TEMP_C = 15.5
 
 # UK 1991-2020 HDD climate normals (base 15.5°C, England & Wales).
 # Sourced from Met Office HDD/CDD tabulations and Ofgem annual consumption data.
+# CHECK 2026-11-20: unreachable as cited. DESNZ ET 7.1's 1991-2020 mean (Met Office stations, base 15.5)
+# sums to 2,061 but runs ~22 HDD lower in Dec-Feb and 14-21 higher in Jun-Sep. Table and gap:
+# docs/market_research/the_domestic_gas_year_heats_on_about_85_percent_not_70_2026-11-19.md s.5a
 REFERENCE_MONTHLY_HDD: dict[int, float] = {
     1: 350.0,
     2: 315.0,
