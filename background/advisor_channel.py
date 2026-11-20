@@ -222,15 +222,70 @@ def _acknowledge(item: AdvisorFile) -> None:
         pass
 
 
+DIRECTION_REL = "docs/direction/DIRECTION.yaml"
+
+
+def _direction_records(root: Path) -> list:
+    """The working copy's and origin's `DIRECTION.yaml`, parsed; an unreadable one is skipped."""
+    import yaml
+
+    texts = []
+    try:
+        texts.append((root / DIRECTION_REL).read_text(encoding="utf-8"))
+    except OSError:
+        pass
+    shown = _git(root, "show", f"origin/main:{DIRECTION_REL}")
+    if shown.returncode == 0:
+        texts.append(shown.stdout)
+    out = []
+    for text in texts:
+        try:
+            out.append(yaml.safe_load(text))
+        except yaml.YAMLError:
+            continue
+    return out
+
+
+def waiting_on(root: Path, items: list[AdvisorFile]) -> dict[str, list[str]]:
+    """File name -> the open `for_the_director` row ids naming it, for each file that waits on him.
+
+    WHY (20 Nov). The 19 Nov site-login ruling was actioned as far as the machine can take it:
+    robots and noindex landed, the repo plan closed, and the remaining step, the Zero Trust sign-up,
+    is the director's, raised as row the-site-login-you-ruled-on-19. The signed file cannot be
+    edited without failing provenance, and it cannot go to done/ until the gate is proved. So every
+    tick drew it at rung zero "AHEAD of everything", re-read the same 403 reading, and found nothing
+    to do. A tick wrote "do not dispatch it again" in the record at 05:15, and the next tick was
+    handed it first anyway, because the draw reads no record.
+
+    A file waits when at least one row's `evidence` names it, and every such row in either copy is
+    still open. Once any of them is answered or withdrawn, the file is drawn normally again,
+    because an answer is new work. Closed rows are pruned at orientation, so the answer must be
+    acted on at that orientation, which is the seat's job (it carries every row).
+    """
+    from background.director_concerns import rows_of
+
+    rows = [r for rec in _direction_records(root) for r in rows_of(rec)]
+    out: dict[str, list[str]] = {}
+    for item in items:
+        rel = f"{ADVISOR_DIR_REL}/{item.path.name}"
+        naming = [r for r in rows if rel in str(r.get("evidence") or "")]
+        if naming and all(r.get("status") == "open" for r in naming):
+            out[item.path.name] = sorted({str(r.get("id")) for r in naming})
+    return out
+
+
 def rung_zero_text(repo_root: Path | str | None = None, *, acknowledge: bool = True) -> str | None:
     """The text every lane's draw puts FIRST, or None when the folder holds nothing to draw."""
-    items = scan(repo_root)
+    root = Path(repo_root if repo_root is not None else REPO_ROOT)
+    items = scan(root)
     if acknowledge:
         for item in items:
             _acknowledge(item)
-    drawable = [i for i in items if i.drawable]
+    waits = waiting_on(root, [i for i in items if i.drawable])
+    drawable = [i for i in items if i.drawable and i.path.name not in waits]
+    waiting = [i for i in items if i.path.name in waits]
     refused = [i for i in items if not i.drawable]
-    if not drawable and not refused:
+    if not drawable and not refused and not waiting:
         return None
     lines = []
     if drawable:
@@ -251,6 +306,12 @@ def rung_zero_text(repo_root: Path | str | None = None, *, acknowledge: bool = T
             "asked him to approve and how he answered (kinds and edges: "
             "docs/operations/DECISION_KINDS.md; codes: yes, changed, no, returned), or `Decision: "
             "none -- <reason>` when his words answer no recommendation.")
+    for item in waiting:
+        lines.append(
+            f"ADVISOR CHANNEL WAITING {ADVISOR_DIR_REL}/{item.path.name}: its next step is the "
+            f"director's, on open for_the_director row(s) {', '.join(waits[item.path.name])}. Do "
+            "not act on it this turn. It is drawn again at rung zero when any of those rows is "
+            "answered or withdrawn.")
     for item in refused:
         lines.append(
             f"ADVISOR CHANNEL REFUSED {ADVISOR_DIR_REL}/{item.path.name}: {item.refusal}. It is not "

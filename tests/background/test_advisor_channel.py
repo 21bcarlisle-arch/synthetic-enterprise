@@ -271,3 +271,40 @@ def test_his_words_in_a_blockquote_under_a_timed_lead_in_are_his_quoted_voice(re
     verdicts = {i.path.name: i for i in ac.scan(repo)}
     assert verdicts["A_quote.md"].attribution == "quoted"
     assert not verdicts["C_unquoted.md"].drawable
+
+
+# -- a file whose next step is the director's waits on its row (2026-11-20) ----------------------
+
+def _direction(repo: Path, *rows: tuple[str, str, str]) -> None:
+    import yaml
+    path = repo / ac.DIRECTION_REL
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(yaml.safe_dump({"for_the_director": [
+        {"id": rid, "status": status, "evidence": evidence} for rid, status, evidence in rows]}))
+
+
+def test_a_ruling_waits_while_every_row_naming_it_is_open_and_is_drawn_once_one_closes(repo):
+    """Control over the whole partition: drawn, waiting, and drawn-again-after-an-answer all reach,
+    so a rule that muted every file named in a row, or none, fails here."""
+    _write(repo, "A_ruling.md", '- 14:07: "Repo public. Website password"\n')
+    _write(repo, "B_steer.md", '- 09:49 BST: "Is there a way to create a separate channel"\n')
+    rel = f"{ac.ADVISOR_DIR_REL}/A_ruling.md"
+    _direction(repo, ("the-login", "open", f"{rel}; a record"),
+               ("canon-d11", "open", f"canon; {rel}"))
+    text = ac.rung_zero_text(repo, acknowledge=False)
+    first, waiting = text.splitlines()
+    assert "B_steer.md" in first and "A_ruling.md" not in first
+    assert waiting.startswith("ADVISOR CHANNEL WAITING") and "A_ruling.md" in waiting
+    assert "canon-d11, the-login" in waiting
+
+    _direction(repo, ("the-login", "open", rel), ("canon-d11", "answered", rel))
+    (only,) = ac.rung_zero_text(repo, acknowledge=False).splitlines()
+    assert "A_ruling.md" in only and "B_steer.md" in only and "WAITING" not in only
+
+
+def test_a_waiting_file_alone_still_reaches_the_rung(repo):
+    """The channel is never silent about a ruling: a waiting file is named, not dropped."""
+    _write(repo, "A_ruling.md", '- 14:07: "Repo public. Website password"\n')
+    _direction(repo, ("the-login", "open", f"{ac.ADVISOR_DIR_REL}/A_ruling.md"))
+    text = ac.rung_zero_text(repo, acknowledge=False)
+    assert text.startswith("ADVISOR CHANNEL WAITING") and "the-login" in text
