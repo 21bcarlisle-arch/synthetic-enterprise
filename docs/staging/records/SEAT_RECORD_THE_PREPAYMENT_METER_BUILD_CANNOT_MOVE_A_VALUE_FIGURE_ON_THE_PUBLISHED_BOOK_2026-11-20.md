@@ -86,3 +86,30 @@ The code-path argument is a reading, not a measurement. The one-variable confirm
 with f0445b2dc reverted, against 67d454905c as it stands: same seed, 2016 window. Prediction, filed now:
 **run_output byte-equal apart from `run_identity_fields`, and only the world-walk-truth companion differs, by its
 `prepayment_supply_events` key.** It is handed on as `f0445b2dc-one-variable-replay`.
+
+## The one-variable confirmation, graded (20 Nov, 04:04Z)
+
+**The prediction held on every figure.** The reading above is now a measurement.
+
+The two arms, in throwaway worktrees and run in parallel:
+- **as-is:** 67d454905c.
+- **reverted:** 67d454905c with `git revert --no-commit f0445b2dcb`. The revert was clean and touched 10 paths.
+
+Both ran `python3 -m tools.run_annual_report --fast --end-year 2016` with the default seed. Both carry world digest
+`cdba75ebb9197b33`. Outputs are under `/var/tmp/f0445-out/`, and the comparison is
+`/var/tmp/f0445-driver/compare.py`.
+
+| Prediction | Reading |
+|---|---|
+| run_output byte-equal apart from `run_identity_fields` | **Held for every figure.** Apart from the declared fields, exactly two leaves differ, and both are run identity: `_cache_meta.generated_at_utc` (04:00:48Z against 04:04:05Z), and `producing_commit.imports_off_commit.paths` (`[]` against the 6 code paths the uncommitted revert changed). The rendered annual report (877,783 chars) is byte-equal. |
+| only the world-walk-truth companion differs, by `prepayment_supply_events` | **Held.** `settlements_behind_the_walk`, `later_settlements`, `final_month_nets` and `missing` are equal. As-is carries `prepayment_supply_events` (2016: 56 prepayers on a meter, 23 interrupted, 17 for over 3h; 29 interruptions, 20 of them over 3h). The reverted arm has no such key. |
+
+*Correction to the prediction's wording, beside it:* `run_identity_fields` was the wrong boundary for "byte-equal
+apart from". That list declares the fields the promote census dates an artefact by
+(`tools/promoted_artefact_claim_census.py`). It does not list every field that differs from one run to the next. The
+two extra leaves above are a duplicate timestamp and the tree's own provenance, so neither is a figure. This is
+not a defect in the declaration.
+
+**Scope.** The run is 2016 only, `--fast` (the mock risk committee), and take-up is at 0. The claim covers the
+book as shipped. "When this stops holding" above still applies: once take-up is non-zero, a stock prepayer the
+desk later fits will carry its interruptions into the METER_RECOVERY gate.
