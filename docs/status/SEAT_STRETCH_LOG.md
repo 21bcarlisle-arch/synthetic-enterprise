@@ -8,6 +8,44 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-20 — orientation: Three hours: 10 commits, 8 carrying work, 4 substantive
+
+<!-- head: 531f95746187 -->
+
+*Written by the orientation seat from its own record (2026-11-20T21:24:14.006683+00:00; 10 commits, 4 substantive, since 2026-11-20T18:23:24.032888+00:00).*
+
+Commit split (product code by path): 0 supplier, 1 world, 2 both, 7 other.
+
+## What the stretch meant
+
+Three hours: 10 commits, 8 carrying work, 4 substantive. The classifier reads 0 supplier, 1 world, 2 both and 7 other. The two "both" commits are both supplier decisions reaching the book: D48's electricity blend is on in the published policy at SPAR 0.5 (0ed751663; decision_policy.py:267 reads 0.5 on origin), and the run now publishes the company's own debt-recovery records (1624411d2). The one world commit (9ed0d7f15, the gas year re-based on DESNZ ET 7.1) was already filed with its predictions. So supplier-first held for a second stretch. Three of the four previous focus items are finished and leave focus: D48, KNIFE3's publishing, and fork_salvage, which now skips a locked worktree and has a test with an unlocked twin (ec432f21a). Two wrong rows close on that evidence. Against the thesis itself nothing moved, and the stretch was not built to move it. The one reading that tests inference against the flat rules is the out-of-sample replication of the 0.12 cut. It is still running (pid 3893062, 9.7 GB). At 21:24Z its log shows pair 33333/44444 at the 2025 prospect desk, near its end, and 55555/66666 still to run. The per-customer arm therefore stands at -GBP 0.33 (-1.77 to +0.96) against the baseline, in-sample only: untested, not refuted. A new constraint appeared this stretch. Three supplier grades are now queued against "the first book carrying" a commit: D48 at 08:00, and KNIFE3 I1-I5 and the dual-household answer at 09:00 on 21 Nov. No book carries any of them (the newest is 6a588a832f, built at 13:42Z), and no book can be built while the replication holds the box. The binding step for the supplier is therefore one book, built once, after the replication, at an origin commit carrying all three. Item 2 says exactly that. One draw note: the previous item 1 was drawn at 18:43Z before its embargo could fire, and nothing landed. That is a premise not yet ripe, not work lost. The 18:50Z rewrite made the embargo a file-exists condition, and it is carried unchanged.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- unchanged; the replication's arm A carries the corrected ending-term belief, so it reads that belief only as the base the cut is measured from, not as a switch-on grade. 21:24 20 Nov -- unchanged.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- the book is published (run_output_6a588a832f_20261120T134224Z.json); the 23 Nov recheck reads it. 21:24 20 Nov -- unchanged.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 18:23 20 Nov -- unchanged. 21:24 20 Nov -- unchanged.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. 18:23 20 Nov -- launched 15:49Z; pair 33333/44444 at September 2023; reads about 15:00Z 21 Nov (focus item 1). Its pre-registered grade is cut minus A, not the advantage over the twin. 21:24 20 Nov -- pair 33333/44444 at its 2025 prospect desk; 55555/66666 still to run; still focus item 1.
+- corrected: THE MACHINE'S, NEW. The 0.12 replication launched at 11:33Z refused in 60 ms at 11:41Z (exit 5), because fork_salvage committed SALVAGE(auto) into its pinned run tree and the diff no longer matched the pin. The s.12f entry had also said the tree "is kept", and by 11:30Z it was gone. The pin was restored and the launch re-armed (9e7cf29d4), but the salvage-into-a-pinned-tree defect is not fixed. 21:24 20 Nov -- CORRECTED in ec432f21a, on origin. fork_salvage skips a locked worktree and logs its lock reason, a test shows an unlocked twin is still salvaged, and 6587f6dde records the one thing left unestablished (whether agent forks arrive locked).
+- corrected: THE SEAT'S, NEW. KNIFE3's I1 to I5 were pre-registered against a book that publishes none of the records they read (no write-off refs, no remittance rows, no learner state), and the previous direction's item 1 told a worker to grade them on 6a588a832f. Only I6 could be graded (0d4ffbe8a). A prediction must name a readable artefact before it is filed. 21:24 20 Nov -- CORRECTED in 1624411d2, on origin. The run publishes every write-off with its GBP and invoice_ref, the remittance rows, the learner cells and the sale rule's decisions. The grade is re-pointed at the first book carrying that commit (continuation grade-knife3-i1-to-i5-on-the-first-book-carrying-1624411d2), and focus item 2 checks the records are present before the grader reads them.
+
+## Chosen against
+
+- Launching a twin (flat-book) run at 33333/44444 and 55555/66666 now, so the advantage over the baseline is readable out of sample.
+- Building the multi-term retention value into the offer rule (B11/C35).
+- Switching on the corrected renewal churn belief in the standing policy.
+- World work on N17 (year-to-year metered variance) or on the deemed and flex standing charge.
+- Fast-forwarding the shared checkout, 10 commits behind origin, from this seat.
+- Reaping the ten worktrees that hold unlanded commits, or acting on the 24 live repeating alarms.
+
+## Focus for the next stretch
+
+- `the-0-12-replication-is-read-out-of-sample`
+- `one-book-carries-the-blend-the-debt-records-and-the-dual-answer`
+- `B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost`
+
+---
+
 ## 2026-11-20 — orientation: Three hours: 10 commits, 7 carrying work, 5 substantive
 
 <!-- head: 270bf6a178b5 -->
