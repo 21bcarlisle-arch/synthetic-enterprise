@@ -1,5 +1,7 @@
 **Severity:** RECORDED · **Lane:** C_customer_ops · **Epoch:** 4 · **Atom:** `C35_the_supplier_finds_the_share_of_value_it_prices_by_optimising_joint_value_against_the_households_response` — measurement instrument; direction item `switch-on-nba-per-household-after-the-c35-grade`
 
+**Disposition:** fixed -- 608c0d0fa4 adds riding_leg_row (tools/decision_probe.py:309) and its test; prereg G1-G7 held (75 riding gas rows). (supplier triage batch 2, 20 Nov 2026)
+
 # The decision probe sees a dual household only through its electricity leg, so C35 per household merges nothing
 
 Grade and figures: §8 of

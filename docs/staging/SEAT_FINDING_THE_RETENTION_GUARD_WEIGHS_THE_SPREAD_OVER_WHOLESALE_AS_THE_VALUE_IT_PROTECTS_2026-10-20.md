@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** C_customer_ops · **Epoch:** 4 · **Atom:** `C29_decisions_stop_being_lookup_tables`
 
+*Triage, 20 Nov 2026 (supplier batch 2, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_2_2026-11-20.md): **parked**. The value defect is fixed (c61d8b608c, ec7fd9942b). Still true: the guard does not weigh the chance the offer changes the outcome (retention_weighs_engagement False, decision_policy.py:173); that arm sits in the machine queue behind churn_roll, candidate A and M7 (81042a7c3c). Atom C29. Revisit 2026-11-27 with batch 1 #1.*
+
 # The retention guard weighs the spread over wholesale as the value it protects
 
 **Found by** the delivery seat on 20 Oct 2026. It turned up while giving C34 a margin net of

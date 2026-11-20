@@ -1,5 +1,7 @@
 **Severity:** RECORDED · **Lane:** B_commercial · **Epoch:** 4 · **Atom:** `B11_forward_clv_backtested_on_held_back_history` — measurement instrument; direction item `why-the-switch-key-lost-its-2023-whole-book-clearance-on-the-dual-book`
 
+**Disposition:** fixed -- Within-segment ranking (stratified DeLong, forward_clv.py:428); B11 graded on it (27ca9dc7a2); seed-family stamp c52f831135; cause diagnosed 4958a49455. (supplier triage batch 2, 20 Nov 2026)
+
 # The switch key's whole-book gain over flat was two-thirds flat's own inverted gas segment
 
 Evidence and grade:

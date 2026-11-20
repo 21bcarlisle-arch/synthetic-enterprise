@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used`
+
+**Disposition:** fixed -- Accrual built 75aff1401e (billing_accuracy.py:482,558); releases release_on_measured_rate (pre_bill_validation.py:417). Billed-vs-settled (K6) stays a GAP on D48's L3 park. (supplier triage batch 2, 20 Nov 2026)
 **Knowledge:** unbilled-energy-and-revenue-assurance
 
 # D48's unbilled accrual: what it is in this run, and what it measured (2026-10-20)

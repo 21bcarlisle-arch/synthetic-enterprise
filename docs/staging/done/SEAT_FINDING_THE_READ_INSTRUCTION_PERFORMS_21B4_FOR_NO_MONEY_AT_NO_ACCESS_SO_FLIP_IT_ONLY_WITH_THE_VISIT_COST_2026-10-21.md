@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used` · **Claim:** `grade-the-read-instruction-arms-at-both-access-ends` (Lane 0 delivery)
+
+**Disposition:** fixed -- The flip landed with the visit cost in 026b3c650d (decision_policy.py:242 True; GBP 3/visit read_duty_register.py:63; posted accounting_close.py:163). INV_READ_DUTY_ANNUAL 0 of 1,132 breached. (supplier triage batch 2, 20 Nov 2026)
 **Knowledge:** read-access-and-theft-duties
 
 # The read instruction performs SLC 21B.4 and, at no access, moves no money. Flip it on in the standing policy, but only in the same change that charges the visit

@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used`
+
+*Triage, 20 Nov 2026 (supplier batch 2, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_2_2026-11-20.md): **parked**. Meter exchange built off (a60376f887, SMART_METER_EXCHANGE False, meter_reads.py:441); bill side 397cc8df3c; flip pre-registered 8fdd23cad4 and queued after churn_roll, candidate A, B11 M7, retention-netting. Atom D48. Knowledge gap: in-book install rate. Revisit 2026-12-04.*
 **Knowledge:** unbilled-energy-and-revenue-assurance
 
 # D48's flat estimated share is the book's meters, not the read model: no meter is ever exchanged after acquisition, so in 2024 the book is 29% smart against about 69% nationally (2026-10-21)

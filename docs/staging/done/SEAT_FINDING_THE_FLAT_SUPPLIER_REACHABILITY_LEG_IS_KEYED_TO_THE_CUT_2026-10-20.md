@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 4 · **Atom:** `B11_forward_clv_backtested_on_held_back_history` · **Claim:** `repair-the-flat-supplier-reachability-leg` (Lane 0 delivery)
 
+**Disposition:** fixed -- abe7ce5336 on bf0997494b: the reachability leg runs to 2017-12-31 and checks STOPPED_BEFORE_THE_CUT; kept by 94b281af7e. (supplier triage batch 2, 20 Nov 2026)
+
 # The flat supplier's reachability leg is keyed to the cut, not to an offer
 
 Repairs `SEAT_FINDING_THE_FLAT_SUPPLIER_REACHABILITY_LEG_IS_RED_ON_ORIGIN_BECAUSE_THE_GUARD_NOW_OFFERS_NOTHING_IN_2016_2026-10-20`

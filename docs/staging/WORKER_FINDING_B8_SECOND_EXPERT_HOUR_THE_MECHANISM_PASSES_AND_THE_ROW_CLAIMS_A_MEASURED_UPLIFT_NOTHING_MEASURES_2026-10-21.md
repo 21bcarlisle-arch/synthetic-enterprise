@@ -1,4 +1,6 @@
 **Severity:** RECORDED · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** `B8_discovered_price_sensitivity_holdout`
+
+*Triage, 20 Nov 2026 (supplier batch 2, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_2_2026-11-20.md): **real**. Q6 closed by 975c90319a (the holdout is right off at this scale), so the row's claim 'proven by measured uplift' (simplifications/B8_...yaml map_notes) cannot be met and still stands; RETENTION_OUTCOME_WINDOW_DAYS None. Rank low. Atom B8: reword the row's claim; the matching canon claim (THE_MODEL_ON_A_PAGE.md:244,379) is a director document, so a proposal. Knowledge gap: Q9 (direction of the prior's bias).*
 **Knowledge:** none -- a blind review graded against the tree; no new domain claim
 
 # B8's second Expert Hour: the mechanism passes and the claim does not. The row promises an uplift "proven by measured uplift", and at this scale nothing measures it (2026-10-21)
