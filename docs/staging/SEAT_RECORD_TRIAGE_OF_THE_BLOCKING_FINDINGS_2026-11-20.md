@@ -69,6 +69,16 @@ still real: any worktree with a leftover plain ledger reads a different book fro
 committed. The fix is a one-leg check: refuse, by name, when both forms exist and their
 `meta.source_json` differ. It is handed on, not built here.
 
+**Built 2026-11-20 (delivery lane `a-leftover-plain-ledger-shadows-the-committed-gz`).**
+`resolve_ledger` now raises `LedgerFormsDisagree` when both forms exist and their `meta` headers
+differ (the whole header, so a regenerated book from the same run is caught too), naming both
+files and both `source_json`. Only each file's head is read. Mutation-proven: never-refuse,
+always-refuse and an unreadable head each red
+`tests/company/billing/test_the_billing_ledger_is_committed_gzipped.py`. Replayed on a clean
+worktree with a `/var/tmp/w14/run.json` plain ledger, the defect-4 test now stops with the named
+refusal instead of five false inversions. The shared tree's two forms are byte-identical today, so
+it does not refuse there.
+
 ## Next
 
 The 92 supplier money findings (lanes B, C, D and E) are handed on in batches of about 20, the
