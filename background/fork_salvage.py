@@ -93,6 +93,9 @@ def scan_worktrees() -> list[dict]:
             current["branch"] = line[len("branch "):].strip().replace("refs/heads/", "")
         elif line.startswith("bare") or line.startswith("detached"):
             current[line.split()[0]] = True
+        elif line == "locked" or line.startswith("locked "):
+            current["locked"] = True
+            current["locked_reason"] = line[len("locked"):].strip() or None
     if current:
         worktrees.append(current)
     return [w for w in worktrees
@@ -188,13 +191,22 @@ def salvage_all(*, worktrees: list[dict] | None = None, now: float | None = None
     """Salvage every dirty non-main worktree. THE entry point; never raises."""
     try:
         candidates = scan_worktrees() if worktrees is None else worktrees
-        results = [salvage_worktree(w, now=now) for w in candidates if is_dirty(w["path"])]
+        # A LOCKED worktree is git's own "leave this tree alone" marker, and the trees this project
+        # pins a long run to (the value tests') are locked for exactly that reason. On 20 Nov a
+        # salvage commit inside the locked /var/tmp/value-test-cut012 moved its diff off the pin and
+        # the replication refused to start (exit 5). Skipped whether dirty or not, and named in the log.
+        locked = [w for w in candidates if w.get("locked")]
+        results = [{"path": w["path"], "branch": w.get("branch"), "action": "SKIPPED_LOCKED",
+                    "reason": w.get("locked_reason") or "locked, no reason given"} for w in locked]
+        results += [salvage_worktree(w, now=now) for w in candidates
+                    if not w.get("locked") and is_dirty(w["path"])]
         salvaged = [r for r in results if r["action"] == "SALVAGED"]
         failed = [r for r in results if r["action"] == "FAILED"]
         return {
             "scanned": len(candidates),
             "salvaged": len(salvaged),
             "failed": len(failed),
+            "skipped_locked": len(locked),
             "results": results,
             "main_tree": main_tree_dirty_report(),
         }
@@ -208,10 +220,14 @@ def format_report(summary: dict) -> str:
         return f"- [{stamp}] FORK-SALVAGE ERROR: {summary['error']}"
     if not summary["scanned"]:
         return f"- [{stamp}] FORK-SALVAGE: no non-main worktrees to check"
+    skipped = [f"    SKIPPED  {r['path']} (locked: {r['reason']})"
+               for r in summary["results"] if r["action"] == "SKIPPED_LOCKED"]
     if not summary["salvaged"] and not summary["failed"]:
-        return f"- [{stamp}] FORK-SALVAGE: {summary['scanned']} worktrees, all clean — nothing at risk"
+        head = ("all clean" if not skipped else "none salvaged") + " — nothing at risk"
+        return "\n".join([f"- [{stamp}] FORK-SALVAGE: {summary['scanned']} worktrees, {head}",
+                          *skipped])
     lines = [f"- [{stamp}] FORK-SALVAGE: {summary['salvaged']} salvaged, "
-             f"{summary['failed']} failed, of {summary['scanned']} worktrees"]
+             f"{summary['failed']} failed, of {summary['scanned']} worktrees", *skipped]
     for r in summary["results"]:
         if r["action"] == "SALVAGED":
             lines.append(f"    SALVAGED {r['branch']} -> {r.get('sha', '?')}  ({r['path']})")
