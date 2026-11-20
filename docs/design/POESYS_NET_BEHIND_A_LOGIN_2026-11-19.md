@@ -2,7 +2,7 @@
 
 # poesys.net goes behind a login: what is gated, what stays public, how to reverse it
 
-The K8 note for `docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md`.
+The K8 note for `docs/staging/advisor/done/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md`.
 Written before any Cloudflare change.
 
 ## What the login does and does not do

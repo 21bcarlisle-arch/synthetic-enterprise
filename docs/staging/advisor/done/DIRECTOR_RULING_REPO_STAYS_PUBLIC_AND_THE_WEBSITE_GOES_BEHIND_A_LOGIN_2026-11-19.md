@@ -42,3 +42,16 @@ relays that he got in, move this file to `done/`. No other work is owed here.*
   - Record how to reverse it: remove the Access application.
 
 **Proportionality:** reversible, and it changes security posture on the director's explicit word. Implement it with the named mitigations. DNS and payment remain his.
+
+## Done
+
+*20 Nov (delivery seat).*
+
+Moved to `done/` once seen. The advisor channel refused this file because commit 39337b8c6 is unsigned.
+The advisor's own staging commit ee46f6711 verifies, and the only unsigned change is the delivery seat's
+dated status note above, so the ruling's words are its signed bytes. The work it asks for landed in
+39337b8c6: the password gate is live and refuses an anonymous fetch on every route. The one step still
+owed, his first successful login, is carried on `for_the_director` row `the-site-login-you-ruled-on-19`
+in `docs/direction/DIRECTION.yaml`, and this file is no longer needed to hold it.
+
+Decision: none -- his words answer for_the_director row the-github-repository-is-still-public-gh, coded on its row; coding this file as well would count it twice
