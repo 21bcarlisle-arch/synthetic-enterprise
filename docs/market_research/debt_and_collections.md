@@ -1024,6 +1024,46 @@ world it could not fail in-run. The sensitive-circumstances exclusion is the one
 evidence supports without a varying world, and it should land with that successor. Finding:
 `docs/staging/SEAT_FINDING_A_PER_DEBT_SALE_RULE_HAS_NOTHING_TO_DISCOVER_WHILE_THE_WORLD_RECOVERS_ONE_SHARE_OF_EVERY_DEBT_2026-11-20.md`.
 
+**The world's recovery now varies with the debt's age at close (2026-11-20).** A further pass
+looked for recovery after write-off split by something a supplier sees.
+- *Age, ESTABLISHED in direction, every source agrees.* Energy UK Fig. 5 (s.2.5): debt over 12
+  months old recovers 31%, 15% and 9% against 60%, 56% and 38% under 12 months (2022-23 to
+  2024-25), so 0.52, 0.27 and 0.24 of the younger debt. Centrica's closed-account coverage rises
+  with days beyond invoice (s.7.7 above; 0.316, 0.576, 0.878), but its last bucket is open at
+  90 days, so it does not split written-off debt. Ofgem's bottom-up debt-cost method would use
+  "debt levels by debt characteristics (ie age of debt, payment method and live/final)" with
+  "historical data on supplier recoverability rates" (Appendix 2, Debt-related costs, Dec 2024).
+  So the rates exist and are not published. Economic Insight for Yorkshire Water (PR24
+  Appendix 8e): "the older the debt gets, the less likely it is to recover it".
+- *Age since charge-off is a different quantity.* The FTC's price regression (*The Structure and
+  Practices of the Debt Buying Industry*, Jan 2013, Table 7; US, 3,399 portfolios) puts 3-6 year
+  debt about 4.8 cents per dollar below debt under 3 years, against a baseline of 7.9 cents. 6-15 years is 5.7 cents below and
+  15+ years 9.2 cents below. But the FTC measures age "since charge-off rather than the time since
+  default" (p. 42). Here that is the delay from write-off to placement, which is one company date for
+  every debt, so it does not separate debts.
+- *Balance: no effect is the evidence.* FTC Table 7 finds no significant price difference by face
+  value. The world does not vary recovery by balance. That is not an omission.
+- *Contact and arrangement history, and paying versus non-paying sale prices: still GAP.* Nothing
+  was found for GB with figures. A consumer site says a non-paying debt "may have been sold for
+  very little, just a penny or two in the pound", and one under a payment plan "for more" (Debt
+  Camel). That is directional only. The FTC also finds debt already worked by a contingency agency
+  sells 1.4 cents lower.
+
+**The design's choice.** A closed account's bill that was more than 12 months overdue when the
+account closed recovers `post_write_off_recovery_aged_over_young` (0.52, range 0.24-0.52)
+times the register share. A younger one recovers the register share. The age runs from the bill's
+own due date to the final bill, which the supplier reads off its own ledger. The 12-month split is
+Energy UK's own cut, not a chosen threshold. 0.52 is the least steep published year: the
+flattest gradient gives a per-debt rule the least to find (F11). The register share stays anchored on
+the younger cell. Centrica's 0.878 covers older balances too, so the true younger share is
+higher, and the world's book-wide recovery sits below the company's prior. On book 67d454905c,
+64 of 240 close-leg debts (GBP 1,975.50 of 8,794.84) are aged. The world recovers 0.109 per GBP
+against the company's 0.122. At 0.24 it is 0.101. So the company's belief is no longer the
+world's truth by construction, and an estimator keyed on months unpaid at close (the held branch
+above) now has a real split to find. Still owed: drawing the register share itself per world
+from its range (0.104-0.245), rather than reading the default. That is a change to the
+baseline world, so it goes with the curriculum record, not here.
+
 ---
 
 ## 8. Gaps

@@ -61,3 +61,29 @@ flat. That agrees with point 1 above. New evidence went to s.7.7. A broker's deb
 says sellers exclude "accounts not eligible for sale due to sensitive circumstances" (TDX/Equifax),
 so the vulnerability GAP is corrected. L.E.K. puts purchasers' collections at about 2x price, so
 about 11-19p per GBP, which brackets 0.122.
+
+## Done
+
+2026-11-20, `world-first-post-write-off-recovery-that-varies-by-what-a-supplier-sees`. World first.
+The world's recovery after write-off now varies with the written-off bill's age at close. That is
+the bill's due date to the final bill, read off the supplier's own ledger.
+`simulation/arrears_engine.dca_recovered_amount` multiplies the register share by
+`post_write_off_recovery_aged_over_young` (register, 0.52, range 0.24-0.52, from Energy UK Fig. 5)
+when the bill was more than 12 months overdue at close.
+
+Measured by replaying compute_debt_recovery on book 67d454905c. The prediction (GBP 957.29) was
+written before the run.
+- 64 of 240 close-leg debts are aged: GBP 1,975.50 of GBP 8,794.84.
+- Recovered: GBP 1,072.97 before, GBP 957.31 after.
+- Per GBP written off, the world recovers 0.1088 against the company's PRIOR_POST_CLOSE_RECOVERY
+  of 0.122. So the company's belief is no longer the world's truth by construction.
+
+Knowledge is in debt_and_collections.md s.7.7.
+- The FTC age gradient is age since charge-off, so it does not separate debts here.
+- Balance has no significant effect (FTC Table 7), so the world does not vary by it.
+- Contact and arrangement history, and paying versus non-paying sale prices, remain GAP.
+- Still owed: drawing the register share itself per world from its range. That is a baseline
+  change, so it goes with the curriculum record.
+
+The per-debt company rule held at branch `knife3-per-debt-sale` (9fcd4a53fa) now has a split to
+find. Its cell, months unpaid at close, sits on the same axis. It can be drawn.

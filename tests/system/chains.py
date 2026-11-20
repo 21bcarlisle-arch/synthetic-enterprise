@@ -504,7 +504,7 @@ def run_money_chain(
     )
 
     # link 5 — arrears → recovery / write-off
-    recovered_gbp = arrears_engine.dca_recovered_amount(arrears_gbp, "PERSISTENT")
+    recovered_gbp = arrears_engine.dca_recovered_amount(arrears_gbp, 0)
 
     return {
         "actual_event": forced_actual,
