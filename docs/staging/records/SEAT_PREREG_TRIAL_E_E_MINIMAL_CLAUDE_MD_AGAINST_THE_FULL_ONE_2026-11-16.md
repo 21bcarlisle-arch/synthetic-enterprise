@@ -154,3 +154,82 @@ Twenty dropped lines have no case:
 **So a clean golden result licenses dropping those twenty from the always-loaded file, and not from the
 project.** That repeats the bound already written above. Cases for 24 (`1b98c83609`) and 26
 (`7bb9daa465`) would change the decider after its 17 Nov fix, so they are listed as candidates, not added.
+
+## Amendment, 20 Nov, before any golden run: a third outcome, move to a diff-triggered item
+
+*Director steer, 20 Nov ("Yes stage it", 09:08 GMT), item 3:
+`docs/staging/advisor/done/DIRECTOR_STEER_GATES_JUDGE_FROM_THE_BASE_PROPERTY_TESTS_FOR_BILLING_AND_DIFF_TRIGGERED_CHECKS_2026-11-20.md`.
+Written before any counted golden run: `docs/operations/efficiency_e_e_golden_runs.jsonl` does not yet exist.*
+
+**The outcomes are now keep, drop, or move.** A line whose absence fails a task goes back in, as
+before, unless it has a diff-triggered item. In that case the failing task is rerun twice more on
+the minimal arm, with the item delivered:
+- if it passes both runs, the line **moves**: the item goes live and the paragraph leaves `CLAUDE.md`;
+- if not, the line is **kept**.
+
+A line whose absence shows nothing is dropped as before. Its item, if it has one, may still move,
+because that costs nothing on a turn the item does not fire.
+
+**The checklist:** `docs/operations/diff_triggered_checks/`, nine items. Each item is a markdown
+file in the `.claude/rules/` shape:
+- `paths:` frontmatter;
+- `symbols:` regexes over added lines;
+- `added_only:` for new files;
+- a check and its lineage;
+- `fired_on:`, a past commit that touched what the item guards.
+
+`python3 -m tools.diff_triggered_checks --staged | --commit SHA` prints the items a diff triggers.
+`--verify` refuses an item that does not fire on its own `fired_on`
+(`tests/tools/test_diff_triggered_checks.py`).
+
+**The items are inert during the trial.** No session loads that directory, so neither arm changes.
+How an item goes live:
+- **A paths-only item** (`map-row-headroom`, `a-published-quantity`) goes live by `git mv` into
+  `.claude/rules/`, the mechanism the wall reminders already use.
+- **An item with `symbols` or `added_only`** has no loader. The loader is an edit-time hook that
+  runs `match`. It is built only when such an item earns a move, not before.
+
+**What moves, measured 20 Nov on the full file:** the items carry 4,980 of 23,818 characters,
+about 2,072 of about 9,908 always-loaded tokens (21%). The 4,980 characters are 14 paragraphs.
+These are lineage rows 10-13, 15, 21, 23-30, 71, 73 and 76:
+
+| Item | CLAUDE.md lineage rows | Characters |
+|---|---|---|
+| `a-domain-constant` | 10-13, 71 | 1,542 |
+| `a-published-quantity` | 15, 26, 28 | 1,108 |
+| `a-guard-and-its-tests` | 23, 24, 25, 27 | 943 |
+| `map-row-headroom` | 73 | 683 |
+| `a-new-module` | 30, 76 | 350 |
+| `a-billing-formula` | 21 | 186 |
+| `parked-atom-before-minting` | 29 | 168 |
+
+Two more items carry no characters:
+- `one-rule-many-implementations` is only the VAT-shaped part of row 70. The interconnection review
+  is a whole-tree question that no diff names, so row 70 stays always-loaded.
+- `a-waiter` backs row 62, which is one line of the enforcement table.
+
+**Selectivity,** over the last 200 non-merge commits on origin/main:
+- 106 trigger no item;
+- the median commit triggers 0 items, and the most any commit triggers is 6;
+- the broadest items are `a-guard-and-its-tests` (40 of 200) and `a-published-quantity` (39).
+
+**Lines with no diff-readable trigger, which stay keep-or-drop:** 8, 9, 14, 16, 17, 19, 20, 22, 31,
+32, 33-45, 77, 78, 80, 81. Each of these is about how a turn proceeds or ends (stopping, asking,
+escalating, attributing, spending), not about what a diff contains.
+
+**What the golden set can show of this, said before it runs:**
+- Only g08 exercises an item's habit through a diff the item can see.
+- The first draft of `a-billing-formula` was scoped to `company/billing`, `payments`, `pricing` and
+  `saas`. It would **not** have fired on g08, whose formula is in `tools/`. This is the steer's
+  "trigger too narrow" failure. It was widened to a money word with arithmetic in any Python file,
+  and a test now holds that reach.
+- g03 commits a markdown file, so `a-new-module` cannot fire there.
+- g07's change is another lane's, not the turn's own diff.
+
+So "protection held in the golden set" can be read for row 21 only. For every other item it is
+untested, and the report will say so.
+
+**My prediction:** the minimal arm fails g08 in at least one run, as predicted on 17 Nov. With
+`a-billing-formula` delivered, it passes both reruns. I hold this weakly. The item has to reach the
+turn before the test is written. An edit-time hook fires on the formula's own Write, which comes
+before the test's, so the ordering is possible but not shown.
