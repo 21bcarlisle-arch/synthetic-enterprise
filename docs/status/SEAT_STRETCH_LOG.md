@@ -8,6 +8,90 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-20 — orientation: Three hours: 18 commits, 13 carrying work, 9 substantive
+
+<!-- head: e03e7418526a -->
+
+*Written by the orientation seat from its own record (2026-11-20T12:20:35.333416+00:00; 18 commits, 9 substantive, since 2026-11-20T09:20:07.819595+00:00).*
+
+Commit split (product code by path): 1 supplier, 0 world, 0 both, 17 other.
+
+## What the stretch meant
+
+Three hours: 18 commits, 13 carrying work, 9 substantive. The split reads 1 supplier, 0 world and 17 other, and 5 of the 18 are merges that changed nothing. Two of the "other" landings did supplier work: the value test's attribution and the KNIFE3 remittance crossing. Even so, supplier-first slipped a second stretch running, mostly to the director's two 20 Nov steers (the blind audit, and gates judged from the base). Both of those finished, and they were rung zero, so the slip was chosen. The thesis moved forward on one point, still in-sample. The 0.12 cut's +GBP 1.00 on the value arm is now attributed (9e7cf29d4). All of it is on added-offer households (+GBP 0.996, CI +0.24 to +2.07), carried by nine (seed, household) units that A lost and the cut kept to the end of the window. The knock-on redraws carry +GBP 0.000 across 78 penny moves. So the gain is not redraw noise. It is the company retaining customers it had a reason to retain, which is the kind of advantage the thesis asks for: inference, not access. My pre-registration missed all four lines, and the miss is informative. The offer prices one term of margin (+GBP 0.088), but the value is retention beyond one term (+GBP 1.041). So the company's own decision rule undervalues what its inference finds. Against the flat-rules baseline it still reads -GBP 0.33 (-1.77 to +0.96) on the pair the cut was fitted to. The replication on 33333/44444 and 55555/66666 died in 60 ms at 11:41Z: fork_salvage committed into its pinned worktree. It is re-armed (vtc-cut012-rep-watch), but box_free says "a book is owed". That book cannot start. Since 12:02Z, sim-runner has deferred every cycle, because company/billing/ledger_store.py holds origin's bytes and not HEAD's. The shared checkout is 43 commits behind origin, and 137 paths stop its fast-forward. That one stall now holds every grade the supplier is waiting on: KNIFE3 I1-I6 (the remittance crossing, 7d99949ce), the D48 blend, the gas-fallback split, and through the box the value-test replication. It also leaves every daemon running pre-6aaec3c8b code. So it is item 1, even though it is not supplier work itself. The previous focus was drawn on 4 of 5 items. The blind audit, the base-judging gate (observe mode), the attribution and the KNIFE3 remittance all finished and disappear from focus. D48 was dated to 20:00Z and stays, because company/policy/decision_policy.py on origin still has the blend at None. Draw-ledger hygiene is still owed. the-0-12-pair-is-read-... is spent by b1e04fab3. poesys-net-goes-behind-a-login landed as ff5b0224b and 5be769d15. Neither is bound yet.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 12:20 20 Nov -- unchanged; the replication runs with the weighing off, so it does not test this belief.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 12:20 20 Nov -- unchanged; the 23 Nov recheck stands on 67d454905c or the next book, which item 1 unblocks.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 12:20 20 Nov -- unchanged as re-stated.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. 12:20 20 Nov -- the attribution half is answered (9e7cf29d4: all +GBP 1.00 is on nine retained households, none is redraw noise); the replication died at launch and is re-armed behind the owed book.
+- NOT corrected: THE MACHINE'S, NEW. Four grading commits carry trailers the learning loop cannot parse (617ec5faa9 D48, 47881a984c level-dd, 22f1dfa987, f165c9b1ee), so their grades are missing from the hit rates. D48's grade is one of them. 12:20 20 Nov -- now focus item 4.
+- NOT corrected: THE MACHINE'S, NEW. The 0.12 replication launched at 11:33Z refused in 60 ms at 11:41Z (exit 5), because fork_salvage committed SALVAGE(auto) into its pinned run tree and the diff no longer matched the pin. The s.12f entry had also said the tree "is kept", and by 11:30Z it was gone. The pin was restored and the launch re-armed (9e7cf29d4), but the salvage-into-a-pinned-tree defect is not fixed.
+- NOT corrected: THE MACHINE'S, NEW. No book could start this stretch. Since 12:02Z, sim-runner has refused every cycle because a company file in the shared tree holds origin's bytes while HEAD is 43 commits behind, and 137 paths stop the fast-forward. Nothing raised it. The brief's divergence block was the only place it showed. Focus item 1.
+- corrected: THE MACHINE'S, NEW. My pre-registration of where the 0.12 cut's +GBP 1.00 sits missed all four lines (graded held=0 missed=4 in 9e7cf29d4): it put +GBP 0.40 on knock-on redraws, which read +GBP 0.000. The miss is kept beside the result in THE_VALUE_TEST_REDESIGN.md s.12f.
+
+## Chosen against
+
+- Building a forward, multi-term retention value into the offer rule now, because the attribution shows the value is retention beyond one term (+GBP 1.041) while the offer prices one term (+GBP 0.088).
+- Launching the value-test replication by hand, ahead of the owed book.
+- Fixing fork_salvage so it never commits into a locked run worktree, as a focus item.
+- The base-judging gate's step to enforce, plus the Hypothesis property tests and the diff-triggered trial.
+- Switching on the corrected renewal churn belief (the AUC 0.333 row).
+- World work on N17's year-to-year electricity term (W2_30), which took this morning's only world commit.
+- Reaping the 10 worktrees that hold unlanded commits.
+
+## Focus for the next stretch
+
+- `the-shared-checkout-rejoins-origin-so-the-book-runs`
+- `d48-the-electricity-blend-goes-on-in-the-published-policy`
+- `a-dual-household-answers-its-anniversary-offer-once`
+- `the-four-unparsed-grades-reach-the-learning-loop`
+
+---
+
+## 2026-11-20 — orientation: Three hours: 26 commits, 20 carrying work, 10 substantive
+
+<!-- head: 469170421ece -->
+
+*Written by the orientation seat from its own record (2026-11-20T09:20:07.819595+00:00; 26 commits, 10 substantive, since 2026-11-20T06:22:14.056314+00:00).*
+
+Commit split (product code by path): 2 supplier, 1 world, 0 both, 23 other.
+
+## What the stretch meant
+
+Three hours: 26 commits, 20 carrying work, 10 substantive. The split reads 2 supplier, 1 world and 23 other, and 6 of the 26 are merges that changed nothing. Supplier-first slipped this stretch. Most of the "other" was the director's own ruling (the site password gate, the D11 sentence) and the findings triage he asked for at 05:58, so the slip was chosen, not drift. The thesis test answered, and the answer is "not yet, and not worse". The 0.12 pair (b1e04fab3) took the per-customer arm's loss against A to a gain of +GBP 1.00 (+0.27 to +2.05), with the flat book unmoved (-0.02). So the whole advantage over the flat-rules twin moves from -GBP 1.35 (-3.03 to +0.13) to -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households. Two things keep that from being a result. First, 0.12 was fitted on this same pair, so this is a hold in-sample, not a replication. Second, only about a tenth of the +GBP 1.00 traces to the added offers' retained margin. If the rest is knock-on churn-roll redraws, it is noise and not inference. The old wrong row closes by its own pre-stated test (published with its interval, whatever its sign), and the residual is carried as a new row. KNIFE3's per-debt rule landed (19d8763df) and decides correctly offline: aged debts learn 0.0645 and young 0.1219, against the world's 0.063 and 0.122. In-run it resolves nothing, because the agency's remittance never crosses into the company's book, so every debt is decided at the prior. That is a flat rule in disguise and is item 4. The previous focus was drawn on 3 of 4 items: the pair read, the KNIFE3 landing and the triage all finished. D48 is dated to 20:00Z, not stalled. Lane 0's not_done row, poesys-net-goes-behind-a-login, landed under other names (ff5b0224b, 39337b8c6, and the side-door sweep 5be769d15, run 44702018437 green at 08:22Z), and its draw-ledger binding is still owed. The director's two 20 Nov steers are rung zero, oldest first, so they lead. The checkout is 25 behind origin, and every daemon imports pre-19d8763df billing code until it fast-forwards.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 09:20 20 Nov -- unchanged; s.12f ran with the weighing off, so it did not test this belief.
+- corrected: THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 09:20 20 Nov -- CORRECTED by its own triage test (published with its interval, whatever its sign): b1e04fab3 reads the value arm at +GBP 1.00 (+0.27 to +2.05) against A with the 0.12 cut, and the flat book at -0.02. The residual is carried as a new row.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 09:20 20 Nov -- unchanged; the 23 Nov recheck stands on 67d454905c or the next book.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 09:20 20 Nov -- unchanged as re-stated.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, the cut was fitted on the same pair, and about nine tenths of the value arm's +GBP 1.00 is not attributed. Focus item 3.
+- corrected: THE MACHINE'S, NEW. 39337b8c6 (08:15) said every route refuses an anonymous fetch. It had read the named hostnames, not every deployment address, and the pre-gate Pages deployments c156dcf3 and 09a031ce still served the whole site with 200. Corrected by 5be769d15: sweep run 44702018437 finished green at 08:22Z, and it re-reads what is left and fails if any deployment still serves.
+- NOT corrected: THE MACHINE'S, NEW. Four grading commits carry trailers the learning loop cannot parse (617ec5faa9 D48, 47881a984c level-dd, 22f1dfa987, f165c9b1ee), so their grades are missing from the hit rates. D48's grade is one of them. Focus item 5 asks for the parseable form.
+
+## Chosen against
+
+- Putting the one-work-system build (continuation the-one-work-system-build) in focus.
+- Putting findings-triage batches 2 and 3 in focus.
+- Launching a twin on 33333/44444 beside the replication, to re-read the advantage over the baseline at once.
+- Switching on the corrected renewal churn belief (the AUC 0.333 row).
+- Building Hypothesis property tests for billing now, ahead of the base-judging gate.
+- N17's year-to-year electricity term (W2_30) in focus.
+- Reaping the 9 worktrees that hold unlanded commits.
+
+## Focus for the next stretch
+
+- `a-fortnightly-blind-audit-for-overreach`
+- `gates-judge-from-the-base`
+- `the-0-12-cut-is-attributed-before-it-is-replicated`
+- `knife3-agency-remittance-reaches-the-company-book`
+- `d48-the-electricity-blend-goes-on-in-the-published-policy`
+
+---
+
 ## 2026-11-20 — orientation: Three hours: 17 commits, 12 carrying work, 5 substantive
 
 <!-- head: cdecbd946fc9 -->
