@@ -149,6 +149,18 @@ post-deploy check reading through the gate.
 A branch preview (a deploy from any branch but `main`) has no production secret, so it fails
 closed with a 503. Nothing deploys from another branch today.
 
+*Correction, 20 Nov 08:25Z, beside the table above:* "every route refuses" was read on the newest
+deployment only. Every Pages deployment keeps its own immutable `<hash>.poesys-net.pages.dev`
+address, serving the files and functions it was built with, so every deployment made before the
+gate landed still serves the whole site to anyone. Read from outside: `c156dcf3` (deploy run
+44695253280, 07:28Z) and `09a031ce` (run 44588286175, 19 Nov) answered **200** anonymously, beside
+`42c9e199` (401). That is the side door the ruling names. The remedy is
+`.github/workflows/pages-close-open-deployments.yml`, dispatched by hand: it reads every
+deployment's own address anonymously, deletes the ones that answer 200, then re-reads what is left
+and fails if any still serves. It is keyed to that property, not to a date. The deleted
+deployments can be rebuilt from git (`site/` at the commit each one names). The cost is losing
+one-click rollback to a pre-gate deployment, and a rollback to one would take the gate down anyway.
+
 The Actions log was searched for every 6-character fragment of the password, and none was found.
 *Correction, recorded beside the claim:* the first password was rotated before it went live. A
 pre-existing test's assertion diff printed a fragment of it into a local gate log on this box,

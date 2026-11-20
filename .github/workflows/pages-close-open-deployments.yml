@@ -1,0 +1,111 @@
+name: Close Pages deployments that serve without the password
+
+# Director ruling 19 Nov ("Website password"), non-negotiable: "Gate every route to the same site
+# ... A gate with a side door fails open." Every Pages deployment keeps its own immutable address,
+# <hash>.poesys-net.pages.dev, serving the bytes AND the functions it was built with. Every
+# deployment made before functions/_middleware.js landed (ff5b0224b9, 20 Nov) therefore still
+# serves the whole site to anyone: c156dcf3 and 09a031ce answered 200 at 08:20Z on 20 Nov, while
+# poesys.net and the newest deployment answered 401.
+#
+# The sweep is keyed to the property, not to a date: it fetches each deployment's own address
+# anonymously and deletes the ones that answer 200. A gated deployment (401) or a fail-closed one
+# (503) is left alone. It then re-reads every remaining deployment and FAILS if any still serves.
+# The deployments are rebuildable from git (site/ at the commit each one names), so nothing
+# irrecoverable is lost. What is lost is the one-click rollback to a pre-gate deployment, and
+# rolling back to one would take the gate down anyway. K8 note: docs/design/POESYS_NET_BEHIND_A_LOGIN_2026-11-19.md.
+
+on:
+  workflow_dispatch:
+    inputs:
+      delete:
+        description: "Delete the open deployments (false = read and count only)"
+        type: boolean
+        default: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Read every deployment's own address; delete the ones that serve without the gate
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          DELETE: ${{ inputs.delete }}
+        run: |
+          python3 - <<'PY'
+          import json, os, sys, time, urllib.error, urllib.request
+          from concurrent.futures import ThreadPoolExecutor
+
+          acc, tok = os.environ["CLOUDFLARE_ACCOUNT_ID"], os.environ["CLOUDFLARE_API_TOKEN"]
+          base = f"https://api.cloudflare.com/client/v4/accounts/{acc}/pages/projects/poesys-net/deployments"
+          delete = os.environ.get("DELETE") == "true"
+
+          def api(method, url):
+              req = urllib.request.Request(url, method=method, headers={"Authorization": f"Bearer {tok}"})
+              try:
+                  with urllib.request.urlopen(req, timeout=60) as r:
+                      return json.load(r)
+              except urllib.error.HTTPError as e:
+                  return {"success": False, "status": e.code, "body": e.read()[:300].decode("utf8", "replace")}
+
+          def listing():
+              out, page = [], 1
+              while page < 2000:
+                  d = api("GET", f"{base}?page={page}&per_page=25")
+                  if not d.get("success"):
+                      sys.exit(f"::error::cannot list deployments, page {page}: {d}")
+                  if not d["result"]:
+                      return out
+                  out += d["result"]
+                  page += 1
+              sys.exit("::error::more than 50,000 deployments listed; refusing to guess the rest")
+
+          def anonymous(url):
+              req = urllib.request.Request(url.rstrip("/") + "/", headers={"User-Agent": "poesys-gate-sweep"})
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      return r.status
+              except urllib.error.HTTPError as e:
+                  return e.code
+              except Exception as e:  # unreachable is not open; reported, not deleted
+                  return f"unreachable:{type(e).__name__}"
+
+          def addresses(dep):
+              return [dep["url"], *(dep.get("aliases") or [])]
+
+          def reading(deps):
+              with ThreadPoolExecutor(16) as pool:
+                  codes = list(pool.map(lambda d: [anonymous(u) for u in addresses(d)], deps))
+              return [(d, c) for d, c in zip(deps, codes)]
+
+          deps = listing()
+          read = reading(deps)
+          tally = {}
+          for _, codes in read:
+              for c in codes:
+                  tally[str(c)] = tally.get(str(c), 0) + 1
+          open_ = [d for d, codes in read if 200 in codes]
+          print(f"{len(deps)} deployments read; anonymous answers by code: {json.dumps(tally, sort_keys=True)}")
+          print(f"{len(open_)} serve the site without the password")
+          if not delete:
+              print("Read-only run: nothing deleted.")
+              sys.exit(0)
+
+          refused = []
+          for d in open_:
+              r = api("DELETE", f"{base}/{d['id']}?force=true")
+              if not r.get("success"):
+                  refused.append((d["id"][:8], r.get("status"), r.get("body", r.get("errors"))))
+              time.sleep(0.3)
+          print(f"deleted {len(open_) - len(refused)}; refused {len(refused)}")
+          for x in refused:
+              print("  refused:", x)
+
+          # The control: re-read what is left. Any deployment that still answers 200 is a side door.
+          still = [d for d, codes in reading(listing()) if 200 in codes]
+          if still:
+              sys.exit(f"::error::{len(still)} deployment(s) still serve the site without the password")
+          print("Every remaining deployment refuses an anonymous fetch.")
+          PY
