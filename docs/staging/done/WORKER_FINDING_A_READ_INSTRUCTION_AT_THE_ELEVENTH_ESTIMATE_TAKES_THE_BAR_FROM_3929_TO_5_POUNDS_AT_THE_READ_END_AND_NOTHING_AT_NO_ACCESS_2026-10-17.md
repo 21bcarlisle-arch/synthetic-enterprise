@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used`
+
+**Disposition:** obsolete -- A decomposition record overtaken by its successors: the read instruction was wired (301ab175b3), turned on (026b3c650d, decision_policy.py:242) and graded (a0bbbf6ea8). The visit access rate stays a GAP on the knowledge page and D48. (supplier triage batch 2, 20 Nov 2026)
 **Knowledge:** read-access-and-theft-duties
 
 # A read instruction at the 11th estimate: at the read end the bar on the crossed runs falls from £3,929 to £5; at no access nothing moves

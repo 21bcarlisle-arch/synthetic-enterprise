@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used`
 
+**Disposition:** fixed -- Above-cap on the cast: 28398fcdda, 55eee3e723/06266f4f14 (N19); storage slot d14ff599e5; coverage_verdict(explore_cast.json) red [] accounted []. Debt and ladder residuals live in later findings. (supplier triage batch 2, 20 Nov 2026)
+
 # Explore's cast finds standard-variable bills above the cap, and no mover or two-rate home to show
 
 Raised by the cast rules in `tools/generate_explore_cast.py`, built for the director's 23 Oct

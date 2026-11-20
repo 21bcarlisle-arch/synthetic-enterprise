@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used` · **Claim:** `flip-the-read-instruction-on-with-its-visit-cost` (Lane 0 delivery)
+
+*Triage, 20 Nov 2026 (supplier batch 2, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_2_2026-11-20.md): **real**. The landing half is done (026b3c650d). Still true and unblocked: value arms grade on SETTLED_BASIS (tools/run_value_cycle_ab.py:1399), before cost to serve, so an arm-dependent account-6100 cost such as the read visit is invisible. Rank low. Atom D48 / value-cycle harness. Knowledge gap: read-visit access rate (null).*
 **Knowledge:** read-access-and-theft-duties
 
 # The read instruction is on in the standing policy and charges 469 visits, not 582, and no value arm can see the cost

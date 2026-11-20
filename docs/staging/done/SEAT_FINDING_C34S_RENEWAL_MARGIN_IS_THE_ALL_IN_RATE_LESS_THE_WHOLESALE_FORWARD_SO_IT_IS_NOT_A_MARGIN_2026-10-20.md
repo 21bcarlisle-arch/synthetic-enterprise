@@ -1,5 +1,7 @@
 **Severity:** RECORDED · **Lane:** C_customer_ops · **Epoch:** 4 · **Atom:** `C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv`
 
+**Disposition:** fixed -- Every decision site reads term_contribution_per_year/month (renewal_advice_desk.py:114,141); guard c61d8b608c; standing-charge opex credit ec7fd9942b; graded 42d4e8e3d5, b8c665948c. (supplier triage batch 2, 20 Nov 2026)
+
 # C34's renewal margin is the all-in rate less the wholesale forward, so it is not a margin, and it is what put 11% of rows over the floor
 
 **Found by** the delivery seat on 20 Oct 2026, while grading P1–P4 of

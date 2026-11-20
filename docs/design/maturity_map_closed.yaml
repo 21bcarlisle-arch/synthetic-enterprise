@@ -5138,3 +5138,31 @@
   file_scope: ['docs/staging/in_progress/', 'docs/staging/done/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a change board with a hundred items parked pending decisions that were taken last quarter, where the parking itself is what stops anyone noticing."
+
+- id: W3_3_the_network_charge_splits_per_unit_and_per_day
+  title: "settlement charges electricity network cost as Ofgem's model does: the per-kWh allowance on volume and the nil-consumption share per supply point per day"
+  lane: W3_industry_systems
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 2
+  level_target: 2
+  loop_stage: build
+  # MINTED 2026-10-14 from the same finding, fix 2: world fidelity, decided blind to company
+  # results, never bundled with B12. It moves every settled figure, so it gets its own K8 page
+  # (the cap's per-kWh and nil-consumption network allowances, the TCR from April 2023) and a
+  # pre-registration before any run.
+  dial_inherited: 80
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost]
+  # Prereg: docs/staging/records/SEAT_PREREG_W3_3_WHAT_THE_SPLIT_MOVES_PER_DOMESTIC_ELECTRICITY_ACCOUNT_DAY_2026-11-18.md
+  # L2 2026-11-20: graded on 67d454905c by 3d75dfd74e (P1 median ratio 1.000 every year; P3 vacuous, 0 domestic rows).
+  # The deemed/flex writers' latent defect stays in wrong_triage.
+  file_scope: ['simulation/hedged_settlement.py',
+    'simulation/policy_costs.py',
+    'tests/simulation/test_the_network_charge_splits_per_unit_and_per_day.py',
+    'tests/simulation/test_phase29a_network_charges.py',
+    'tests/simulation/test_policy_cost_year_basis.py']
+  simplifications_count: 0
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a settlement analyst reconciling DUoS: unit-rate charges on volume, fixed charges per MPAN per day."

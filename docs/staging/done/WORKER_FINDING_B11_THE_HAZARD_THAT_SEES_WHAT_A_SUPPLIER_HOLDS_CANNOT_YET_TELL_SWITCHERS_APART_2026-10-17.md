@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 4 · **Atom:** `B11_forward_clv_backtested_on_held_back_history` (parked; row untouched) · **Subjects:** `EP17_varied_population_draw` · **Claim:** `b11-slice-10-the-hazard-sees-what-a-supplier-holds` (Lane 0 delivery)
 
+**Disposition:** obsolete -- A slice-10 record whose next steps were done in slice 11 (run_backtest switch_on_default, forward_clv.py:1041); its prepayment-gradient question moved to SEAT_FINDING_THE_WORLDS_PAYMENT_GRADIENT (PB4). (supplier triage batch 2, 20 Nov 2026)
+
 # B11 slice 10 result: a hazard that sees what a supplier holds cannot yet tell switchers apart, and the key does not go into EP17's arm
 
 **DEVELOPMENT.** Every figure here comes from one book and one seed, in a world whose engagement

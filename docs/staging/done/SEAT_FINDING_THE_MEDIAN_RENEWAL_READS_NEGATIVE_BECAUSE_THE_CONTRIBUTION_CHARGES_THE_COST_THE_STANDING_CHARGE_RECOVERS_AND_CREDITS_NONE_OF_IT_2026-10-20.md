@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** C_customer_ops · **Epoch:** 4 · **Atom:** `C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv`
 
+**Disposition:** fixed -- ec7fd9942b credits the standing charge's nil opex (renewal_advice_desk.py:100,136); K8 amendment in next_best_action_and_cross_sell.md s6.1. The capital-in-the-floor gap (up to GBP 4.82/MWh) is routed to B12. (supplier triage batch 2, 20 Nov 2026)
+
 # The median renewal reads negative because the contribution charges the cost the standing charge recovers, and credits none of it
 
 **Found by** the delivery seat on 20 Oct 2026. It grades

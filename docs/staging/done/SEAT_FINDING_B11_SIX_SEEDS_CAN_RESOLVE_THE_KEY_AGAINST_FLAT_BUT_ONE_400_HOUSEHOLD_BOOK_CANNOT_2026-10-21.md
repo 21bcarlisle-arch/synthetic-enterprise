@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 4 · **Atom:** `B11_forward_clv_backtested_on_held_back_history` · **Claim:** `say-whether-this-book-can-ever-tell-the-key-from-flat` (Lane 0 delivery)
 
+**Disposition:** obsolete -- A power-analysis record whose question is answered (six seeds resolve the key, one book cannot); its GAP 1 is done in records/SEAT_PREREG_B11_M7_HELD_BACK_GRADE_ON_SIX_FRESH_BOOKS_2026-11-14.md, which cites it. (supplier triage batch 2, 20 Nov 2026)
+
 # B11's within-segment test: six seeds can resolve the measured effect; one book cannot, even at 400 households
 
 Measured 2026-10-21, read-only, no code changed. The reading is the same one 27ca9dc7a graded:

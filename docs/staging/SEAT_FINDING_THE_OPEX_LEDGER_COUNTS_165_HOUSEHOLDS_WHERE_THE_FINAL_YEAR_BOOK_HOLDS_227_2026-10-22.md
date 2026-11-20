@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** E_finance_treasury · **Epoch:** unassigned · **Atom:** `unminted` · **Claim:** `front-door-proof-strip-stories-and-no-js-render`
 
+*Triage, 20 Nov 2026 (supplier batch 2, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_2_2026-11-20.md): **real**. Still true: _resi_household_ids_from_active (tools/generate_dashboard_data.py:1309) untouched since b29c074822; site/data/dashboard.json opex_ledger.household_count 193 against about 191 gas and 278 electricity accounts in 2025, so per-household opex (GBP 316.54) is likely overstated. Not rendered on any page (LATENT). Rank low. Atom unminted (B2 opex ledger). No knowledge gap; the one-variable get_customer check can run today.*
+
 # The opex ledger counts 165 households where the final-year book holds 227
 
 *Delivery seat, 2026-10-22, choosing the household figure for the front door's proof strip.*

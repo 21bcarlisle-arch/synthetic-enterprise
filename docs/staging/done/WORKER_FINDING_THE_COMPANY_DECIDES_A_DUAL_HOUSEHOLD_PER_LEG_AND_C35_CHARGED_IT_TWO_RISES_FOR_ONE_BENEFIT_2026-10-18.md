@@ -1,5 +1,7 @@
 **Severity:** RECORDED · **Lane:** C_customer_ops · **Epoch:** 3 · **Atom:** `unminted` — direction item `a-dual-household-is-one-decision-to-the-company`
 
+**Disposition:** fixed -- Two rises for one benefit: household_state/states_for_decision in d96d33f3de (next_best_action.py:246,279), on in every standing policy since f6e23a5359. Per-leg renewal pricing on the value arm is the residual, routed in the batch-2 record. (supplier triage batch 2, 20 Nov 2026)
+
 # The company decides a dual household per leg on every customer route but one, and C35 charged it two rises for one benefit
 
 Since `c136809f5` (landed and promoted 18 Oct), three founders in four are dual fuel. The live book

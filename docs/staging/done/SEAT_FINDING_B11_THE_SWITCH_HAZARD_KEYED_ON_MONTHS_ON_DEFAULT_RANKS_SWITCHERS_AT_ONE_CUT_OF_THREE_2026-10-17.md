@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 4 · **Atom:** `B11_forward_clv_backtested_on_held_back_history` (parked; row untouched) · **Subjects:** `EP17_varied_population_draw` · **Claim:** `b11-slice-11-the-switch-hazard-keyed-on-months-on-default` (Lane 0 delivery)
 
+**Disposition:** obsolete -- A slice-11 experiment record whose questions are answered: the rescale stays fit_window; its premise that every account opens on a fixed term was refuted (43% open on the default); the fresh-seed verdict sits with 9ca9727748 and the M7 prereg 7036dcbd54. (supplier triage batch 2, 20 Nov 2026)
+
 # B11 slice 11: the switch hazard keyed on months on default ranks switchers better at one cut of three. Cannot tell, leaning the key; not yet for EP17's arm
 
 **DEVELOPMENT.** One book, one seed: `docs/reports/run_output_latest.json` (run at `78f77c34e`,

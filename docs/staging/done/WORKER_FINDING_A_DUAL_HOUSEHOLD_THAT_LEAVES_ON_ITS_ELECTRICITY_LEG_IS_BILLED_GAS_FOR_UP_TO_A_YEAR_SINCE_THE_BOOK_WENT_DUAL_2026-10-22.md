@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used`
+
+**Disposition:** fixed -- 2b81e1466d holds a riding leg's term until the decision leg's start has popped and writes leg_departures (run_phase2b.py:3011,3283,6549); both tests are off HEAD_RED_REGISTER. (supplier triage batch 2, 20 Nov 2026)
 **Knowledge:** unbilled-energy-and-revenue-assurance
 
 # A dual household that leaves on its electricity leg is billed gas for up to a year, and the red dates from the commit that made the book dual (2026-10-22)

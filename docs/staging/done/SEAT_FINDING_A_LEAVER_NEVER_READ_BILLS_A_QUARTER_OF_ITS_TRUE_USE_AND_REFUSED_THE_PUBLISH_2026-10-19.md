@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 3 · **Atom:** `D46_the_validator_holds_against_the_varied_population`
 
+**Disposition:** fixed -- Leg (d) 6208ea6dd2 (C7 billed/true 0.236 -> 1.003); leg (b) 3e0f624a6f + 166ce2b5b5. INV_OVERDUE_WITHIN_PAGE_BALANCE CLEAN, 0 of 6,115, on 6af7fd0bfd. (supplier triage batch 2, 20 Nov 2026)
+
 # A leaver never read in 42 bills was billed a quarter of its true use, and it refused the 19 Oct publish
 
 **Found by** the delivery seat on 19 Oct 2026, while checking the premise of
