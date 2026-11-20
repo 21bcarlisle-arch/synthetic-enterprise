@@ -83,3 +83,45 @@ Probable failure modes:
 Proportionality: item 1 touches the gate chain. Implement with the named mitigations, observe first. Items 2–3 implement directly.
 
 — Director steer, 20 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+Item 1 is on in observe mode; items 2 and 3 and the "Also" items are live continuations.
+
+- **1.1, the gap: confirmed.** A gate weakened inside a change passes that change, because the
+  hook runs every gate from the committing tree (and under `surgical_land`, the hook script too).
+  This was demonstrated in bb33b0a629:
+  `docs/staging/records/SEAT_RECORD_A_GATE_IS_JUDGED_BY_ITS_OWN_EDITED_COPY_2026-11-20.md`.
+- **K8 page first:** `docs/market_research/gates_judged_from_the_base_2026-11-20.md`. It records
+  the design choices and GAP-1 to GAP-6. The main GAP is that gate *data* (baselines, `.mode`
+  files) is still read from the change, and observe mode counts how often a change touches it.
+- **1.2/1.4, observe mode:** `tools/base_judged_gates.py`, wired as the second line of
+  `tools/git-hooks/pre-commit`. The observer itself is read from HEAD, never from the change. For
+  each gate whose import closure (read from the base) the change stages, or whose hook line the
+  change alters, it reruns the gate twice in identical shadow trees. One side uses the base's code,
+  the other the change's code; both read the change's data. It logs to
+  `.git/base_judged_gates.jsonl` (`--report`) and refuses nothing.
+  - **The base is the parent commit, not the literal `origin/main` ref,** because
+    `surgical_land`'s extract has no refs. The landing compare-and-swaps onto that parent.
+  - **The two pytest gates are rerun only when their own file or a direct import is touched.**
+    Their closures are about 440 files. Otherwise the record says `deferred`.
+- **At real inputs:** a clone at bb33b0a629, with an empty `.dta` staged and
+  `ukds_microdata_refusal` weakened, gave base rc 1, change rc 0, `would_refuse: true`. Observer
+  overhead was 4.4 s. An unrelated change reruns nothing, with an overhead of 3.7 s.
+- **1.3, bootstrap:** the observer takes effect from the commit after the one that lands it (HEAD
+  has no copy until then). Enforce will split any gate change the old gate refuses; it never
+  bypasses.
+- **1.5, mutation:** `tests/tools/test_a_weakened_gate_inside_a_change_is_caught.py` covers a
+  weakened gate, a weakened imported module, a dropped hook line, the whole partition and
+  fail-soft. Five source mutations each red their named test: the base side read from the change,
+  the closure stopping at the gate's own file, a dropped line never seen, every gate rerun, and an
+  observer crash propagating.
+- **Continuations, each naming this steer:**
+  - `gates-judged-from-the-base-enforce` (read a week of the log, then enforce with the hook
+    script itself from the base);
+  - `property-tests-for-billing-and-payments` (item 2);
+  - `diff-triggered-checks-in-the-claude-md-trial` (item 3);
+  - `three-rounds-then-stop-and-no-retry-until-green` (the "Also" items).
+- The reading-log row is appended.
+
+Decision: harness yes

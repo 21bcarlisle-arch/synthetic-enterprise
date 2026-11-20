@@ -21,6 +21,16 @@
 # decided otherwise; nothing passes it. R15-proven in tests/tools/test_live_hook_drift.py.
 python3 -m tools.live_hook_drift || true
 
+# GATES JUDGED FROM THE BASE, OBSERVE MODE (director steer, 20 Nov 2026). Every gate below runs from
+# the committing tree, so a change that weakens a gate is judged by its own weakened copy (shown in
+# docs/staging/records/SEAT_RECORD_A_GATE_IS_JUDGED_BY_ITS_OWN_EDITED_COPY_2026-11-20.md). This
+# reruns each gate whose code the change touches from HEAD's copy, and logs to
+# .git/base_judged_gates.jsonl. It refuses NOTHING yet. The observer itself is read from HEAD (tools/base_judged_gates.py), never
+# from the change; on the commit that lands it, HEAD has none, so it runs from the next commit on.
+# Design and GAPs: docs/market_research/gates_judged_from_the_base_2026-11-20.md. Mutation-proven in
+# tests/tools/test_a_weakened_gate_inside_a_change_is_caught.py.
+git show HEAD:tools/base_judged_gates.py 2>/dev/null | python3 -P - || true
+
 # If docs/status/LATEST.md is staged, auto-stamp its "Last updated:" line to
 # the current UTC time and re-stage it. This makes the timestamp a fact about
 # when the commit happened rather than something a human/agent has to
