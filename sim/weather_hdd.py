@@ -61,24 +61,24 @@ from typing import Mapping
 # below 15.5 C (Energy Trends, June 2011 methodology article). https://www.gov.uk/government/statistics/energy-trends-section-7-weather
 HDD_BASE_TEMP_C = 15.5
 
-# UK 1991-2020 HDD climate normals (base 15.5°C, England & Wales).
-# Sourced from Met Office HDD/CDD tabulations and Ofgem annual consumption data.
-# CHECK 2026-11-20: unreachable as cited. DESNZ ET 7.1's 1991-2020 mean (Met Office stations, base 15.5)
-# sums to 2,061 but runs ~22 HDD lower in Dec-Feb and 14-21 higher in Jun-Sep. Table and gap:
+# GB 1991-2020 HDD normal, base 15.5 C: DESNZ Energy Trends table 7.1 (ET_7.1_OCT_26.xlsx, sheet "Data Heating
+# Degree Days", column "30-year mean", HDD per day) times the days in the month, February at 28.25. Re-based
+# 2026-11-20 from an uncited table that ran ~22 HDD higher in Dec-Feb and 14-21 lower in Jun-Sep (annual within 0.3%);
+# it moved together with gas_settlement._GAS_BOILER_HEATING_FRACTION, because the two calibrate as a pair.
 # docs/market_research/the_domestic_gas_year_heats_on_about_85_percent_not_70_2026-11-19.md s.5a
 REFERENCE_MONTHLY_HDD: dict[int, float] = {
-    1: 350.0,
-    2: 315.0,
-    3: 275.0,
-    4: 200.0,
-    5: 118.0,
-    6:  30.0,
-    7:   5.0,
-    8:   5.0,
-    9:  38.0,
-    10: 140.0,
-    11: 249.0,
-    12: 341.0,
+    1: 328.3,
+    2: 291.9,
+    3: 271.1,
+    4: 198.3,
+    5: 120.1,
+    6:  51.3,
+    7:  18.9,
+    8:  20.9,
+    9:  57.9,
+    10: 143.9,
+    11: 238.0,
+    12: 320.3,
 }
 
 #: Opening words of the basis an `HddReading` carries when it could NOT read the premise's own

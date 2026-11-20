@@ -159,4 +159,16 @@ map_notes:
     >= 37: HELD, at 58. That is 21 more than the 37 premises fitted on 67d454905c''s store, because the pull has since
     fitted more premises. (4) No OCC- leg carries SETTLED_WITHOUT_A_SPLIT_OR_A_REFUSAL: HELD. 0 rows carry it, and each
     of the 302 fallback legs has a refusal row with its reason (243 no fabric trace, 58 the premise''s own refusal
-    carried, 1 no cold response).'
+    carried, 1 no cold response).
+
+    BUILT 2026-11-20, the fallback''s year (85-percent page s.7; skip0''s hold was spent at 9a361e3562):
+    REFERENCE_MONTHLY_HDD is re-based on DESNZ ET 7.1''s 1991-2020 mean and _GAS_BOILER_HEATING_FRACTION moves 0.70
+    to 0.85 in the same commit. On the reference year the fallback''s Jan:Jul goes 5.30 to 7.22 and Jun-Aug 8.91% to
+    7.53% (DESNZ 2023-25: 7.32, 7.23%). The heat-pump term in run_phase2b now reads the same constant instead of
+    its own 0.70 (GAP: no heat-pump-specific source). A test fails if either half moves without the other.
+    PREDICTION, written before any book carries it, against the 8a300fa561 cut in
+    SEAT_FINDING_W2_30_THE_GAS_WINTER_OVER_SHARE_IS_THE_WORLDS_70_30_FALLBACK_NOT_THE_PROXY_2026-11-18.md:
+    on the first book carrying it, legs on population_70_30_split read a kWh-weighted Jan:Jul in [6.0, 8.5] (5.05
+    before), and their per-account winter belief-minus-truth falls below +0.006 (+0.0132 before). fabric_seasonal_split
+    legs'' Jan:Jul moves by less than 0.5 (7.23 before), because their fit carries its own fraction. Refuted if the
+    fallback stays under 6.0. To reverse: restore both constants together.'

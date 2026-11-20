@@ -64,15 +64,15 @@ GAS_IC_CONSUMPTION_MONTHLY_PROFILE: dict[int, float] = {
     7: 0.9128, 8: 0.9128, 9: 0.9910, 10: 0.9590, 11: 1.0507, 12: 1.0746,
 }
 
-# Phase W: gas boiler daily HDD shape constants.
-# 70% space heating (HDD-weighted), 30% DHW + cooking (flat year-round).
-# Fraction calibrated to match DUKES Table 4.3 Jan:Jul ratio ~5.3x for UK resi.
-# CORRECTION 2026-11-19, value unchanged: no DESNZ domestic monthly series exists before 2023, so
-# that citation cannot hold as worded; 5.3 matches the published Q1:Q3 ratio. DESNZ ET 4.1/4.2
-# against ET 7.1 HDD give 0.85 at normal weather (0.82-0.87, 2016-25). GAP, the move held behind
-# skip0: docs/market_research/the_domestic_gas_year_heats_on_about_85_percent_not_70_2026-11-19.md
+# Phase W: gas boiler daily HDD shape constants: a share of the year that scales with the day's HDD (space
+# heating) and the rest flat (DHW and cooking). 0.85 is DESNZ ET 4.1/4.2 domestic gas fitted to this two-term
+# form against ET 7.1 HDD, at normal weather; every year 2016-25 fits between 0.82 and 0.87. It moved from 0.70
+# on 2026-11-20 together with REFERENCE_MONTHLY_HDD's re-basis on ET 7.1. 0.70 had been fitted to a "~5.3x"
+# Jan:Jul that matches the published Q1:Q3 ratio, not a monthly one. On the re-based table the normal year
+# gives Jan:Jul 7.22 and Jun-Aug 7.53%, against DESNZ 2023-25's 7.32 and 7.23%. The fraction alone on the old
+# table would have given 10.6. docs/market_research/the_domestic_gas_year_heats_on_about_85_percent_not_70_2026-11-19.md
 # Annual total conserved when actual HDD equals reference HDD.
-_GAS_BOILER_HEATING_FRACTION: float = 0.70
+_GAS_BOILER_HEATING_FRACTION: float = 0.85
 _HDD_REF_ANNUAL: float = sum(REFERENCE_MONTHLY_HDD.values())
 
 #: The annual HDD reference, exported under a public name because
