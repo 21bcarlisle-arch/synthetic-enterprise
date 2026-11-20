@@ -1059,10 +1059,43 @@ the younger cell. Centrica's 0.878 covers older balances too, so the true younge
 higher, and the world's book-wide recovery sits below the company's prior. On book 67d454905c,
 64 of 240 close-leg debts (GBP 1,975.50 of 8,794.84) are aged. The world recovers 0.109 per GBP
 against the company's 0.122. At 0.24 it is 0.101. So the company's belief is no longer the
-world's truth by construction, and an estimator keyed on months unpaid at close (the held branch
-above) now has a real split to find. Still owed: drawing the register share itself per world
+world's truth by construction. The world now has a real split for a per-debt rule to find. *(This
+line also said the held branch's estimator, keyed on months unpaid at close, would find it. It did
+not: see the next paragraph. Corrected 2026-11-20.)* Still owed: drawing the register share itself per world
 from its range (0.104-0.245), rather than reading the default. That is a change to the
 baseline world, so it goes with the curriculum record, not here.
+
+**The held per-debt rule, replayed on the varying world (2026-11-20): it does not land.** The
+branch `knife3-per-debt-sale` (9fcd4a53fa, now on origin) was replayed on book 67d454905c, under
+world f696fca4eb. The company's book was rebuilt from the billing ledger: bills, successful
+payments, and the agency's remittance posted as cash on its own date. The predictions were written
+first (finding below). There are three faults, and each is definitional:
+- *Window.* The world writes a close-leg debt off at final bill +365 days, places it at +30 and is
+  paid at +180. So the remittance arrives 575 days after the last bill. The company learns
+  post-close cash in the 365 days after the last bill. 0 of 215 remittances fall inside that
+  window.
+- *Denominator.* A cell's figure is customer cash over the whole balance owed at close, and most
+  of that balance is paid by the customer before write-off (582 closes, 215 written off). The
+  rule applies it to the written-off remainder, which by construction is what the customer did
+  NOT pay. Cells read 0.03 to 0.92.
+- *Cut.* The world splits by the age of the oldest unpaid bill at close (over 12 months). The
+  cells split by consecutive months unpaid, capped at 3. Aged debts sit in cells (0, carried),
+  (1, carried), (2, carried) and (3, carried), and in each of them aged and young debts get the
+  same figure.
+At 0.054, 0.070 and 0.093 the rule sells the same 149 debts (GBP 5,991.86 of 8,186.81), all
+in cell (3, carried) at 0.033. 118 of them (GBP 5,005.58) are young, and the world recovers
+0.122 on those if they are worked. So the rule would sell at 5.4p debts that are worth 12.2p. With
+the window widened to 600 days in the replay only, cell (3, carried) reads 0.084. Nothing then
+sells at 0.054 or 0.070, and the same 149 sell at 0.093. The denominator and cut faults remain.
+**What lands:** only the sensitive-circumstances exclusion. `sells_written_off_debt(...,
+sensitive=True)` never sells, at the rule and at the door. No world caller passes the flag yet. The
+company's Priority Services Register is not in reach of the post-run recovery stage, so in-run the
+exclusion is reached by tests only. That is stated, not hidden.
+**What a successor needs:** an estimate learned on the written-off remainder and the agency's
+remittance, over a window that covers placement and outcome, and cut by the oldest unpaid bill's
+age at close. That age is what Energy UK publishes. It is read off the company's own ledger
+(`fifo_unpaid_bills`).
+Finding: `docs/staging/SEAT_FINDING_THE_HELD_PER_DEBT_SALE_RULE_LEARNS_A_WINDOW_THE_AGENCY_NEVER_PAYS_INTO_2026-11-20.md`.
 
 ---
 

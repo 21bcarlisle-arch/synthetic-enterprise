@@ -311,16 +311,21 @@ def dca_placement_date(written_off: dt.date) -> dt.date:
     return written_off + dt.timedelta(days=DCA_PLACEMENT_DAYS)
 
 
-def sells_written_off_debt(offered_price_share: float | None) -> bool:
+def sells_written_off_debt(offered_price_share: float | None, *, sensitive: bool = False) -> bool:
     """Whether the company sells a written-off debt to a purchaser offering `offered_price_share` per
     GBP of face value, rather than having an agency work it. With no offer it is worked.
+
+    A debt the company knows is in sensitive circumstances (`sensitive`: its own Priority Services
+    Register or vulnerability record, never the world's hidden state) is never sold, whatever the
+    offer. Sellers exclude "accounts not eligible for sale due to sensitive circumstances" (TDX
+    Group, Equifax, debt-sale brochure; debt_and_collections.md s.7.7).
 
     It sells only when the offer is above what the company itself expects to recover per GBP on a
     closed, aged balance (`PRIOR_POST_CLOSE_RECOVERY`). No household attribute is read, and the rule
     is the same for every debt: the company has no per-debt recovery estimate yet. Agency commission
     is a GAP and is not deducted, so this sells less often than a supplier who knew its commission
     would (debt_and_collections.md s.7.7)."""
-    if offered_price_share is None:
+    if offered_price_share is None or sensitive:
         return False
     from company.finance.cash_forecast_provision import PRIOR_POST_CLOSE_RECOVERY
     return offered_price_share > PRIOR_POST_CLOSE_RECOVERY

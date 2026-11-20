@@ -60,7 +60,17 @@ def test_the_company_sells_only_when_the_offer_beats_its_own_expected_recovery()
 def test_the_world_reaches_the_sale_choice_only_through_the_door():
     # Catches: the door forwarding another rule from the one the company holds.
     for offer in (None, 0.05, PRIOR_POST_CLOSE_RECOVERY, 0.5):
-        assert sells_through_the_door(offer) == sells_written_off_debt(offer)
+        for sensitive in (False, True):
+            assert (sells_through_the_door(offer, sensitive=sensitive)
+                    == sells_written_off_debt(offer, sensitive=sensitive))
+
+
+def test_a_debt_in_sensitive_circumstances_is_never_sold():
+    # Catches: the exclusion dropped (sold at an offer that sells the same debt unflagged) and the
+    # exclusion applied to everything (the unflagged debt not sold either), at the door and behind it.
+    for offer in (PRIOR_POST_CLOSE_RECOVERY + 0.01, 0.5, 1.0):
+        for rule in (sells_written_off_debt, sells_through_the_door):
+            assert rule(offer) and not rule(offer, sensitive=True)
 
 
 def test_the_world_asks_no_household_label_when_it_sells():
