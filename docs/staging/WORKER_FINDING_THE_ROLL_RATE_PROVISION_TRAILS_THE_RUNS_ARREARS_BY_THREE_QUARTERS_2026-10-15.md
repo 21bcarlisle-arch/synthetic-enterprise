@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** E_finance_treasury · **Epoch:** 4 · **Atom:** `E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build` · **Claim:** `the-provision-moves-in-the-quarter-arrears-build`
+
+*Triage, 20 Nov 2026 (supplier batch 1, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_1_2026-11-20.md): **parked**. Still true: the learned roll-rate provision lags (strict xfail stands; ROLL_RATE_PROVISION False, so nothing published moves). Waits on W2_38. Atom E6. Knowledge gap: yes (forward-looking adjustment practice). Revisit 2026-12-04.*
 **Knowledge:** bad-debt-provisioning -- `docs/market_research/bad_debt_provisioning.md`, "A provision matrix whose loss rates come from the company's own roll rates" (IFRS 9 B5.5.35, B5.5.52)
 
 # The roll-rate provision trails the run's arrears by three quarters, and the run's published provision does not

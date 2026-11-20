@@ -1,5 +1,7 @@
 **Severity:** RECORDED · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** `B8_discovered_price_sensitivity_holdout`
 
+**Disposition:** fixed -- Q11 (holdout coin before the guard) fixed by 88ca351563; Q5 decided by d5ba38b12c; the record is superseded by the second blind pass 9bdd1757ed. (supplier triage batch 1, 20 Nov 2026)
+
 # B8's Expert Hour, run blind: FAIL, held at L2. One disqualifier was a live defect and is fixed here
 
 **Fate (2026-10-12, clear-the-decks):** ATOM -- Q11 randomisation defect fixed in this same commit, but Expert Hour still FAILs (held at L2): Q5 relative pricing for renewal cut, Q7 print renewal-event count, Q8 decision-rule prior still OPEN (P2)

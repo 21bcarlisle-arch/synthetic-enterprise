@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** B_commercial · **Epoch:** unassigned · **Atom:** `B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost`
+
+**Disposition:** fixed -- Fixed terms only in the margin lookback: badd57e8e9 (FIXED_PREMIUM_BOOK_TARIFF_TYPES), pre-registered 03ee2fd094. (supplier triage batch 1, 20 Nov 2026)
 **Knowledge:** acquisition-and-retention-economics
 
 # On writer one's corrected basis the unit-rate margin still reads well above its target on fixed terms, so the full -5% still lands on 38% of them (2026-10-14)

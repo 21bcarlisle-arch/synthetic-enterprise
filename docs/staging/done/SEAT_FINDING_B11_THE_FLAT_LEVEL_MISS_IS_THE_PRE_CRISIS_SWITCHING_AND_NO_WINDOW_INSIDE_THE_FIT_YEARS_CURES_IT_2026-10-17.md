@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 4 · **Atom:** `B11_forward_clv_backtested_on_held_back_history` (parked; row untouched) · **Subjects:** `EP17_varied_population_draw` · **Claim:** `b11-slice-13-why-the-flat-switch-level-over-predicts-held-back-departure` (Lane 0 delivery)
 
+**Disposition:** obsolete -- An experiment record whose question (why the flat level misses) is answered. The regime-band design is needed only once something consumes the per-customer level; nothing does. B11 parked. (supplier triage batch 1, 20 Nov 2026)
+
 # B11 slice 13: the flat level's miss is the pre-crisis switching, and no window inside the fit years cures it
 
 **DEVELOPMENT.** This is one book and one seed: `docs/reports/run_output_latest.json`, slice

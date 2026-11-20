@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** B_commercial · **Epoch:** unassigned · **Atom:** `B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost`
+
+**Disposition:** fixed -- One unit-rate floor and the standing charge out of margin: e3b5ed01a6, B12 L1 455adef1aa; world side c71d2521d7, graded 3d75dfd74e (median ratio 1.000). Recounting held renewals at the floor is B12's L2 grade. (supplier triage batch 1, 20 Nov 2026)
 **Knowledge:** acquisition-and-retention-economics -- the published basis is Ofgem's cap construction as the commons already holds it (`docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json`, `ofgem_cap_standing_charges.json`; knowledge map rows "Cap formula" and "Network charges (electricity)")
 
 # Renewals sit at their cost floor because the floor carries the network cost the standing charge recovers, and the portfolio premium reads the standing charge as margin (2026-10-14)

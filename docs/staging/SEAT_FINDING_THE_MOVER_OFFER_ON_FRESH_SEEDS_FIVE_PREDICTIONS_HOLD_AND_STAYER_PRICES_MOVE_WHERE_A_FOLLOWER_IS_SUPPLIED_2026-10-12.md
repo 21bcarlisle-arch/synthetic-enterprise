@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** C_customer_ops · **Epoch:** unassigned · **Atom:** `B7_customer_state_layer_moves_and_shocks`
+
+*Triage, 20 Nov 2026 (supplier batch 1, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_1_2026-11-20.md): **parked**. Stayer price moves where a follower is supplied are still unattributed (the one-variable arm never ran), but the offer is OFF (curriculum move_with_us_activation false). Must run before any activation. Atom B7. Knowledge gap: yes (move-with-us take-up). Revisit at an activation proposal or 2026-12-18.*
 **Knowledge:** none -- a grade of a built capability against predictions already filed; the mover knowledge page is docs/market_research/home_moves.md
 
 # The mover offer on fresh seeds: five predictions hold, and stayers' prices move where a follower is supplied (2026-10-12)

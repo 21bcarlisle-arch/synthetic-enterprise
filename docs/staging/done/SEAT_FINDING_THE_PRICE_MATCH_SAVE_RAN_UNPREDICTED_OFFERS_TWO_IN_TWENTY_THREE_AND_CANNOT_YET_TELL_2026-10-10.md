@@ -1,5 +1,7 @@
 **Severity:** RECORDED · **Lane:** B_commercial · **Epoch:** unassigned · **Atom:** `B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost`
 
+**Disposition:** obsolete -- A record of an unpredicted pair. Its open questions were answered: re-grade b234e27bd, below-floor cause 03a0b66da, VAT basis d1e37f45c; near-zero saves are what the world predicts (WORKER_RESULT ...ZERO_OF_23...). (supplier triage batch 1, 20 Nov 2026)
+
 # The price-match save ran without predictions, offered 2 of 23 held invitations, and on net we cannot yet tell
 
 **Fate (2026-10-15):** ATOM -- folds into `B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost` (re-pointed 2026-10-15; an ATOM fate names its atom).

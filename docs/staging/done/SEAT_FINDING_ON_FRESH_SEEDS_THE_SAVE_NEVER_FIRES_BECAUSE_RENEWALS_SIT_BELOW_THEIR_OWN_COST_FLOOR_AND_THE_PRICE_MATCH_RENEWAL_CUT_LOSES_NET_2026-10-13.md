@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** B_commercial · **Epoch:** unassigned · **Atom:** `B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost`
+
+**Disposition:** fixed -- Held renewals below floor 23/27 -> 4/28 after 03a0b66da; tier cut floored by 5c137eb5b (DISCRETIONARY_RATE_NOT_BELOW_OWN_COST_FLOOR); VAT mix d1e37f45c; cut decided d5ba38b12c. The floor's definition residue is B12. (supplier triage batch 1, 20 Nov 2026)
 **Knowledge:** none -- grades of built capabilities against predictions already filed; the pricing pages are docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md and retention_slope_per_pound_of_renewal_cut.md
 
 # On fresh seeds the save never fires, because renewals sit below their own cost floor, and the price-match renewal cut loses net (2026-10-13)

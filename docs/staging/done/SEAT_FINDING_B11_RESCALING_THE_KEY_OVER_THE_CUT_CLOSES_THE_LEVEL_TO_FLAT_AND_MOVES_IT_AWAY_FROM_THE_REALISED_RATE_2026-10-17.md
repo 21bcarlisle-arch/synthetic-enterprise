@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 4 · **Atom:** `B11_forward_clv_backtested_on_held_back_history` (parked; row untouched) · **Subjects:** `EP17_varied_population_draw` · **Claim:** `b11-slice-12-rescale-the-observable-key-over-the-cuts-own-band-mix` (Lane 0 delivery)
 
+**Disposition:** obsolete -- An experiment record whose question is answered in the file: the rescale default stays fit_window (forward_clv.py). Slice 13 carries on. (supplier triage batch 1, 20 Nov 2026)
+
 # B11 slice 12: rescaling the key over the cut closes the level to flat, and moves it away from what happened
 
 **DEVELOPMENT.** One book, one seed: `docs/reports/run_output_latest.json` (run at `78f77c34e`,
