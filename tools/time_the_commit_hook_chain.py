@@ -56,6 +56,10 @@ STEPS: tuple[tuple[str, list[str], bool], ...] = (
     ("stamp_latest_md", ["python3", "tools/stamp_latest_md.py"], True),
     ("background.status_honesty", ["python3", "-m", "background.status_honesty"], True),
     ("stale_copy_refusal", ["python3", "-m", "tools.stale_copy_refusal", "--staged"], True),
+    # Both read the staged set and refuse only on a path in it, so an empty index reads them free.
+    # In the hook since 2 Nov and 11 Nov respectively, and untimed until 20 Nov.
+    ("ukds_microdata_refusal", ["python3", "-m", "tools.ukds_microdata_refusal", "--staged"], True),
+    ("direction_seat_window", ["python3", "-m", "tools.direction_seat_window"], True),
     ("test_gate", ["python3", "tools/pre_commit_test_gate.py"], True),
     ("level_promotion_gate", ["python3", "tools/level_promotion_gate.py"], True),
     ("site_lane_gate", ["python3", "tools/site_lane_gate.py"], True),
