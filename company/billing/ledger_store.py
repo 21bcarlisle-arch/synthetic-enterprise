@@ -12,12 +12,20 @@ The publish commits the gz and retires the plain file from HEAD (`background.pro
 ._land_publish_commit`); the plain file stays on disk in the shared tree, gitignored. So the shared
 tree has both, and every other checkout (a worktree, a gate extract, a clone) has only the gz.
 `load_ledger` prefers the plain file and falls back to the gz, so a reader works in both places.
+
+WHY THE TWO FORMS ARE COMPARED (2026-11-20). Preferring the plain file is only safe while it is the
+same book as the gz. In the seat-executor worktree a leftover scratch ledger (meta.source_json
+/var/tmp/w14/run.json) shadowed the committed 18 Nov gz and five false inversions reddened
+test_bill_correctness_addendum_defect4 -- silently, because nothing said which book was read. So
+when both forms exist and their `meta` headers differ, `resolve_ledger` refuses, naming both.
+`meta` is the ledger's first key, so only the head of each file is read.
 """
 from __future__ import annotations
 
 import gzip
 import json
 import os
+import re
 import tempfile
 from pathlib import Path
 
@@ -40,10 +48,57 @@ def gz_twin(path: Path | str) -> Path:
     return path if path.suffix == ".gz" else path.with_name(path.name + ".gz")
 
 
+class LedgerFormsDisagree(RuntimeError):
+    """The plain ledger and its gz twin are different books; which one a reader meant is unknown."""
+
+
+#: Enough of the head to hold the `meta` object (about 250 bytes on the 18 Nov book).
+_HEAD_BYTES = 64 * 1024
+_META_KEY = re.compile(r'\A\s*\{\s*"meta"\s*:\s*')
+
+
+def _head_meta_from_bytes(head: bytes) -> dict | None:
+    """The leading `meta` object of ledger bytes (plain), or None when they do not open with one
+    (a test fixture, a truncated file) -- None compares as unknown, never as a match."""
+    text = head[:_HEAD_BYTES].decode("utf-8", errors="replace")
+    m = _META_KEY.match(text)
+    if m is None:
+        return None
+    try:
+        meta, _ = json.JSONDecoder().raw_decode(text, m.end())
+    except ValueError:
+        return None
+    return meta if isinstance(meta, dict) else None
+
+
+def _head_meta(path: Path) -> dict | None:
+    """`_head_meta_from_bytes` over the head of a ledger file in either form."""
+    try:
+        opener = gzip.open if path.suffix == ".gz" else open
+        with opener(path, "rb") as fh:
+            head = fh.read(_HEAD_BYTES)
+    except (OSError, EOFError):
+        return None
+    return _head_meta_from_bytes(head)
+
+
 def resolve_ledger(path: Path | str | None = None) -> Path | None:
-    """The file `load_ledger(path)` would read, or None when neither form exists."""
+    """The file `load_ledger(path)` would read, or None when neither form exists.
+
+    Refuses with LedgerFormsDisagree when the plain file and its gz twin both exist and carry
+    different `meta` headers: a leftover plain ledger must not silently stand in for the committed
+    one."""
     path = Path(path) if path is not None else LEDGER_PATH
     if path.is_file():
+        twin = gz_twin(path)
+        if twin != path and twin.is_file():
+            plain_meta, gz_meta = _head_meta(path), _head_meta(twin)
+            if plain_meta is not None and gz_meta is not None and plain_meta != gz_meta:
+                raise LedgerFormsDisagree(
+                    "two different billing ledgers: {} (source_json {!r}) shadows {} (source_json "
+                    "{!r}). Delete the plain file to read the committed gz, or regenerate both with "
+                    "write_ledger.".format(path, plain_meta.get("source_json"), twin,
+                                           gz_meta.get("source_json")))
         return path
     twin = gz_twin(path)
     return twin if twin.is_file() else None

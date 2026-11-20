@@ -181,3 +181,43 @@ def test_no_reader_opens_the_plain_ledger_path_itself():
     assert constants >= 10, "the census found {} ledger path names; its pattern has rotted".format(
         constants)
     assert not offenders, offenders
+
+
+def _ledger_text(source_json: str) -> str:
+    return json.dumps({"meta": {"source_json": source_json, "invoice_count": 1},
+                       "customers": {"C1": {}}}, separators=(",", ":"))
+
+
+def test_a_leftover_plain_ledger_cannot_shadow_a_different_gz(tmp_path):
+    """THE DEFECT THIS FAILS ON: a scratch plain ledger (source /var/tmp/w14/run.json) was read
+    ahead of the committed 18 Nov gz in the seat-executor worktree, and five false inversions
+    reddened the defect-4 test with nothing saying which book was read.
+
+    One control over the whole partition: agreeing forms read the plain file, a lone gz is read,
+    and differing forms refuse naming both files and both sources. A check that refused everything,
+    or nothing, fails a leg."""
+    plain = tmp_path / "billing_ledger.json"
+    store.write_ledger(_ledger_text("/runs/committed.json"), plain)
+    agreeing = store.resolve_ledger(plain)
+
+    plain.write_text(_ledger_text("/var/tmp/w14/run.json"))
+    with pytest.raises(store.LedgerFormsDisagree) as refused:
+        store.load_ledger(plain)
+
+    plain.unlink()
+    lone_gz = store.resolve_ledger(plain)
+
+    assert agreeing == plain and lone_gz == store.gz_twin(plain), (agreeing, lone_gz)
+    said = str(refused.value)
+    for named in (str(plain), str(store.gz_twin(plain)), "/var/tmp/w14/run.json",
+                  "/runs/committed.json"):
+        assert named in said, (named, said)
+
+
+def test_the_committed_ledger_opens_with_the_meta_the_shadow_check_reads():
+    """The check reads `meta` from each file's head and treats a head without one as unknown. If
+    the writer ever stopped putting `meta` first, the check would pass everything silently: this
+    keys it to the real committed book, not a fixture."""
+    raw = _committed_ledger_bytes()
+    meta = store._head_meta_from_bytes(raw)
+    assert isinstance(meta, dict) and meta.get("source_json"), meta
