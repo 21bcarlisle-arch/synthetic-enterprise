@@ -1317,16 +1317,21 @@ def check_vat(
     commodity: Optional[str] = None,
     kwh: Optional[float] = None,
     days: Optional[float] = None,
+    on: Optional[date] = None,
 ) -> bool:
     """Given the period's fuel and volume, an SME bill is checked against the de minimis reading
-    the biller applies (`dual_fuel_bill.vat_rate_for_supply`); without them, against the segment
+    the biller applies (`dual_fuel_bill.vat_rate_for_supply`); given its fuel and first day `on`, a
+    domestic bill against the dated band the biller applies; without them, against the segment
     default. Checking an SME period below de minimis against the standard rate HOLDS a correct
-    bill."""
+    bill, and so does checking a zero-rated domestic electricity month against 5%."""
     expected = vat_rate_for_segment(segment)
     if segment == "SME" and commodity is not None and kwh is not None and days:
         from company.billing.dual_fuel_bill import vat_rate_for_supply
-        expected = vat_rate_for_supply(segment, commodity, kwh, days)
+        expected = vat_rate_for_supply(segment, commodity, kwh, days, on=on)
         return abs(actual_rate - expected) <= VAT_SME.tolerance
+    if segment == "resi" and commodity is not None and on is not None:
+        expected = vat_rate_for_segment(segment, fuel=commodity, on=on)
+        return abs(actual_rate - expected) <= VAT_RESIDENTIAL.tolerance
     invariant = VAT_RESIDENTIAL if segment == "resi" else VAT_SME
     return invariant.check(actual_rate) and abs(actual_rate - expected) <= invariant.tolerance
 

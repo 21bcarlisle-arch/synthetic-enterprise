@@ -40,15 +40,20 @@ PAYMENT_TERMS_DAYS = 14
 
 
 def _vat_rate(bill: dict) -> float:
-    """The VAT rate this bill's supply attracts, from the invariant that owns the rule.
+    """The VAT rate this bill's supply attracts, by the biller's own reading of the period.
 
-    `domain_invariants.vat_rate_for_segment` reads the published commons artefact; a bill with no
-    segment is treated as residential, which is what an unlabelled domestic supply is and what this
-    module assumed unconditionally before.
+    `dual_fuel_bill.vat_rate_for_supply` is the one reading: the de minimis on the bill's own kWh
+    and days, the dated domestic band on its first day. Until 2026-11-20 this read the segment
+    default, so an SME bill under the de minimis was charged 20% here and 5% by the biller. A bill
+    with no segment is treated as residential, which is what an unlabelled domestic supply is; one
+    with no volume or no date takes that reading's stated fallback for the missing input.
     """
-    from company.compliance.domain_invariants import vat_rate_for_segment
+    from company.billing.dual_fuel_bill import period_first_day, vat_rate_for_supply
 
-    return float(vat_rate_for_segment(bill.get("segment") or "resi"))
+    return float(vat_rate_for_supply(
+        bill.get("segment") or "resi", bill.get("commodity") or "electricity",
+        bill.get("total_consumption_kwh") or 0.0, bill.get("days_in_period") or 0,
+        on=period_first_day(bill.get("period_start"))))
 
 
 @contextmanager

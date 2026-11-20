@@ -287,7 +287,8 @@ def applied_rates(segment: str, commodity: str, kwh: float, days: float,
     One function so the ledger can record the rates a bill applied without re-deriving them: the
     raw export carries both as CONTRACTED terms, and a second derivation would be free to differ.
     """
-    return (vat_rate_for_supply(segment, commodity, kwh, days),
+    return (vat_rate_for_supply(segment, commodity, kwh, days,
+                                on=datetime.date.fromisoformat(period_start[:10])),
             non_commodity_rate(commodity, segment, year=int(period_start[:4])))
 
 

@@ -14,7 +14,11 @@ comes from:
 * VAT and the standing charge: VAT Notice 701/19 (domestic supply reduced-rated at any volume; a
   business supply reduced-rated at or under its fuel's de minimis, 33 kWh/day electricity and
   145 kWh/day gas) and VAT on the whole consideration, standing charge included (Notice 700);
-  the standing charge accrues per day of supply whatever is consumed;
+  the standing charge accrues per day of supply whatever is consumed; with no quantity there is
+  no relief to show, so a business period of no length is standard-rated (Notice 701/19 s1.2,
+  "standard rate of VAT unless ... eligible for the reduced rate"); and Revenue and Customs Brief
+  10 (2026) zero-rates GB electricity "that would previously have qualified for the reduced rate"
+  from 1 Oct 2026 (s3.2.2 makes a de minimis business supply one of those);
 * serialisation: the committed ledger is one book in two forms (`ledger_store`'s own contract).
 
 Generation is derandomised and the example database is off, so the gate sees the same examples on
@@ -35,6 +39,7 @@ from company.billing.account_ledger import AccountLedger, LedgerEvent, LedgerEve
 from company.billing.dd_review import _recommended_monthly, review
 from company.billing.dd_review_runner import run_annual_reviews
 from company.billing.dual_fuel_bill import SME_VAT_DE_MINIMIS_KWH_PER_DAY, vat_rate_for_supply
+from company.billing.invoice import _vat_rate as invoice_vat_rate
 from company.compliance.domain_invariants import check_vat, vat_rate_for_segment
 from saas.bill_generator import generate_bill
 
@@ -46,14 +51,26 @@ STANDARD = vat_rate_for_segment("SME")
 
 pennies = st.integers(min_value=0, max_value=500_000).map(lambda p: p / 100)
 days_2016_2025 = st.dates(min_value=dt.date(2016, 1, 1), max_value=dt.date(2025, 12, 31))
+# Through the first three months of the zero rate. Brief 10 ends it 31 Mar 2027; Notice 701/19
+# (updated 28 Oct 2026) says 30 Jun 2027, and the commons still says March. Apr-Jun 2027 is left
+# undrawn until the commons is corrected (vat-zero-rate-extended-to-june-2027), not pinned either way.
+priced_days = st.dates(min_value=dt.date(2016, 1, 1), max_value=dt.date(2027, 3, 31))
+ZERO_RATED_ELECTRICITY = (dt.date(2026, 10, 1), dt.date(2027, 3, 31))
 fuels = st.sampled_from(sorted(SME_VAT_DE_MINIMIS_KWH_PER_DAY))
 
 
-def _rule_rate(segment: str, fuel: str, kwh: float, days: int) -> float:
-    """VAT Notice 701/19 as published, written from the notice, not from the biller."""
+def _rule_rate(segment: str, fuel: str, kwh: float, days: int, on: dt.date) -> float:
+    """VAT Notice 701/19 and Brief 10 (2026) as published, written from them, not from the biller."""
     if segment == "resi":
-        return REDUCED
-    return STANDARD if kwh / days > SME_VAT_DE_MINIMIS_KWH_PER_DAY[fuel] else REDUCED
+        band = REDUCED
+    elif days <= 0:
+        band = STANDARD
+    else:
+        band = STANDARD if kwh / days > SME_VAT_DE_MINIMIS_KWH_PER_DAY[fuel] else REDUCED
+    first, last = ZERO_RATED_ELECTRICITY
+    if band == REDUCED and fuel == "electricity" and first <= on <= last:
+        return 0.0
+    return band
 
 
 def test_the_de_minimis_limits_are_the_published_ones():
@@ -69,24 +86,36 @@ def test_the_de_minimis_limits_are_the_published_ones():
 @example(segment="SME", fuel="gas", kwh=145.0 * 30, days=30, on=dt.date(2020, 1, 1))
 @example(segment="SME", fuel="gas", kwh=100.0 * 30, days=30, on=dt.date(2020, 1, 1))
 @example(segment="resi", fuel="electricity", kwh=500.0 * 30, days=30, on=dt.date(2020, 1, 1))
+@example(segment="SME", fuel="electricity", kwh=0.0, days=0, on=dt.date(2020, 1, 1))
+@example(segment="SME", fuel="electricity", kwh=10.0 * 30, days=30, on=dt.date(2026, 10, 1))
+@example(segment="resi", fuel="electricity", kwh=10.0 * 30, days=30, on=dt.date(2027, 3, 31))
+@example(segment="resi", fuel="electricity", kwh=10.0 * 30, days=30, on=dt.date(2026, 9, 30))
 @given(segment=st.sampled_from(["resi", "SME"]), fuel=fuels,
        kwh=st.floats(min_value=0, max_value=200_000, allow_nan=False),
-       days=st.integers(min_value=1, max_value=400), on=days_2016_2025)
+       days=st.integers(min_value=0, max_value=400), on=priced_days)
 def test_every_vat_reading_of_one_period_agrees_with_the_notice(segment, fuel, kwh, days, on):
     """Five VAT implementations was the defect; each reading of one period must give the notice's
-    rate, and the checker must pass what the biller charges."""
-    rule = _rule_rate(segment, fuel, kwh, days)
-    billed = vat_rate_for_supply(segment, fuel, kwh, days)
+    rate on its date, and the checker must pass what the biller charges. A period of no length is
+    drawn on purpose: that is where the biller said 5% and the checker 20%, until 20 Nov 2026."""
+    rule = _rule_rate(segment, fuel, kwh, days, on)
+    billed = vat_rate_for_supply(segment, fuel, kwh, days, on=on)
     assert billed == rule
-    assert check_vat(segment, billed, commodity=fuel, kwh=kwh, days=days)
+    assert check_vat(segment, billed, commodity=fuel, kwh=kwh, days=days, on=on)
+    assert invoice_vat_rate({"segment": segment, "commodity": fuel, "total_consumption_kwh": kwh,
+                             "days_in_period": days, "period_start": on.isoformat()}) == rule
     if segment == "resi":
         assert vat_rate_for_segment("resi", fuel=fuel, on=on) == rule
+    if days <= 0:
+        # with no volume the checker's segment default and the biller's fallback are one reading
+        assert check_vat(segment, billed)
 
 
 @st.composite
 def settlement_month(draw):
-    start = draw(st.dates(min_value=dt.date(2016, 1, 1), max_value=dt.date(2025, 11, 1)))
-    n = draw(st.integers(min_value=1, max_value=31))
+    start = draw(st.dates(min_value=dt.date(2016, 1, 1), max_value=dt.date(2027, 3, 31)))
+    # a billing month: it ends by the month's last day, so no period straddles a rate change
+    month_end = (start.replace(day=28) + dt.timedelta(days=4)).replace(day=1) - dt.timedelta(days=1)
+    n = draw(st.integers(min_value=1, max_value=(month_end - start).days + 1))
     sc_per_day = draw(st.integers(min_value=0, max_value=200).map(lambda p: p / 100))
     records = []
     for i in range(n):
@@ -115,7 +144,8 @@ def test_a_bill_is_its_lines_plus_vat_on_all_of_them_at_the_notices_rate(month, 
     assert bill["days_in_period"] == days
     assert math.isclose(bill["standing_charge_gbp"], sc_per_day * days, abs_tol=1e-9)
     # VAT is charged on the whole consideration, standing charge included, at the notice's rate
-    assert math.isclose(bill["vat_gbp"], subtotal * _rule_rate(segment, fuel, kwh, days), abs_tol=1e-6)
+    assert math.isclose(bill["vat_gbp"], subtotal * _rule_rate(
+        segment, fuel, kwh, days, dt.date.fromisoformat(bill["period_start"])), abs_tol=1e-6)
     assert math.isclose(bill["total_amount_gbp"], subtotal + bill["vat_gbp"], abs_tol=1e-6)
     # the lines split what was received for the supply; none of them is charged on top of it
     received = sum(r["revenue_gbp"] for r in records)

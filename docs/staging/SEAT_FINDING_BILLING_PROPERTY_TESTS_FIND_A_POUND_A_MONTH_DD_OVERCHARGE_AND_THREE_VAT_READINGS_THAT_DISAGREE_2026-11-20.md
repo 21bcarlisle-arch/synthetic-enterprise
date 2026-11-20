@@ -24,7 +24,7 @@ derandomised with no example database, and they take about 2 s.
    - Random generation over pennies did not hit the case. Inspection found it, and the property
      now draws whole-pound multiples of twelve as well. A sparse defect class needs its boundary
      drawn on purpose.
-2. **NOT FIXED: an SME period with no length is billed at 5% but checked at 20%.**
+2. **FIXED 20 Nov (see Resolution): an SME period with no length is billed at 5% but checked at 20%.**
    `dual_fuel_bill.vat_rate_for_supply("SME", fuel, kwh, days<=0)` falls to
    `VAT_RATE_BY_MARKET["SME"]`, which is 0.05. `domain_invariants.vat_rate_for_segment("SME")` is
    0.20, and `check_vat("SME", 0.05)` with no volume returns False, so the checker refuses what
@@ -34,10 +34,10 @@ derandomised with no example database, and they take about 2 s.
    - Which rate is right when the volume is unknown is a reading of 701/19: the de minimis is a
      relief that has to be shown. The recommendation is 20%, which `vat_rate_for_segment`
      already says.
-3. **NOT FIXED: the invoice fallback ignores the de minimis.** `invoice._vat_rate` charges an
+3. **FIXED 20 Nov: the invoice fallback ignores the de minimis.** `invoice._vat_rate` charges an
    SME bill 20% at any volume. This applies only on the fallback path, which is a bill with no
    line items (`invoice.py` already states that narrowness).
-4. **NOT FIXED: the biller has no date, so the dated domestic-electricity zero rate is not
+4. **FIXED 20 Nov for calendar months: the biller has no date, so the dated domestic-electricity zero rate is not
    applied.** `vat_rate_for_segment("resi", fuel="electricity", on=2026-11-01)` is 0.0 (SI
    2026/987, 1 Oct 2026 to 31 Mar 2027), but `vat_rate_for_supply("resi", "electricity", ...)` is
    0.05. Every day of 2016-2025 agrees, so the property is scoped to that window. A forward year
@@ -70,3 +70,21 @@ reach, which matches the 16 Nov lifecycle result (10 of 34 exposed by a declared
 Rows 2-4 are one `vat-one-reading-without-volume-and-forward-dates` item: make the biller take a
 date, and have both readings agree when there is no volume. The properties above go red when that
 is done wrong.
+
+## Resolution of rows 2-4 (20 Nov, `vat-one-reading-without-volume-and-forward-dates`)
+
+The K8 reading is `docs/market_research/back_billing_and_liability.md` s18.
+- **Row 2.** A business period with no length is now standard-rated (`VAT_RATE_BY_MARKET["SME"]`),
+  which matches the checker.
+- **Row 3.** `invoice._vat_rate` now reads through `vat_rate_for_supply`.
+- **Row 4.** `vat_rate_for_supply` takes `on=` (the period's first day), and `check_vat` accepts the
+  same date.
+
+Reading Brief 10 found two more things:
+- **The zero rate also covers SME electricity under the de minimis.** Brief 10 zero-rates every
+  supply that "would previously have qualified for the reduced rate", so the biller does this too.
+  The predicted `vat_rate_for_segment` scope (resi only) was too narrow.
+- **The zero rate now ends 30 June 2027, not 31 March.** Notice 701/19 (updated 28 Oct 2026) says
+  so; the commons does not. The properties now draw dates to 31 Mar 2027 and leave Apr-Jun 2027
+  undrawn, without pinning either answer. Correcting the commons and its four readers is
+  `vat-zero-rate-extended-to-june-2027`.

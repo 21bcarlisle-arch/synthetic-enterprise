@@ -8,7 +8,7 @@ review rise ~33% in calm years. Found 2026-10-10 from the DD book's year-one rev
 """
 import pytest
 
-from company.billing.dual_fuel_bill import vat_rate_for_supply
+from company.billing.dual_fuel_bill import period_first_day, vat_rate_for_supply
 from saas.bill_generator import generate_bill
 
 
@@ -29,7 +29,8 @@ def test_a_settled_bill_is_the_booked_revenue_plus_vat(commodity, sc_field):
     rows = _settled(commodity, sc_field)
     bill = generate_bill("C1", rows, "fixed_1yr", segment="resi", commodity=commodity)
     revenue = sum(r["revenue_gbp"] for r in rows)
-    vat = vat_rate_for_supply("resi", commodity, bill["total_consumption_kwh"], 30)
+    vat = vat_rate_for_supply("resi", commodity, bill["total_consumption_kwh"], 30,
+                              on=period_first_day(bill["period_start"]))
 
     assert bill["non_commodity_amount_gbp"] > 0, "the levy line is still shown on the bill"
     assert bill["total_amount_gbp"] == pytest.approx(revenue * (1 + vat))

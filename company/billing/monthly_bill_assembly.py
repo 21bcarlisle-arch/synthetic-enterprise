@@ -66,7 +66,7 @@ from company.billing.back_billing import (
     RecoveryPeriod,
     barred_unrecovered_gbp,
 )
-from company.billing.dual_fuel_bill import vat_rate_for_supply
+from company.billing.dual_fuel_bill import period_first_day, vat_rate_for_supply
 from company.billing.gas_volume_conversion import conversion_terms, kwh_from_volume
 from company.billing.pre_bill_validation import release_on_measured_rate, validate_bill
 from company.billing.read_duty_register import read_instruction_due
@@ -610,7 +610,7 @@ def _resolve_catchup(
 def _vat_rate_of(bill: dict, segment: str, commodity: str) -> float:
     """The VAT rate a priced period bore, by the biller's own function on the bill's own kWh and days."""
     return vat_rate_for_supply(segment, commodity, bill.get("total_consumption_kwh") or 0.0,
-                               bill.get("days_in_period") or 0)
+                               bill.get("days_in_period") or 0, on=period_first_day(bill.get("period_start")))
 
 
 def _catchup_lines_by_rate(

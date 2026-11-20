@@ -1064,3 +1064,84 @@ about a week's charges.
 **GAP.** The payment method is still asked at the period end, not the issue date. The ledger keys how
 a bill was paid on its period end too (`arrears_engine.paying_method`), so both sides agree. A mandate
 that ends between the two dates is not modelled.
+
+## 18. VAT when a period has no volume or a forward date (2026-11-20)
+
+K8 page for `vat-one-reading-without-volume-and-forward-dates`. The 20 Nov billing property tests
+found that the biller, the checker and the invoice fallback each read one period differently
+(`docs/staging/SEAT_FINDING_BILLING_PROPERTY_TESTS_FIND_A_POUND_A_MONTH_DD_OVERCHARGE_AND_THREE_VAT_READINGS_THAT_DISAGREE_2026-11-20.md`).
+
+**What the rules require.** These are read from the primary sources. Notice 701/19 was fetched on
+20 Nov 2026 (page updated 28 Oct 2026), and Revenue and Customs Brief 10 (2026) was fetched the
+same day.
+- **The default for business supply is the standard rate.** s1.2 says "supplies of fuel and power
+  are subject to the standard rate of VAT unless they are eligible for the reduced rate under
+  schedule 7A". **[H]**
+- **The de minimis is a quantity test.** s3.2.2 says de minimis supplies "are always treated as
+  being made for domestic use, even when the supply is to a business customer", and no certificate
+  is needed. ss5.2 and 4.2 set the limit as "an average rate of" 33 kWh/day for electricity and
+  145 kWh/day for gas, "whether the bill is based on a meter reading ... or on an estimate". **[H]**
+- **Undercharging is the supplier's liability.** s3.1 says that if the reduced rate is applied
+  incorrectly and the supplier "cannot satisfy us that you have taken reasonable steps ... you may
+  have to pay any VAT that you have undercharged". **[H]**
+- **The temporary zero rate covers every supply that qualified for the reduced rate.** Brief 10
+  says "Supplies of electricity in Great Britain that would previously have qualified for the
+  reduced rate of VAT will be charged at 0% from 1 October 2026 to 31 March 2027". It says
+  qualifying supplies "include electricity supplied for domestic use or for a charity's
+  non-business use", and that suppliers "should continue to use ... Notice 701/19 to determine
+  whether or not supplies qualify". Gas is not affected. **[H]** for the scope as quoted. **[M]**
+  that a de minimis business supply is inside it: Brief 10 does not name the de minimis, but
+  s3.2.2 treats such a supply as domestic use, so it "would previously have qualified".
+- **A period that spans 1 October 2026 may be split by when the energy was used.** Brief 10 says
+  "suppliers may determine the VAT liability of supplies based on the date the energy is
+  consumed", and HMRC recommends meter readings for the split. **[H]**
+- **The end date has moved.** Notice 701/19 as updated on 28 Oct 2026 says "The temporary zero
+  rate applies from 1 October 2026 to 30 June 2027", after the Budget 2026 extension. Brief 10 and
+  the commons (`uk_vat_rates.json`) still say 31 March 2027. **[H]** that HMRC's guidance now says
+  30 June. **GAP:** the amending order was not read.
+
+**What the rules leave open.** The notice says nothing about which rate applies when the quantity or
+the period length is unknown, and nothing about a standing charge with no consumption (s5.4 and
+s10.10 only say a standing charge takes the rate of the supply it belongs to).
+
+**The design's reading, and why.**
+1. **A business period with no length is standard-rated.** The relief is shown on "an average
+   rate of" supply. With no days, there is no average to show it on, and s1.2 makes standard the
+   default. Undercharging is the supplier's liability under s3.1. The old fallback was 5%, on the
+   argument that "over-charging a customer is the error that takes their money". That has the cost
+   right but ignores who carries the undercharge. It also made the checker
+   (`domain_invariants.check_vat`, segment default 20%) refuse what the biller charged. This now
+   matches `vat_rate_for_segment("SME")`, which is the recommendation the finding made.
+2. **Each period carries its first day, and a leg in the reduced band takes the dated exception in
+   force on that day.** `dual_fuel_bill.vat_rate_for_supply(..., on=)` takes the date as a required
+   keyword. `None` is still allowed, but the caller has to write it out, and it means the undated
+   band. That band is right for every day of 2016-2025. The exception applies to SME legs under the
+   de minimis as well as to households (the Brief 10 scope above).
+3. **The first day decides the whole period.** This is exact for a calendar billing month,
+   because both edges of the window are month edges. **GAP:** a non-calendar period that spans an
+   edge would need the Brief 10 split by consumption date. The bill generator bills months, so no
+   period on the run spans an edge. This is stated, not modelled.
+4. **The invoice fallback reads through the biller's function** on the bill's own kWh, days and
+   start, rather than through the segment default.
+
+**What our code did (discovery), before this change.**
+`vat_rate_for_supply("SME", fuel, kwh, days<=0)` returned 0.05. The checker said 0.20.
+`invoice._vat_rate` charged an SME bill 20% at any volume. The biller took no date, so a forward
+domestic electricity month was billed at 5%, not 0%. `generate_bill` always has a positive day
+count, so on the 2016-2025 run the no-volume path was reachable only through
+`monthly_bill_assembly._vat_rate_of`. The dated path had no effect on 2016-2025.
+
+**Other readers of the window that this change does not touch.** These are the follow-on item
+`vat-zero-rate-extended-to-june-2027`:
+- `tools/ofgem_cap_unit_rate_composition.VAT_MULTIPLIER_WINDOWS`, a fifth copy of the window,
+  hard-coded and ending 2027-04-01.
+- `tools/independent_bill_validator._vat_on`. It reads the commons, but only for the domestic
+  segment.
+- The commons' own end date.
+
+**Sources.**
+- HMRC, VAT Notice 701/19 *Fuel and power*, https://www.gov.uk/guidance/vat-on-fuel-and-power-notice-70119,
+  ss1.2, 3.1, 3.2.2, 3.5, 4.2, 5.2, 5.4, and the introductory box on the zero rate. Updated 28 Oct
+  2026, fetched 20 Nov 2026.
+- HMRC, Revenue and Customs Brief 10 (2026), https://www.gov.uk/government/publications/revenue-and-customs-brief-10-2026-temporary-zero-rate-of-vat-for-domestic-electricity-in-great-britain/temporary-zero-rate-of-vat-for-domestic-electricity-in-great-britain.
+  Published 8 Sep 2026, fetched 20 Nov 2026.

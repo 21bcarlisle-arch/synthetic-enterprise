@@ -114,8 +114,9 @@ def _actual_vat_rate(bill: dict) -> float | None:
 
 
 def _vat_volume(bill: dict, commodity: str) -> dict:
+    from datetime import date
     return {"commodity": commodity, "kwh": bill.get("total_consumption_kwh", 0.0),
-            "days": _days_in_period(bill)}
+            "days": _days_in_period(bill), "on": date.fromisoformat(bill["period_start"])}
 
 
 def validate_bill(bill: dict) -> BillValidationResult:

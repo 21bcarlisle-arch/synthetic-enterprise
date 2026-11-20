@@ -128,10 +128,13 @@ DOMESTIC_FUEL_VAT_EXCEPTIONS = _load_domestic_fuel_exceptions()
 #: a de minimis limit; `SME` is the only one where the answer depends on consumption, and every
 #: caller that HAS a consumption figure goes through `_sme_vat_rate` instead of this table. The
 #: entry here is what an SME leg falls back to when no daily volume is available, and it is the
-#: REDUCED rate deliberately: over-charging a customer is the error that takes their money.
+#: STANDARD rate: a business supply is standard-rated, and the de minimis is a relief shown on the
+#: quantity supplied, so with no quantity there is nothing to show it on
+#: (docs/market_research/back_billing_and_liability.md s18). Until 2026-11-20 this was the
+#: reduced rate, and the checker (`domain_invariants.check_vat`) refused what the biller charged.
 VAT_RATE_BY_MARKET: dict[str, float] = {
     "resi": VAT_RATES["reduced"],
-    "SME": VAT_RATES["reduced"],
+    "SME": VAT_RATES["standard"],
     "I&C": VAT_RATES["standard"],
 }
 
@@ -272,13 +275,43 @@ def _sme_vat_rate(daily_kwh: float, fuel: str) -> float:
     return VAT_RATE_BY_MARKET["I&C"] if daily_kwh > limit else VAT_RATE_BY_MARKET["resi"]
 
 
-def vat_rate_for_supply(market_type: str, fuel: str, kwh: float, days: float) -> float:
-    """The VAT rate one period's supply attracts: the segment default, except that an SME leg with
-    a known period length is tested against its fuel's de minimis on the period's average daily
-    volume. Every biller of a period goes through this, so the de minimis has one reading."""
+def vat_rate_for_supply(market_type: str, fuel: str, kwh: float, days: float, *,
+                        on: Optional[date]) -> float:
+    """The VAT rate one period's supply attracts. Every biller of a period goes through this, so
+    the de minimis and the dated band each have one reading.
+
+    The band first: the segment default, except that an SME leg with a known period length is
+    tested against its fuel's de minimis on the period's average daily volume. Then the date: a
+    leg that lands in the REDUCED band takes the commons' dated exception for its fuel in force
+    `on` the period's first day. Brief 10 (2026) zero-rates "supplies of electricity in Great
+    Britain that would previously have qualified for the reduced rate", and Notice 701/19 s3.2.2
+    treats a de minimis business supply as domestic use, so an SME month under the limit is
+    zero-rated with a household's, not left at 5%.
+
+    `on` has no default, so every caller says whether it knows the date. `None` is the undated band:
+    right for every day of 2016-2025, wrong for a forward electricity month in the window. The first
+    day decides the whole period, which is exact for a calendar month because the window's edges
+    are month edges; a period straddling one is a declared GAP (Brief 10 lets it be split by
+    reading). See docs/market_research/back_billing_and_liability.md s18."""
     if market_type == "SME" and days > 0:
-        return _sme_vat_rate(kwh / days, fuel)
-    return VAT_RATE_BY_MARKET.get(market_type, VAT_RATE_BY_MARKET["resi"])
+        rate = _sme_vat_rate(kwh / days, fuel)
+    else:
+        rate = VAT_RATE_BY_MARKET.get(market_type, VAT_RATE_BY_MARKET["resi"])
+    if rate == VAT_RATES["reduced"] and on is not None:
+        for ex_fuel, start, end, ex_rate in DOMESTIC_FUEL_VAT_EXCEPTIONS:
+            if ex_fuel == fuel and start <= on <= end:
+                return ex_rate
+    return rate
+
+
+def period_first_day(period_start) -> Optional[date]:
+    """A period's first day from a bill's ISO `period_start`, or None where the bill carries none."""
+    if isinstance(period_start, date):
+        return period_start
+    try:
+        return date.fromisoformat(str(period_start)[:10])
+    except ValueError:
+        return None
 
 
 def _invoice_to_section(inv: dict, fuel: str, market_type: str) -> FuelBillSection:
@@ -303,7 +336,7 @@ def _invoice_to_section(inv: dict, fuel: str, market_type: str) -> FuelBillSecti
         vat = stored_vat
         vat_rate = round(vat / subtotal, 4) if subtotal > 0 else 0.05
     else:
-        vat_rate = vat_rate_for_supply(market_type, fuel, kwh, days)
+        vat_rate = vat_rate_for_supply(market_type, fuel, kwh, days, on=period_first_day(start))
         vat = round(subtotal * vat_rate, 2)
 
     total = float(inv.get("total_gbp", round(subtotal + vat, 2)))
