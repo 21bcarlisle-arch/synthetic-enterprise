@@ -112,6 +112,15 @@ def test_every_branch_of_the_partition_can_be_taken(repo):
     assert [r["would_refuse"] for r in _results(weakened)][-1] is True
 
 
+def test_a_commit_that_touches_no_gate_still_leaves_a_record(repo):
+    """Defect: the log is written only on a rerun, so an empty log after a week of commits cannot
+    tell 'no change touched a gate' from 'the observer never ran', and its own cost goes unrecorded."""
+    _stage(repo, "tools/unrelated.py", "X = 2\n")
+    _, records = _observe(repo)
+    (rec,) = records
+    assert rec["results"] == [] and rec["staged"] == 1 and rec["observer_seconds"] >= 0
+
+
 def test_a_broken_observer_never_reds_the_commit(repo):
     """Defect: observe mode turns into enforce mode by crashing."""
     (repo / ".git" / "base_judged_gates.jsonl").mkdir()  # unwritable log: the write raises

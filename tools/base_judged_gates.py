@@ -261,6 +261,7 @@ def log_path(root: Path) -> Path:
 
 
 def observe(root: Path) -> dict:
+    t0 = time.monotonic()
     base = Base(root)
     staged = staged_paths(root)
     gates = affected_gates(base, root, staged)
@@ -269,9 +270,12 @@ def observe(root: Path) -> dict:
               "staged": len(staged), "gate_data_touched": sorted(p for p in staged
                                                                   if _GATE_DATA.search(p)),
               "results": [judge(g, base, root) for g in gates]}
-    if record["results"] or record["gate_data_touched"]:
-        with log_path(root).open("a") as fh:
-            fh.write(json.dumps(record) + "\n")
+    # One line per commit, reruns or none: a log written only on a rerun cannot tell a week of
+    # commits that touched no gate from an observer that never ran, and enforce's cost (GAP-6) is
+    # this whole duration, not only the reruns'.
+    record["observer_seconds"] = round(time.monotonic() - t0, 2)
+    with log_path(root).open("a") as fh:
+        fh.write(json.dumps(record) + "\n")
     for r in record["results"]:
         if r["would_refuse"]:
             print("[base-judged] OBSERVE: the base copy of {} refuses this change and the change's "

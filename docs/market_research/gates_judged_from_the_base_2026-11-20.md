@@ -69,7 +69,10 @@ the change. Under `surgical_land`, the hook *script* comes from the change too. 
 - **GAP-5, guarded lines.** The `status_honesty` line inside the `if LATEST.md` block uses
   `|| { ... }`, not `|| exit 1`, and is not parsed. Neither are other conditional lines.
 - **GAP-6, cost.** This is unmeasured until observe mode has run on real commits. The log records
-  each rerun's duration.
+  each rerun's duration and, from 20 Nov, one line for EVERY commit with `observer_seconds`. Until
+  then it wrote only on a rerun, so five commits after it landed had left no log at all, and that
+  silence could not be told from an observer that never ran. One probe on the real tree with
+  nothing to rerun: 3.55 s.
 
 ## 5. Enforce
 
