@@ -118,3 +118,27 @@ commons artefact already names as uncorroborated. This lane does not close it.
 **Status.** The crossing cause was named and fixed in c6695cd8db, and its red clears at the next
 publish. The cap row is fixed in the validator and the bill is kept. Nothing here is left open, so
 this finding can move to `done/` once the next publish shows both readers green.
+
+## Done (2026-11-20, the commit that moves this file)
+
+**Not an overcharge. The validator's ceiling was wrong, and that was fixed in c6695cd8db (18 Nov 12:45),
+two hours after the 6af7fd0bf publish this red was read from.** The bill charged the SVT stub its
+own Day/Night pair. The ledger's term record for that stub carried only the SVT's flat rate
+(`tou_unit_rates: null`), so the ceiling sat under the Day rate. On PROS-2016-0253 Sep 2017 the SVT
+pair is 18.9888 / 8.9247p, and the ceiling becomes £189.55 against the £164.63 charged.
+
+**Measured 2026-11-20 in a clean worktree at b3c18d1846, with the ledger rebuilt by
+`python3 -m tools.generate_billing_ledger` (53,605 invoices) and nothing published:**
+- `test_the_validator_checks_the_printed_rate_against_the_contracted_tariff.py`: 10 passed.
+  Against the ledger in git (still 6af7fd0bf's) the same file has 1 failed and 9 passed, with the
+  same 3 bills.
+- The three stubs now carry their pairs: 0253 18.9888/8.9247, 0286 19.9689/9.3854, 0313
+  32.7447/15.39. All three bills are BOUNDED. For example, 0313 is £153.38 inside £54.02..176.26.
+- **The second claim clears too.** For PROS-2021-0313 Sep 2022, `default_tariff_rate_within_cap` is
+  AGREED at 25.4557p under the multi-register cap model. Book-wide it is 27,549 AGREED, 0 DISAGREED.
+- **The denominator this finding asked for, from the old ledger:** 115 bills with two terms mixed a
+  term carrying a ToU pair with one that did not (65 fix→SVT, 22 SVT→SVT, 28 SVT→fix). Only 3 broke
+  the loose ceiling. The rest were BOUNDED against a ceiling too low to bind.
+
+The post-publish reader store turns green at the next publish that rebuilds the ledger. Nothing in
+this commit touches code.
