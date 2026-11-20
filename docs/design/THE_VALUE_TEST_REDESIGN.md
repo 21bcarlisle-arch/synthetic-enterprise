@@ -2015,3 +2015,72 @@ the next owed book, not the precondition loosened. No second long job was starte
 The 0.12 pair runs with the weighing off, against A as run, so it is not exposed to the loss graded here.
 
 **Reverse:** nothing to reverse in (a). For (b), see the 05:05Z entry above (`systemctl --user stop vtc-cut012-watch`).
+
+#### The 0.12 pair graded: bars 1 and 2 hold, and the advantage over the twin is −£0.33, not told from zero (20 Nov)
+
+**What was read.** The pair ran to completion on both seeds. Seed 11111 took 20,071 s and seed 22222 took 20,531 s,
+a total of 40,602 s. It made 867 and 873 churn-roll draws, each redrawn and none held. Both seeds wrote
+`/var/tmp/vtc-out-cut012/`, and the tree patch matches the pin. `read_cut012.py` ran unchanged, as filed, and
+exited 0 (`read_cut012.out`). The per-arm table below comes from `grade_paired_cut012.py`. That is
+`grade_paired_gbp.py` with the run directories made parameters: the household unit, the twin's control-arm
+household-years (5,676 and 5,823), 2,000 household resamples and resampling seed 20261117 are all unchanged.
+It was written after `read_cut012.out` had printed. Both scripts and their outputs are in `/var/tmp/vtc-driver/`.
+
+| Pre-registered (19 Nov, before the run) | Predicted | Read | Graded |
+|---|---|---|---|
+| Bar 1, mechanics: §12c's nine flips re-offered | 6 or more; refuted at 3 or fewer | **6 of 9**. The 6 were offered 3% and all renewed. The other 3 were not offered and churned | **HELD** |
+| Bar 2, money: value arm, cut minus A, £ per household-year | **+£0.50 (−£1.50 to +£2.50)**; refuted below zero; a CI spanning zero is not a hold | **+£1.00 (+£0.27 to +£2.05)**; seeds +£1.32 and +£0.67 | **HELD** |
+| Transfer check (M2): the gain against the discount paid to stayers | A gain smaller than the discount to stayers is transfer | The stayers' discount is **£0.14 and £0.13** per household-year (17 and 16 offers, £795 and £736). The gain is **£1.00** | **HELD** (not transfer) |
+
+**The money, every arm, paired by household (2 draws, 11111 and 22222).**
+
+| | cut minus A | cut minus twin | Households (moved, cut minus A / minus twin) |
+|---|---|---|---|
+| **Per-customer arm (value arm)** | **+£1.00 (+£0.27 to +£2.05)** | −£0.21 (−£0.87 to +£0.33) | 773–774 (75 / 100) |
+| **Flat book (control arm)** | **−£0.02 (−£0.05 to +£0.01)** | +£0.12 (−£1.18 to +£1.36) | 780 (50 / 263) |
+| Level arm | +£0.64 (+£0.11 to +£1.40) | −£0.35 (−£1.72 to +£0.89) | 770 (50 / 126) |
+| **Advantage over the baseline (value minus control)** | **+£1.01 (+£0.27 to +£2.03)** | **−£0.33 (−£1.77 to +£0.96)** | 785 (119 / 284) |
+| Choosing leg (value minus level) | +£0.36 (−£0.40 to +£1.28) | +£0.14 (−£1.22 to +£1.57) | 785 (76 / 147) |
+
+Each run's own advantage level (value minus control, per household-year, seeds 11111 / 22222):
+- the cut: **£6.49 / £1.27, mean £3.88**;
+- A: £5.15 / £0.59, mean £2.87;
+- the twin: £6.64 / £1.79, mean £4.21.
+
+**What it means.** The open row was §10b's whole advantage, A minus twin, at **−£1.35 (−£3.03 to +£0.13)**.
+With the cut at 0.12 it reads **−£0.33 (−£1.77 to +£0.96)**. The cut wins back £1.01 of the £1.35, with an
+interval that excludes zero. Almost all of that is on the value arm: the flat book moves by −£0.02. The rest
+cannot be told from zero on two draws. So, on this pair, the per-customer arm with A's desk belief and the 0.12
+cut **no longer loses to the twin by inference, and does not beat it by inference either.** In level terms the
+value arm beats the flat book by £3.88 per household-year with the cut, against £4.21 for the twin. That level is
+supplier net margin, as in §10b, not household value.
+
+**Two cautions, stated before anything builds on this.**
+- **The 0.12 was fitted on this pair.** It is the lowest cut that reached 6 of these 9 flips offline (§12f), so
+  bar 1 holding was partly built in, and bar 2 is read on the households the cut was chosen for. This is a hold
+  in-sample, not a replication.
+- **I cannot yet say where most of the £1.00 comes from.** The added offers that changed a departure carry £534
+  and £475 of retained term margin. That is £0.09 and £0.08 per household-year, about a tenth of the gain.
+  75 households moved on the value arm, against 42 added offers. Candidates:
+  - retained households stay for more than the one term the margin field prices;
+  - knock-on churn-roll redraws on households whose decision path changed;
+  - the 0.12 cut's lower-tier pricing on renewals that were not added offers.
+
+  Nothing here separates them. The reading that would separate them is a per-household split of the 75 by
+  whether the household carries an added offer.
+
+**The next lever, as §12e points to it.** The advantage is still negative, so the lever is §12e's HOLD row,
+applied to this switch. Run the same driver (A plus `retention_cut_at_the_flips`, weighing and skip off) on the
+two pairs already run under flag 1, **33333/44444 and 55555/66666**, and compare each with its own `vta-out-flag1`
+files. That tests the in-sample caution directly.
+- **Predicted, pre-registered now:** cut minus A, value arm, per pair, **+£0.60 (−£0.60 to +£1.80)**. The hold
+  is refuted if the two-pair mean is below zero.
+- **One limit, known in advance:** flag 0 was dropped on those seeds, so they have no twin. They can replicate
+  the +£1.01 against A, but they cannot re-read the advantage against the baseline. If they hold, the twin on
+  one of them is the run that grades the open row a second time.
+- **Not launched by this entry.** It is two box-days, and it queues behind whatever the box holds.
+
+**The worktree.** `/var/tmp/value-test-cut012` was unlocked after this read, as its lock reason asked. The tree
+is kept, because a replication needs the same patched tree.
+
+**Reverse:** nothing to reverse. The section is a reading, and the unlock is `git worktree lock` again.
