@@ -394,7 +394,7 @@ Everything else: act, record how to reverse it, say what you did.
 
 **D10. Show the working.** The primary output is explanation, "in plain language a GCSE student would follow", on the website: not internal vocabulary, status reports or registers. Human surfaces render titles, not ids. *(June to 18 Aug)*
 
-**D11. The public site.** It exists so that an intelligent stranger can understand the project, believe it, interrogate it and follow its progress, "without learning our vocabulary". "It is not my observability tool." Five tabs make up the site. It publishes weekly, "on Monday after the reset". A banner re-evaluates its state on every publish: "Say what a reader needs in one plain sentence or say nothing." *(17 Aug to 26 Sept)*
+**D11. The public site.** It exists so that an intelligent stranger can understand the project, believe it, interrogate it and follow its progress, "without learning our vocabulary". Readers reach it by invitation, behind a login. The repository and its github.io copy stay public, so the login keeps out search engines and casual visitors, not a determined reader. *(20 Nov, "Yes" to the one added sentence; the newcomer test holds for invited readers.)* "It is not my observability tool." Five tabs make up the site. It publishes weekly, "on Monday after the reset". A banner re-evaluates its state on every publish: "Say what a reader needs in one plain sentence or say nothing." *(17 Aug to 26 Sept)*
 
 **D12. Charts teach.** "It should be didactic." A graph that decorates rather than teaches does not ship. Charts are live from the pipeline, with an as-of clock. Colour is information. *(23 July to 9 Oct)*
 
