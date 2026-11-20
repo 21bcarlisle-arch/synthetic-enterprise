@@ -49,3 +49,15 @@ built from the company's own ledger and contact records, instead of the book-wid
 
 `world-first-post-write-off-recovery-that-varies-by-what-a-supplier-sees` (sim lane, knowledge first).
 The per-debt company rule is its successor, and it should not be drawn before then.
+
+**Addendum (2026-11-20, a parallel draw of the same item).** Before this finding reached it, a
+second draw had built and gated the company-side rule. It is held, not landed, at branch
+`knife3-per-debt-sale` (9fcd4a53fa), for the successor to pick up rather than rebuild:
+`cash_forecast_provision.post_close_cell` and `RollRates.post_close_recovery_for`,
+`collections_journey.expected_post_close_recovery`, and a `sensitive` exclusion on
+`sells_written_off_debt`. Six tests come with it, and three mutations each turn tests red. The
+estimator learns per cell and shrinks to the book-wide figure, so in today's flat world it is
+flat. That agrees with point 1 above. New evidence went to s.7.7. A broker's debt-sale material
+says sellers exclude "accounts not eligible for sale due to sensitive circumstances" (TDX/Equifax),
+so the vulnerability GAP is corrected. L.E.K. puts purchasers' collections at about 2x price, so
+about 11-19p per GBP, which brackets 0.122.

@@ -954,13 +954,24 @@ that depends on the debtor and arrives late. The other is a price fixed on the d
 - After a closed account's balance is aged, a supplier expects to recover about 12p per £: one minus
   Centrica's final-bill >90-day coverage, 0.878 at 2025 (range 0.755–0.896). The company already
   holds this figure as `company/finance/cash_forecast_provision.PRIOR_POST_CLOSE_RECOVERY`.
+- Sellers segment what they sell, and they exclude "accounts not eligible for sale due to sensitive
+  circumstances". A broker sells to a panel with "segmentation aligned to seller's core
+  requirements, purchaser appetite and portfolio composition" (TDX Group, Equifax, *Debt Sale*
+  brochure, read 2026-11-20). So in practice, which debts are sold is a per-debt choice, and
+  vulnerability is a reason not to sell. This is practice description from a broker, not a rule.
+- UK purchasers have collected about two times what they paid over 84 months, falling below two by
+  2014 (L.E.K., *Why the UK Debt Purchase Market is Sustainable*, Executive Insights XVIII/1). At
+  5.4p–9.3p that is about 11p–19p per £ collected, which brackets the 12p above. The two
+  published routes agree; neither is energy-specific.
 - Money Advice Trust (response to Ofgem's affordability and debt call for input, 2024) names debt
   sale and DCA use as practices that still cause concern. No Ofgem licence condition on selling
   domestic energy debt was found this pass.
 
 **What is not published (GAP).**
 - Any GB supplier's rule for WHICH debts it sells and which it works. Nothing was found on age,
-  balance, contact history, or a vulnerability flag. The register already says so: "No company
+  balance or contact history. On a vulnerability flag, the only published practice is a broker's
+  general one, given above: sensitive circumstances are excluded from sale (corrected 2026-11-20;
+  this line said nothing was found). The register already says so: "No company
   DCA-versus-sale decision exists".
 - DCA commission on energy debt. The illustrative 15% was removed on 2026-10-08.
 - An energy debt-sale price.
@@ -1003,7 +1014,14 @@ Only then does a per-debt rule have anything to find. Evidence for that variatio
 (s.2.5) splits recovery by age, at under and over 12 months. It covers arrears, with an undisclosed
 definition, and not written-off closed balances. **GAP:** published GB energy recovery after
 write-off, split by contact, arrangement history, balance or age. **GAP:** an energy debt-sale price
-split between paying and non-paying portfolios. Finding:
+split between paying and non-paying portfolios. A company-side learned estimator was built by a
+parallel draw of the same item, before this measurement reached it. It is gated, but not landed,
+at branch `knife3-per-debt-sale` (9fcd4a53fa). It reads a cell off the company's own ledger at
+the last bill: months unpaid at close, and whether arrears were carried into the final bill. Each
+cell is shrunk to the book-wide figure, so in a flat world it is flat. It also never sells a debt
+the company flags as sensitive. It is held for the world-first successor, not landed now: in this
+world it could not fail in-run. The sensitive-circumstances exclusion is the one per-debt rule the
+evidence supports without a varying world, and it should land with that successor. Finding:
 `docs/staging/SEAT_FINDING_A_PER_DEBT_SALE_RULE_HAS_NOTHING_TO_DISCOVER_WHILE_THE_WORLD_RECOVERS_ONE_SHARE_OF_EVERY_DEBT_2026-11-20.md`.
 
 ---
@@ -1415,6 +1433,12 @@ All fetched 2026-10-05 unless stated otherwise.
   - NAO's 25%-on-plans restatement.
 - **Deceased customers: secondary guides only** (afterlossguide.co.uk, withfarra.co.uk). Treated as
   practice description, not evidence of scale.
+- **Debt sale practice (s.7.7, 2026-11-20).**
+  - TDX Group / Equifax, *Debt Sale* brochure:
+    <https://assets.equifax.com/marketing/united-kingdom/assets/tdx-group_debt_sale_brochure.pdf>.
+    A broker's own material: it is practice description.
+  - L.E.K. Consulting, *Why the UK Debt Purchase Market is Sustainable*:
+    <https://www.lek.com/sites/default/files/insights/pdf-attachments/1801_UK_Debt_Purchase_Market_Debt_Buying_Industry_Consulting_LEK_Executive_Inisghts.pdf>.
 
 ## Breathing Space (Debt Respite Scheme): what a supplier must do, volumes, Scotland, and whether our seam matches (2026-10-11)
 
