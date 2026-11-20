@@ -24,3 +24,18 @@
 - Mark SPAR as a GAP with the range on the knowledge page. If a primary source turns up later, narrow it.
 
 Close all three rows with these resolutions.
+
+## Addendum, Fri 20 Nov 07:00 GMT: Zero Trust asked for a card, so build the password gate
+
+The director's words: "Card"
+
+The Zero Trust sign-up asked for a card, and he declined, as ruled in point 1. **Build the Pages-Function password gate now, with no further ask.** Requirements:
+
+- Every route is covered, as listed in the K8 note.
+- robots and noindex stay.
+- The deploy check reads through the gate.
+- The password is never committed, logged or printed. It lives as a Cloudflare secret.
+- **How the director gets the password:** generate it on the box and put it in a file under `~/.config/synthetic-enterprise/` with mode 600. Tell the advisor the file's path, never its value. The advisor will tell him how to read it.
+- Write down how to reverse it.
+
+Close `the-site-login-you-ruled-on-19` once the gate is live and checked from outside.
