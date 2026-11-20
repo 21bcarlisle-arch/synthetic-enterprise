@@ -236,3 +236,12 @@ arrived. On a book where it read 0 before, the IFRS 9 charge falls by that amoun
 
 **Owed:** grade I1 to I6 on the first book made at or after this commit. That is a box run, queued
 behind the census. Nothing more is owed in code for this item.
+
+## Re-drawn 2026-11-20 ~11:00Z: premise spent
+
+The item `knife3-agency-remittance-reaches-the-company-book` was drawn again after both increments
+had landed (4ea473bf18: one write-off per invoice, each with its `invoice_ref`; 7d99949ce7: the
+agency's remittance crosses as cash on its own date, earmarked to that bill). The pre-registration
+above (I1 to I6) is already written. Nothing more is owed in code, so this draw takes the
+premise-spent disposition. Grading I1 to I6 is handed on as
+`grade-knife3-in-run-i1-to-i6-on-the-first-book-after-7d99949ce7`.
