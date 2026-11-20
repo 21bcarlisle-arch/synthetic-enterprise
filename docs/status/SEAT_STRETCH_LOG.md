@@ -8,6 +8,44 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-20 — orientation: Three hours: 17 commits, 12 carrying work, 5 substantive
+
+<!-- head: cdecbd946fc9 -->
+
+*Written by the orientation seat from its own record (2026-11-20T06:22:14.056314+00:00; 17 commits, 5 substantive, since 2026-11-20T03:22:47.583011+00:00).*
+
+Commit split (product code by path): 1 supplier, 3 world, 0 both, 13 other.
+
+## What the stretch meant
+
+Three hours: 17 commits, 12 carrying work, 5 substantive. The split reads 1 supplier, 3 world and 13 other; 5 of the 17 are merges that changed nothing. Nothing went backwards, and the thesis test has still not answered. The 0.12 pair is on seed 2 of 2: seed 1 finished in 20,071 s, and seed 2's run had reached Dec 2020 at 06:22Z. Its read is due around 08:00, so item 1 stands as it was. The stretch's main result is a second refuted premise, and again the premise was mine. I asked the per-debt sale rule to land once the world's recovery varied by age at close. f696fca4e made it vary, so a bill more than 12 months overdue recovers 0.52 of the share. The KNIFE3 replay (98177f319) then showed that the company cannot see that variation. Its learning window is 365 days, but the agency remits 575 days after the final bill, so 0 of 215 remittances fall inside it. Its cells also divide by the whole closing balance, most of which the customer paid before write-off. The cells spread (0.03 to 0.92), but on customer cash and not on recovery. At 5.4p the rule would sell 118 young debts that are worth 12.2p. The landing rule refused it, and only the sensitive-circumstances exclusion landed. So the advantage there is real and inferable, but the company is reading the wrong window over the wrong denominator. A supplier knows its own agency's remittance lag and its own write-off amounts, so the fix is an inference fix with no access in it, and it is item 2. The prepayment check is done: 7dd43e4a7 replayed 67d454905c with f0445b2dc reverted, on the same seed and window. Every run-output figure matched and the report was byte-equal, so that wrong row closes. The previous focus was drawn on two of four items, and both finished. The pair and the D48 switch are dated, not stalled. The director's 05:58 reading asked for the spare points to go to the findings triage and the work system first. The plan ranked them, but nothing the draw reads carried them, so neither had moved. Both now have continuations, and the triage is item 3. Counting matters for it: origin's staging root has 11 BLOCKING findings, while the shared tree has 1, because about 200 dispositions sit uncommitted there. Lane 0's not_done row, poesys-net-goes-behind-a-login, waits on the director's Zero Trust step (his open row) and is not drawable. The checkout is 1 behind origin.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 06:22 20 Nov -- unchanged; the 0.12 pair runs with the weighing off, so it cannot move this belief.
+- NOT corrected: THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 06:22 20 Nov -- unchanged. The pair is on seed 2 of 2; its read is focus item 1.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 06:22 20 Nov -- unchanged; the 23 Nov recheck stands on 67d454905c or the next book.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 06:22 20 Nov -- unchanged as re-stated.
+- corrected: THE MACHINE'S, NEW. The prepayment meter build (f0445b2dc) landed from its continuation during the stretch. The last record's not_now held that build until skip0 and the 0.12 pair had read, and its waits_for did not say so, so the queue could not see the hold. It draws on its own streams and changes no company code, so the value pair should be unaffected. That is the commit's own claim, and no pair has checked it. [Earlier tails are in decisions.jsonl.] 06:22 20 Nov -- CHECKED: 7dd43e4a7 replayed 67d454905c with f0445b2dc reverted, on the same seed and window. Every run-output figure matched and the report was byte-equal; only the truth file's prepayment_supply_events key differs, as predicted.
+- corrected: THE MACHINE'S (THIS SEAT'S), NEW. My 03:22 record set the per-debt rule's landing test as "the cells spread on the varying world". It did not first ask whether the company's 365-day learning window could see the agency's remittance, which arrives 575 days after the final bill, or what the cells divide by. They spread (0.03 to 0.92) on customer cash, not on recovery. The landing rule refused the rule (98177f319), so no wrong rule landed. The window and the denominator are now focus item 2.
+
+## Chosen against
+
+- Putting the one-work-system K8 page and decision map (plan item 6) in focus beside the triage.
+- Landing the per-debt sale rule from the branch as it stands, now that the world varies.
+- Rescheduling the long value-test jobs so the nightly head-green census can admit (the reading's third ask).
+- Switching on the corrected renewal churn belief (the AUC 0.333 row).
+- Reaping the 10 at-risk salvage worktrees, and working the repeating fork and seat-claim alarms.
+
+## Focus for the next stretch
+
+- `the-0-12-pair-is-read-and-the-advantage-is-published-with-its-interval`
+- `knife3-post-close-recovery-is-learned-over-the-agency-lag-on-the-written-off-amount`
+- `triage-the-ten-blocking-findings`
+- `d48-the-electricity-blend-goes-on-in-the-published-policy`
+
+---
+
 ## 2026-11-20 — orientation: Three hours: 8 commits, 6 carrying work, 5 substantive
 
 <!-- head: 834610bd1209 -->
