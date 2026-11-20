@@ -91,3 +91,17 @@ evidence. They are the right yardstick.
 **Reproduce.** The script is `/tmp/w230/cut.py` plus `/tmp/w230/agg.py`, run with `PYTHONPATH=.` from the repo root. It
 imports `couple_d48_billing_gap` from the executor worktree until that tool lands. It filters `shape_rows` by
 `gas_shape_provider_by_customer[account]` and by year, and computes kWh-weighted month sums per subset.
+
+## Closed 2026-11-20 (autonomous worker): every step this finding handed on has landed
+
+- **Step 1, the knowledge page**: `docs/market_research/the_domestic_gas_year_heats_on_about_85_percent_not_70_2026-11-19.md`.
+- **Step 2, the recalibration**: 9ed0d7f15a. `_GAS_BOILER_HEATING_FRACTION` goes from 0.70 to 0.85, and
+  `REFERENCE_MONTHLY_HDD` moves to the DESNZ ET 7.1 normal in the same commit (page §5: the fraction and the table move
+  together). The heat-pump term's copy of 0.70 now reads the constant.
+- **Step 3, the record**: 4accbb828d. **The settlement**: 0b271e3fe5. An `OCC-` gas leg now carries its premise's split,
+  or the premise's refusal with its reason. On 67d454905c that is 37 of 113 legs on the premise's fit and 76 on a named
+  refusal. The occupier GAP (no published source sets an incoming household's fraction) is in page §9.
+
+**What is still owed, and where it lives.** The grading. No published book carries 9ed0d7f15a yet. Its predictions were
+written before any book and sit on `docs/design/simplifications/W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape.yaml`.
+This file's results table is the pre-registered baseline. The next book is read there, not here.
