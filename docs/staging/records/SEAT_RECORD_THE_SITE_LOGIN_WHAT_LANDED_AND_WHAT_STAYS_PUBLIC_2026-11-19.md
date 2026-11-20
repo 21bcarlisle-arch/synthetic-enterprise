@@ -45,6 +45,12 @@ The K8 note (routes gated, machine readers the gate will break, reversal):
   - the reversal is recorded: delete the Access application, then the two GitHub secrets.
 
   No DNS change is expected. A payment-card screen is his.
+
+  *[Re-read, 20 Nov, autonomous worker: the probe has now run four times (runs 44569003701, 44581405980,
+  44671479588, 44679433527 at 20 Nov 05:12Z), and every run gave the same answer: 403 `not_enabled` on all
+  three Access endpoints. Do not dispatch it again on a tick. Run it once the director says the Zero Trust
+  sign-up is done, or once a new Cloudflare secret appears in `gh secret list`. Until then this file stays
+  open and the work waits on his row.]*
 - **Canon D11** ("the public site ... an intelligent stranger"), row `canon-d11-says-the-public-site-exists`. Page
   copy that calls the site public waits on his answer, because D11 is his wording.
 
