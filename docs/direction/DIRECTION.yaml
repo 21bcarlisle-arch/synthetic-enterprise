@@ -220,3 +220,20 @@ for_the_director:
     done_means: the electricity unbilled residual is published as a range from runs at SPAR 0.5 and 3,
       and how_a_supplier_shapes_an_estimate_for_an_unread_month.md marks SPAR a GAP with [0.5, 3]
     due: '2026-11-27'
+- id: the-one-work-system-s-decision-map
+  raised: '2026-11-20'
+  kind: canon_intent
+  decision_kind: harness
+  what: 'The one work system''s decision map (D7) would retire the maturity-map dials. One rule would
+    pick work: the weekly review''s share per lane, then the order inside a lane. CLAUDE.md quotes the
+    dials as yours (''everything else is a dial that orders work but never zeroes it''), so retiring them
+    may change something you ruled.'
+  proposal: Retire the dials. The weight between lanes comes only from the weekly balance review's share
+    table, and age order inside each lane keeps the dials' intent (nothing eligible is ever zeroed). If
+    you say no, the build keeps each dial as one input to the share step.
+  recommendation: 'I recommend retiring the dials: two weightings kept in step is what your 14 Nov steer
+    asks to remove, and the share table already carries your 11 Nov ruling.'
+  based_on: 61759ae55a
+  status: open
+  resolution: ''
+  evidence: docs/design/ONE_WORK_SYSTEM_DECISION_MAP_2026-11-20.md D7 and D6; docs/market_research/one_backlog_and_flow_practice_2026-11-20.md
