@@ -862,7 +862,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  block_reason: "RULED 2026-10-15 (director): one variable constant until the bugs that move results are cleared. B12 and E6 closed 2026-10-16. THE SWITCH IS WIRED (2026-10-16): SE_POPULATION_SEED -> run_phase2b -> live_population(base_seed=), refused unless varied_population_draw_activation.json lists the seed, stamped as run output population_seed; unset is today's cast byte for byte (tests/simulation/test_the_population_seed_switch.py). NOT USED until the 2026-10-19 04:00 publish lands on the FIXED draw and its post-publish readers are green, so that publish reads B12 and the held-estimate catch-up alone. THEN vary per F13 under PREREG docs/staging/records/PREREG_B11_PER_CUSTOMER_AGAINST_FLAT_ON_VARIED_DRAWS_2026-10-16.md (on origin; flat arm door bf0997494): B11 ranking where departure p varies, EP1 replication, edge households. run_rotation.py stays off the publish path."
+  block_reason: "RULED 2026-10-15 (director): one variable constant until the bugs that move results are cleared. THE SWITCH IS WIRED AND IN USE: SE_POPULATION_SEED -> run_phase2b -> live_population(base_seed=), refused unless varied_population_draw_activation.json lists the seed; seeds 61101-61118 are listed (director 2026-10-10; steer 2026-10-26) and run under tools/seed_family.py and run_value_cycle_ab.py, a seeded book drawing its dwellings, premises and spend at its seed (212aad383e); B11 M7 is pre-registered on six of them (7036dcbd54). The production book stays the default seed. The wait on the 2026-10-19 publish is spent (triage batch 3, 2026-11-20); level_current 0 is ungraded since, for the next map pass."
   blocked_on: []
   dial_inherited: 60    # R1 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
   provenance: director_ruling
@@ -1714,7 +1714,7 @@
     'tests/company/billing/test_billing_accuracy.py', 'tools/couple_d48_billing_gap.py',
     'tools/d48_spar_blend_counterfactual.py']
   simplifications_count: 7
-  expert_hour: {status: attempted_finding_open, last: '2026-10-14 blind pass, 18 entries. FAIL, held at 2: title claims the accrual, twin claims settled kWh; neither built. SEAT_FINDING_D48_THE_EXPERT_HOUR_*', findings: []}
+  expert_hour: {status: attempted_finding_open, last: '2026-10-14 blind pass, 18 entries. FAIL, held at 2 (title claimed the accrual, twin settled kWh). Both since answered: accrual built 75aff1401e; twin reworded, K6 a GAP. Re-run blind after the exchange flip. SEAT_FINDING_D48_THE_EXPERT_HOUR_*', findings: []}
   real_world_twin: "a revenue-assurance team reconciling billed kWh against its own later actual reads; billed-against-settled (K6) is a GAP until settled volume crosses the seam."
 - id: E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build
   title: "one forward cash forecast per customer (expected bills, expected payments by method and track record, the balance path) drives the bad-debt provision as expected loss, so the charge moves when arrears build, not a year later"

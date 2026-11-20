@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** E_finance_treasury · **Epoch:** 2 · **Atom:** `EP5_settlement_true_ups`
+
+*Triage, 20 Nov 2026 (supplier batch 3, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_3_2026-11-20.md): **real (low)**. Two smart-meter series still live (saas/smart_meter_rollout.py:31, gating ToU via saas/customers.py:508, beside the world's DESNZ series); R2_MONTHS=4 still open on the knowledge page; mhhs_tracker go-live unread. exit_fee item obsolete (19cd6bfd5d). Atom EP5. Knowledge gap: yes (R2 at 4 or 5 months).*
 **Knowledge:** `smart-meters-and-half-hourly-settlement` -- `docs/market_research/smart_meters_and_half_hourly_settlement_2026-10-25.md` §0
 
 # Two smart-meter series disagree, two Elexon sources disagree on R2, and two uncalled company rules hold dates and windows the record does not

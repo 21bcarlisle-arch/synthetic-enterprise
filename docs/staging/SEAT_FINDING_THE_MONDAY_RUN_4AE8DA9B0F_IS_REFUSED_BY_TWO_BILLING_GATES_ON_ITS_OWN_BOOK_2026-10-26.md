@@ -1,5 +1,7 @@
 # SEAT FINDING: the Monday run 4ae8da9b0f is refused by two billing gates reading its own book
 
+*Triage, 20 Nov 2026 (supplier batch 3, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_3_2026-11-20.md): **real (low)**. Both reds closed (book published, 60e4d4dc52). Its own "still owed" stands: saas/ never reads cos_read_settlement_gbp (only tools/generate_customer_sample.py:1881), so annual net and Treasury cash book margin on true demand for estimate leavers. D48 (not behind the exchange flip).*
+
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `unminted`
 
 Why LATENT and not BLOCKING: the gate refused these figures, so nothing published carries them.

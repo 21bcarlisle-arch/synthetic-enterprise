@@ -1,5 +1,7 @@
 # SEAT FINDING: the printed register rate, checked against the contracted tariff rather than fitted to the bill
 
+*Triage, 20 Nov 2026 (supplier batch 3, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_3_2026-11-20.md): **real (low)**. The open post-publish red on 6af7fd0bf is NOT this premise: it is 3 SVT stubs after ToU terms, fixed by c6695cd8db, green at the next republish. Still open: vat_gbp DISAGREED 3,020 of 53,605 (was 1,360; bill_validation_comparison.json of 3 Sep says 295), real-bill VAT rounding unknown; ToU-ness not on account_state_log. D46. Knowledge gap: yes (VAT rounding convention).*
+
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `unminted`
 
 Why LATENT: this is a measurement of a check that did not exist. Until it ran, nothing published

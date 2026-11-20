@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 2 · **Atom:** `unminted`
 
+*Triage, 20 Nov 2026 (supplier batch 3, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_3_2026-11-20.md): **real (low)**. Points 1-3 and 5 done (5e3e9966a); point 4 fixed ff937d809e. Left: INV_EBSS_CREDIT_EACH_MONTH and _ON_THE_BILL read 5 each, all void/deemed months, because the raw export carries no void or occupier window. Nothing blocks the field. D48.*
+
 # The eight cold-read rows: six cannot be graded on the raw export, and the occupier window's EBSS credit is sized by the debt
 
 Found while giving the eight rows of 501ef4fcc evaluators (item `the-eight-cold-read-rows-get-evaluators`).

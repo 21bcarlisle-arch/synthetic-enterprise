@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `unminted`
+
+**Disposition:** fixed -- default_tariff_rate_within_cap 27,549 AGREED, 0 DISAGREED on the committed ledger; all INV_UNIT_RATE_SVT_* CLEAN on 6af7fd0bfd; EPG multi-register divergence fixed 24963ecd07. (supplier triage batch 3, 20 Nov 2026)
 **Knowledge:** `price-cap` -- `docs/market_research/default_tariff_cap_and_epg_on_the_bill.md`
 
 # SEAT FINDING: the default-tariff term rate, checked against the published cap

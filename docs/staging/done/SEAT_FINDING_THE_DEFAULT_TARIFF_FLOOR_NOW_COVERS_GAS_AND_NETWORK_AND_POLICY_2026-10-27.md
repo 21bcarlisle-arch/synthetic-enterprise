@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `unminted`
+
+**Disposition:** fixed -- floor live, 26,417 AGREED, 0 DISAGREED; 1,132 UNCHECKABLE are its own named GAP (multi-register floor, independent_bill_validator.py:637). INV_UNIT_RATE_FIXED gas text is stale, see batch 3 record. (supplier triage batch 3, 20 Nov 2026)
 **Knowledge:** `price-cap` -- `docs/market_research/default_tariff_cap_and_epg_on_the_bill.md`
 
 # SEAT FINDING: the default-tariff floor now covers gas, network and policy

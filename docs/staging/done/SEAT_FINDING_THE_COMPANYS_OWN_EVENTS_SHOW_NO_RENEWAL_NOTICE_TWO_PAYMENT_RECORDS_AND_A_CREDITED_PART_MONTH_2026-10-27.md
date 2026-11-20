@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 2 · **Atom:** `unminted`
 
+**Disposition:** fixed -- INV_RENEWAL_NOTICE_42_TO_49_DAYS CLEAN (0 of 1,305), INV_OVERDUE_WITHIN_BALANCE CLEAN (0 of 975), part-month EBSS credit one home 25a8be909b (energy_bill_support.py). GAP stands: no household reacts to the statement. (supplier triage batch 3, 20 Nov 2026)
+
 # The company's own events show no renewal notice, two payment records, and a credited part-month
 
 This came from giving four of the six ungradeable cold-read rows evaluators on the company's dated

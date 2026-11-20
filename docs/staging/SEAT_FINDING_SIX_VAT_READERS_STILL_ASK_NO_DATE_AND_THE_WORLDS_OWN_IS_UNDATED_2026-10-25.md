@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `unminted`
 
+*Triage, 20 Nov 2026 (supplier batch 3, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_3_2026-11-20.md): **parked**. Premise true: invoice.py:51, dd_review.py:56,101, dd_review_outcome.py:349,373, tariff_comparison.py:34,40, renewal_rate_chain.py:311, dual_fuel_bill.py:275 and price_cap_enforcement.py:176 still ask no date; so does the gate itself (domain_invariants.py:1325). Unreachable until a run passes Oct 2026, which waits on EP16 forward years. Code-fixable early. Knowledge gap: yes (a bill spanning 1 Oct 2026). Revisit 2026-12-18.*
+
 # Six VAT readers still ask no date, and the world's own reader is undated
 
 *Delivery seat, 2026-10-25. Left over from landing the dated domestic-electricity zero rate

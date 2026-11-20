@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
 
+*Triage, 20 Nov 2026 (supplier batch 3, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_3_2026-11-20.md): **real (low)**. Core fixed: only households that pass the checks are ranked, all 8 slots filled on 6af7fd0bfd. Residual: Explore counts 766 households, the home page says 764 (site/index.html:254), with no stated definition; 9 archive C* ids in customers.json. Unminted.*
+
 # Explore's slots picked the extreme with no validity check, and five of the seven were errors
 
 This answers the director's steer and question of 26 Oct (`docs/staging/advisor/done/DIRECTOR_STEER_EVERY_EXPLORE_EXAMPLE_MUST_MAKE_SENSE_TO_AN_ENERGY_READER_2026-10-26.md`,

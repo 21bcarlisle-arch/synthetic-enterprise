@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 2 · **Atom:** `unminted`
 
+**Disposition:** obsolete -- item 1 fixed (ec079776de; INV_OVERDUE_WITHIN_BALANCE CLEAN); item 2 overtaken: since 209c3350ab a leaver is written off a year after the final bill. Knowledge gap kept: limitation per fuel contract or per household is absent from debt_and_collections.md. (supplier triage batch 3, 20 Nov 2026)
+
 # The desk dunns bills the ledger held for review, and bars a write-off before a final bill's payment
 
 These are the two residuals left by the one-due-date fix on the fresh run at `1691ec0ecd`. The grade

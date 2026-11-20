@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
 
+*Triage, 20 Nov 2026 (supplier batch 3, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_3_2026-11-20.md): **real (med)**. O25, O26, O13, O27, O29 (447c1b61d9), refund, gas-leg settlement and part-window share fixed. Open: O8 (true churn 0%, no commons move rate), O30 (ALP share GAP), O4, copy items, per-leg cost to serve (B13), credit-netting accounts (INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO 74). Split into world items and a copy pass. Knowledge gap: yes (move rate, ALP).*
+
 # The first cold read finds page arithmetic that does not reconcile, and a margin nobody defined
 
 These are the first cold read's objections that are **not a range checkable on every household**

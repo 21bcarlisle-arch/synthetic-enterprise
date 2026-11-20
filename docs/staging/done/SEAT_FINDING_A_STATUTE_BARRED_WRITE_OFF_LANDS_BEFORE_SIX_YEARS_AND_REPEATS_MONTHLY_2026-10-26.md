@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
 
+**Disposition:** fixed in code, unproven on the book -- collections_journey.py:365 bars only bills due 6+ years with no payment; one write-off date a year after the final bill (2b70102f9e, 80a9b51794, 209c3350ab). INV_STATUTE_BARRED_WRITE_OFF_AGE is UNREACHED (0 checked), see batch 3 record. (supplier triage batch 3, 20 Nov 2026)
+
 # A statute-barred write-off lands before six years and repeats monthly
 
 Defect 5 of the director's Explore steer. Measured on the published 4ae8da9b0f book.

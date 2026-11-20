@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** `unminted`
 
+*Triage, 20 Nov 2026 (supplier batch 3, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_3_2026-11-20.md): **real (high)**. site/data/value_arms.json (18 Nov) still publishes the out-of-range draws (labelled provisional); only the wording moved (0abf2bd5be). In hand under THE_VALUE_TEST_REDESIGN (s.12f, f2c4806c88); this finding is its acceptance check.*
+
 # The value test's published draws fall outside their own re-draws, and the level leg's on the other side of zero
 
 Raised by the advisor's chase of 26 Oct, 19:30 (`docs/staging/advisor/ADVISOR_CHASE_THE_EXPLORE_EXAMPLES_ARE_STILL_LIVE_FOR_TOMORROW_2026-10-26.md`, item 3).

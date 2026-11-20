@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
 
+**Disposition:** fixed -- shock slot needs actual reads both sides (generate_explore_cast.py:1321), p1-p99 use band (:1217). INV_ANNUAL_USE_ELEC_ACCOUNT 0 breached, _GAS and _BOOK_MEDIAN CLEAN. The repeat-use question lives in W2_30/W1_14 excepted rows. (supplier triage batch 3, 20 Nov 2026)
+
 # The 2022 shock example compared a repeated estimate, and use has no plausibility band
 
 Defect 3 of the director's Explore steer. Measured on the published 4ae8da9b0f book.

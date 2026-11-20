@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `unminted`
+
+**Disposition:** fixed -- superseded by its 27 Oct successor; faf7b1a7e4 floor covers gas and DF+CM+NC+PC, 27,197 of 27,197 periods clear. INV_UNIT_RATE_SVT_{ELEC,GAS}_PRE_CAP_ALL_IN_FLOOR CLEAN. (supplier triage batch 3, 20 Nov 2026)
 **Knowledge:** `price-cap` -- `docs/market_research/default_tariff_cap_and_epg_on_the_bill.md`
 
 # SEAT FINDING: the default-tariff term rate, checked from below

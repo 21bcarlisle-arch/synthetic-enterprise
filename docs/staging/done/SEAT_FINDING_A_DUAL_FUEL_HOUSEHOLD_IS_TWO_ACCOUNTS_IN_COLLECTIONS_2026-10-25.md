@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** C_customer_ops · **Epoch:** 2 · **Atom:** `EP4_collections_journey`
 
+**Disposition:** fixed -- c5a3e96fee (ledger keyed to the household), b7b17b8bf3 (departure names the live leg); both xfails gone. The cross-fuel offset at close (SLC 27.8D) moved to N29 (3c3e3d59d6). (supplier triage batch 3, 20 Nov 2026)
+
 # A dual-fuel household is one account everywhere the run bills, moves and switches it, and two accounts in collections
 
 Found while taking B13 to L1 (seat, 25 Oct). Measured on one phase 4c run to 2017-12-31 with moves

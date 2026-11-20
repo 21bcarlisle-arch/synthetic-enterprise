@@ -1,4 +1,6 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used`
+
+**Disposition:** fixed -- Cause A 4bc21e9209 (run_phase2b.py _is_domestic_leg), cause B 4ef70aba92, ToU-on-default 1e358809be (tou_desk.py:93), void stub 1ee7ec58d0. INV_UNIT_RATE_SVT_ELEC/_GAS/_PRE_CAP/_MULTI_REGISTER CLEAN on 6af7fd0bfd. INV_UNIT_RATE_EPG_HOUSEHOLD 319 excepted at ~0.01p (rounding, not this defect). (supplier triage batch 3, 20 Nov 2026)
 **Knowledge:** `price-cap` -- `docs/market_research/default_tariff_cap_and_epg_on_the_bill.md`
 
 # Standard-variable bills above the cap are two billing defects, not a grading artefact

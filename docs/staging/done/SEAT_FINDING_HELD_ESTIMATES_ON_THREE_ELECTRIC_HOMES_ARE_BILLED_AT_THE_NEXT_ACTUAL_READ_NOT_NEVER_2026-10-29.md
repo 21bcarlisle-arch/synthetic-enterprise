@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `unminted`
 
+**Disposition:** fixed -- held opening estimates released on the registry figure (54f76662d1, graded 0 of 9 in 55623bfcf5); published exception_queue empty; INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL CLEAN, 0 of 8,808 (914828793b). (supplier triage batch 3, 20 Nov 2026)
+
 # Held bills are not "never released": the three accounts' energy is billed at the next actual read (2026-10-29)
 
 **Item:** `held-bills-are-never-released` (Lane 0). Corrects section 3 of

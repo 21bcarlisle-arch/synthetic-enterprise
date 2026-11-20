@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `unminted`
 
+**Disposition:** obsolete -- a correction record; its refutation stands and its carbon-panel open question is fixed (914828793b, INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL CLEAN). The read_true_up_billed_kwh naming note is carried in the batch 3 record. (supplier triage batch 3, 20 Nov 2026)
+
 # PROS-2025-0106's closing bill does bill the held energy; `read_true_up_billed_kwh` counts estimates already billed, not true-up billed (2026-10-29)
 
 **Item:** `pros-2025-0106-closing-bill-held-kwh` (Lane 0). Corrects the "Open 1" and the PROS-2025-0106 bullet of
