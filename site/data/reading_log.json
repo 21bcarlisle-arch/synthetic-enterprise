@@ -659,11 +659,67 @@
     "label": null,
     "anchor": null
    }
+  },
+  {
+   "read": "20 Nov",
+   "source": "Schwaber and Sutherland, *The Scrum Guide* (2020); the reading rota, for the one-work-system steer of 14 Nov",
+   "claim": "The Product Backlog is \"the single source of work\", ordered by one accountable person",
+   "evidence": "Guide, checked via secondary copies",
+   "verdict": "Adopt",
+   "done": "One item store and one ordering function; ten-plus stores fold into it (`docs/design/ONE_WORK_SYSTEM_DECISION_MAP_2026-11-20.md` D3, D6)",
+   "concept": "Delivery and CI",
+   "placed": {
+    "kind": "step",
+    "label": "Delivery and CI",
+    "anchor": null
+   }
+  },
+  {
+   "read": "20 Nov",
+   "source": "Vacanti and Coleman, *The Kanban Guide* (2020); Little's Law (1961)",
+   "claim": "Four minimum flow measures (WIP, throughput, work item age, cycle time), read off the items; WIP × cycle time ties to throughput",
+   "evidence": "Guide; peer-reviewed theorem",
+   "verdict": "Adopt; gap found",
+   "done": "Our largest work store (2,038 continuations) has no state field, so none of the four can be read off it (`docs/market_research/one_backlog_and_flow_practice_2026-11-20.md` F1)",
+   "concept": "Delivery and CI",
+   "placed": {
+    "kind": "step",
+    "label": "Delivery and CI",
+    "anchor": null
+   }
+  },
+  {
+   "read": "20 Nov",
+   "source": "Anderson, *Kanban* (2010); Reinertsen, *Principles of Product Development Flow* (2009)",
+   "claim": "Order by class of service; sequence by cost of delay over duration",
+   "evidence": "Books",
+   "verdict": "Adopt partly",
+   "done": "Classes adopted (stop-the-line takes the priority-zero rungs). Cost of delay not adopted: nothing gives one for a finding, so order falls to the director's rank, severity, then age (GAP-2)",
+   "concept": "Delivery and CI",
+   "placed": {
+    "kind": "step",
+    "label": "Delivery and CI",
+    "anchor": null
+   }
+  },
+  {
+   "read": "20 Nov",
+   "source": "Google, *The Site Reliability Workbook* (2018), App. B, example error-budget policy",
+   "claim": "A spent budget halts feature changes until the service is back in objective",
+   "evidence": "Book, checked via a secondary copy",
+   "verdict": "Already have",
+   "done": "Rung 1c's lane-local BLOCKING precedence is this shape; ours is not stated in advance with a window (GAP-3)",
+   "concept": "Delivery and CI",
+   "placed": {
+    "kind": "step",
+    "label": "Delivery and CI",
+    "anchor": null
+   }
   }
  ],
  "placed": {
   "concept": 17,
-  "step": 18,
+  "step": 22,
   "unplaced": 4,
   "none": 8
  },
