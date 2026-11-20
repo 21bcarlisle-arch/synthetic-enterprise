@@ -580,6 +580,61 @@ def renewal_outcome(*, event_type: str, position_vs_default: float | None) -> st
     return RENEWAL_ACCEPTED
 
 
+#: Why a riding leg's answer is the one it is (`riding_leg_outcome`). Only the last is two answers.
+RIDING_RULE_DOES_NOT_APPLY = "rule_does_not_apply"
+RIDING_NO_HOUSEHOLD_ANSWER = "no_household_answer"
+RIDING_HOUSEHOLD_DECLINED = "household_declined"
+RIDING_PAIR_UNPRICED = "pair_unpriced"
+RIDING_PAIR_WITHIN_DEFAULT = "pair_within_default"
+RIDING_PAIR_ABOVE_DEFAULT_AFTER_THE_DECISION_LEG_CONTRACTED = (
+    "pair_above_default_after_the_decision_leg_contracted")
+
+
+def pair_position_vs_default(legs) -> float | None:
+    """The household's dual offer against its dual default, as one bill: each leg's notice shows an
+    annual cost at the offer and at the default (supplier's annual quantity x inc-VAT unit rate),
+    and the pair is their sums. `legs` is (position_vs_default, commodity, notice day, kwh) per
+    fuel; each default is that fuel's own on that day, as `_svt_position` read it. Unit rate only,
+    as `renewal_outcome` reads it. None where any leg cannot be priced."""
+    at_default = at_offer = 0.0
+    for position, commodity, day, kwh in legs:
+        default = _household_svt_gbp_per_mwh(commodity, day) if position is not None else None
+        if position is None or not default or default <= 0 or not kwh or kwh <= 0:
+            return None
+        at_default += kwh * default
+        at_offer += kwh * default * (1.0 + position)
+    return round((at_offer - at_default) / at_default, 4)
+
+
+def riding_leg_outcome(*, own_position: float | None, household: dict | None,
+                       commodity: str, day: str, own_kwh: float | None) -> tuple[str, str]:
+    """The riding (gas) leg's answer at its household's anniversary, and why.
+
+    A dual household answers its anniversary ONCE (how_households_respond_to_supplier_contact.md
+    s.7.5c). The decision leg answers first -- the riding leg's offer is struck after it -- so:
+    a decline there declines this leg too; an acceptance there is re-read on the pair, and this leg
+    takes the fix where the pair sits at or under the pair's default. Where the pair sits above it,
+    the decision leg has already contracted, and this leg declines alone: the one residue of two
+    answers, named. `household` is the decision leg's answer: outcome, position, commodity, day, kwh.
+    """
+    own = renewal_outcome(event_type="renewed", position_vs_default=own_position)
+    if own_position is None:
+        return own, RIDING_RULE_DOES_NOT_APPLY
+    if household is None:
+        return own, RIDING_NO_HOUSEHOLD_ANSWER
+    if household["outcome"] == RENEWAL_DECLINED_FIX:
+        return RENEWAL_DECLINED_FIX, RIDING_HOUSEHOLD_DECLINED
+    pair = pair_position_vs_default([
+        (household.get("position"), household.get("commodity"), household.get("day"),
+         household.get("kwh")),
+        (own_position, commodity, day, own_kwh)])
+    if pair is None:
+        return own, RIDING_PAIR_UNPRICED
+    if pair <= 0:
+        return RENEWAL_ACCEPTED, RIDING_PAIR_WITHIN_DEFAULT
+    return RENEWAL_DECLINED_FIX, RIDING_PAIR_ABOVE_DEFAULT_AFTER_THE_DECISION_LEG_CONTRACTED
+
+
 def declined_fix_event(
     *,
     customer_id: str,

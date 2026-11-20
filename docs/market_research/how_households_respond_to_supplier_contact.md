@@ -589,7 +589,8 @@ debit across both."
   `docs/staging/SEAT_FINDING_A_DUAL_HOUSEHOLDS_TWO_FUELS_ANSWER_THEIR_ANNIVERSARY_OFFERS_APART_2026-10-26.md`.
 - *Choice 3, the decline rule per fuel.* Neither fuel is fixed above the default it pays on the
   contact day. A household weighing the pair as one bill would take some of these, so the rule
-  understates its side (F11).
+  understates its side (F11). *(2026-11-20: at the anniversary the pair is now read as one bill,
+  §7.5c. The re-fix on contact keeps this per-fuel rule.)*
 - *Found by the build (C30's, not B13's).* An incoming occupant's default supply is one schedule
   with no anniversary, so its cap segments do not stop at the stint's twelve-month mark. The re-fix
   withdrew them whole and left the leg unsupplied from that mark to the segment's end
@@ -599,6 +600,36 @@ debit across both."
 - *The direct debit.* The two legs already pay the one way the household pays: the payment-channel
   draw is the household's, and the fuels can differ only in the 3-point band between their published
   direct-debit shares (B13 L1). The re-fix changes no payment channel.
+
+**7.5c A dual household answers its anniversary offer once (B13, 2026-11-20, delivery seat).**
+Written before the build (K8). The finding: each fuel's renewal offer was answered alone against
+its own default, so a dual household could hold a fix on one fuel and the default on the other
+(`docs/staging/done/SEAT_FINDING_A_DUAL_HOUSEHOLDS_TWO_FUELS_ANSWER_THEIR_ANNIVERSARY_OFFERS_APART_2026-10-26.md`).
+- *The rules.* Two contracts (SLC 27.16), and nothing in the licence ties their answers. Each fuel's
+  SLC 22C notice states the estimated annual cost at the offer and at the default. That is what the
+  household sees, and it can add the two.
+- *Published practice.* The dual fix is sold as one product, and 90 to 94% of switching homes with
+  gas moved both fuels together (`home_moves.md` §8.7). How often a staying household answers its
+  two renewal offers differently is not published (GAP, the anniversary twin of G8.9).
+- *Choice 1, one answer, on the decision leg first.* The electricity leg answers first, because the
+  gas offer is struck after it in the loop. A decline there declines the gas too, even where the gas
+  offer alone sits under its default. That errs against the supplier (F11).
+- *Choice 2, an acceptance is re-read on the pair.* Where the decision leg took its fix, the gas leg
+  reads the pair as one bill: each leg's supplier annual quantity times its inc-VAT unit rate, at
+  the offer and at the default, summed (`customer_events.pair_position_vs_default`). At or under
+  the pair's default, the gas takes the fix as well, even where it alone sits over its own default.
+  This replaces §7.5b Choice 3 at the anniversary only.
+- *The residue, named.* Where the pair sits over its default after the electricity has already
+  contracted, the gas declines alone. That is two answers, recorded with basis
+  `pair_above_default_after_the_decision_leg_contracted`. Closing it needs the gas offer struck
+  before the electricity answers (GAP: a joint strike). `pair_unpriced` and `no_household_answer`
+  (no decision-leg answer within half a contract year) also keep the leg's own answer.
+- *What is published.* Every riding answer is a `riding_leg_answers` row on the book, with its
+  own position and the household's answer. The count before the fix is re-derived from those rows:
+  the rows where the leg's own answer differs from its household's. The 18 Nov book cannot show
+  that count, because it carries neither the gas leg's answer nor its position. Prediction, filed
+  before the first book is read: between 20 and 120 dual households answer apart before the fix,
+  and the named residue is under a third of that.
 
 **GAPs.**
 - Whether SLC 31A's cheapest tariff message survives today in the form the 2016 letter kept was not

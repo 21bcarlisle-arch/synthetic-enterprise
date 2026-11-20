@@ -177,6 +177,7 @@ from simulation.churn_journey import ChurnJourneyRegister
 from simulation.competitor_reference import CompanyPositionLedger
 from simulation.customer_events import (
     DEPARTURE_OCCASION_SVT_SEGMENT,
+    RENEWAL_CHURNED,
     RENEWAL_DECLINED_FIX,
     churn_roll_for_renewal,
     declined_fix_event,
@@ -186,6 +187,7 @@ from simulation.customer_events import (
     households_own_records,
     position_vs_default,
     renewal_outcome,
+    riding_leg_outcome,
     roll_lifecycle_event,
     svt_conversion_event,
 )
@@ -3317,6 +3319,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     #: took. Every renewal-decision counter would gain it, and since it names the gas leg's own id
     #: the whole-book account denominator would gain an account that exists only in decline years.
     _declined_on_the_riding_leg: list[dict] = []
+    # A DUAL HOUSEHOLD ANSWERS ITS ANNIVERSARY ONCE (s.7.5c). Its decision leg's answer, by
+    # household, read by the riding leg at the same anniversary; every riding answer is published
+    # with its basis, so the two-answers residue is a count on the book.
+    _household_anniversary_answer: dict[str, dict] = {}
+    riding_leg_answers: list[dict] = []
     administration_event = None
     periods_since_committee = COMMITTEE_COOLDOWN_PERIODS
     last_committee_date: date = date.fromisoformat(REPORT_START) - timedelta(days=COMMITTEE_COOLDOWN_DAYS)
@@ -4919,6 +4926,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 event_type=event["event_type"] if event is not None else "renewed",
                 position_vs_default=_offer_vs_default,
             )
+            if _renewal_outcome != RENEWAL_CHURNED:
+                _household_anniversary_answer[billing_account] = {
+                    "outcome": _renewal_outcome, "position": _offer_vs_default,
+                    "commodity": commodity, "day": term_start_str,
+                    "kwh": (_company_eac_estimate(cid, term_start_str, settled_fold, commodity)
+                            if _offer_vs_default is not None else None)}
             # THE RIVAL SEES THIS OFFER ONLY AFTER THE TERM IT WAS STRUCK IN (2026-08-28, C2).
             # Recorded AFTER the roll, and read back by `position_for()` a quarter later, so no
             # offer can ever reach the reference it is itself being measured against. Recording
@@ -5204,9 +5217,30 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # fuel's fix. The household's leave decision is on the electricity leg, which sorts first
         # (`X` < `Xg` at one term start), so reaching here means it stayed.
         if _renewal_outcome is None and commodity != _decision_leg:
-            _renewal_outcome = renewal_outcome(
-                event_type="renewed", position_vs_default=_offer_vs_default,
+            # ITS HOUSEHOLD'S ANSWER, where the decision leg gave one at this anniversary (within
+            # half a contract year of this leg's own start: the legs registered days apart).
+            _household = _household_anniversary_answer.pop(billing_account, None)
+            if _household is not None and abs(
+                    (date.fromisoformat(_household["day"])
+                     - date.fromisoformat(term_start_str)).days) > CONTRACT_LENGTH_DAYS // 2:
+                _household = None
+            _own_kwh = (
+                _company_eac_estimate(cid, term_start_str, settled_fold, commodity)
+                if _offer_vs_default is not None and _household is not None
+                and _household["outcome"] != RENEWAL_DECLINED_FIX else None)
+            _renewal_outcome, _riding_basis = riding_leg_outcome(
+                own_position=_offer_vs_default, household=_household,
+                commodity=commodity, day=term_start_str, own_kwh=_own_kwh,
             )
+            if _offer_vs_default is not None:
+                riding_leg_answers.append({
+                    "customer_id": cid, "household": billing_account,
+                    "event_date": term_start_str, "commodity": commodity,
+                    "own_position_vs_default": _offer_vs_default,
+                    "household_answer": _household["outcome"] if _household else None,
+                    "household_answer_day": _household["day"] if _household else None,
+                    "answer": _renewal_outcome, "basis": _riding_basis,
+                })
             if _renewal_outcome == RENEWAL_DECLINED_FIX:
                 _declined_on_the_riding_leg.append(declined_fix_event(
                     customer_id=cid, event_date=term_start_str, commodity=commodity,
@@ -6552,6 +6586,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # in `tools/measure_churn_heterogeneity` is computed over.
         "svt_decisions": _svt_decisions,
         "declined_on_the_riding_leg": _declined_on_the_riding_leg,
+        "riding_leg_answers": riding_leg_answers,
         "churned_billing_accounts": sorted(churned_billing_accounts),
         # What the SUPPLIER holds about those departures, read from its own register.
         "registration_losses_notified": _change_of_supplier_register.losses_notified(),

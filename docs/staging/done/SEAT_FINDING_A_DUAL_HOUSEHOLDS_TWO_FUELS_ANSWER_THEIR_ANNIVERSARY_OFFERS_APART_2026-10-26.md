@@ -1,7 +1,5 @@
 **Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 4 · **Atom:** `B13_a_dual_fuel_household_is_one_account_across_both_fuels`
 
-*Triage, 20 Nov 2026 (supplier batch 3, docs/staging/SEAT_RECORD_TRIAGE_OF_THE_SUPPLIER_FINDINGS_BATCH_3_2026-11-20.md): **real (med)**. The riding leg still answers its own fix offer (run_phase2b.py:5205-5215); only a save crosses fuels. B13 sits closed at L2 with this open in its own comment (maturity_map_closed.yaml:4946). Needs B13 reopened or a new atom. Knowledge gap: yes (K4).*
-
 # A dual household's two fuels answer their anniversary offers apart, so the household can sit on a fix for gas and the default for electricity
 
 Found while taking B13 to L2 (seat, 26 Oct). On the B13 walked run (phase 4c to 2017-12-31, the
@@ -27,3 +25,14 @@ practitioner question (K4). Published practice sells the dual fix as one product
 **Proposal.** The household answers its anniversary once, on its decision leg, and the riding leg
 takes the same answer. The control is the B13 file's re-fix test, which would then move these 10
 households' gas instead of refusing them.
+
+**Resolution (delivery seat, 2026-11-20).** Fixed in code: the gas leg now takes its household's
+answer from the decision leg (`customer_events.riding_leg_outcome`; contact page §7.5c). A decline
+carries to both fuels. An acceptance is re-read on the pair as one bill. The one residue is the pair
+sitting over its default after the electricity has already contracted, and it is named on every
+row. Control: `tests/simulation/test_a_dual_household_answers_its_anniversary_offer_once.py`, which
+goes red when the gas leg answers alone (mutation run). **The count before the fix cannot be read
+from the 18 Nov book:** that book carries neither the gas leg's answer nor its position. The next
+book carries `riding_leg_answers` with both, so that book gives both counts: before the fix, the
+rows whose own answer differs from the household's; after it, the residue rows. Prediction (§7.5c,
+filed first): 20 to 120 apart, with the residue under a third of that. Ungraded until that book.

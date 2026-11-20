@@ -99,7 +99,9 @@ def test_the_run_loop_takes_the_decision_on_both_legs_and_records_it():
     """The rule's controls above stay green while no production caller reaches it, so control the
     chain: the loop asks the rule at the decision leg AND at the leg that does not decide, and
     writes the record at the decision leg's two shapes (rolled, conversion) and the other leg."""
-    assert _calls_in_main("renewal_outcome") >= 2
+    # The leg that does not decide asks it through its household (`riding_leg_outcome`, s.7.5c).
+    assert _calls_in_main("renewal_outcome") >= 1
+    assert _calls_in_main("riding_leg_outcome") >= 1
     assert _calls_in_main("declined_fix_event") >= 3
     assert _calls_in_main("position_vs_default") >= 1
     assert isinstance(p2b.DECLINE_A_FIX_ABOVE_THE_DEFAULT, bool)
