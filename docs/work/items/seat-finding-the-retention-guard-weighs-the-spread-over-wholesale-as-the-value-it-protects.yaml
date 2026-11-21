@@ -1,0 +1,26 @@
+id: seat-finding-the-retention-guard-weighs-the-spread-over-wholesale-as-the-value-it-protects
+title: The retention guard weighs the spread over wholesale as the value it protects
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_RETENTION_GUARD_WEIGHS_THE_SPREAD_OVER_WHOLESALE_AS_THE_VALUE_IT_PROTECTS_2026-10-20.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: C29_decisions_stop_being_lookup_tables
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-20T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: C_customer_ops

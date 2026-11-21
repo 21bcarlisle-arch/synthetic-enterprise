@@ -1,0 +1,27 @@
+id: seat-finding-the-worlds-closing-read-is-always-actual
+title: Every closing read is actual in the world, but published practice makes a move-out's
+  final read actual only sometimes (2026-10-17)
+lane: world
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_WORLDS_CLOSING_READ_IS_ALWAYS_ACTUAL_2026-10-17.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: W2_36_unbilled_energy_arises_the_way_it_does_in_reality
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-17T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: W2_customer_generator

@@ -1,0 +1,27 @@
+id: seat-finding-the-debt-slot-still-refuses-three-households-for-cleared-while-owed
+title: The debt slot's "cleared while still owed" refusal fires on three households
+  on b3ce2a4e73, two of them new (2026-11-04)
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_DEBT_SLOT_STILL_REFUSES_THREE_HOUSEHOLDS_FOR_CLEARED_WHILE_OWED_2026-11-04.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-04T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: D_billing_metering

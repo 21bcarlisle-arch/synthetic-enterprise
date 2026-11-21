@@ -1,0 +1,28 @@
+id: worker-finding-b8-second-expert-hour-the-mechanism-passes-and-the-row-claims-a-measured-uplift-nothing-measures
+title: 'B8''s second Expert Hour: the mechanism passes and the claim does not. The
+  row promises an uplift "proven by measured uplift", and at this scale nothing measures
+  it (2026-10-21)'
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: RECORDED
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_B8_SECOND_EXPERT_HOUR_THE_MECHANISM_PASSES_AND_THE_ROW_CLAIMS_A_MEASURED_UPLIFT_NOTHING_MEASURES_2026-10-21.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: B8_discovered_price_sensitivity_holdout
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-21T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: B_commercial

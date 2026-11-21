@@ -69,7 +69,11 @@ small and rare against a QUEUE default, not the common case.
      not subject to the disposition triage either.)
    - Anything else (advisor-staged design/governance/harness docs) — read it in full, decide its
      disposition per Step 0 above, THEN action or defer accordingly.
-3. **Archive on completion, same commit:** move a fully-actioned file to `docs/staging/done/` in the
+3. **A finding (a document with a `**Severity:**` header) is an ITEM since 2026-11-21**: close it with
+   `python3 -m background.work_items --done <id> <commit>` (or `--obsolete`/`--park`) in the commit that
+   closes the work. Moving the document does NOT close it; the draw keeps naming an open item wherever
+   its document is. Non-finding documents keep the archive rule below.
+   **Archive on completion, same commit:** move a fully-actioned file to `docs/staging/done/` in the
    SAME commit that closes the work — never leave a fully-built file sitting in the scanned root (it
    re-grants a supervisor turn every ~2min indefinitely with nothing new to do). If only part of a
    multi-item instruction is done, move it to `docs/staging/in_progress/` instead, with a note at the

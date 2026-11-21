@@ -63,7 +63,7 @@ SOURCES = ("finding", "gate_breach", "cold_read", "knowledge_gap", "steer", "que
            "seam_gap", "alarm", "atom_step", "census_red")
 STATES = ("open", "chosen", "done", "parked", "obsolete")
 DECIDERS = ("machine", "director")
-CUTOVER_MODES = ("off", "shadow")
+CUTOVER_MODES = ("off", "shadow", "on")
 
 REQUIRED = ("id", "title", "lane", "kind", "class", "severity", "source", "evidence", "decider",
             "state", "opened_at")
@@ -300,19 +300,145 @@ def cutover_mode(path: Path = CUTOVER_FILE, source: str = "staging_findings") ->
         mode = (yaml.safe_load(path.read_text(encoding="utf-8")) or {}).get(source)
     except (OSError, yaml.YAMLError):
         return "off"
+    if isinstance(mode, bool):  # YAML 1.1 reads a bare `on`/`off` as a boolean
+        mode = "on" if mode else "off"
     return mode if mode in CUTOVER_MODES else "off"
 
 
 def all_items(staging_root: Path = STAGING_ROOT, items_dir: Path = ITEMS_DIR,
               atoms: list[dict] | None = None) -> list[dict]:
     """The store as the pick reads it: written items, plus derived ones not yet written. `atoms`
-    is the map's live atoms when its flag is on in shadow, else None and no atom step is read."""
-    stored = stored_items(items_dir)
+    is the map's live atoms when its flag is on in shadow, else None and no atom step is read.
+
+    A written finding item takes its CONTENT (title, severity, lane, where the document now is)
+    from its document on every read, and keeps its STATE in the store. That is the cut-over's one
+    division of authority: a finding's author grades it in the header (OPS9), and moving the
+    document between rooms no longer says anything about whether the work is done.
+    """
+    repo_root = staging_root.parent.parent
+    stored = [_refresh_from_document(i, staging_root, repo_root) for i in stored_items(items_dir)]
     seen = {i["id"] for i in stored}
+    known_docs = {Path(e).name for i in stored if i["source"] == "finding"
+                  for e in i.get("evidence") or []}
     derived, _ = items_from_staging(staging_root)
+    # A finding re-filed under a name whose item is already closed would otherwise be swallowed
+    # by that closed item, so it takes its own dated id.
+    fresh = []
+    for i in derived:
+        doc = Path(i["evidence"][0]).name
+        if doc in known_docs:
+            continue
+        if i["id"] in seen:
+            dated = _DATE_IN_NAME_RE.search(doc)
+            i = {**i, "id": f"{i['id']}-{dated.group(1) if dated else 'refiled'}"}
+            if i["id"] in seen:
+                continue
+        fresh.append(i)
+        seen.add(i["id"])
     if atoms is not None:
-        derived += items_from_maturity_map(atoms)[0]
-    return stored + [i for i in derived if i["id"] not in seen]
+        fresh += [i for i in items_from_maturity_map(atoms)[0] if i["id"] not in seen]
+    return stored + fresh
+
+
+def _locate_document(evidence: str, staging_root: Path, repo_root: Path) -> Path | None:
+    """Where a finding's document is now: its recorded path, else the same name anywhere under
+    the staging tree (a room move). None when it is nowhere."""
+    path = repo_root / evidence
+    if path.is_file():
+        return path
+    if not staging_root.is_dir():
+        return None
+    return next(iter(sorted(staging_root.rglob(Path(evidence).name))), None)
+
+
+def _refresh_from_document(item: dict, staging_root: Path, repo_root: Path) -> dict:
+    if item.get("source") != "finding" or not item.get("evidence"):
+        return item
+    path = _locate_document(str(item["evidence"][0]), staging_root, repo_root)
+    if path is None:
+        return item
+    from background.finding_severity import parse_severity_file
+    parsed = parse_severity_file(path, repo_root)
+    out = dict(item)
+    out["evidence"] = [path.relative_to(repo_root).as_posix()] + list(item["evidence"][1:])
+    if parsed.is_classified:
+        out["severity"] = parsed.severity
+        side = FINDING_LANE_TO_SIDE.get(parsed.lane or "")
+        if side:
+            out["lane"], out["finding_lane"] = side, parsed.lane
+    return out
+
+
+# ---------------------------------------------------------------------------------------------
+# The lifecycle verbs (D5), for a source that is `on`
+# ---------------------------------------------------------------------------------------------
+
+def _find_item(item_id: str, staging_root: Path, items_dir: Path) -> dict:
+    for i in all_items(staging_root, items_dir):
+        if i["id"] == item_id:
+            return i
+    raise KeyError(f"no item {item_id!r} in {items_dir} or derived from {staging_root}")
+
+
+def transition(item_id: str, state: str, *, evidence: str | None = None,
+               reason: str | None = None, revisit: str | None = None,
+               items_dir: Path = ITEMS_DIR, staging_root: Path = STAGING_ROOT,
+               now: datetime | None = None) -> Path:
+    """Move one item to `done`, `obsolete`, `parked` or back to `open`, and write it.
+
+    This is how a finding is disposed of once its source is `on`: moving the document to
+    `done/` does not close it. A finding not yet written (filed after the migration) is written
+    here, the first time its state changes.
+    """
+    now = now or datetime.now(timezone.utc)
+    item = dict(_find_item(item_id, staging_root, items_dir))
+    item["state"] = state
+    if state == "done":
+        item["done_evidence"], item["closed_at"] = evidence, now.isoformat(timespec="seconds")
+    elif state == "obsolete":
+        item["obsolete"], item["closed_at"] = reason, now.isoformat(timespec="seconds")
+    elif state == "parked":
+        item["parked"] = {"reason": reason, "revisit": revisit}
+    elif state == "open":
+        item.update(closed_at=None, chosen_by=None, chosen_at=None)
+    return write_item(item, items_dir)
+
+
+def blocking_findings_by_lane(items: list[dict]) -> dict[str, list[dict]]:
+    """RUNG 1c's input once findings are `on`: open or chosen BLOCKING findings by header lane.
+    A closed item is not blocking whatever its document still says, and a document moved to a
+    room is still blocking until its item is closed."""
+    out: dict[str, list[dict]] = {}
+    for i in items:
+        if (i.get("source") == "finding" and i["severity"] == "BLOCKING"
+                and i["state"] in ("open", "chosen") and i.get("finding_lane")):
+            out.setdefault(i["finding_lane"], []).append(i)
+    return out
+
+
+def finding_documents_in_store(items: list[dict]) -> set[str]:
+    """The root documents that are items now, by file name, so the root listing can drop them."""
+    return {Path(e).name for i in items if i.get("source") == "finding"
+            for e in i.get("evidence") or []}
+
+
+def doorbell_clause(items: list[dict], shares: dict[str, float],
+                    now: datetime | None = None) -> str:
+    """The draw's line for the findings once they are `on`: how many are open, by severity, and
+    the one `next_item()` picks, with the verb that closes it."""
+    findings = [i for i in items if i.get("source") == "finding"]
+    live = [i for i in findings if i["state"] in ("open", "chosen")]
+    by_sev = {s: sum(i["severity"] == s for i in live) for s in SEVERITIES}
+    pick = next_item(findings, shares, now=now)
+    head = (f"open findings (docs/work/items/, the one work system) -- {len(live)} open "
+            f"({by_sev['BLOCKING']} BLOCKING, {by_sev['LATENT']} LATENT, "
+            f"{by_sev['RECORDED']} RECORDED)")
+    if pick.item is None:
+        return f"{head}; next_item(): {pick.reason}"
+    return (f"{head}; next_item() picks {pick.item['id']} -- {pick.item['evidence'][0]} "
+            f"({pick.reason}). Moving the document does not close it: "
+            f"`python3 -m background.work_items --done {pick.item['id']} <commit>`, or "
+            f"--obsolete <id> <reason>, or --park <id> <YYYY-MM-DD> <reason>")
 
 
 # ---------------------------------------------------------------------------------------------
@@ -323,6 +449,9 @@ def all_items(staging_root: Path = STAGING_ROOT, items_dir: Path = ITEMS_DIR,
 class Pick:
     item: dict | None
     reason: str
+    #: Items done this week across every row, when step 3 ran. 0 means the share deficit was
+    #: inert: every row read its bare share. None when the pick ended before step 3.
+    landed_total: int | None = None
 
 
 def load_shares(path: Path = PRIORITY_ORDER) -> dict[str, float]:
@@ -470,7 +599,8 @@ def next_item(items: list[dict], shares: dict[str, float], *, now: datetime | No
               key=lambda i: _within_row_key(i, cycle, today))
     got = landed.get(row, 0)
     return Pick(top, f"row {row} furthest below its share ({shares[row]:.0%}, {got} of {total} "
-                     f"landed this week); then rank, date, {top['severity']}, age: {top['id']}")
+                     f"landed this week); then rank, date, {top['severity']}, age: {top['id']}",
+                total)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -492,7 +622,8 @@ def shadow_record(ladder: str | None, *, log_path: Path | None = None,
     ladder's string names the picked finding's document, which is the one difference the day
     exists to count: a pick the old draw would never have made.
     """
-    if cutover_mode(cutover_path) != "shadow":
+    if (cutover_mode(cutover_path) == "off"
+            and cutover_mode(cutover_path, "maturity_map") == "off"):
         return None
     path = log_path
     if path is None:
@@ -520,6 +651,7 @@ def shadow_record(ladder: str | None, *, log_path: Path | None = None,
         "pick_lane": (pick.item or {}).get("lane"),
         "pick_severity": (pick.item or {}).get("severity"),
         "reason": pick.reason,
+        "deficit_inert": (pick.landed_total == 0) if pick.landed_total is not None else None,
         "ladder_head": (ladder or "")[:300],
         "pick_source": picked.get("source"),
         "ladder_names_pick": names_pick,
@@ -553,6 +685,18 @@ def compare(log_path: Path | None = None) -> str:
     lines = [f"{len(rows)} draws from {rows[0]['at']} to {rows[-1]['at']}",
              f"the ladder named the new pick's document in {named} of {len(rows)}",
              f"the ladder named any staging finding in {any_finding} of {len(rows)}"]
+    # D6 step 3 ranks rows on items DONE this week; with none done every deficit is its bare share
+    # and the largest row with a candidate always wins, so those draws cannot show the share
+    # table working and must say so rather than read as a share result.
+    graded = [r for r in rows if r.get("deficit_inert") is not None]
+    inert = sum(bool(r["deficit_inert"]) for r in graded)
+    if inert:
+        lines.append(f"the share deficit was INERT in {inert} of {len(graded)}: no item was done "
+                     "that week, so each row read its bare share and the step-3 row is not a "
+                     "share result")
+    if len(graded) < len(rows):
+        lines.append(f"{len(rows) - len(graded)} row(s) predate the deficit_inert field and are "
+                     "not graded for it")
     if atom_rows:
         lines.append(f"with the map in shadow: the ladder drew a map atom in "
                      f"{sum(r['ladder_names_any_atom'] for r in atom_rows)} of {len(atom_rows)}, "
@@ -571,17 +715,40 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--write", action="store_true",
                         help="with --migrate: write the items (the cut-over step; not in shadow)")
     parser.add_argument("--compare", action="store_true", help="read the side-by-side log back")
+    parser.add_argument("--done", nargs=2, metavar=("ID", "EVIDENCE"),
+                        help="close an item as done, with the commit or path that did it")
+    parser.add_argument("--obsolete", nargs=2, metavar=("ID", "REASON"),
+                        help="close an item as obsolete, with the reason")
+    parser.add_argument("--park", nargs=3, metavar=("ID", "REVISIT", "REASON"),
+                        help="park an item until a date (YYYY-MM-DD), with the reason")
+    parser.add_argument("--reopen", metavar="ID", help="put an item back to open")
     args = parser.parse_args(argv)
     if args.compare:
         print(compare())
         return 0
+    verb = ((args.done and ("done", args.done[0], {"evidence": args.done[1]}))
+            or (args.obsolete and ("obsolete", args.obsolete[0], {"reason": args.obsolete[1]}))
+            or (args.park and ("parked", args.park[0],
+                               {"revisit": args.park[1], "reason": args.park[2]}))
+            or (args.reopen and ("open", args.reopen, {})))
+    if verb:
+        state, item_id, kw = verb
+        try:
+            path = transition(item_id, state, **kw)
+        except (KeyError, ValueError) as exc:
+            print(f"refused: {exc}", file=sys.stderr)
+            return 2
+        print(f"{item_id} -> {state} ({path.relative_to(PROJECT_DIR)})")
+        return 0
     if args.migrate:
         items, refused = items_from_staging()
         if args.write:
-            if cutover_mode() == "shadow":
-                print("refused: the flag reads shadow; items are derived, not written, until "
-                      "cut-over", file=sys.stderr)
+            if cutover_mode() != "on":
+                print(f"refused: the flag reads {cutover_mode()}; items are written only at "
+                      "cut-over, when staging_findings is on", file=sys.stderr)
                 return 2
+            known = finding_documents_in_store(stored_items())
+            items = [i for i in items if Path(i["evidence"][0]).name not in known]
             for item in items:
                 write_item(item)
         by_lane: dict[str, int] = {}

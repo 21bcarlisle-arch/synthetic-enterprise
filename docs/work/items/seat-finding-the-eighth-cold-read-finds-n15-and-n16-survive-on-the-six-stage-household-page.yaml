@@ -1,0 +1,28 @@
+id: seat-finding-the-eighth-cold-read-finds-n15-and-n16-survive-on-the-six-stage-household-page
+title: 'Two classes fixed on the cast still print on the six-stage household page:
+  the tariff label (N16) and a bill tally that counts credit-settled bills as missed
+  (N15) (2026-11-04)'
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_EIGHTH_COLD_READ_FINDS_N15_AND_N16_SURVIVE_ON_THE_SIX_STAGE_HOUSEHOLD_PAGE_2026-11-04.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-04T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: D_billing_metering

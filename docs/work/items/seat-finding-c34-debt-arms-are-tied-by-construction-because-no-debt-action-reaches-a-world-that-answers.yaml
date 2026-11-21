@@ -1,0 +1,27 @@
+id: seat-finding-c34-debt-arms-are-tied-by-construction-because-no-debt-action-reaches-a-world-that-answers
+title: 'C34''s debt branch: the two arms tie by construction, because no debt action
+  reaches a world that answers'
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_C34_DEBT_ARMS_ARE_TIED_BY_CONSTRUCTION_BECAUSE_NO_DEBT_ACTION_REACHES_A_WORLD_THAT_ANSWERS_2026-10-10.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-10T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: C_customer_ops

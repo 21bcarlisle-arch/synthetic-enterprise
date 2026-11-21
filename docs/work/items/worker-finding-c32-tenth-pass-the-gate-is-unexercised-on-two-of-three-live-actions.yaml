@@ -1,0 +1,27 @@
+id: worker-finding-c32-tenth-pass-the-gate-is-unexercised-on-two-of-three-live-actions
+title: The enforcement gate is unexercised on two of its three live actions, and its
+  own-hold column is wired off (2026-11-15)
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_C32_TENTH_PASS_THE_GATE_IS_UNEXERCISED_ON_TWO_OF_THREE_LIVE_ACTIONS_2026-11-15.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: C32_one_obligation_one_vulnerability_scorer
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-15T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: C_customer_ops

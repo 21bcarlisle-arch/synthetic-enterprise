@@ -1,0 +1,27 @@
+id: worker-finding-the-page-re-walks-the-close-at-its-own-commit-so-an-older-runs-refund-log-meets-a-newer-credit
+title: The page re-walks the close at its own commit, so an older run's refund log
+  meets a newer credit (2026-11-11)
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_THE_PAGE_RE_WALKS_THE_CLOSE_AT_ITS_OWN_COMMIT_SO_AN_OLDER_RUNS_REFUND_LOG_MEETS_A_NEWER_CREDIT_2026-11-11.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-11T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: D_billing_metering

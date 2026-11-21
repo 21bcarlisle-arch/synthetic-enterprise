@@ -1,0 +1,27 @@
+id: worker-finding-the-read-instruction-is-on-and-charges-469-visits-not-582-and-no-value-arm-can-see-the-cost
+title: The read instruction is on in the standing policy and charges 469 visits, not
+  582, and no value arm can see the cost
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_THE_READ_INSTRUCTION_IS_ON_AND_CHARGES_469_VISITS_NOT_582_AND_NO_VALUE_ARM_CAN_SEE_THE_COST_2026-10-21.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-21T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: D_billing_metering

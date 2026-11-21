@@ -1,0 +1,27 @@
+id: seat-finding-a-printed-economy-7-bill-shows-a-1-5p-night-rate
+title: A printed Economy 7 bill shows a 1.5p night rate, because its usage lines carry
+  the energy component only (2026-11-03)
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_A_PRINTED_ECONOMY_7_BILL_SHOWS_A_1_5P_NIGHT_RATE_2026-11-03.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-03T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: D_billing_metering

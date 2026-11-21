@@ -1,0 +1,27 @@
+id: seat-finding-two-smart-meter-series-and-a-disputed-r2-date
+title: Two smart-meter series disagree, two Elexon sources disagree on R2, and two
+  uncalled company rules hold dates and windows the record does not
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_TWO_SMART_METER_SERIES_AND_A_DISPUTED_R2_DATE_2026-10-25.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: EP5_settlement_true_ups
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-25T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: E_finance_treasury

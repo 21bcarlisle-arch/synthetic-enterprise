@@ -1,0 +1,28 @@
+id: seat-finding-the-shadow-pick-never-leaves-the-correctness-row-because-nothing-it-ranks-is-ever-done
+title: The shadow pick never leaves the correctness row, because nothing it ranks
+  is ever done
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_SHADOW_PICK_NEVER_LEAVES_THE_CORRECTNESS_ROW_BECAUSE_NOTHING_IT_RANKS_IS_EVER_DONE_2026-11-21.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: done
+opened_at: '2026-11-21T00:00:00+00:00'
+chosen_at: null
+closed_at: '2026-11-21T13:23:22+00:00'
+chosen_by: null
+done_evidence: 'this commit: --compare names the inert deficit (option b); the deficit
+  goes live as items close after the 21 Nov cut-over'
+parked: null
+obsolete: null
+finding_lane: H_harness

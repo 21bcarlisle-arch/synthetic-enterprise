@@ -1,0 +1,27 @@
+id: seat-finding-c32-the-expert-hour-fails-on-the-outcome-not-the-vocabulary
+title: C32's expert hour fails on the outcome, not the vocabulary — and one of its
+  findings was a live fail-open, fixed in the same turn
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_C32_THE_EXPERT_HOUR_FAILS_ON_THE_OUTCOME_NOT_THE_VOCABULARY_2026-10-07.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: C32_one_obligation_one_vulnerability_scorer
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-07T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: C_customer_ops

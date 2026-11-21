@@ -1,0 +1,27 @@
+id: seat-finding-explores-slots-picked-the-extreme-with-no-validity-check-and-five-of-seven-were-errors
+title: Explore's slots picked the extreme with no validity check, and five of the
+  seven were errors
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_EXPLORES_SLOTS_PICKED_THE_EXTREME_WITH_NO_VALIDITY_CHECK_AND_FIVE_OF_SEVEN_WERE_ERRORS_2026-10-26.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-26T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: D_billing_metering

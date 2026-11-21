@@ -1,0 +1,27 @@
+id: seat-finding-b8-no-retention-desk-holds-anyone-out-in-the-standing-run-and-the-book-now-says-so-per-desk-and-year
+title: 'B8: no retention desk holds anyone out in the standing run, and the book now
+  says so per desk and year'
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_B8_NO_RETENTION_DESK_HOLDS_ANYONE_OUT_IN_THE_STANDING_RUN_AND_THE_BOOK_NOW_SAYS_SO_PER_DESK_AND_YEAR_2026-11-21.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: B8_discovered_price_sensitivity_holdout
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-21T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: B_commercial

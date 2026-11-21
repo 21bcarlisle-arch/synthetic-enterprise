@@ -1,0 +1,26 @@
+id: seat-finding-two-long-jobs-launched-together-are-both-admitted-against-one-snapshot
+title: Two long jobs launched together are both admitted against one snapshot
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_TWO_LONG_JOBS_LAUNCHED_TOGETHER_ARE_BOTH_ADMITTED_AGAINST_ONE_SNAPSHOT_2026-10-14.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-14T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: H_harness

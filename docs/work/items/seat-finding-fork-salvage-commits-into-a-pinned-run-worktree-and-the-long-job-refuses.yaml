@@ -1,0 +1,27 @@
+id: seat-finding-fork-salvage-commits-into-a-pinned-run-worktree-and-the-long-job-refuses
+title: fork_salvage commits into a pinned run worktree, so the run's own pin check
+  refuses it (2026-11-20)
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_FORK_SALVAGE_COMMITS_INTO_A_PINNED_RUN_WORKTREE_AND_THE_LONG_JOB_REFUSES_2026-11-20.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-20T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: H_harness

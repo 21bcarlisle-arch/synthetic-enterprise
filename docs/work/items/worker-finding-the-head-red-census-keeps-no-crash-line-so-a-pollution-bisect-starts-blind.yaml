@@ -1,0 +1,26 @@
+id: worker-finding-the-head-red-census-keeps-no-crash-line-so-a-pollution-bisect-starts-blind
+title: The head-red census keeps no crash line, so a pollution bisect starts blind
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_THE_HEAD_RED_CENSUS_KEEPS_NO_CRASH_LINE_SO_A_POLLUTION_BISECT_STARTS_BLIND_2026-10-07.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: H40_full_suite_pollution_bisect
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-07T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: H_harness

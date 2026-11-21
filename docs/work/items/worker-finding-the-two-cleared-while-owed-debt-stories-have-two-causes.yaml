@@ -1,0 +1,27 @@
+id: worker-finding-the-two-cleared-while-owed-debt-stories-have-two-causes
+title: 'The two "cleared while still owed" debt stories have two different causes:
+  a story past the ledger''s clock, and one debt in two records (2026-11-02)'
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_THE_TWO_CLEARED_WHILE_OWED_DEBT_STORIES_HAVE_TWO_CAUSES_2026-11-02.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-02T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: D_billing_metering

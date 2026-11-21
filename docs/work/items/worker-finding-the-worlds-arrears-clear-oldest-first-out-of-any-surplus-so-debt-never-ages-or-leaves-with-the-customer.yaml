@@ -1,0 +1,27 @@
+id: worker-finding-the-worlds-arrears-clear-oldest-first-out-of-any-surplus-so-debt-never-ages-or-leaves-with-the-customer
+title: The world's arrears clear oldest-first out of any surplus, so its debt never
+  ages or leaves with the customer (2026-10-21)
+lane: world
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_THE_WORLDS_ARREARS_CLEAR_OLDEST_FIRST_OUT_OF_ANY_SURPLUS_SO_DEBT_NEVER_AGES_OR_LEAVES_WITH_THE_CUSTOMER_2026-10-21.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: W2_38_the_worlds_debt_is_graded_against_ofgems_quarterly_series
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-21T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: W2_customer_generator

@@ -1,0 +1,26 @@
+id: worker-finding-repeating-alarm-publish-gate-wedged-what-the-run-complete-publish-gate-has
+title: '[ACTION NEEDED] publish_gate_wedged'
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_REPEATING_ALARM_PUBLISH_GATE_WEDGED_WHAT_THE_RUN_COMPLETE_PUBLISH_GATE_HAS_2026-11-17.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-17T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: H_harness

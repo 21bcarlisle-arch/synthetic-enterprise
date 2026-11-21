@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
+from pathlib import Path
 
 import pytest
 
@@ -163,7 +164,8 @@ def test_a_written_item_shadows_the_derived_one(tmp_path):
                                FINDING.format(sev="LATENT", lane="D_billing_metering", atom="unminted",
                                               title="X")})
     items_dir = tmp_path / "items"
-    wi.write_item(item("seat-finding-x", state="obsolete", obsolete="fixed elsewhere"), items_dir)
+    wi.write_item(item("seat-finding-x", state="obsolete", obsolete="fixed elsewhere",
+                       evidence=["docs/staging/SEAT_FINDING_X_2026-11-18.md"]), items_dir)
     merged = wi.all_items(root, items_dir)
     assert [i["state"] for i in merged] == ["obsolete"]
 
@@ -179,7 +181,7 @@ def test_shadow_logs_beside_the_ladder_and_off_logs_nothing(tmp_path):
 
     flag.write_text("staging_findings: off\n")
     assert wi.shadow_record("ladder", **common) is None and not log.exists()
-    flag.write_text("staging_findings: on\n")  # not a mode yet: reads off
+    flag.write_text("staging_findings: nonsense\nmaturity_map: off\n")  # unknown reads off
     assert wi.shadow_record("ladder", **common) is None
 
     flag.write_text("staging_findings: shadow\n")
@@ -192,6 +194,23 @@ def test_shadow_logs_beside_the_ladder_and_off_logs_nothing(tmp_path):
     report = wi.compare(log)
     assert "the ladder named the new pick's document in 1 of 2" in report
     assert "the ladder named any staging finding in 1 of 2" in report
+    assert "the share deficit was INERT in 2 of 2" in report
+
+
+def test_compare_names_an_inert_deficit_only_when_no_item_was_done(tmp_path):
+    log = tmp_path / "shadow.jsonl"
+    rows = [{"pick": "a", "ladder_names_pick": False, "deficit_inert": True},
+            {"pick": "a", "ladder_names_pick": False, "deficit_inert": False},
+            {"pick": "a", "ladder_names_pick": False}]
+    log.write_text("".join(json.dumps({"at": "t", **r}) + "\n" for r in rows))
+    report = wi.compare(log)
+    assert "the share deficit was INERT in 1 of 2" in report
+    assert "1 row(s) predate the deficit_inert field" in report
+    log.write_text(json.dumps({"at": "t", **rows[1]}) + "\n")
+    assert "INERT" not in wi.compare(log)
+    done = item("d", state="done", done_evidence="abc", closed_at=NOW.isoformat())
+    assert wi.next_item([item("y")], SHARES, now=NOW).landed_total == 0
+    assert wi.next_item([item("y"), done], SHARES, now=NOW).landed_total == 1
 
 
 def test_the_live_share_table_covers_every_row_and_sums_to_one():
@@ -298,3 +317,113 @@ def test_the_live_cutover_file_puts_the_map_in_shadow_and_the_live_map_maps_whol
     items, refused = wi.items_from_maturity_map(wi._live_atoms())
     assert refused == [] and all(wi.validate(i) == [] for i in items)
     assert {wi.share_row(i) for i in items} <= set(wi.load_shares())
+
+
+# ---------------------------------------------------------------------------------------------
+# Cut-over (D9 step 3): staging_findings `on`
+# ---------------------------------------------------------------------------------------------
+
+def test_a_bare_on_in_the_flag_file_reads_on_not_off(tmp_path):
+    """YAML 1.1 reads a bare `on` as True; the flag must still mean on."""
+    flag = tmp_path / "cutover.yaml"
+    for text, mode in (("staging_findings: on\n", "on"), ('staging_findings: "on"\n', "on"),
+                       ("staging_findings: off\n", "off"), ("staging_findings: shadow\n", "shadow")):
+        flag.write_text(text)
+        assert wi.cutover_mode(flag) == mode, text
+
+
+def _blocking_root(tmp_path):
+    return _staging(tmp_path, {
+        "WORKER_FINDING_B_2026-11-21.md":
+            FINDING.format(sev="BLOCKING", lane="B_commercial", atom="unminted", title="B"),
+        "WORKER_FINDING_L_2026-11-20.md":
+            FINDING.format(sev="LATENT", lane="D_billing_metering", atom="unminted", title="L"),
+    })
+
+
+def test_state_is_the_stores_and_content_is_the_documents(tmp_path):
+    """The partition: an open item blocks, a closed one does not though its document still says
+    BLOCKING, a document moved to a room still blocks while its item is open, and a regraded
+    header reaches the item."""
+    root = _blocking_root(tmp_path)
+    items_dir = tmp_path / "items"
+    for i in wi.items_from_staging(root)[0]:
+        wi.write_item(i, items_dir)
+    by_lane = wi.blocking_findings_by_lane(wi.all_items(root, items_dir))
+    assert set(by_lane) == {"B_commercial"}
+
+    (root / "done").mkdir()
+    (root / "WORKER_FINDING_B_2026-11-21.md").rename(root / "done" / "WORKER_FINDING_B_2026-11-21.md")
+    moved = {i["id"]: i for i in wi.all_items(root, items_dir)}["worker-finding-b"]
+    assert moved["evidence"] == ["docs/staging/done/WORKER_FINDING_B_2026-11-21.md"]
+    assert set(wi.blocking_findings_by_lane(wi.all_items(root, items_dir))) == {"B_commercial"}
+
+    wi.transition("worker-finding-b", "done", evidence="abc123", items_dir=items_dir,
+                  staging_root=root, now=NOW)
+    assert wi.blocking_findings_by_lane(wi.all_items(root, items_dir)) == {}
+
+    (root / "WORKER_FINDING_L_2026-11-20.md").write_text(
+        FINDING.format(sev="BLOCKING", lane="D_billing_metering", atom="unminted", title="L"))
+    assert set(wi.blocking_findings_by_lane(wi.all_items(root, items_dir))) == {"D_billing_metering"}
+
+
+def test_a_finding_filed_after_the_migration_is_an_item_before_anyone_writes_it(tmp_path):
+    root = _blocking_root(tmp_path)
+    items_dir = tmp_path / "items"
+    wi.write_item(wi.items_from_staging(root)[0][0], items_dir)
+    ids = {i["id"]: i["state"] for i in wi.all_items(root, items_dir)}
+    assert ids == {"worker-finding-b": "open", "worker-finding-l": "open"}
+    path = wi.transition("worker-finding-l", "parked", revisit="2026-12-01", reason="waits on X",
+                         items_dir=items_dir, staging_root=root, now=NOW)
+    assert wi.read_item(path)["state"] == "parked"
+
+
+def test_a_refiled_finding_whose_name_is_closed_gets_its_own_item(tmp_path):
+    root = _blocking_root(tmp_path)
+    items_dir = tmp_path / "items"
+    for i in wi.items_from_staging(root)[0]:
+        wi.write_item(i, items_dir)
+    wi.transition("worker-finding-l", "obsolete", reason="overtaken", items_dir=items_dir,
+                  staging_root=root, now=NOW)
+    (root / "done").mkdir()
+    (root / "WORKER_FINDING_L_2026-11-20.md").rename(root / "done" / "WORKER_FINDING_L_2026-11-20.md")
+    (root / "WORKER_FINDING_L_2026-11-25.md").write_text(
+        FINDING.format(sev="LATENT", lane="D_billing_metering", atom="unminted", title="L again"))
+    states = {i["id"]: i["state"] for i in wi.all_items(root, items_dir)}
+    assert states["worker-finding-l"] == "obsolete"
+    assert states["worker-finding-l-2026-11-25"] == "open"
+
+
+def test_the_doorbell_names_the_pick_and_the_verb_that_closes_it(tmp_path):
+    root = _blocking_root(tmp_path)
+    clause = wi.doorbell_clause(wi.all_items(root, tmp_path / "items"), SHARES, now=NOW)
+    assert "2 open (1 BLOCKING, 1 LATENT, 0 RECORDED)" in clause
+    assert "next_item() picks worker-finding-b" in clause and "--done worker-finding-b" in clause
+    rest = wi.doorbell_clause([], SHARES, now=NOW)
+    assert "0 open" in rest and "rest" in rest
+
+
+def test_items_are_written_only_when_the_flag_is_on(monkeypatch, capsys):
+    written = []
+    monkeypatch.setattr(wi, "write_item", lambda item, *a, **k: written.append(item["id"]))
+    monkeypatch.setattr(wi, "stored_items", lambda *a, **k: [])
+    for mode in ("shadow", "off"):
+        monkeypatch.setattr(wi, "cutover_mode", lambda *a, m=mode, **k: m)
+        assert wi.main(["--migrate", "--write"]) == 2
+        assert "refused" in capsys.readouterr().err
+    assert written == []
+    monkeypatch.setattr(wi, "cutover_mode", lambda *a, **k: "on")
+    assert wi.main(["--migrate", "--write"]) == 0
+    assert written  # the branch that writes can be taken
+
+
+def test_the_live_findings_are_on_and_every_root_finding_is_one_valid_item():
+    """Keyed to the property, not to a count: after cut-over the live flag is on and every
+    classified finding in the root is exactly one valid item in the store."""
+    assert wi.cutover_mode() == "on"
+    items = wi.all_items()
+    assert all(wi.validate(i) == [] for i in items)
+    docs = [Path(e).name for i in items if i["source"] == "finding" for e in i["evidence"]]
+    assert len(docs) == len(set(docs))
+    root_findings = {Path(i["evidence"][0]).name for i in wi.items_from_staging()[0]}
+    assert root_findings <= set(docs)

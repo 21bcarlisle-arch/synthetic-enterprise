@@ -1,0 +1,27 @@
+id: seat-finding-a-gas-homes-season-miss-is-the-winter-and-lighting-is-the-one-term-off-its-source
+title: A gas home's season miss is now the winter, and lighting is the one end use
+  off its source
+lane: world
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_A_GAS_HOMES_SEASON_MISS_IS_THE_WINTER_AND_LIGHTING_IS_THE_ONE_TERM_OFF_ITS_SOURCE_2026-10-09.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-09T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: W1_market_weather

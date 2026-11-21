@@ -278,7 +278,9 @@ re-fetch and diff before first run).
 
 ## Working here
 
-**Orient first.** Poll `docs/staging/` — the root is the work queue, ranked. `docs/status/LATEST.md`
+**Orient first.** Findings are items in `docs/work/items/`; `python3 -m background.work_items --pick`
+names the next. A finding is filed in `docs/staging/` but closed with `work_items --done|--obsolete|--park`,
+never by moving it. `docs/status/LATEST.md`
 is the weekly published state. `docs/design/maturity_map.yaml` (read via `tools/maturity_map_store`) is what exists
 and at what level.
 

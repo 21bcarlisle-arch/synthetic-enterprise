@@ -1,0 +1,27 @@
+id: seat-finding-the-default-book-ships-both-household-cancel-routes-at-zero-so-the-mandate-run-is-two-arms
+title: The default book ships both household-cancel routes at zero, so the mandate
+  run is two arms, and its predictions are filed before either answers
+lane: world
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_DEFAULT_BOOK_SHIPS_BOTH_HOUSEHOLD_CANCEL_ROUTES_AT_ZERO_SO_THE_MANDATE_RUN_IS_TWO_ARMS_2026-10-26.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: W2_41_a_household_cancels_its_mandate_as_its_own_act
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-26T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: W2_customer_generator

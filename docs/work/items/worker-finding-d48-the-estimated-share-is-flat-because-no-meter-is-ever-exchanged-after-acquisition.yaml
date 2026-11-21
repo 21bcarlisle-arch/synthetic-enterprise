@@ -1,0 +1,28 @@
+id: worker-finding-d48-the-estimated-share-is-flat-because-no-meter-is-ever-exchanged-after-acquisition
+title: 'D48''s flat estimated share is the book''s meters, not the read model: no
+  meter is ever exchanged after acquisition, so in 2024 the book is 29% smart against
+  about 69% nationally (2026-10-21)'
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_D48_THE_ESTIMATED_SHARE_IS_FLAT_BECAUSE_NO_METER_IS_EVER_EXCHANGED_AFTER_ACQUISITION_2026-10-21.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-21T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: D_billing_metering

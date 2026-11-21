@@ -1,0 +1,27 @@
+id: worker-finding-the-runners-edge-serves-this-pushs-own-new-page-under-a-stale-verdict-so-the-older-copy-prediction-is-refuted
+title: The runner's edge serves this push's own new page under a STALE verdict, so
+  the "older copy" prediction is refuted (2026-10-22)
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_THE_RUNNERS_EDGE_SERVES_THIS_PUSHS_OWN_NEW_PAGE_UNDER_A_STALE_VERDICT_SO_THE_OLDER_COPY_PREDICTION_IS_REFUTED_2026-10-22.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-22T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: A_strategy_governance

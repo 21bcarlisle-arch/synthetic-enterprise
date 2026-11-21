@@ -1,0 +1,26 @@
+id: seat-finding-the-kettle-does-not-scale-with-headcount-in-hes
+title: The kettle does not scale with headcount in HES, and the world's did
+lane: world
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_KETTLE_DOES_NOT_SCALE_WITH_HEADCOUNT_IN_HES_2026-10-09.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-09T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: W1_market_weather

@@ -582,6 +582,48 @@ def ntfy(msg: str) -> None:
     notify(msg, kind="real_alarm")
 
 
+def _the_item_store_governs(root: Path) -> bool:
+    """True when `staging_findings` is `on` AND `root` is the real staging root. The store at
+    docs/work/items/ describes the real root only: a test that points STAGING_DIR at a fixture
+    keeps the old root read, rather than mixing its fixture with the live items."""
+    from background import work_items
+    try:
+        same = Path(root).resolve() == work_items.STAGING_ROOT.resolve()
+    except OSError:
+        return False
+    return same and work_items.cutover_mode() == "on"
+
+
+def _staging_documents_that_are_items() -> set[str]:
+    """Root documents the item store now holds as findings (`staging_findings: on`), which the
+    root listing therefore drops: their queue is `work_items`, named by `_work_items_clause`.
+    Empty while the flag is off or in shadow, and on any failure, so a document is then listed
+    twice rather than not at all."""
+    try:
+        from background import work_items
+        if not _the_item_store_governs(STAGING_DIR):
+            return set()
+        return work_items.finding_documents_in_store(work_items.all_items(STAGING_DIR))
+    except Exception:  # noqa: BLE001
+        return set()
+
+
+def _work_items_clause() -> str | None:
+    """The findings' line in the draw once `staging_findings` is `on`: the open count and the one
+    `next_item()` picks. None while off or in shadow. A failure is named, never silent, because
+    the root listing has already dropped these documents."""
+    try:
+        from background import work_items
+        if not _the_item_store_governs(STAGING_DIR):
+            return None
+        return work_items.doorbell_clause(work_items.all_items(STAGING_DIR),
+                                          work_items.load_shares())
+    except Exception as exc:  # noqa: BLE001
+        return (f"ONE WORK SYSTEM ITEMS UNREADABLE ({exc.__class__.__name__}: {exc}): the open "
+                "findings are in docs/work/items/ and could not be listed this cycle; run "
+                "`python3 -m background.work_items --pick`")
+
+
 def _unprocessed_staging_files() -> list[str]:
     """Top-level files directly in docs/staging/, IN DRAW ORDER -- excludes done/, fyi/,
     responses/, drafts/, reference/, console/ and any other subdirectory automatically
@@ -605,9 +647,10 @@ def _unprocessed_staging_files() -> list[str]:
         return []
     try:
         from background import staging_rooms
+        as_items = _staging_documents_that_are_items()
         return [
             item.name for item in staging_rooms.work_queue(STAGING_DIR)
-            if item.name not in _IGNORED_STAGING_NAMES
+            if item.name not in _IGNORED_STAGING_NAMES and item.name not in as_items
         ]
     except Exception:
         return sorted(
@@ -5503,6 +5546,19 @@ def _planner_rung_draw(
 # no second party's act left to consume, and therefore no latency to prioritise away.
 
 
+def _blocking_names_from_the_item_store(root: Path) -> dict[str, list[str]] | None:
+    """RUNG 1c's input once `staging_findings` is `on` (one work system, D9 step 3): the open
+    BLOCKING finding ITEMS by header lane, named by their documents. None while the flag is off
+    or in shadow, so the caller reads the staging root as before. A closed item stops blocking
+    whatever its document says; a document moved to a room blocks until its item is closed."""
+    if not _the_item_store_governs(root):
+        return None
+    from background import work_items
+    items = work_items.all_items(root)
+    return {lane: [Path(i["evidence"][0]).name for i in found]
+            for lane, found in work_items.blocking_findings_by_lane(items).items()}
+
+
 def _blocking_lane_draw(staging_dir: Path | None = None) -> tuple[str | None, frozenset[str]]:
     """RUNG 1c REVIVED, 2026-08-12 -- BLOCKING FINDING LANE PRECEDENCE, atom
     `OPS12_blockers_ahead_of_disposition` (DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE
@@ -5537,8 +5593,12 @@ def _blocking_lane_draw(staging_dir: Path | None = None) -> tuple[str | None, fr
     """
     root = staging_dir if staging_dir is not None else STAGING_DIR
     try:
-        from background.finding_severity import blocking_by_lane, scan_staging_root
-        by_lane = blocking_by_lane(scan_staging_root(root))
+        names_by_lane = _blocking_names_from_the_item_store(root)
+        if names_by_lane is None:
+            from background.finding_severity import blocking_by_lane, scan_staging_root
+            names_by_lane = {lane: [f.path.name for f in found] for lane, found
+                             in blocking_by_lane(scan_staging_root(root)).items()}
+        by_lane = names_by_lane
     except Exception as exc:  # module missing, root unreadable, or any parse-path failure
         return (
             "BLOCKING-FINDING INDEX UNREADABLE (RUNG 1c fail-open check, OPS12 exit "
@@ -5553,7 +5613,7 @@ def _blocking_lane_draw(staging_dir: Path | None = None) -> tuple[str | None, fr
     # (blocked_lanes filters every candidate in every affected lane this cycle; nothing
     # is left to choose between), so this only orders which lane's names lead the message.
     lane, findings = sorted(by_lane.items())[0]
-    names = ", ".join(f.path.name for f in findings)
+    names = ", ".join(findings)
     return (
         f"BLOCKING FINDING (RUNG 1c, OPS12 clause 3): lane {lane} carries a live BLOCKING "
         f"finding -- {names} -- drawing ahead of the general disposition queue, latent "
@@ -6715,6 +6775,9 @@ def find_work(resumed_from_pause: bool) -> tuple[str | None, bool]:
             mint = ruling_mint_instruction(staged)
             if mint:
                 primary = f"{primary}; {mint}"
+        findings = _work_items_clause()
+        if findings:
+            primary = f"{findings}; {primary}" if primary else findings
 
     refill = _self_refill_draw()
 

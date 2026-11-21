@@ -1,0 +1,27 @@
+id: seat-finding-the-monday-run-4ae8da9b0f-is-refused-by-two-billing-gates-on-its-own-book
+title: 'SEAT FINDING: the Monday run 4ae8da9b0f is refused by two billing gates reading
+  its own book'
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_MONDAY_RUN_4AE8DA9B0F_IS_REFUSED_BY_TWO_BILLING_GATES_ON_ITS_OWN_BOOK_2026-10-26.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-26T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: D_billing_metering

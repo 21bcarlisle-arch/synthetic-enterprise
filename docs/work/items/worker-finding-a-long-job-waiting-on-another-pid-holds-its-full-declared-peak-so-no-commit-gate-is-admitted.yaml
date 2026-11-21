@@ -1,0 +1,27 @@
+id: worker-finding-a-long-job-waiting-on-another-pid-holds-its-full-declared-peak-so-no-commit-gate-is-admitted
+title: A long job waiting on another pid holds its full declared peak, so no commit
+  gate is admitted (2026-11-14)
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_A_LONG_JOB_WAITING_ON_ANOTHER_PID_HOLDS_ITS_FULL_DECLARED_PEAK_SO_NO_COMMIT_GATE_IS_ADMITTED_2026-11-14.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-14T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: H_harness

@@ -1,0 +1,27 @@
+id: worker-finding-a-gated-landing-in-the-executors-worktree-was-reset-away-unpromoted
+title: A gated landing in the executor's worktree was reset away unpromoted, and it
+  cost D5 its fifth landing (2026-11-17)
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_A_GATED_LANDING_IN_THE_EXECUTORS_WORKTREE_WAS_RESET_AWAY_UNPROMOTED_2026-11-17.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-17T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: H_harness

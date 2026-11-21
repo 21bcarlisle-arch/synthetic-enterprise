@@ -3,10 +3,14 @@
 #
 #   off     the old ladder alone
 #   shadow  the old ladder draws; next_item() is logged beside it and changes nothing
+#   on      the item store is the queue: items in docs/work/items/ hold the state, the draw reads
+#           them, and the source's old listing stops being read as work
 #
-# There is no `on` yet: the day side by side comes first, and `on` is built in the commit that
-# stops the staging root being a queue and writes its items to docs/work/items/.
-staging_findings: shadow
+# staging_findings went on 2026-11-21 after the side-by-side day (graded in
+# docs/staging/records/SEAT_RECORD_THE_ONE_WORK_SYSTEM_CUT_OVER_OF_THE_STAGING_FINDINGS_2026-11-21.md).
+# The staging root is where a finding is FILED; the item is the work. A finding is closed with
+# `python3 -m background.work_items --done|--obsolete|--park`, not by moving its document.
+staging_findings: "on"  # quoted: YAML 1.1 reads a bare on as true
 # The maturity map's atom steps, without their dials (the 21 Nov ruling retired them, D7 a). In
 # shadow the share table ranks them beside the dial-weighted self-refill; at `on` that draw is deleted.
 maturity_map: shadow

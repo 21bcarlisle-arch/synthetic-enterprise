@@ -1,0 +1,27 @@
+id: worker-finding-an-electric-heated-fabric-home-prices-its-prior-bill-at-the-gas-rate-and-runs-two-to-four-times-serl
+title: An electric-heated fabric home uses two to four times SERL's level, and its
+  prior-year bill is priced at the gas rate (2026-10-17)
+lane: world
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_AN_ELECTRIC_HEATED_FABRIC_HOME_PRICES_ITS_PRIOR_BILL_AT_THE_GAS_RATE_AND_RUNS_TWO_TO_FOUR_TIMES_SERL_2026-10-17.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-17T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: W2_customer_generator

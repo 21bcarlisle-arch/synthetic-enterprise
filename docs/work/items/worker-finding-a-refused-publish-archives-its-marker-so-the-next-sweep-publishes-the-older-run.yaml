@@ -1,0 +1,27 @@
+id: worker-finding-a-refused-publish-archives-its-marker-so-the-next-sweep-publishes-the-older-run
+title: A refused publish archives its marker, so the next sweep publishes the older
+  run
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_A_REFUSED_PUBLISH_ARCHIVES_ITS_MARKER_SO_THE_NEXT_SWEEP_PUBLISHES_THE_OLDER_RUN_2026-10-13.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: OPS6_scoped_publish_path_suite
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-13T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: H_harness

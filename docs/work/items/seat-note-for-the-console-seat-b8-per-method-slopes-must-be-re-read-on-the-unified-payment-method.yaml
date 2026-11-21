@@ -1,0 +1,27 @@
+id: seat-note-for-the-console-seat-b8-per-method-slopes-must-be-re-read-on-the-unified-payment-method
+title: 'For the console seat: a household''s payment method now has one home, so re-read
+  B8''s per-method slopes on it'
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: RECORDED
+source: finding
+evidence:
+- docs/staging/SEAT_NOTE_FOR_THE_CONSOLE_SEAT_B8_PER_METHOD_SLOPES_MUST_BE_RE_READ_ON_THE_UNIFIED_PAYMENT_METHOD_2026-10-03.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: B8_discovered_price_sensitivity_holdout
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-03T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: B_commercial

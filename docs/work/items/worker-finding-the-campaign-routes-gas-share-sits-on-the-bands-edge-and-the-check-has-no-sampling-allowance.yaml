@@ -1,0 +1,27 @@
+id: worker-finding-the-campaign-routes-gas-share-sits-on-the-bands-edge-and-the-check-has-no-sampling-allowance
+title: The campaign route's gas share sits on the band's edge, and the check has no
+  sampling allowance (2026-11-13)
+lane: world
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_THE_CAMPAIGN_ROUTES_GAS_SHARE_SITS_ON_THE_BANDS_EDGE_AND_THE_CHECK_HAS_NO_SAMPLING_ALLOWANCE_2026-11-13.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: W2_21_the_premise_joint_is_fitted_not_drawn_independently
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-13T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: W2_customer_generator

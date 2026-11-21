@@ -1,0 +1,27 @@
+id: seat-finding-d48-billed-equals-metered-on-every-read-and-the-gas-shape-is-more-seasonal-than-the-worlds
+title: 'D48 on the 8a300fa561 book: billed equals metered on every read; only estimates
+  carry a gap, and the company''s gas shape is more seasonal than the world''s (2026-11-18)'
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_D48_BILLED_EQUALS_METERED_ON_EVERY_READ_AND_THE_GAS_SHAPE_IS_MORE_SEASONAL_THAN_THE_WORLDS_2026-11-18.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-18T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: D_billing_metering

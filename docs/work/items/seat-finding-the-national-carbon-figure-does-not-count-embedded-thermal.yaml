@@ -1,0 +1,27 @@
+id: seat-finding-the-national-carbon-figure-does-not-count-embedded-thermal
+title: The national carbon figure does not count embedded thermal generation, so the
+  customer figure probably runs low (2026-11-11)
+lane: world
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_NATIONAL_CARBON_FIGURE_DOES_NOT_COUNT_EMBEDDED_THERMAL_2026-11-11.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-11T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: W1_market_weather

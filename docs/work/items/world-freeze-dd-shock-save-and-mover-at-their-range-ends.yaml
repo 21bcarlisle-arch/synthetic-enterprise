@@ -1,0 +1,27 @@
+id: world-freeze-dd-shock-save-and-mover-at-their-range-ends
+title: 'The DD shock, the save and the mover: the world''s range ends, filed before
+  any supplier arm (2026-10-12)'
+lane: world
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORLD_FREEZE_DD_SHOCK_SAVE_AND_MOVER_AT_THEIR_RANGE_ENDS_2026-10-12.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: DD_seasonal_cashflow_physics
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-12T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: W2_customer_generator

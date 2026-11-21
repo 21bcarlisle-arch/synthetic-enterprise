@@ -1,0 +1,27 @@
+id: seat-finding-the-consent-gate-now-permits-live-and-a-concealing-household-is-found-safe
+title: The Consent gate now permits live, and a household that conceals is found safe
+  (2026-11-15)
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_CONSENT_GATE_NOW_PERMITS_LIVE_AND_A_CONCEALING_HOUSEHOLD_IS_FOUND_SAFE_2026-11-15.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: C32_one_obligation_one_vulnerability_scorer
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-15T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: C_customer_ops

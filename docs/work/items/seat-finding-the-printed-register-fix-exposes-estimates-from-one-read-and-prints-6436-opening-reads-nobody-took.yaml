@@ -1,0 +1,27 @@
+id: seat-finding-the-printed-register-fix-exposes-estimates-from-one-read-and-prints-6436-opening-reads-nobody-took
+title: The printed-register fix exposes estimates set from one read and prints 6,436
+  opening reads nobody took (2026-10-28)
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_PRINTED_REGISTER_FIX_EXPOSES_ESTIMATES_FROM_ONE_READ_AND_PRINTS_6436_OPENING_READS_NOBODY_TOOK_2026-10-28.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-28T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: D_billing_metering

@@ -1,0 +1,27 @@
+id: worker-finding-a-publish-that-widens-the-run-output-is-not-censused-and-the-next-py-commit-is-refused-for-it
+title: A publish that widens the run output is not censused, and the next `.py` commit
+  is refused for it
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_A_PUBLISH_THAT_WIDENS_THE_RUN_OUTPUT_IS_NOT_CENSUSED_AND_THE_NEXT_PY_COMMIT_IS_REFUSED_FOR_IT_2026-10-05.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: KNIFE3_wall_crossing_paydown
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-05T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: H_harness

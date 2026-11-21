@@ -1,0 +1,27 @@
+id: seat-finding-a-quoted-empty-list-in-any-feed-string-now-publishes-as-words
+title: A quoted empty list in any delivery-feed string now publishes as words, not
+  only in problem text (2026-11-16)
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_A_QUOTED_EMPTY_LIST_IN_ANY_FEED_STRING_NOW_PUBLISHES_AS_WORDS_2026-11-16.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-16T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: H_harness

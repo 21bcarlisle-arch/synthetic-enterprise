@@ -1,0 +1,27 @@
+id: worker-finding-the-publishers-retries-at-an-unchanged-sha-hold-the-gate-lock-the-shared-trees-advance-needs
+title: The publisher's retries at an unchanged sha hold the gate lock the shared tree's
+  advance needs
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_THE_PUBLISHERS_RETRIES_AT_AN_UNCHANGED_SHA_HOLD_THE_GATE_LOCK_THE_SHARED_TREES_ADVANCE_NEEDS_2026-10-13.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: OPS6_scoped_publish_path_suite
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-13T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: H_harness

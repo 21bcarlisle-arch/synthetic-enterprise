@@ -1,0 +1,27 @@
+id: seat-finding-the-first-term-quote-needs-the-markets-price-not-the-cap-and-the-campaign-now-asks-it-before-the-win
+title: The campaign now asks for the quote before the win. The quote needs the market's
+  price, not the cap, as its reference
+lane: world
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_FIRST_TERM_QUOTE_NEEDS_THE_MARKETS_PRICE_NOT_THE_CAP_AND_THE_CAMPAIGN_NOW_ASKS_IT_BEFORE_THE_WIN_2026-10-02.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: PB3_book_growth_as_earned_outcome
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-02T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: W2_customer_generator

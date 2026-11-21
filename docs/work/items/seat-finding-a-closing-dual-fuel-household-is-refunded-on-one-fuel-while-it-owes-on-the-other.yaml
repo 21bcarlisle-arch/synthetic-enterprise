@@ -1,0 +1,27 @@
+id: seat-finding-a-closing-dual-fuel-household-is-refunded-on-one-fuel-while-it-owes-on-the-other
+title: A closing dual-fuel household is refunded its credit on one fuel while it owes
+  on the other, and the debt is later written off (2026-11-11)
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_A_CLOSING_DUAL_FUEL_HOUSEHOLD_IS_REFUNDED_ON_ONE_FUEL_WHILE_IT_OWES_ON_THE_OTHER_2026-11-11.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: EP4_collections_journey
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-11T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: C_customer_ops

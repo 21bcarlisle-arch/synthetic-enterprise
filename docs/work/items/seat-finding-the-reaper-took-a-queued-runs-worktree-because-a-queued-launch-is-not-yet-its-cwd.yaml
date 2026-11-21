@@ -1,0 +1,27 @@
+id: seat-finding-the-reaper-took-a-queued-runs-worktree-because-a-queued-launch-is-not-yet-its-cwd
+title: The worktree reaper took a queued run's worktree, because a queued launch is
+  not yet its cwd (2026-10-28)
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_REAPER_TOOK_A_QUEUED_RUNS_WORKTREE_BECAUSE_A_QUEUED_LAUNCH_IS_NOT_YET_ITS_CWD_2026-10-28.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-28T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: A_strategy_governance

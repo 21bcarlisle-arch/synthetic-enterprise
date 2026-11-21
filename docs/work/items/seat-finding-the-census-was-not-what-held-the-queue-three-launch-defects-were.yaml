@@ -1,0 +1,27 @@
+id: seat-finding-the-census-was-not-what-held-the-queue-three-launch-defects-were
+title: 'The census was not what held the queue: it ended at 06:18Z and every job then
+  failed in minutes, for three separate reasons (2026-10-24)'
+lane: world
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_CENSUS_WAS_NOT_WHAT_HELD_THE_QUEUE_THREE_LAUNCH_DEFECTS_WERE_2026-10-24.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-24T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: W2_customer_generator

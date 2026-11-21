@@ -1,0 +1,27 @@
+id: worker-finding-the-worlds-payment-draw-has-no-price-input-so-2022-cannot-raise-non-payment-and-the-budget-built-for-it-is-unwired
+title: The world's payment draw has no price input, so 2022 cannot raise non-payment,
+  and the budget built for that is not wired in
+lane: world
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_THE_WORLDS_PAYMENT_DRAW_HAS_NO_PRICE_INPUT_SO_2022_CANNOT_RAISE_NON_PAYMENT_AND_THE_BUDGET_BUILT_FOR_IT_IS_UNWIRED_2026-10-16.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: W2_38_the_worlds_debt_is_graded_against_ofgems_quarterly_series
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-16T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: W2_customer_generator

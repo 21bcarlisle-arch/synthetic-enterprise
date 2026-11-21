@@ -1,0 +1,27 @@
+id: seat-finding-the-sharded-simulation-read-was-not-started-beside-a-live-fresh-run-and-a-whole-read
+title: 'The sharded simulation-suite read was not started: a fresh run and a whole
+  read of the same suite were already live'
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_SHARDED_SIMULATION_READ_WAS_NOT_STARTED_BESIDE_A_LIVE_FRESH_RUN_AND_A_WHOLE_READ_2026-10-28.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-28T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: H_harness

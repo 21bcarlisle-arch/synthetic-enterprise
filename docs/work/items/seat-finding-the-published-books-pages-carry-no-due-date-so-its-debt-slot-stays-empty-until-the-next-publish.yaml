@@ -1,0 +1,27 @@
+id: seat-finding-the-published-books-pages-carry-no-due-date-so-its-debt-slot-stays-empty-until-the-next-publish
+title: The published book's pages carry no due date, so its debt slot stays empty
+  until the next publish (2026-10-29)
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_PUBLISHED_BOOKS_PAGES_CARRY_NO_DUE_DATE_SO_ITS_DEBT_SLOT_STAYS_EMPTY_UNTIL_THE_NEXT_PUBLISH_2026-10-29.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-29T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: D_billing_metering

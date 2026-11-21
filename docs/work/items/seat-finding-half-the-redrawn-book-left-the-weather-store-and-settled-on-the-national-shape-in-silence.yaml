@@ -1,0 +1,27 @@
+id: seat-finding-half-the-redrawn-book-left-the-weather-store-and-settled-on-the-national-shape-in-silence
+title: Half the redrawn book is off the weather store, and that is what the "pinned
+  providers" are
+lane: world
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_HALF_THE_REDRAWN_BOOK_LEFT_THE_WEATHER_STORE_AND_SETTLED_ON_THE_NATIONAL_SHAPE_IN_SILENCE_2026-10-11.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: W1_14_weather_cells_for_household_heat_load
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-11T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: W1_market_weather

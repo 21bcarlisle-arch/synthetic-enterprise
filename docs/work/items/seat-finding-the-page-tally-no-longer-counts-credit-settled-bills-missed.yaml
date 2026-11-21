@@ -1,0 +1,27 @@
+id: seat-finding-the-page-tally-no-longer-counts-credit-settled-bills-missed
+title: The household page's bill tally no longer counts credit-settled bills as missed
+  (N15, eighth cold read O4) (2026-11-04)
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: RECORDED
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_PAGE_TALLY_NO_LONGER_COUNTS_CREDIT_SETTLED_BILLS_MISSED_2026-11-04.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-04T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: D_billing_metering

@@ -1,0 +1,27 @@
+id: seat-finding-billing-property-tests-find-a-pound-a-month-dd-overcharge-and-three-vat-readings-that-disagree
+title: Billing property tests find a pound-a-month DD overcharge (fixed) and three
+  VAT readings that disagree (2026-11-20)
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_BILLING_PROPERTY_TESTS_FIND_A_POUND_A_MONTH_DD_OVERCHARGE_AND_THREE_VAT_READINGS_THAT_DISAGREE_2026-11-20.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-20T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: D_billing_metering

@@ -1,0 +1,26 @@
+id: worker-finding-the-projection-feed-is-rewritten-every-cycle-for-no-reader
+title: The projection feed is rewritten every publish cycle for no reader
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_THE_PROJECTION_FEED_IS_REWRITTEN_EVERY_CYCLE_FOR_NO_READER_2026-08-23.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-08-23T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: G_data_learning

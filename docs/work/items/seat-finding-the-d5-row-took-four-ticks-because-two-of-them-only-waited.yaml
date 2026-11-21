@@ -1,0 +1,27 @@
+id: seat-finding-the-d5-row-took-four-ticks-because-two-of-them-only-waited
+title: The D5 row took four ticks because two of them only waited on a running job,
+  and no filter skipped the contact-cause steer (2026-11-18)
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: RECORDED
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_D5_ROW_TOOK_FOUR_TICKS_BECAUSE_TWO_OF_THEM_ONLY_WAITED_2026-11-18.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-18T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: H_harness

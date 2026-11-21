@@ -1,0 +1,26 @@
+id: worker-finding-a-re-driven-publish-keeps-its-refusal-tag-so-the-frontier-under-reads-it
+title: A re-driven publish keeps its refusal tag, so the frontier under-reads it
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_A_RE_DRIVEN_PUBLISH_KEEPS_ITS_REFUSAL_TAG_SO_THE_FRONTIER_UNDER_READS_IT_2026-10-19.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: OPS6_scoped_publish_path_suite
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-10-19T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: H_harness
