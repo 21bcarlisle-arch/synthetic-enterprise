@@ -15,8 +15,9 @@ record says, what is not published (GAP), and the design choices that follow.
 > and the floor at **over 300 s**. The labour is priced by the market: ONS ASHE gives a median of
 > **£8.72 an hour** for call and contact centre occupations in 2016, rising to **£14.26** in 2025. The
 > relation between the two is queueing arithmetic (Erlang C), and the arithmetic says three things.
-> The wait is close to a cliff, not a slope. Going from a 5-minute wait to 30 s costs about **a fifth
-> more agents**, not five times as many. And the input that matters most, **average handle time, is
+> The wait is close to a cliff, not a slope. Going from a 5-minute wait to 30 s costs **6% more
+> agents at 600 calls an hour, about a fifth more at 120, and a third or more at 30**, not five
+> times as many. A large book buys short waits proportionally cheaper than a small one. And the input that matters most, **average handle time, is
 > not published for GB energy**. That is a GAP the design must carry, not fill.
 
 ---
@@ -118,9 +119,13 @@ What the table settles:
 1. **The wait is a cliff.** One agent too few near A is the difference between seconds and the
    16-minute supplier. The 2021-22 peak in the CA series reads as demand crossing staffing (the
    crisis, SoLR intake and cap rises), not as staffing being cut.
-2. **Five stars costs about a fifth more agents than the Ofgem line**, at every AHT in the range: 11
-   vs 9, 16 vs 13, 21 vs 18, 25 vs 22, 30 vs 26. The trade-off the company has to make is narrow and
-   steep, and the world must price both sides of it.
+2. **Five stars costs about a fifth more agents than the Ofgem line at 120 calls an hour**, at
+   every AHT in the range: 11 vs 9, 16 vs 13, 21 vs 18, 25 vs 22, 30 vs 26. *Corrected 2026-11-21,
+   same day:* this line first said "about a fifth" without the load, and the premium depends on
+   scale. Printed through the desk (`company/crm/contact_centre_staffing.py`) at AHT 4 to 12 min,
+   it is **+6 to 7% at 600 calls an hour, +14 to 23% at 120, and +25 to 50% at 30**. Queues pool,
+   so a small supplier pays proportionally more for a short wait than a large one. The trade-off is
+   narrow and steep, and the world must price both sides of it.
 3. **Agents needed scale with AHT almost one for one.** AHT is unpublished (§5), so any absolute
    staffing figure carries that GAP inside it.
 
@@ -144,8 +149,12 @@ What the table settles:
    supplier on the same side of the wall as `simulation/contact_centre.py`, whose trigger was moved
    to the world's own propensity on 2026-08-13 for this reason.
 2. **The cost is booked from the ASHE series** by year, as a wage. Employer on-costs and shrinkage
-   are named GAPs with stated ranges, not folded into a single loading. An honest wage-only cost
-   understates the bill, which errs against the thesis that staffing is cheap (F11).
+   are named GAPs with stated ranges, not folded into a single loading. The desk books the
+   result as a **floor** (ONS median wage × paid hours, grossed up for statutory leave only) and
+   names what it leaves out. *Corrected 2026-11-21, same day:* this line first said a wage-only
+   cost "errs against the thesis that staffing is cheap". It errs the other way. A floor
+   understates the cost of staffing up, so any gain the company finds from more agents is
+   overstated on the cost side. That is why it is labelled a floor and not a cost.
 3. **AHT is not invented.** Until a source is found, the world's queue takes AHT as a required
    argument with no default, and a run that has not set it refuses with this page's §5 as its reason.
    The theme map's call loops (O1, C3, C9) are repeat contacts, a separate mechanism from wait. They

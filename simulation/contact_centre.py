@@ -143,3 +143,97 @@ def generate_contact_centre_log(bills: list[dict]) -> list[dict]:
             "breached_sla": event.breached_sla,
         })
     return log
+
+
+# ---------------------------------------------------------------------------
+# THE PHONE QUEUE AS A FUNCTION OF STAFFING (2026-11-21)
+#
+# The draw above gives every phone call a 6-minute mean wait whatever the
+# supplier does, so no staffing decision can move it. What follows is the
+# world's answer to a staffing plan: calls arriving at `calls_per_hour`, each
+# held for `handle_minutes`, met by `agents`. It is the M/M/N (Erlang C) queue.
+# That is standard telephony arithmetic, a stated belief and not an energy
+# finding, and it is wrong in two known directions: real callers abandon,
+# which bounds the wait, and real arrivals surge, so a mean hour understates
+# the peak. Evidence and gaps:
+# docs/market_research/contact_centre_staffing_cost_and_call_wait_gb_energy_2026-11-21.md
+#
+# Handle time has NO default. It is the input that sets the agent count almost
+# one for one (that page, s.4) and GB energy publishes none (s.5). A caller that
+# has not established it gets a refusal naming that gap, never a plausible
+# number. It is not wired into `generate_contact_centre_log` yet for the same
+# reason: the run has no sourced handle time to give it.
+# ---------------------------------------------------------------------------
+
+HANDLE_TIME_GAP = (
+    "average handle time for GB energy calls is unpublished "
+    "(contact_centre_staffing_cost_and_call_wait_gb_energy_2026-11-21.md s.5)"
+)
+
+
+@dataclass(frozen=True)
+class PhoneQueue:
+    """The world's phone queue for one staffing plan.
+
+    `saturated` is True when agents <= offered load. Erlang C then has no
+    steady state: the wait grows without bound until callers abandon, and
+    abandonment is not modelled (same page, s.5). Both wait fields are None
+    rather than a large number, because any number there would be invented.
+    """
+
+    offered_load_erlangs: float
+    agents: int
+    saturated: bool
+    probability_of_waiting: Optional[float]
+    mean_wait_seconds: Optional[float]
+    mean_wait_of_those_who_wait_seconds: Optional[float]
+
+
+def erlang_c(offered_load_erlangs: float, agents: int) -> float:
+    """Probability an arriving call waits, M/M/N. 1.0 when saturated.
+
+    Computed by the Erlang B recursion, which is stable at large N where the
+    factorial form overflows."""
+    if offered_load_erlangs <= 0:
+        return 0.0
+    if agents <= offered_load_erlangs:
+        return 1.0
+    blocking = 1.0
+    for n in range(1, agents + 1):
+        blocking = offered_load_erlangs * blocking / (n + offered_load_erlangs * blocking)
+    rho = offered_load_erlangs / agents
+    return blocking / (1.0 - rho + rho * blocking)
+
+
+def phone_queue(
+    calls_per_hour: float, handle_minutes: Optional[float], agents: int
+) -> PhoneQueue:
+    """The wait the world gives a supplier staffing `agents` against this load."""
+    if handle_minutes is None:
+        raise ValueError(f"phone_queue needs a handle time: {HANDLE_TIME_GAP}")
+    if handle_minutes <= 0 or calls_per_hour < 0 or agents < 0:
+        raise ValueError(
+            f"phone_queue: handle_minutes {handle_minutes} must be > 0, "
+            f"calls_per_hour {calls_per_hour} and agents {agents} >= 0"
+        )
+    load = calls_per_hour * handle_minutes / 60.0
+    if load == 0:
+        return PhoneQueue(0.0, agents, False, 0.0, 0.0, None)
+    if agents <= load:
+        return PhoneQueue(load, agents, True, None, None, None)
+    p_wait = erlang_c(load, agents)
+    of_those_who_wait = handle_minutes * 60.0 / (agents - load)
+    return PhoneQueue(
+        load, agents, False, p_wait, p_wait * of_those_who_wait, of_those_who_wait
+    )
+
+
+def draw_phone_wait_seconds(queue: PhoneQueue, rng: random.Random) -> Optional[float]:
+    """One caller's wait from this queue: zero with probability 1 - C, else
+    exponential with the conditional mean (exact for M/M/N under FCFS).
+    None when the queue is saturated, for the reason `PhoneQueue` gives."""
+    if queue.saturated:
+        return None
+    if queue.mean_wait_of_those_who_wait_seconds is None or rng.random() >= queue.probability_of_waiting:
+        return 0.0
+    return rng.expovariate(1.0 / queue.mean_wait_of_those_who_wait_seconds)
