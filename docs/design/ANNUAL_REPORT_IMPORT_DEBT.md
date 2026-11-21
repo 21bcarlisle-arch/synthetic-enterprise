@@ -15,9 +15,15 @@ deliberately later rather than drifting into it."*
 |---|---|
 | Production importers reading a COMPUTATION | **0** (was 1, moved out) |
 | Production importers frozen with a stated reason | **2** (the renderer's own runner; a publisher importing two path constants) |
-| Test files importing the report | **92** |
+| Test files importing the report | **95** |
 | ...of which reach into private `_section_*` functions | **83** |
 | `saas/reporting/annual_report.py` | **11079 lines** |
+
+Importer count re-measured 2026-11-21: **95**. One is new here,
+`tests/saas/reporting/test_a_grading_record_the_run_builds_reaches_the_published_book.py`. It calls only
+the public `extract_report_data`, to prove the KNIFE3, B8 and dual-answer records survive the reducer.
+The other two since 2026-10-11 were landed without re-measuring. The private-reach and line figures
+are not re-measured here.
 
 Importer count re-measured 2026-10-11: **92**, one new: `tests/saas/reporting/test_the_held_back_grade_door.py`,
 which calls the private `_section_held_back_grade` with and without a move-out register, because

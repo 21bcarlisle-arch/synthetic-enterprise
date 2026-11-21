@@ -1010,6 +1010,15 @@ def extract_report_data(run_output: dict) -> dict:
         # so the published per-household record could show only the ledger's per-bill notices and
         # never the desk's rungs, re-offers or statute-bar write-off. `None` for a run without one.
         "collections_journeys": phase2b.get("collections_journeys"),
+        # KNIFE3: the company's own debt-recovery records at the run's end (write-offs with their
+        # invoice_ref, the agency remittances that crossed, the per-debt learner's cells, the sale
+        # rule at three offers). The run built them from 1624411d2 on and this reducer dropped
+        # them, so no published book could carry them. `None` for a run that did not record one.
+        "company_debt_recovery": phase2b.get("company_debt_recovery"),
+        # B8: who each desk held out of each coin, per renewal year, and what each arm retained, or
+        # why the desk held nobody out. Built by the run from 775a3c46c on and dropped here the same
+        # way. `None` for a run that did not record one, never an empty table.
+        "retention_holdout_by_desk_year": phase2b.get("retention_holdout_by_desk_year"),
         "provisioned_net_gbp": phase2b.get("provisioned_total_net"),
         "provisioned_final_treasury_gbp": phase2b.get("provisioned_final_treasury"),
         "administration_event": phase2b["administration_event"],
@@ -1215,6 +1224,9 @@ def extract_report_data(run_output: dict) -> dict:
         # the fail-open this repository has already paid for twice. Absent stays `None` so the
         # refusal downstream keeps naming its own cause.
         "svt_decisions": phase2b.get("svt_decisions"),
+        # Each dual household's riding-leg answer at its anniversary, with its basis: the count of
+        # two answers is the `pair_above_default_...` and unpriced rows (s.7.5c). No default.
+        "riding_leg_answers": phase2b.get("riding_leg_answers"),
         "churned_billing_accounts": phase2b.get("churned_billing_accounts", []),
         # The home movers, forwarded for the same reason as `svt_departures` above, with NO default:
         # absent means moves are off. Dropped here until 2026-10-10, so the ledger could not see a
