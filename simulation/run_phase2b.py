@@ -6045,9 +6045,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             billing_account=billing_account, commodity=commodity,
             last_settled_day=max(r["settlement_date"] for r in settled_this_term),
             net_margin=actual_net, revenue=term_revenue,
-            standing_charge_revenue=sum(
-                r.get("standing_charge_gbp", r.get("gas_standing_charge_gbp", 0.0))
-                for r in settled_this_term),
+            **_portfolio_margins.standing_charge_of(settled_this_term),
             volume_mwh=sum(r["consumption_kwh"] for r in settled_this_term) / 1000.0,
             held_on_a_save=_held_on_a_save, tariff_type=term_tariff_type,
         )

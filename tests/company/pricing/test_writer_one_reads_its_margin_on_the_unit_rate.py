@@ -12,8 +12,8 @@ from company.pricing.renewal_rate_chain import PortfolioMarginBook
 def _end(book, tariff_type, net_margin=10.0):
     book.term_ended(billing_account=tariff_type, commodity="electricity",
                     last_settled_day="2024-01-31", net_margin=net_margin, revenue=100.0,
-                    standing_charge_revenue=0.0, volume_mwh=1.0, held_on_a_save=False,
-                    tariff_type=tariff_type)
+                    standing_charge_revenue=0.0, standing_charge_cost=0.0, volume_mwh=1.0,
+                    held_on_a_save=False, tariff_type=tariff_type)
 
 
 def test_a_fixed_term_teaches_the_premium_and_a_default_term_does_not():

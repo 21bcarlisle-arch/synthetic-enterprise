@@ -141,3 +141,31 @@ def test_the_domestic_reader_serves_each_cap_period_its_own_cited_allowances():
     assert checked >= 2 * 30
     assert any(p["starts"][5:] == "07-01" for p in periods)
     assert any(p["starts"][5:] == "01-01" for p in periods)
+
+
+def test_writer_one_puts_back_the_fixed_share_its_standing_charge_recovers():
+    """B12 L2. Catches writer 1 taking the fixed network cost off twice once W3_3 charged it: as a
+    cost inside `net_margin_gbp`, and again inside the whole standing charge it removes. Real rows
+    from the hedged writer, through the company's own reader, against the world's per-day reader.
+    Also catches a row that stops itemising the fixed share, and a gas-shaped row (no electricity
+    standing charge) being charged a recovered cost it never bore."""
+    from company.interfaces.renewal_rate_chain import open_portfolio_margin_book
+
+    day = "2024-06-01"
+    rows = _hedged(day, 0.25)
+    book = open_portfolio_margin_book()
+    sc = book.standing_charge_of(rows)
+    fixed = get_electricity_network_fixed_per_day(day)
+    assert sc["standing_charge_cost"] == pytest.approx(fixed) and fixed > 0
+    assert sc["standing_charge_revenue"] == pytest.approx(get_electricity_standing_charge_per_day(day))
+    net, revenue = sum(r["net_margin_gbp"] for r in rows), sum(r["revenue_gbp"] for r in rows)
+    book.term_ended(billing_account="A", commodity="electricity", last_settled_day=day,
+                    net_margin=net, revenue=revenue, volume_mwh=0.25 * 48 / 1000,
+                    held_on_a_save=False, tariff_type="fixed", **sc)
+    book.as_of("2024-06-02")
+    unit_revenue = revenue - sc["standing_charge_revenue"]
+    assert book.rates("electricity") == pytest.approx(
+        [(net - sc["standing_charge_revenue"] + fixed) / unit_revenue])
+    gas_shaped = [{**r, "gas_standing_charge_gbp": r["standing_charge_gbp"], "standing_charge_gbp": 0.0}
+                  for r in rows]
+    assert book.standing_charge_of(gas_shaped)["standing_charge_cost"] == 0.0

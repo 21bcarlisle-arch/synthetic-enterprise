@@ -1753,6 +1753,9 @@
   loop_stage: build
   # L1 2026-10-20: all three clauses built, reached from run_phase2b and mutation-proven (ledger).
   # Clause 2 nets the standing charge as the cap constructs it (revenue == cost); L2 needs W3_3.
+  # 2026-11-21: W3_3 put the fixed network share in net_margin, so clause 2 took it off twice
+  # (~GBP 42/MWh on a 2024 term). Leg built: put back per row (save-offer page 8e). 6a588a832f ran
+  # without it; L2 is graded on the first book that carries it.
   # MINTED 2026-10-14 from SEAT_FINDING_RENEWALS_SIT_AT_THEIR_COST_FLOOR_BECAUSE_* (d30dafffe), fix 1:
   # 21/21 held electricity renewals sat at a floor that counts network cost the standing charge
   # already recovers, and writer 1 reads the standing charge as margin. K8 first: what the 8% target

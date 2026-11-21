@@ -649,6 +649,37 @@ costs us to serve the household. That finding shows the reverse: **the floor ove
 **Design choices this page makes:** none. Capping the tier cut to keep a save reserve is not
 proposed while the floor itself is wrong.
 
+### 8e. Once the world charges the fixed network share, what the standing charge recovers (2026-11-21)
+
+§8d's step 1 landed at L1 (20 Oct) on the cap's construction, where standing-charge revenue equals
+the cost it recovers, so writer 1 took the whole standing charge out of the margin. That held while
+the world charged no fixed network cost. W3_3 (c71d2521d, 18 Nov) changed it: a domestic electricity
+row's `net_margin_gbp` now carries the cap's nil-consumption network allowance per supply point per
+day as a cost.
+
+- **What the rules and the market settle.** Since the TCR (April 2023), DUoS residual and TNUoS
+  demand residual are fixed charges per MPAN per day, and a supplier is invoiced for them as such,
+  itemised apart from the unit charges (`docs/market_research/network_charges_uk_2016_2024.md`
+  §7d). So the fixed network cost of each supply point is something a real supplier sees on its
+  own DUoS invoice. **ESTABLISHED.**
+- **What our code did (discovery).** Writer 1 read `(net_margin - standing_charge_revenue) /
+  unit_revenue`. With the fixed network cost now inside `net_margin`, it took that cost off twice:
+  once as cost, and again as part of the standing charge removed. At real inputs the fixed network
+  share is 20% of the electricity standing charge before April 2023 and 51-61% after it (cap
+  periods 2022-11 to 2025-06). On a 2024 term of 3.1 MWh at GBP 198.62/MWh that is about GBP 42/MWh,
+  some 21 points of margin rate read as a loss on every post-TCR fixed term.
+- **What the build chooses.** The standing charge comes out net of the fixed network cost billed on
+  the same rows: `(net_margin - standing_charge_revenue + fixed_network_cost) / unit_revenue`. The
+  world itemises the fixed share on each settled row (`network_fixed_gbp`), as the DUoS invoice
+  does. Only rows that bill a standing charge count, since that is the cost the standing charge recovers.
+- **GAP: the rest of what the standing charge recovers.** The cap's standing charge also carries
+  nil-consumption operating costs, metering and policy shares. The company's term P&L carries none
+  of them, so they still come out with the revenue, as at L1. That is right while they stay outside
+  the term P&L, and must be revisited when any of them enters it.
+- **GAP: gas.** The world charges gas network cost per MWh only, with no fixed share. So the whole
+  gas standing charge still comes out, and the gas reading is unchanged. A gas fixed-network split
+  (the LDZ capacity and customer charges) would reopen this.
+
 ## 9. How often a retention offer keeps a household that would have left (2026-10-22)
 
 Written first under K8, before the retention guard learns to weigh its own save odds

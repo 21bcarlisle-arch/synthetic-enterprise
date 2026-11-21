@@ -158,6 +158,8 @@ def run_hedged_term(
       network_cost_gbp = resi: the cap's per-kWh network allowance on volume plus its
         nil-consumption share per supply point per day / 48 (W3_3); SME: DUoS + TNUoS on
         volume; I&C: DUoS only (Triad TNUoS tracked separately in triad.py)
+      network_fixed_gbp = the per-day part of network_cost_gbp (0.0 outside resi), itemised so the
+        company can net the standing charge against the cost it recovers (B12)
       net_margin_gbp = margin_gbp - policy_cost_gbp - network_cost_gbp - capital_cost_gbp
 
     settled_shape, when given, is the shape the home was SETTLED on (its registered profile) where
@@ -300,6 +302,7 @@ def run_hedged_term(
                 "mutualization_levy_gbp": mutualization_levy,
                 "policy_cost_gbp": policy_total,
                 "network_cost_gbp": network_cost,
+                "network_fixed_gbp": network_cost - network_unit,
                 "standing_charge_gbp": sc_per_period,
             })
             if settled_kwh_at is not None:
@@ -474,6 +477,7 @@ def run_deemed_term(
                 "mutualization_levy_gbp": mutualization_levy,
                 "policy_cost_gbp": policy_total,
                 "network_cost_gbp": network_cost,
+                "network_fixed_gbp": network_cost - network_unit,
                 "capital_cost_gbp": 0.0,  # no forward hedge commitment in deemed periods
                 "net_margin_gbp": compute_net_margin(
                     margin_gbp - policy_total - network_cost, 0.0
@@ -623,6 +627,7 @@ def run_flex_term(
                 "mutualization_levy_gbp": mutualization_levy,
                 "policy_cost_gbp": policy_total,
                 "network_cost_gbp": network_cost,
+                "network_fixed_gbp": network_cost - network_unit,
                 "capital_cost_gbp": 0.0,
                 "net_margin_gbp": compute_net_margin(
                     margin_gbp - policy_total - network_cost, 0.0

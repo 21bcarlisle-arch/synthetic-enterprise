@@ -18,12 +18,15 @@ from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 MWH, RATE, SC = 3.1, 198.62, 57.11 * 365 / 100
 
 
-def _book_after(unit_margin_per_mwh, *, sc=SC, mwh=MWH):
+def _book_after(unit_margin_per_mwh, *, sc=SC, mwh=MWH, fixed_network=0.0):
+    """`fixed_network` is the per-day network cost the term's P&L carries (W3_3) and the standing
+    charge recovers."""
     book = PortfolioMarginBook()
     unit_revenue = RATE * mwh
     book.term_ended(billing_account="A", commodity="electricity", last_settled_day="2024-09-30",
-                    net_margin=unit_margin_per_mwh * mwh + sc, revenue=unit_revenue + sc,
-                    standing_charge_revenue=sc, volume_mwh=mwh, held_on_a_save=False,
+                    net_margin=unit_margin_per_mwh * mwh + sc - fixed_network,
+                    revenue=unit_revenue + sc, standing_charge_revenue=sc,
+                    standing_charge_cost=fixed_network, volume_mwh=mwh, held_on_a_save=False,
                     tariff_type="fixed")
     book.as_of("2024-10-01")
     return book
@@ -45,6 +48,23 @@ def test_the_standing_charge_moves_neither_the_reading_nor_the_premium():
     small, large = _book_after(-5.0, sc=50.0), _book_after(-5.0, sc=400.0)
     assert small.rates("electricity") == pytest.approx(large.rates("electricity"))
     assert small.priced_for("electricity") == pytest.approx(large.priced_for("electricity"))
+
+
+def test_the_fixed_network_cost_the_standing_charge_recovers_is_not_read_as_a_unit_rate_loss():
+    # Defect: since W3_3 the term's P&L carries the fixed network share per supply point per day,
+    # and taking the WHOLE standing charge out took that cost off a second time. At the 2024-25
+    # cap's nil network allowance (GBP 0.3544/day) on this term that read a term which earned
+    # exactly its target as about 21 points short, and the premium surcharged it to the maximum.
+    fixed = 0.3544 * 365
+    without, carried = _book_after(TARGET_MARGIN_GBP_PER_MWH), _book_after(
+        TARGET_MARGIN_GBP_PER_MWH, fixed_network=fixed)
+    assert carried.rates("electricity") == pytest.approx(without.rates("electricity"))
+    pos = portfolio_position(carried.rates("electricity"), carried.priced_for("electricity"))
+    assert pos["portfolio_premium_fraction"] == pytest.approx(0.0, abs=1e-6)
+    # The control: the L1 reading, which took the whole standing charge out, reads it ~21 points low.
+    l1 = (TARGET_MARGIN_GBP_PER_MWH * MWH - fixed) / (RATE * MWH)
+    assert carried.rates("electricity")[0] - l1 == pytest.approx(fixed / (RATE * MWH))
+    assert fixed / (RATE * MWH) > 0.2
 
 
 def test_a_unit_rate_that_lost_money_is_surcharged_and_one_that_beat_its_price_is_cut():

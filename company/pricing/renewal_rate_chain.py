@@ -939,9 +939,26 @@ class PortfolioMarginBook:
         """Record that a save kept this account: none of its terms teaches the premium again."""
         self._held_on_a_save.add(billing_account)
 
+    @staticmethod
+    def standing_charge_of(rows: list[dict]) -> dict[str, float]:
+        """A term's standing-charge revenue and the cost it recovers that the term's P&L carries,
+        off its own settled rows: `term_ended`'s two standing-charge arguments, from one place.
+
+        The cost is the fixed network share (the DUoS invoice's per-MPAN-day line,
+        `network_fixed_gbp`) on the rows that billed an electricity standing charge. A gas row has
+        no fixed network share in the world, so its standing charge recovers nothing the P&L carries.
+        """
+        return {
+            "standing_charge_revenue": sum(
+                r.get("standing_charge_gbp", r.get("gas_standing_charge_gbp", 0.0)) for r in rows),
+            "standing_charge_cost": sum(
+                r["network_fixed_gbp"] for r in rows if r.get("standing_charge_gbp")),
+        }
+
     def term_ended(self, *, billing_account: str, commodity: str, last_settled_day: str,
                    net_margin: float, revenue: float, standing_charge_revenue: float,
-                   volume_mwh: float, held_on_a_save: bool, tariff_type: str) -> None:
+                   standing_charge_cost: float, volume_mwh: float, held_on_a_save: bool,
+                   tariff_type: str) -> None:
         """Take one term's outcome off the company's own P&L, and admit it unless a save held it
         or its unit rate earned nothing. `held_on_a_save` is this term's own flag; the
         account-level exclusion is the book's.
@@ -956,6 +973,14 @@ class PortfolioMarginBook:
         comes out of both sides, and the rate is set beside what the term's own strike priced for
         on the same basis: `TARGET_MARGIN_GBP_PER_MWH` on each MWh, over the unit-rate revenue.
 
+        NET OF THE COST IT RECOVERS (B12 L2, 2026-11-21). Since W3_3 (c71d2521d) the term's P&L
+        DOES carry the fixed network share, charged per supply point per day, so taking the whole
+        standing charge out took that cost off twice: about GBP 42/MWh, 21 points of margin rate,
+        on a 2024 term. `standing_charge_cost` is the fixed network cost billed on the rows that
+        billed the standing charge (the DUoS invoice's per-MPAN-day line); it is put back. What
+        the standing charge recovers that the P&L does not carry (operating costs, metering) still
+        comes out with the revenue. Save-offer knowledge page section 8e.
+
         FIXED TERMS ONLY (B12, 2026-10-15). The premium moves a fixed strike, and its target is what
         a fixed strike priced for, but a default term's margin is the cap's headroom over cost, not
         anything a strike priced. Default terms outnumbered fixed ones about 10 to 1 in the lookback,
@@ -966,7 +991,7 @@ class PortfolioMarginBook:
         if (tariff_type in FIXED_PREMIUM_BOOK_TARIFF_TYPES and unit_revenue > 0
                 and not held_on_a_save and billing_account not in self._held_on_a_save):
             self.settled(last_settled_day, commodity,
-                         (net_margin - standing_charge_revenue) / unit_revenue,
+                         (net_margin - standing_charge_revenue + standing_charge_cost) / unit_revenue,
                          TARGET_MARGIN_GBP_PER_MWH * volume_mwh / unit_revenue)
 
     def settled(self, last_settled_day: str, commodity: str, margin_rate: float,
