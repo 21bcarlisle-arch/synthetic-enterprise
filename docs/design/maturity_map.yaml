@@ -1763,6 +1763,7 @@
   # then the save is re-graded. Save-offer page section 8. The world half is W3_3.
   dial_inherited: 90
   provenance: director_ruling
+  block_reason: "PARKED 2026-11-21: no build left. The leg is a6de6f977c; L2 is graded on the first published book at or after it (prediction in that commit). Unpark then."
   depends_on: [W3_3_the_network_charge_splits_per_unit_and_per_day]  # 2026-11-08: the L2 note above, made drawable
   couples_with: [B8_discovered_price_sensitivity_holdout, W3_3_the_network_charge_splits_per_unit_and_per_day]
   file_scope: ['company/pricing/renewal_rate_chain.py',
