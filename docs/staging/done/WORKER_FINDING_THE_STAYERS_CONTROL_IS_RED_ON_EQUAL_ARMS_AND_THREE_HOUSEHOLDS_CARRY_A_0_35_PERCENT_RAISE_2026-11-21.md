@@ -93,3 +93,26 @@ both arms. Then the input that differs is the channel. That takes one 32-minute 
 and the company forward is identical (about 0.6). If a world-published quantity differs between arms, the
 save is leaking into the world's market state, as the rival ledger did on 14 Oct. That would be a fidelity
 fix in `simulation/`, not a company pricing change.
+
+## Resolution (2026-11-21, delivery seat)
+
+**Closed by `dd3f004de`, promoted to origin in `ac5bf2b01`.** The channel is B12's bad-debt allowance
+in the strike. The belief is money-weighted per arrears cell, so a saved account's lower bill with an
+unchanged loss raised the cell's share. In the 7-year `worsening` cell, ACC-SYN-2016-067 billed
+1173.40 at its save against 1288.38 at its renewal, which moved the belief 0.162094 → 0.166133
+(×1.00348, the whole +0.35%). The 114 whisper rows are the same channel through the large cells;
+all 31 accounts whose readings differ are saved. The pre-registration and its grades are in
+`/var/tmp/se-seat-stayers-belief/PREDICTION.txt`. Q1, Q2 and Q3 were all TRUE.
+
+Fix: `default_belief(held_on_a_save=)` does not read a saved account's readings resolved on or after
+its first saved term starts. The run records the company's own saves where they are billed, through
+`LivePaymentTriad.account_held_on_a_save` → `PaymentObservationConsumer.account_held_on_a_save`. The
+comparator's exact equality is unchanged.
+
+**Verified on the landed bytes:** `tests/simulation/test_a_save_is_not_paid_for_by_the_stayers.py`
+and the default-belief tests ran on exactly this tree under launch_long_job
+(`stayers-control-rebuilt-belief-fix`): 24 passed, rc=0, 32 min (`/var/tmp/se-stayers-rebuild-ctl.done`).
+The new unit control is mutation-proven both ways.
+
+The first build's working copies were lost from the shared tree after two refused landings. This
+landing is a rebuild to the design recorded in its commit message.
