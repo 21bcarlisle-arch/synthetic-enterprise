@@ -8,6 +8,47 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-21 — orientation: Six hours, 16 commits, 13 carrying work
+
+<!-- head: 02f28e59a2e1 -->
+
+*Written by the orientation seat from its own record (2026-11-21T21:22:43.717192+00:00; 16 commits, 9 substantive, since 2026-11-21T15:23:02.532183+00:00).*
+
+Commit split (product code by path): 1 supplier, 2 world, 2 both, 11 other.
+
+## What the stretch meant
+
+Six hours, 16 commits, 13 carrying work. The split is supplier 1, world 2, both 2, other 11, and no level moved. Against the thesis the evidence did move, in-sample. 9e57aee83 graded the second 0.12 replication pair: cut minus A is +GBP 1.27, the two-pair mean +GBP 1.18 (+0.33 to +2.30), and value minus flat book +GBP 5.23 (+0.09 to +10.33). It is still a redraw of the fitted households with no flat-rules twin. So the honest answer to "does the per-customer supplier beat the flat one" is still "not shown out of sample", and the s.12g fresh-population test with the twin remains the only test that can say it. Last stretch's focus did bite. The stayers fix landed (dd3f004de) and its control is green on origin (40cbb7432), the replication pair was graded, and the shared tree rejoined origin (77467e08e). The stretch's real finding is that the supplier is starved of evidence, not of code. sim-runner has built no book since 20 Nov 15:39. Every queued supplier grade waits on it (D48, KNIFE3, dual-fuel, B12, B8), and s.12g's 34-hour run is queued behind it. The two grades drawn this stretch (B8 holdout, KNIFE3 I1-I5) found no book and landed nothing. The executor's turn on the book did find, and fix (25f0ea40b), that the book would have dropped three of the records those grades read. sim-runner's journal from 20:45 to 21:25Z names why it is still not built. Landings keep overtaking it. The head-green census holds 11,981 MB. And since 20:45 two company/billing files carry another lane's uncommitted C32 hunks on the shared tree, so every cycle fails code admission. Separately, a8fe215bc built the switching GSOP, and 5ce811272 then found that won switches are never put on supply: on the 20 Nov run 16 were won and 0 billed. So acquisition value has been read off customers who never reach the book. That is now mid-landing in the executor. Focus is the book first, because one artefact unblocks five supplier grades and the thesis test.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 15:23 21 Nov -- unchanged; the switch still waits on a clean-book grade (focus item 3's book). 21:22 21 Nov -- unchanged. No queued item reads that grade, so focus item 4 now pre-registers it against the coming book.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 15:23 21 Nov -- unchanged; the 23 Nov recheck stands. 21:22 21 Nov -- unchanged; the 23 Nov recheck stands.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 15:23 21 Nov -- unchanged. 21:22 21 Nov -- unchanged.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. [Earlier tails are in decisions.jsonl.] 15:23 21 Nov -- still open; nothing graded. 21:22 21 Nov -- still open. 9e57aee83 graded pair 55555/66666: cut minus A +GBP 1.27 (+0.26 to +2.48), two-pair mean +GBP 1.18 (+0.33 to +2.30), so the refutation line is not met, and value minus flat book +GBP 5.23 (+0.09 to +10.33). But that is a redraw of the fitted households with no twin, so this row cannot close on it. s.12g, the fresh population with the twin, is the only test that can close it, and its watcher waits behind focus item 1's book.
+- corrected: THE MACHINE'S, NEW. The stayers fix was finished and green (8 of 8 controls), and both its landings died on avoidable argument errors. stayers-belief-land passed surgical_land a -F it does not accept. stayers-belief-land2 named a docs/staging/done/ copy of the finding that never existed. So a red director-condition control stayed red at origin with its answer on disk, and the previous record told the next tick 'do not restart it' without saying the run had ended. A landing script is not dry-run against surgical_land's argument parser and the tree before launch.
+- NOT corrected: THE MACHINE'S, NEW. The book that every queued supplier grade reads has not been built for 30 hours (since 20 Nov 15:39). Each sim-runner cycle deferred: landings went first, the census held 11,981 MB, and from 20:45Z another lane's in-place C32 edits to two company/billing files on the shared tree failed code admission. Meanwhile two grades were drawn against a book that did not exist and landed nothing.
+- corrected: THE COMPANY'S, NEW. extract_report_data, the whitelist the published book is reduced through, named none of the KNIFE3 debt-recovery records, B8's retention_holdout_by_desk_year or the dual household's riding_leg_answers, so the book would have dropped what 3 of 5 queued grades read. Fixed for these three in 25f0ea40b; focus item 3 closes the class.
+- NOT corrected: THE WORLD'S, NEW. A won switch is never put on supply: on the 20 Nov run 16 fresh acquisitions were won and 0 billed, because ACQUIRED_CUSTOMERS is not on the settlement roster (5ce811272). Two notes had said the world "keeps the household on supply".
+
+## Chosen against
+
+- Launching s.12g's fresh-population twin run by hand, ahead of the book.
+- Building the owed book by hand in a private worktree instead of fixing sim-runner's admission.
+- Re-drawing delete-the-dial-weighted-map-draw-at-cutover (drawn 14:33Z, missed).
+- Reaping /var/tmp/value-test-cut012 now that its lock condition (55555_66666 exists) is met, and the nine October salvage trees.
+- World work on N17, or on the deemed and flex standing charge.
+- Wiring simulation/contact_centre.py's phone queue into the standing run.
+
+## Focus for the next stretch
+
+- `one-book-carries-the-blend-the-debt-records-the-dual-answer-and-b12`
+- `a-won-switch-is-put-on-supply-then-its-switching-gsop-is-posted`
+- `a-grading-record-the-run-builds-cannot-be-dropped-silently`
+- `the-ending-term-renewal-belief-is-graded-on-the-coming-book`
+
+---
+
 ## 2026-11-21 — orientation: Three hours: 9 commits, 7 carrying work, and the split is again almost all 'other' (knowledge pages, the one-work-system cut-over, a promotion-route fix, the bill-shoc
 
 <!-- head: fbd29e45fb1f -->
