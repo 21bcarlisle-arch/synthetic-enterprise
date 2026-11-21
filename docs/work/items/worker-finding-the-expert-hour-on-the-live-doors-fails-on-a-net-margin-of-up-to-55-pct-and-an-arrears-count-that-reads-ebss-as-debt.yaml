@@ -5,10 +5,10 @@ lane: building
 kind: harness
 affects: null
 class: standard
-severity: LATENT
+severity: BLOCKING
 source: finding
 evidence:
-- docs/staging/WORKER_FINDING_THE_EXPERT_HOUR_ON_THE_LIVE_DOORS_FAILS_ON_A_NET_MARGIN_OF_UP_TO_55_PCT_AND_AN_ARREARS_COUNT_THAT_READS_EBSS_AS_DEBT_2026-11-11.md
+- docs/staging/done/WORKER_FINDING_THE_EXPERT_HOUR_ON_THE_LIVE_DOORS_FAILS_ON_A_NET_MARGIN_OF_UP_TO_55_PCT_AND_AN_ARREARS_COUNT_THAT_READS_EBSS_AS_DEBT_2026-11-11.md
 knowledge_gap: null
 insight: null
 decider: machine
@@ -16,12 +16,18 @@ director_rank: null
 atom: SITE1_expert_doors
 blocked_by: []
 occurrences: 1
-state: open
+state: done
 opened_at: '2026-11-11T00:00:00+00:00'
 chosen_at: null
-closed_at: null
+closed_at: '2026-11-21T21:03:14+00:00'
 chosen_by: null
-done_evidence: null
+done_evidence: '601929ce0b: every published net_margin_pct is null beside net_margin_pct_status
+  (definition + reason); arrears on Ofgem''s 91-day owed_past_due clock. The committed
+  feeds at origin (0c27a40ce6, 20 Nov) read margin withheld and 59 of 1,306 in arrears;
+  the control passes 3/3. The live site is now behind the invited-readers gate, so
+  it was not re-read. BLOCKER-2 (book size), BLOCKER-3 (publish status on one door
+  only) and the MAJOR/MINOR items stay open on the SITE1_expert_doors store. The fresh
+  blind Hour is SITE1''s own done-means, so the level stays at 2.'
 parked: null
 obsolete: null
 finding_lane: H_harness
