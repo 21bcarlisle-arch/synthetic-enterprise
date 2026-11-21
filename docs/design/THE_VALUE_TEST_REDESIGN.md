@@ -2124,6 +2124,48 @@ Before it launches, it re-checks the pin and that the job is not already running
 `/var/tmp/vtc-rep-driver/grade_rep.out`. The deadline is 27 Nov. The prediction above is unchanged.
 **Reverse:** `systemctl --user stop vtc-cut012-rep-watch`.
 
+**Pair 33333/44444 graded, beside the prediction above, which is unrevised (21 Nov).** The pair finished at 03:19Z.
+Both seeds' sidecars carry `tree_patch.diff_sha256` = `2b312c4d…114d`, which is the pin. They carry world
+digest `cdba75ebb9197b33`, the same as A's `vta-out-flag1` files at this pair. The method is `grade_rep.py`,
+unchanged, called on this pair alone (`/var/tmp/vtc-rep-grade/grade_33333_44444.out`). The household-years
+are A's control arm, 5,697 and 5,639.
+
+| Pre-registered (20 Nov, before the run) | Predicted | Read, pair 33333/44444 | Graded |
+|---|---|---|---|
+| Value arm, cut minus A, £ per household-year | **+£0.60 (−£0.60 to +£1.80)** | **+£1.10 (+£0.37 to +£2.14)**; seeds +£0.73 and +£1.46; 77 households moved | **HELD** (in range) |
+| Flat book (control arm), cut minus A | moves by less than £0.10 either way | **−£0.008 (−£0.021 to −£0.001)**; 6 households moved | **HELD** |
+
+`Graded: value-test held=2 missed=0`. The two-pair refutation rule (mean below zero) waits for 55555/66666,
+which is still running.
+
+**The advantage over the flat book, on this pair.** The member file carries the value and control arms on
+the same households in each run, so the advantage can be read. Value arm minus the flat book, per household-year,
+paired by household, 2,000 resamples (`level_ci.out`):
+- **with the cut: +£7.27 (+£0.95 to +£13.33)**; seeds +£6.85 and +£7.68;
+- A, at this pair: +£6.16 (−£0.25 to +£12.14);
+- **the change it makes (cut minus A): +£1.10 (+£0.37 to +£2.10)**. Almost all of it is the value arm.
+
+As in §10b, that level is supplier net margin, not household value. It is **not** the open row: that row is
+the advantage against the twin, and there is no twin at these seeds. So this pair replicates the gain against
+A. It cannot say whether the cut beats the twin.
+
+**Where it sits.** This is the same check as the 12:08Z split, but only at the level of movers. 99 (seed,
+household) units moved on the value arm. Of those, 20 went up and 79 went down. The 11 units over £50 net
+£12,417, all of the £12,407 total. The top two carry 51%, and the one loser over £1 is −£66. So the gain again sits on a few large
+movers going up, not on redraws of either sign. I have not read their departure dates, so "A lost them and the
+cut kept them" is not shown for this pair.
+
+**The caution this read raises, and the claim it corrects.** This pair is out of sample on the *draws*, not on
+the *households*. The population ids recur across seeds. Five of the ten up-movers are households among the
+in-sample nine that the 0.12 was fitted to reach: PROS-2017-0371, SYN-2016-458, PROS-2017-0318, SYN-2016-581
+and PROS-2018-0003. Those five carry £5,701 of the £12,407. So the drawn direction's phrase, "households its cut
+was not fitted to", does not hold here. This entry's own word "replication" means a new churn-roll draw on the
+same book. The other five, SYN-2016-519 (+£3,679), PROS-2020-0186, OCC-25ff8966357a, SYN-2016-498 and
+SYN-2016-350, are not in that nine. **The test this pair cannot run is the cut on a population it was not
+fitted on.**
+
+**Reverse:** nothing to reverse. This is a reading.
+
 #### Where the £1.00 sits: pre-registered before the split is read (20 Nov 12:07Z)
 
 **The question.** The value arm's cut minus A is +£1.00, and the added offers that changed a departure
