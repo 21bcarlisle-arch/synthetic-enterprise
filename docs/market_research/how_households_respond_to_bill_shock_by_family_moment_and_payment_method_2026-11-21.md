@@ -313,6 +313,10 @@ it should not code price-shock accounts until the forum/review sample has exerci
   stories naming an energy price rise, per week, 2016–2025, landed as documentation and a dated
   series, never a runtime input the company reads (W6). Until then the world's announcement moment
   carries no media term, and T2b is graded on the effective month only.
+  **Filled for announcement days, 21 Nov 2026:**
+  `media_coverage_of_energy_price_announcements_gdelt_2016_2025.md` counts national news
+  coverage of every dated announcement over GDELT's daily files. Its 28-day baselines and the
+  full weekly series are still being pulled; that page carries the status.
 - **G2 — mid-term leaving by fixed customers.** No published rate. Routes: Ofgem CIM/CES microdata
   (a question on switching before the end of a fix, if one was asked); a practitioner figure from a
   retention desk. Carried as `None`; T4 is ordinal until then.
@@ -322,7 +326,10 @@ it should not code price-shock accounts until the forum/review sample has exerci
   record leaving, for the path only.
 - **G4 — the share who do not notice a DD change, by payment method.** None published.
 - **G5 — the effective dates of the 2016–2018 supplier price rises**, beyond British Gas Sep 2017,
-  to date T2b's pre-cap months by moment rather than by month.
+  to date T2b's pre-cap months by moment rather than by month. **Filled, 21 Nov 2026**, except
+  four announcement days and any second 2018 rise by npower or SSE:
+  `energy_price_announcements_gb_2016_2025.json`, read in §3 of the media-coverage page. British
+  Gas's 2018 rise took effect 29 May (announced 10 Apr), not in Jun–Jul.
 
 ## 7. What this changes
 
