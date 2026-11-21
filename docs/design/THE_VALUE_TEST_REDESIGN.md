@@ -2264,3 +2264,110 @@ other than an added offer. It is worth £0.001 per household-year, and I have no
 replication shows the class growing, it is the first thing to read.
 
 **Reverse:** nothing to reverse. This is a reading.
+
+### 12g. The 0.12 cut on a book it was not fitted on, against A and the twin: pre-registered 21 Nov 09:38Z
+
+**Filed before `vtc-out-cut012/control_55555_66666.json` exists.** At 09:37Z that directory holds pairs
+11111/22222 and 33333/44444 only, and the replication child (`longjob-value-test-cut012-rep`) is on
+seed 55555. So pair 2's read cannot shape anything below.
+
+**Why this test.** The replication draws new churn dice on the same households. Five of its ten
+up-movers on 33333/44444 are households the 0.12 was fitted to reach (§12f, the 21 Nov caution). It
+also has no twin. So no grade of it can show inference beating flat rules. This test changes the
+households and runs the twin.
+
+**Does a new book seed draw new households? Established from the code, then measured.** The answer is
+"new households under partly recycled names":
+- `live_population(base_seed)` builds the book from `founder_book(seed)`, then the drawn trickle and the
+  campaign's wins, all functions of the seed. `run_phase2b` binds it at import from `SE_POPULATION_SEED`
+  (`simulation/run_phase2b.py:352` at `870201d1e7`, `:363` on origin).
+- Ids are slots, not households: `SYN-{year}-{i:03d}` and `PROS-{year}-{i:04d}`
+  (`simulation/population_draw.py:807`). The same id can name a different home in another book.
+- Measured in the pinned tree (`/var/tmp/vtn-driver/probe_ids2.py`, output `ids2_*.json` and
+  `id_overlap.out`). Book 61118 has 1,027 accounts (698 founders); the default book has 1,049.
+  - 485 ids recur. Of those, only the four hand-authored gas legs, C1g to C4g, match on every field
+    including the world's elasticity. The rest differ in acquisition date (464), location (472),
+    elasticity (313) and EAC (304).
+  - Of §12c's in-sample nine, **2 recur by id in 61118**: SYN-2016-557 and SYN-2016-498. Both are
+    re-drawn. SYN-2016-557's acquisition moves 2016-12-02 → 2016-12-23, its EAC 3,731 → 2,387 kWh, and
+    its elasticity 1.02 → 0.61. SYN-2016-498 moves 2016-10-31 → 2016-11-17, 2,587 → 2,307 kWh, and
+    0.66 → 0.34.
+  - Book 61117 would have recurred 4 of the nine, which is why it is not chosen.
+- **The churn dice.** `churn_roll_for_renewal` is keyed on `(account, term_start)` and not on the book
+  (`simulation/customer_events.py:415`). 21 recurring ids in 61118 keep their acquisition date. Under an
+  old churn floor seed they would take the in-sample run's dice. The floor pair here, **13131/14141**,
+  is used by no earlier run, so no account carries an earlier run's dice.
+
+**The run.**
+- **Book:** 61118. It is EP17-listed (`varied_population_draw_activation.json`, under the 26 Oct steer)
+  and has no member on disk under any arm. Its first listed use, B11's M7, is a different model's
+  held-back grade on a 40-founder book, which this run does not touch.
+- **Tree:** `/var/tmp/value-test-cut012`, which is `870201d1e7` plus the cut012 port. The diff equals the
+  pin `2b312c4d…114d` (re-checked after the probes, before filing). That is one tree and one commit for all
+  three configurations (rule 1).
+- **Configurations,** in run order:
+  1. **cut:** `renewal_belief_by_ending_term` and `retention_cut_at_the_flips` on.
+  2. **twin:** both off. This is the flat-rules twin, vta's flag 0.
+  3. **A:** belief on, cut off.
+
+  Each configuration is one child process, run over the churn pair through `noise_floor`, which refuses
+  fewer than a pair. Each produces the value, control (flat book) and level arms on the same households.
+- **Driver:** `/var/tmp/vtn-driver/driver.py` (sha256 `a4dc95e6ff75bcce…`). It refuses unless the book
+  drawn at import is 61118. It stamps `founder_ids` and the book's ids into every sidecar.
+- **Dry check (before filing, cut and twin):** the import reads seed 61118, 1,027 accounts and 698 founders,
+  with the switches as listed.
+
+**The measure.** It is the open row of §10b and §12f, re-read on new households:
+- **The quantity:** per household, the cut run's (value arm minus flat book) minus the twin run's
+  (value arm minus flat book). Summed per seed, divided by the twin's control-arm household-years, and
+  averaged over the two seeds.
+- **The interval:** 95% from 2,000 household resamples (resampling seed 20261117). This is
+  `grade_paired_cut012.py`'s method.
+- **The grader:** `/var/tmp/vtn-driver/grade_new_book.py` (sha256 `3cb5f92d5f10b00d…`), written now.
+- **Its validation:** fed the in-sample 11111/22222 files under relabelled seeds, it reproduces §12f to
+  the penny: −£0.331 cut minus twin, +£0.997 cut minus A, and −£1.345 A minus twin (§10b's −£1.35).
+  Output: `grade_fixture_in_sample.out`.
+- **Also printed:** the advantage split by founders against campaign and trickle wins (the director's
+  10 Oct condition 1), and the movers' concentration.
+
+**Predictions (£ per household-year), filed before any configuration has run on 61118:**
+
+| | Measure | Predicted | Rule |
+|---|---|---|---|
+| **P1** | Advantage over the flat book, cut run minus twin run | **−£0.40 (−£2.00 to +£1.20)** | **Refuted below zero. Held only above zero with an interval that excludes zero. Otherwise "cannot tell".** |
+| P2 | Advantage, A run minus twin run | −£1.10 (−£2.80 to +£0.60) | In range or not |
+| P3 | Value arm, cut run minus A run | +£0.70 (−£0.30 to +£1.70) | In range or not |
+| P3b | Flat book, cut run minus A run | moves by less than £0.10 either way | In range or not |
+| P4 | Where P3's gain sits | 15 or fewer (seed, household) units carry 80% or more of it, all up-movers | Holds or not |
+
+The P1 point sits below the refutation line on purpose. On the in-sample book, the twin led by £0.33
+even with a cut fitted to those households. Out of sample, the cut's gain should shrink, while A's loss
+is a property of A's belief and not of the households. The founder/win split carries no prediction: it
+is published because the condition asks for it, not because it tests anything.
+
+**Memory and time.** Each child holds the cut012 driver's shape: 11.8 GB peak declared, against a
+24,034 MB guest. The children run one after another, so the peak is one child. The in-sample pair took
+40,602 s, so three pairs take about **34 h**. The job queues behind the replication (pair 55555/66666,
+due about 14:40Z today) and behind any owed book.
+
+**Armed (09:38Z).** The command:
+
+    systemd-run --user --unit=vtc-cut012-new-book-watch --property=WorkingDirectory=/home/rich/synthetic-enterprise \
+      --property=StandardOutput=append:/var/tmp/box-plan/vtc-cut012-new-book-watch.log \
+      --property=StandardError=append:/var/tmp/box-plan/vtc-cut012-new-book-watch.log \
+      /bin/bash /var/tmp/box-plan/arm_cut012_new_book.sh
+
+`arm_cut012_new_book.sh` (sha256 `4431b44c7a77c80b…`) takes four steps in order:
+1. It waits while `longjob-value-test-cut012-rep` is active. When that ends, it gives up, naming the
+   reason, if `control_55555_66666.json` is absent: a failed replication is a reading to make before
+   this spends 34 h.
+2. It waits for `box_free.py`, which also waits out the owed book.
+3. It refuses if the job is already running or already on disk.
+4. It checks the pin, with the same mixed-reset repair as `arm_cut012_rep.sh`.
+
+Then it runs `launch_cut012_new_book.sh` (sha256 `dfcb62dd070d6799…`) once. That goes through
+`launch_long_job` as `longjob-value-test-cut012-new-book` (11,800 MB, 2,100 min), and the grader is
+chained after it into `/var/tmp/vtn-driver/grade_new_book.out`. The watcher's deadline is 5 Dec.
+
+**Reverse:** `systemctl --user stop vtc-cut012-new-book-watch`. If the job has started, also
+`systemctl --user stop longjob-value-test-cut012-new-book`.
