@@ -195,3 +195,39 @@ def test_a_refused_fast_forward_puts_the_carried_edit_back_exactly(world):
     assert _git(shared, "rev-parse", "HEAD") == head
     assert (shared / _LIVE).read_text() == mine
     assert "put back as they were" in out["reason"], out["reason"]
+
+
+_PY = "background/a_module_both_sides_edit.py"
+_PY_BASE = ("class Triad:\n    def first(self):\n        return 1\n"
+            + "".join("\n    def filler_{0}(self):\n        return {0}\n".format(i) for i in range(8))
+            + "\n    def last(self):\n        return 2\n")
+
+
+def _py_after(name: str, method: str) -> str:
+    anchor = "    def {}(self):\n        return {}\n".format(name, 1 if name == "first" else 2)
+    return _PY_BASE.replace(anchor, anchor + "\n" + method)
+
+
+@pytest.mark.parametrize("lane_name, carried", [("record", False), ("a_different_name", True)])
+def test_a_clean_merge_that_defines_a_method_twice_is_not_carried(world, lane_name, carried):
+    """2026-11-21: a lane's draft and origin each added `debt_recovery_record` to the same class at
+    different lines; `git merge-file` exited 0 with both. MUTATION: drop the `.py` leg in
+    `_carry_plan` -> the `record` case advances with two `def record` and reds. The
+    `a_different_name` case is the partition control: a .py edit that doubles nothing still carries."""
+    seed, shared = world
+    _commit(seed, {_PY: _PY_BASE}, "base module")
+    _git(shared, "pull", "-q", "--ff-only", "origin", "main")
+    origin_py = _py_after("first", "    def record(self, end, offers=()):\n        return offers\n")
+    _commit(seed, {_TWIN: "landed\n", _PY: origin_py}, "origin adds record")
+    _put(shared, _TWIN, "landed\n")
+    mine = _py_after("last", "    def {}(self, end):\n        return end\n".format(lane_name))
+    _put(shared, _PY, mine)
+
+    out = _advance(shared)
+
+    assert out["advanced"] is carried, out["reason"]
+    if carried:
+        assert (shared / _PY).read_text().count("def ") == _PY_BASE.count("def ") + 2
+    else:
+        assert "Triad.record" in out["reason"] and "defined twice" in out["reason"], out["reason"]
+        assert (shared / _PY).read_text() == mine, "a doubled definition is never written over"

@@ -75,6 +75,7 @@ THREE RULES CAME OUT OF IT, and each is a branch below rather than a comment:
 """
 from __future__ import annotations
 
+import ast
 import os
 import re
 import subprocess
@@ -1578,6 +1579,43 @@ def _merge_onto_origin(project: Path, path: str,
     return res.returncode, res.stdout
 
 
+def _doubled_definitions(src: bytes | None) -> set[str] | None:
+    """Every `def`/`class` name bound twice in one module or class body; `None` if it won't parse."""
+    try:
+        tree = ast.parse(src or b"")
+    except (SyntaxError, ValueError):
+        return None
+    out: set[str] = set()
+
+    def walk(body, scope: str) -> None:
+        seen: set[str] = set()
+        for node in body:
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                if node.name in seen:
+                    out.add(scope + node.name)
+                seen.add(node.name)
+                if isinstance(node, ast.ClassDef):
+                    walk(node.body, scope + node.name + ".")
+    walk(tree.body, "")
+    return out
+
+
+def _definitions_the_merge_doubles(local: bytes, theirs: bytes | None, merged: bytes) -> set[str]:
+    """Names the clean text merge defines twice that neither side did (empty if a side won't parse).
+
+    Measured 2026-11-21: the shared tree's KNIFE3 draft and origin's 1624411d26 each added
+    `debt_recovery_record` to `LivePaymentTriad` and `PaymentObservationConsumer` at different
+    lines. `git merge-file` exited 0 with BOTH methods in each class, and the second silently wins --
+    the draft's lacked `offers=`, so origin's caller would have published `unavailable_because`."""
+    mine, origin = _doubled_definitions(local), _doubled_definitions(theirs)
+    if mine is None or origin is None:
+        return set()
+    after = _doubled_definitions(merged)
+    if after is None:
+        return {"<the merged file no longer parses>"}
+    return after - mine - origin
+
+
 def _carry_plan(project: Path, path: str) -> tuple[dict | None, str]:
     """How a held tracked edit crosses the fast-forward, or `(None, why it cannot)`.
 
@@ -1623,6 +1661,14 @@ def _carry_plan(project: Path, path: str) -> tuple[dict | None, str]:
     if merged[0]:
         return None, "{} conflict(s) merging this copy's change onto origin's, so it is live work " \
                      "and holds the advance untouched".format(merged[0])
+    if path.endswith(".py"):
+        doubled = _definitions_the_merge_doubles(full.read_bytes(),
+                                                 _origin_text(project, target), merged[1])
+        if doubled:
+            return None, "its change merges as text but leaves {} defined twice in one scope, " \
+                         "which neither this copy nor origin's does -- the lane and origin wrote " \
+                         "the same thing twice, and Python would silently keep one".format(
+                             ", ".join(sorted(doubled)[:4]))
     return ({"deleted": False, "staged": staged == here != in_head,
              "local": full.read_bytes(), "merged": merged[1], "target": target},
             "its change from HEAD merges cleanly onto origin's copy{} and is carried across".format(
