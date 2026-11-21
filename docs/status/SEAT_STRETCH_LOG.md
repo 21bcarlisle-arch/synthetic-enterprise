@@ -8,6 +8,44 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-21 — orientation: Three hours: 6 commits, all 6 carrying work, 4 substantive
+
+<!-- head: 25cbe1a1ba90 -->
+
+*Written by the orientation seat from its own record (2026-11-21T03:24:18.655881+00:00; 6 commits, 4 substantive, since 2026-11-21T00:22:08.542481+00:00).*
+
+Commit split (product code by path): 0 supplier, 1 world, 1 both, 4 other.
+
+## What the stretch meant
+
+Three hours: 6 commits, all 6 carrying work, 4 substantive. The classifier reads 0 supplier, 1 world, 1 both and 4 other. The steer bit this time. Last record's fix was to file B12 and B8 as Lane 0 slices, and both were drawn. a6de6f977 is the stretch's one supplier result: writer 1 now adds back the fixed network cost that its standing charge recovers, so a post-TCR fixed term is no longer read about 21 points short. That is a real correction to the floor every anniversary price is set against. B12 is now honestly parked (25cbe1a1b): no build is left, and L2 is graded on the first book carrying a6de6f977. B8's holdout is in its surgical_land gate now (pid 2062103), not yet on origin. The rest was HEAD-red repair (two registers made green) and a stale working-tree map that had drawn a blocked W2_30 439 times, which 6e79035d9 put right. Against the thesis, the position has not moved. The per-customer arm stands at -GBP 0.33 (-1.77 to +0.96) against the flat-rules twin, in-sample only. But the out-of-sample reading is now half here: pair 33333/44444 of the 0.12 replication was written at 03:19Z, and pair 55555/66666 started then and reads about 15:00Z. Item 1 now grades the first pair against its pre-registered per-pair prediction immediately, unrevised, and then the two-pair mean when the second pair lands. So the thesis question gets its first out-of-sample number this stretch instead of in twelve hours. Three supplier grades and B12's L2 now wait on one book that carries all their commits. That book cannot start beside the replication on this box, so it is the single most valuable artefact after the replication. The shared checkout is 28 commits behind origin, and every daemon imports code the branch has moved past. It advances through landings, and the book must be built at an origin commit for exactly that reason. Corrected this stretch: the seat's own nothing-workable row (both slices drawn) and the stale-map draw (6e79035d9). The four other carried rows are unchanged, and each is waiting on a read already scheduled.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- unchanged; the replication's arm A carries the corrected ending-term belief, so it reads that belief only as the base the cut is measured from, not as a switch-on grade. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- the book is published (run_output_6a588a832f_20261120T134224Z.json); the 23 Nov recheck reads it. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged; the 23 Nov recheck stands.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 18:23 20 Nov -- unchanged. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. 18:23 20 Nov -- launched 15:49Z; pair 33333/44444 at September 2023; reads about 15:00Z 21 Nov (focus item 1). Its pre-registered grade is cut minus A, not the advantage over the twin. 21:24 20 Nov -- pair 33333/44444 at its 2025 prospect desk; 55555/66666 still to run; still focus item 1. 00:22 21 Nov -- seed 33333 done (5.7 h); seed 44444 at November 2023; the second pair writes about 14:00Z; still focus item 1. 03:24 21 Nov -- pair 33333/44444 written at 03:19Z (member and control files in /var/tmp/vtc-out-cut012); pair 55555/66666 started then, at December 2017 on the log, writes about 15:00Z; still focus item 1, now readable one pair early.
+- corrected: THE SEAT'S, NEW. The previous direction left the Lane 0 executor nothing it could work. Two items were embargoed on files that do not yet exist, and the third (B12) was filed under its bare atom id, which the executor does not take and the draw has stopped taking. The seat-executor stood down every tick from 23:36Z to 00:16Z with "no unclaimed focus item". A direction must carry at least one supplier item a worker can start now, under a non-atom id. 00:22 21 Nov -- re-filed in this record as b12-writer-one-margin-is-read-on-the-unit-rate and b8-the-book-publishes-its-holdout-so-uplift-is-measured; corrected when the next stretch shows either drawn. 03:24 21 Nov -- CORRECTED: both slices were drawn this stretch. B12's landed (a6de6f977, retired 01:40Z), and B8's is in its surgical_land gate.
+- corrected: THE MACHINE'S, NEW. Stale copies of the maturity map in the shared working tree read W2_30 as unblocked, so the supervisor drew a blocked atom 439 times from 20 Nov 04:46 to 21 Nov 01:41. 03:24 21 Nov -- corrected by 6e79035d9: both files restored to HEAD, and the correction filed beside the 20 Nov finding's 'not a defect' verdict.
+
+## Chosen against
+
+- Waiting for both replication pairs before grading either, as the previous record did.
+- Keeping B12 in focus.
+- Building B8's blind holdout assignment now, in the same item as its publishing.
+- Launching the D48 smart-meter-exchange flip pair, now that P0 (397cc8df3) is on origin.
+- Fast-forwarding the shared checkout (28 behind) or reaping the ten worktrees with unlanded commits.
+- World work on N17 or on the deemed and flex standing charge.
+
+## Focus for the next stretch
+
+- `the-0-12-replication-is-read-out-of-sample`
+- `b8-the-book-publishes-its-holdout-so-uplift-is-measured`
+- `one-book-carries-the-blend-the-debt-records-the-dual-answer-and-b12`
+
+---
+
 ## 2026-11-21 — orientation: Three hours: 12 commits, 9 carrying work, 8 substantive
 
 <!-- head: 5d9d09693bdc -->
