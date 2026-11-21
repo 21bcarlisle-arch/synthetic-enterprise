@@ -56,7 +56,10 @@ documents (`DIRECTOR_*` under `docs/`, `THE_MODEL_ON_A_PAGE.md`) change only by 
 
 ## The walls
 
-Never cross these. Everything else is a dial that orders work but never zeroes it.
+Never cross these. Everything else is a share that orders work but never zeroes it: the weekly
+balance review's share per lane picks work, then the order inside a lane, and every lane holds at least
+the floor (`weekly_split.floor` in `docs/direction/priority_order.yaml`, refused below it by
+`background/work_items.py::load_shares`). The maturity-map dials are retired (ruling, 21 Nov).
 
 **The epistemic wall.** The company may only know what a real UK supplier could know. Ask that
 question of every line you write in `company/` or `saas/`. Ground truth never crosses; observables

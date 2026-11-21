@@ -1,5 +1,7 @@
 **Severity:** BLOCKING · **Lane:** W2_customer_generator · **Epoch:** unassigned · **Atom:** `unminted`
 
+**Knowledge:** how-households-behave-toward-a-supplier
+
 # [DIRECTOR-STEER] Bill-shock responses emerge from household behaviour, and are checked against history
 
 **Type:** STEER, through the advisor channel. It answers `for_the_director` row `your-12-oct-ruling-build-the-world` (DD4b), and goes further than the row asked. The advisor recommended building DD4b on a range starting at zero, and asked for any practitioner figure. The director answered with a design instead. His words, verbatim, from chat, Sat 21 Nov 07:15 GMT:
@@ -94,3 +96,31 @@ What this adds:
 5. **No personal data.** Store codes and short paraphrased examples only, never reviewers' names, under W11.
 
 The advisor offers to run a first research pass after the Mon 23 Nov reset, to stage as evidence for the machine to check against primary sources, as with the 7 Nov packs. Use it if it arrives, but do not wait for it.
+
+## Done
+
+Actioned by the delivery seat, 21 Nov 2026, as direction. The build it asks for spans several
+sessions, so it is placed and handed on here, not done in one turn.
+
+- **Row closed.** `your-12-oct-ruling-build-the-world` is answered `changed` in
+  `docs/direction/DIRECTION.yaml`: he answered the range-from-zero recommendation with a design. The
+  advisor's interim (grade the payment-plan engine at both ends of a range starting at zero) is
+  recorded there as the accepted fallback. The commitment is
+  `bill-shock-responses-knowledge-page-with-the-customer-voice-coding-scheme`, due 4 Dec. It is done
+  when the K8 page on bill-shock responses (by family, moment and payment method) lands, with the
+  customer-voice coding scheme proven on it, paths from coded accounts, rates from representative
+  sources, and the historical targets named with tolerances before any run.
+- **Handed on, in the order the steer sets.** First the K8 page, building on the 7 Nov pain-point
+  pack and on `what_bill_shock_is.md`, `BILL_SHOCK_EVENT_TYPES_ANCHORS.md`,
+  `does_a_bill_shock_event_raise_the_odds_a_household_shops.md` and
+  `satisfaction_drivers_and_the_three_bill_shocks.md`. Then the media-coverage world input (a
+  published or counted proxy, never invented). Then the world build, extending activation energy,
+  grievance, payment behaviour, Bacs DD failure and contact, with no parallel shock table. Last, the
+  validation gate.
+- **Placed for Monday's weekly review (23 Nov)** in the world lane, beside the meter-data faults,
+  with the knowledge page allowed to span two weeks. Its cost is set there by
+  `tools.work_cost_estimate`, not guessed here.
+- **The advisor's offered research pass** after the 23 Nov reset will be used as evidence and checked
+  against primary sources. The work does not wait for it.
+
+Decision: fidelity changed

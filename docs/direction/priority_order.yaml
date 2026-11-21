@@ -67,6 +67,11 @@ weekly_split:
   review: docs/operations/WEEKLY_BALANCE_REVIEW_2026-11-16.md
   week_from: "2026-11-16"
   shares: {correctness: 42, supplier_feature: 18, world_feature: 15, harness: 15, knowledge: 10}
+  # The minimum share any row may hold, in percent; `work_items.load_shares` refuses a row below it
+  # and a table without it. The director's 21 Nov ruling retired the maturity-map dials on condition
+  # that every lane keeps a floor, chosen and stated in the next weekly review (Mon 23 Nov). 5 is the
+  # seat's choice pending that review: one pick in twenty, half the smallest row the 16 Nov review set.
+  floor: 5
 # 2026-10-30: the director's ruling (07:26) and steer (07:30) name the customer-outcomes loop: knowledge,
 # then the world reacts to a pain point, then the supplier experiments against it. Drawn after the exit
 # test above unless one is needed to close it. The new-account estimate baseline (knowledge §10 of

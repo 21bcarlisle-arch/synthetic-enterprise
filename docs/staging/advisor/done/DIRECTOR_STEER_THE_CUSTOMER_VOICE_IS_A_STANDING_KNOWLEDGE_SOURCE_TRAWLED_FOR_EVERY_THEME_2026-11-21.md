@@ -1,5 +1,7 @@
 **Severity:** BLOCKING · **Lane:** G_data_learning · **Epoch:** unassigned · **Atom:** `unminted`
 
+**Knowledge:** how-households-behave-toward-a-supplier
+
 # [DIRECTOR-STEER] The customer's own voice is a standing knowledge source, trawled for every theme, not only bill shock
 
 **Type:** STEER, through the advisor channel. The director's words, from chat, Sat 21 Nov 07:23 GMT, after the advisor listed the sources for the bill-shock page (reviews, Ombudsman, Citizens Advice, MoneySavingExpert forums, Ofgem surveys):
@@ -57,3 +59,23 @@ Yes. What GB customers say about their energy supplier is the closest thing this
 7. **The bill-shock page is the first worked theme.** That is the 21 Nov 07:15 steer and its 07:20 addendum. Build the coding scheme there, so it is proven on one theme before it is applied to all.
 
 Place it in Monday's weekly review: first in the knowledge share, with its cost. The advisor offers to run a first broad trawl after the Mon 23 Nov reset, producing a draft theme map with example accounts, staged as evidence for the machine to check and deepen.
+
+## Done
+
+Actioned by the delivery seat, 21 Nov 2026, as direction.
+
+- **One customer-voice source, one coding scheme.** Its fields are the steer's: theme, trigger,
+  payment method and meter, circumstance, first response, supplier handling, outcome, time and
+  effort, and tone. It is built first on the bill-shock page (the 07:15 steer's commitment
+  `bill-shock-responses-knowledge-page-with-the-customer-voice-coding-scheme`), so that it is proven
+  on one theme before it spreads. It is not built twice.
+- **The theme map comes after that, and is handed on** as
+  `customer-voice-theme-map-after-the-bill-shock-scheme-is-proven`. It is sampled and coded within
+  each site's terms, never bulk-scraped, with codes and paraphrases only (W11). Every page that uses
+  it states that it shows which reactions exist and how they chain, never how often. Each theme
+  becomes a world item, a supplier item or a graded insight, and refreshes on the monthly reading
+  cadence.
+- **Placed for Monday's weekly review (23 Nov)** first in the knowledge share, with its cost set
+  there.
+
+Decision: none -- his question ("shouldn't these be trawled for other themes?") answers no recommendation put to him

@@ -242,9 +242,27 @@ class Pick:
 
 
 def load_shares(path: Path = PRIORITY_ORDER) -> dict[str, float]:
-    """The weekly review's share table (`weekly_split:` in priority_order.yaml), as fractions."""
+    """The weekly review's share table (`weekly_split:` in priority_order.yaml), as fractions.
+
+    Refuses a table with no stated `floor`, and any row at zero or below the floor. The director's
+    21 Nov ruling retired the maturity-map dials on the advisor's condition that the principle they
+    carried survives: a weight orders work but never zeroes it, so every lane holds a minimum share
+    and the share table refuses a zero
+    (docs/staging/advisor/done/DIRECTOR_RULING_RETIRE_THE_MATURITY_MAP_DIALS_WITH_A_FLOOR_PER_LANE_2026-11-21.md).
+    """
     data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    split = (data.get("weekly_split") or {}).get("shares") or {}
+    weekly = data.get("weekly_split") or {}
+    split = weekly.get("shares") or {}
+    if weekly.get("floor") is None:
+        raise ValueError(f"{path}: weekly_split states no floor; every lane holds a minimum share "
+                         "(21 Nov ruling), so a table without one cannot be read")
+    floor = float(weekly["floor"])
+    if floor <= 0:
+        raise ValueError(f"{path}: weekly_split floor {floor} is not above zero")
+    low = sorted(f"{row}={pct}" for row, pct in split.items() if float(pct) < floor)
+    if low:
+        raise ValueError(f"{path}: share row(s) below the {floor}% floor: {', '.join(low)}; "
+                         "a share orders work but never zeroes it (21 Nov ruling)")
     return {row: float(pct) / 100.0 for row, pct in split.items()}
 
 

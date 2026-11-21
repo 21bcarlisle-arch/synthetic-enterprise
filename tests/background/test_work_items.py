@@ -220,3 +220,28 @@ def test_a_test_process_cannot_write_the_live_shadow_log(tmp_path):
     flag.write_text("staging_findings: shadow\n")
     with pytest.raises(LiveLedgerWriteUnderTest):
         wi.shadow_record("ladder", cutover_path=flag)
+
+
+def _share_table(tmp_path, body):
+    path = tmp_path / "priority_order.yaml"
+    path.write_text(body)
+    return path
+
+
+def test_a_share_table_refuses_a_row_at_zero(tmp_path):
+    """Defect named: a lane switched off by a share of zero, which the 21 Nov ruling forbids."""
+    path = _share_table(tmp_path, "weekly_split:\n  floor: 5\n  shares: {correctness: 60, harness: 40, knowledge: 0}\n")
+    with pytest.raises(ValueError, match="knowledge=0"):
+        wi.load_shares(path)
+
+
+def test_a_share_table_refuses_a_row_below_its_floor_and_a_table_with_no_floor(tmp_path):
+    """Defect named: a floor that is stated but not enforced, or silently absent."""
+    below = _share_table(tmp_path, "weekly_split:\n  floor: 5\n  shares: {correctness: 97, knowledge: 3}\n")
+    with pytest.raises(ValueError, match="below the 5.0% floor"):
+        wi.load_shares(below)
+    none = _share_table(tmp_path, "weekly_split:\n  shares: {correctness: 90, knowledge: 10}\n")
+    with pytest.raises(ValueError, match="states no floor"):
+        wi.load_shares(none)
+    ok = _share_table(tmp_path, "weekly_split:\n  floor: 5\n  shares: {correctness: 95, knowledge: 5}\n")
+    assert wi.load_shares(ok) == {"correctness": 0.95, "knowledge": 0.05}

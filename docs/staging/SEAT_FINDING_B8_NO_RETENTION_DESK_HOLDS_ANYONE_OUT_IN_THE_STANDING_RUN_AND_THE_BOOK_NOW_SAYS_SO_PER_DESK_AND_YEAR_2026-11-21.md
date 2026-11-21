@@ -50,3 +50,19 @@ What refutes it: either desk reading `assigned: True` on the standing arm. That 
 policy turned a coin on that this seat does not know about. A value-test arm with
 `retention_save_rate_learned_against_holdout=True` is expected to read `save_offer.assigned: True`.
 That is not the standing arm, and it does not refute the prediction.
+
+## Status, 21 Nov ~07:45Z (delivery seat, `b8-grade-the-holdout-prediction-and-source-the-held-out-share`)
+
+- **Not graded yet: no book carries the commit.** The newest book on the shared tree is
+  `docs/reports/run_output_6a588a832f_20261120T134224Z.json`, and the sim-runner was last booted on
+  `270bf6a178`. Neither descends from `775a3c46c`. The prediction above stands unread. The grading is
+  handed on as `b8-grade-the-holdout-prediction-on-the-first-book-after-775a3c46c`.
+- **The held-out share is researched** (`docs/market_research/retention_slope_per_pound_of_renewal_cut.md`
+  §3.5). Nothing published gives a GB desk's share. The rule is SLC 22B (the ban on
+  acquisition-only tariffs) with its Fixed Retention Tariff derogation, not 22C, and no text found
+  sets a holdout either way. Ofgem's own trials and Ascarza et al. (2016) use held-out controls,
+  but neither gives a share as a rule. The build needs no outside share: the company already
+  derives one (`competitive_pressure.save_holdout_share`). Two questions stay open: whether GB
+  desks hold renewals out at all, and whether the derogation's ¶7 allows withholding the proactive
+  approach. They are raised as `b8-s-retention-holdout-needs-two-practitioner`, recommending a
+  default-off build at the derived share.

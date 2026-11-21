@@ -118,6 +118,45 @@ is why they fitted a quadratic. The world's slope per £ also falls as the cut g
    pick: the share a real GB retention desk holds out. No published source was found, so it is a
    practitioner question (K4).
 
+   **Searched 2026-11-21 for that share and for whether holdouts are standard practice. Result:
+   nothing published gives the share. Nothing found forbids a holdout or requires one.**
+   - **The regulation is SLC 22B, not 22C.** The ban on acquisition-only tariffs (SLC 22B, in force
+     14 Apr 2022) requires a supplier to make every tariff available to new and existing customers.
+     Ofgem's market-wide derogation (decision and Directions, 7 Apr 2022) lets suppliers offer
+     **Fixed Retention Tariffs**: fixed-term tariffs "only available to Existing Customers with the
+     aim of retaining the loyalty of customers". Ofgem has renewed the ban in each review since,
+     most recently in Nov 2026 (*Renewing the ban on acquisition only tariffs after March 2027*,
+     decision). Its renewal papers describe retention-only deals as cheaper than the tariffs open to
+     new customers. **No search reached a licence text that sets a retention-offer holdout either
+     way.** The derogation's own conditions (Directions ¶7) were not read this pass, so whether they
+     require a retention tariff to be offered to *every* existing customer approaching the end of
+     a fix is **open**. If they do, a holdout may withhold only the proactive approach, and never
+     the tariff itself to a customer who asks. The end-of-fix notice is owed to every customer in
+     either case. Sources: ofgem.gov.uk, *Market-wide Derogation Direction and Decision letter*
+     (2022-04); *SLC 22B Derogations – Guidance* (2022-03); *Renewing the ban on acquisition only
+     tariffs after March 2027 decision* (2026-11).
+   - **Published practice is the design, not the share.** Ofgem's own trials hold out a no-contact
+     control as standard. CMOL (2017) randomised 137,876 SVT customers into three arms, with 1.0%
+     switching in the control arm against 2.4% (Ofgem-branded letter) and 3.4% (supplier-branded).
+     The Database/Best Offer Letter trial and the 2018-19 collective switch trials did the same.
+     These test prompts to *leave*, not a supplier's offer to *stay*, and their arms were set by
+     power, not by any standing rule. Outside energy, the one published field experiment on a
+     proactive retention offer is Ascarza, Iyengar & Schleicher (2016), *JMR* 53(1):46-60: about
+     65,000 mobile customers, with randomised treated and control groups. Churn over three months
+     was **10% among customers offered a better plan, against 6% in the control**: the offer raised
+     churn. That is the published case that a retention treatment with no held-out twin cannot even
+     sign its own effect. The Orange Belgium churn benchmark (arXiv 2312.07206) draws its control as
+     a random subset of the high-risk pool. Neither publishes a share as a rule. Practitioner
+     write-ups quote 5-20% unsourced, and that range **is not used here**.
+   - **What this means for the build.** The share should not be a number picked from practice. It
+     is already **derived**: `company/crm/competitive_pressure.save_holdout_share` gives the
+     smallest share at which one year's offers resolve the break-even difference in loss rate, and
+     0.5 when no share can do so in a year. The default-off blind holdout can take that
+     power-derived share. It needs no outside figure. What stays a practitioner question (raised
+     with the director, 21 Nov) is narrower. Do GB suppliers hold renewals out of their retention
+     offers at all? And does the Fixed Retention Tariff derogation's ¶7 allow withholding the
+     proactive offer? Until it is answered, the switch stays default-off, as built.
+
 ## 4. Sources tried and not used
 
 - **Giulietti, Waddams Price & Waterson (2005)**, *Consumer choice and competition policy*, Economic
