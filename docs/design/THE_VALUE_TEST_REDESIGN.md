@@ -2164,6 +2164,75 @@ same book. The other five, SYN-2016-519 (+£3,679), PROS-2020-0186, OCC-25ff8966
 SYN-2016-350, are not in that nine. **The test this pair cannot run is the cut on a population it was not
 fitted on.**
 
+**Corrected, beside the claim above (21 Nov, 16:50Z).** The five named above are the split's retained
+units (the table under "The split read"). They are not §12c's nine flips, which is the set the 0.12 was fitted
+to reach. Against §12c's nine, the count is still five, but the names differ. PROS-2018-0003 is not a flip.
+SYN-2016-498 (+£629) is one. The five carry **£5,853**, not £5,701. §12g's "2 of the in-sample nine" uses
+§12c's nine, so it is unaffected. Source: `/var/tmp/vtc-rep-grade/grade_55555_66666.out`, which counts against both sets.
+
+**Reverse:** nothing to reverse. This is a reading.
+
+**Pair 55555/66666 graded, and the two-pair mean, beside the prediction above, which is unrevised (21 Nov
+16:50Z).** The pair finished at 15:33Z. Both seeds' sidecars carry `tree_patch.diff_sha256` =
+`2b312c4d…114d`, which is the pin. Both carry world digest `cdba75ebb9197b33` and producing commit
+`870201d1e7`. A's `vta-out-flag1` files at this pair carry the same digest, from `41734bbe71`. The method is
+`grade_rep.py`, unchanged; it ran chained after the job (`/var/tmp/vtc-rep-driver/grade_rep.out`). The level
+intervals and movers use `level_ci.py`'s method, extended to this pair and the pool
+(`/var/tmp/vtc-rep-grade/grade_55555.py` → `grade_55555_66666.out`). Household-years (A's control arm): 5,705
+and 5,780.
+
+**This is a redraw test, not an out-of-sample one.** Both pairs draw new churn dice on the same book, so they
+say whether the gain survives a redraw. They cannot say whether it reaches households it was not fitted to.
+That is §12g.
+
+| Pre-registered (20 Nov, before the run) | Predicted | Read | Graded |
+|---|---|---|---|
+| Value arm, cut minus A, pair 55555/66666 | **+£0.60 (−£0.60 to +£1.80)** | **+£1.27 (+£0.26 to +£2.48)**; seeds +£1.22 and +£1.32; 95 households moved | **HELD** (in range) |
+| Flat book (control arm), cut minus A, this pair | moves by less than £0.10 either way | **+£0.098 (−£0.057 to +£0.371)**; seeds +£0.237 and −£0.040; 108 households moved | **HELD**, by £0.002 |
+| Refutation line: two-pair mean of the value arm below zero | not below zero | **+£1.18 (+£0.33 to +£2.30)**; seeds +£0.73, +£1.46, +£1.22, +£1.32 | **HELD** (not refuted) |
+
+`Graded: value-test held=3 missed=0`. On these draws, the 0.12 gain is not redraw noise. All four seeds are
+positive, and the pooled interval stays clear of zero.
+
+**The flat-book hold is thin, and I say so rather than round it away.** The pair mean is £0.002 inside the
+line. Seed 55555 alone moved +£0.237, and the interval reaches +£0.37. 132 (seed, household) units moved,
+against 7 on the first pair. One unit carries most of it: 55555/PROS-2020-0152 moved +£1,486 in the flat
+book. A cut on the value arm should not move the flat book that much. So, on this pair, the switch moves
+the world under both arms through some path. That is the same unnamed path the split's lower-tier miss
+pointed at. Its two-pair mean is +£0.045 (−£0.033 to +£0.185), small against the value arm's +£1.18, so it
+does not carry the gain. It is the first thing to read if §12g's flat book moves.
+
+**Value arm minus the flat book, per household-year, paired by household, 2,000 resamples:**
+
+| | With the cut | A | Change (cut minus A) |
+|---|---|---|---|
+| Pair 33333/44444 | +£7.27 (+£0.95 to +£13.33) | +£6.16 (−£0.25 to +£12.14) | +£1.10 (+£0.37 to +£2.07) |
+| Pair 55555/66666 | +£3.20 (−£1.94 to +£8.09); seeds +£5.36, +£1.03 | +£2.03 (−£2.92 to +£6.84); seeds +£4.38, −£0.32 | +£1.17 (+£0.15 to +£2.40) |
+| **Both pairs** | **+£5.23 (+£0.09 to +£10.33)** | **+£4.09 (−£0.93 to +£9.13)** | **+£1.14 (+£0.28 to +£2.24)** |
+
+As above, that level is supplier net margin, not household value. It is not the open row either, which is the
+advantage against the twin, and these seeds have no twin. The level differs by draw: seed 66666's advantage
+under A is negative. The cut's change does not differ by draw: +£0.74 to +£1.47 on all four seeds.
+
+**Where it sits, and the up-movers in the in-sample nine.** 161 value-arm units moved: 18 up, 143 down, net
++£14,548. 22 units over £50 carry +£14,544, and the top two carry 43%. Unlike the first pair, two large
+losers appear: 55555/SYN-2016-469 (−£1,568) and 55555/OCC-896e0284aa88 (−£1,191). **7 of the 18 up-movers (7
+of 17 households) are in §12c's nine.** They are PROS-2017-0371, SYN-2016-458, PROS-2017-0318, SYN-2016-498,
+SYN-2016-581, PROS-2016-0263 and SYN-2016-468, and they carry £5,962 of the £17,671 gained. Against the split's
+retained units, the count is 6.
+
+**What the two pairs show together.** I did not predict this. Every one of the first pair's ten up-movers
+moves up again on this pair, by the identical pound figure: SYN-2016-519 +£3,679, PROS-2017-0371 +£2,601,
+PROS-2020-0186 +£1,439, SYN-2016-458 +£1,077, and so on. PROS-2017-0371's +£2,601 is also its in-sample
+figure on seed 11111. So a household's gain is a fixed quantity, a retention the cut buys or does not, and a
+redraw only changes which of the same households the dice reach. That is why the change is stable across
+seeds when the level is not. It is also why two redraws cannot stand in for §12g. The gain is a fixed
+property of the 17 households that moved up on this pair. Seven of them are households the 0.12 was fitted
+to reach.
+
+**The pin.** `/var/tmp/value-test-cut012` stays `git worktree lock`ed. `vtc-cut012-new-book-watch` is still
+active, and it re-checks that tree's diff against the pin before it launches §12g.
+
 **Reverse:** nothing to reverse. This is a reading.
 
 #### Where the £1.00 sits: pre-registered before the split is read (20 Nov 12:07Z)
