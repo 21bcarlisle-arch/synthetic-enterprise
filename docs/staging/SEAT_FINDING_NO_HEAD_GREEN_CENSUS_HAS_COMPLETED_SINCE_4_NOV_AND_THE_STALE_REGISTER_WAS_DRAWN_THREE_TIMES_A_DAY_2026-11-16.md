@@ -278,3 +278,42 @@ failing while the tail names the same module. Q2 failing at some *other* test th
 the plugin uses would be the same class of defect, found at a new place. Q3 (≈ 40%): it COMPLETES with
 a summary line inside the 17 400 s bound. I give this a low weight because §2's doubling is still
 unexplained.
+
+## 12. Grading §11 at 21 Nov 13:20 GMT: the night cannot test the fix (claim `grade-21-nov-census-after-plugin-fix`)
+
+**The premise check fails, so Q1-Q3 are UNGRADED, not passed.** The shared tree's HEAD at 03:30
+was `270bf6a178`. The reflog shows the last fast-forward at 20 Nov 18:03:27, and it is still at
+that commit at 13:20, 60 commits behind origin/main (`bcb243e3db`). `89f5e98d3` reached origin at
+22:48 on 20 Nov, so it is **not** an ancestor of the shared HEAD. The census builds its subject from
+the shared HEAD (`head_subject_checkout` → `prc._head_sha()`) after admission, and it loads the
+progress plugin from that subject with `-p`. So if it runs today it runs the **pre-fix** plugin.
+What holds the fast-forward is `origin_reconcile.paths_blocking_fast_forward` on the shared tree:
+21 paths, 16 "modified here, and origin changes it too" and 5 "untracked here, and origin adds its
+own copy" (first three: `background/fork_salvage.py`, `background/live_payment_triad.py`,
+`company/billing/payment_observation_consumer.py`). That is the same class as
+`SEAT_FINDING_ONE_STRANDED_STAGED_EDIT_HELD_THE_SHARED_CHECKOUT_BEHIND_ORIGIN_2026-11-20.md`, but a
+new episode, now 19h long. It is handed on separately (§12 hand-off), not fixed here. Those are
+other lanes' edits, and this turn runs in an isolated worktree.
+
+**The ≈70% QUEUED call was right.** The unit has been `activating` since 03:39:30, with 3.3s of CPU.
+**But its one journal line names the wrong blocker.** `queued()` logs the refusal reason only at
+the first poll: `landings come before experiments: 1 pending (commit gate ... pid 2062723)`. That
+pid is dead and the landings register no longer holds it. At 13:17 the live refusal from
+`admit('head_green_census')` is memory: `longjob-value-test-cut012-rep.service` has declared
+11 800 MB and has run 1 288 of its 1 400 declared minutes, and 11 800 + 11 981 is more than the
+23 010 MB budget. Anyone reading the journal alone would blame a landing. LATENT, and a one-line
+fix: log the reason again whenever it changes. Not done here.
+
+**Pre-registration for today's run, if the shared tree has not advanced before admission (written
+13:20, before it runs).** Admission is expected at the first 1800s poll after the long job ends,
+about 15:10-15:40. The 20 Nov run took 3h32m from admission. Prediction (≈ 85%): the suite stops
+again at the reconciler module, with `OSError: no fd` and an INTERNALERROR from
+`head_census_progress`, a PARTIAL row near 6 033 reached, and the register's HEAD equal to
+`270bf6a178`. That would be a **positive control for §11's diagnosis** (the unfixed plugin still
+fails at the same place), not a test of the fix. If it gets past 6 033 on the pre-fix plugin,
+§11's diagnosis is wrong, or the test order changed, and the next grader must say which. If the
+shared tree advances before admission, read the register's HEAD. If it contains `89f5e98d3`, grade
+§11's Q1-Q3 as originally written.
+
+**The first night that can test the fix is the 22 Nov 03:30 firing, and only if the shared tree has
+rejoined origin by then.**

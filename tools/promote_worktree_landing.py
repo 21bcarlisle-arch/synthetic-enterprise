@@ -124,11 +124,35 @@ def _refuse_if_dirty(worktree: Path) -> None:
     dirty = [
         line for line in raw
         if not any(line[3:].strip().startswith(prefix) for prefix in SHARED_BY_DESIGN)
+        and not _is_the_trial_draft(worktree, line[3:].strip())
     ]
     if dirty:
         raise PromotionRefused(
             _dirty_cause(worktree, dirty) + "\n" + "\n".join(dirty)[:600]
         )
+
+
+def _is_the_trial_draft(worktree: Path, path: str) -> bool:
+    """True only for a CLAUDE.md whose bytes are EXACTLY efficiency trial E-e's draft.
+
+    FOUND 2026-11-21 by a minimal-arm executor turn whose landing this route refused. The
+    executor writes the draft over CLAUDE.md in the worktree before the turn
+    (`seat_executor._apply_claude_md_arm`) and restores it after, so during the turn CLAUDE.md is
+    dirty with the MACHINE's bytes, not the writer's. Refusing on that made every minimal-arm
+    landing unpromotable, and the turn was logged LANDED NOTHING for a cause it did not make.
+
+    BYTE-EQUAL OR NOTHING. A CLAUDE.md the writer really edited, including an edit on top of the
+    draft, differs from the draft and is still refused. Any error reads as "not the draft", which
+    keeps the refusal.
+    """
+    if path != "CLAUDE.md":
+        return False
+    try:
+        from background.seat_executor import CLAUDE_MD_TRIAL_DRAFT
+        draft = worktree / CLAUDE_MD_TRIAL_DRAFT
+        return draft.is_file() and (worktree / "CLAUDE.md").read_bytes() == draft.read_bytes()
+    except Exception:  # noqa: BLE001 - fails toward the refusal
+        return False
 
 
 # The publish-state ledger, and the value its `run_stamp` carries when whatever wrote it was not

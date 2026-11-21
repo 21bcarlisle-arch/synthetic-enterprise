@@ -519,3 +519,25 @@ def test_a_test_processs_exhaust_is_not_reported_as_the_writers_unfinished_work(
     with pytest.raises(PromotionRefused) as exc:
         mod._refuse_if_dirty(worktree)
     assert "not the whole of what was done" in str(exc.value)
+
+
+def test_the_E_e_trial_draft_over_CLAUDE_md_is_the_machines_bytes_not_unfinished_work(worktree):
+    """Efficiency trial E-e writes a draft over CLAUDE.md for a minimal-arm executor turn. That is
+    the machine's write, and it refused every landing from such a turn (found 2026-11-21).
+
+    MUTATION: drop `_is_the_trial_draft` from the dirty filter and the first call raises. Make it
+    accept ANY dirty CLAUDE.md and the second call, a real edit on top of the draft, stops raising.
+    """
+    import tools.promote_worktree_landing as mod
+    from background.seat_executor import CLAUDE_MD_TRIAL_DRAFT
+
+    draft = worktree / CLAUDE_MD_TRIAL_DRAFT
+    assert draft.is_file(), "fixture assumption: the trial draft is tracked"
+    _git(worktree, "commit", "-q", "--allow-empty", "--no-verify", "-m", "a landing")
+    (worktree / "CLAUDE.md").write_bytes(draft.read_bytes())
+    assert mod._refuse_if_dirty(worktree) is None
+
+    (worktree / "CLAUDE.md").write_bytes(draft.read_bytes() + b"\n# the writer's own edit\n")
+    with pytest.raises(PromotionRefused) as exc:
+        mod._refuse_if_dirty(worktree)
+    assert "CLAUDE.md" in str(exc.value)
