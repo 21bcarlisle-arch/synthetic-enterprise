@@ -8,6 +8,45 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-21 — orientation: Three hours: 12 commits, 9 carrying work, 8 substantive
+
+<!-- head: 5d9d09693bdc -->
+
+*Written by the orientation seat from its own record (2026-11-21T00:22:08.542481+00:00; 12 commits, 8 substantive, since 2026-11-20T21:24:14.006683+00:00).*
+
+Commit split (product code by path): 1 supplier, 0 world, 0 both, 11 other.
+
+## What the stretch meant
+
+Three hours: 12 commits, 9 carrying work, 8 substantive. The classifier reads 1 supplier, 0 world and 11 other. Almost all of it was machinery: four HEAD-red-register repairs, the census plugin that killed its own census (89f5e98d3), the hook timer, and a post-publish reader disposition. The one supplier commit (122c7bd89) registers an E7 import on the seam allowlist. The INV_UNIT_RATE_FIXED gas floor (a1f87a716) is the one change with supplier meaning: 736 gas fixed terms are now floored, and 35 flag mid-2023 fixes at 0.59x their window's floor. That is a diagnostic, not a decision. Against the thesis, the stretch went sideways, not backwards: no supplier result moved. Nor was the steer drawn. The brief says none of the three previous focus items was drawn, and the seat-executor log confirms it: every tick from 23:36Z to 00:16Z STOOD DOWN with "no continuation and no unclaimed focus item". Items 1 and 2 were rightly embargoed on files that do not yet exist. Item 3 (B12) named a bare atom, and the executor does not take atoms; the anti-livelock draw has not taken B12 in 325 draws. So the previous direction left the Lane 0 executor nothing it could work for three hours. The steer is the thing that drifted, and that is this record's own error (new wrong row). The fix is structural to this record. B12 is re-filed as a Lane 0 slice with a non-atom id. A second supplier item that needs neither the box nor a book is added: B8's holdout, which is held at L2 because no published book carries a holdout row, so nothing measures whether a per-customer treatment beat no treatment. The thesis question still rests on the 0.12 replication. On the log at 00:22Z, seed 33333 finished in 5.7 h and seed 44444 is at November 2023, so pair 33333/44444 writes at about 02:30Z and 55555/66666 at about 14:00Z. Until then, the per-customer arm stands at -GBP 0.33 (-1.77 to +0.96) against the flat-rules twin, in-sample only: untested, not refuted. No previous wrong row closed this stretch. Nothing graded any of them, and their dated rechecks (the replication, N17 on 23 Nov) have not yet come due.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- unchanged; the replication's arm A carries the corrected ending-term belief, so it reads that belief only as the base the cut is measured from, not as a switch-on grade. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- the book is published (run_output_6a588a832f_20261120T134224Z.json); the 23 Nov recheck reads it. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 18:23 20 Nov -- unchanged. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. 18:23 20 Nov -- launched 15:49Z; pair 33333/44444 at September 2023; reads about 15:00Z 21 Nov (focus item 1). Its pre-registered grade is cut minus A, not the advantage over the twin. 21:24 20 Nov -- pair 33333/44444 at its 2025 prospect desk; 55555/66666 still to run; still focus item 1. 00:22 21 Nov -- seed 33333 done (5.7 h); seed 44444 at November 2023; the second pair writes about 14:00Z; still focus item 1.
+- NOT corrected: THE SEAT'S, NEW. The previous direction left the Lane 0 executor nothing it could work. Two items were embargoed on files that do not yet exist, and the third (B12) was filed under its bare atom id, which the executor does not take and the draw has stopped taking. The seat-executor stood down every tick from 23:36Z to 00:16Z with "no unclaimed focus item". A direction must carry at least one supplier item a worker can start now, under a non-atom id. 00:22 21 Nov -- re-filed in this record as b12-writer-one-margin-is-read-on-the-unit-rate and b8-the-book-publishes-its-holdout-so-uplift-is-measured; corrected when the next stretch shows either drawn.
+
+## Chosen against
+
+- Keeping B12 in focus under its atom id, as the previous record did.
+- Launching a twin (flat-book) run at 33333/44444 and 55555/66666 now, so the advantage over the baseline is readable out of sample.
+- Building the multi-term retention value into the offer rule (B11/C35).
+- Taking the 35 flagged mid-2023 gas fixes from a1f87a716 as a pricing defect to fix now.
+- More HEAD-red-register and census-machinery repairs as a focus item.
+- World work on N17 (year-to-year metered variance) or on the deemed and flex standing charge.
+- Reaping the ten worktrees that hold unlanded commits, or fast-forwarding the shared checkout (22 behind).
+
+## Focus for the next stretch
+
+- `the-0-12-replication-is-read-out-of-sample`
+- `b12-writer-one-margin-is-read-on-the-unit-rate`
+- `b8-the-book-publishes-its-holdout-so-uplift-is-measured`
+- `one-book-carries-the-blend-the-debt-records-and-the-dual-answer`
+
+---
+
 ## 2026-11-20 — orientation: Three hours: 10 commits, 8 carrying work, 4 substantive
 
 <!-- head: 531f95746187 -->

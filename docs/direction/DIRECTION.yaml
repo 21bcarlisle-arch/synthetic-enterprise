@@ -1,27 +1,30 @@
 version: 1
-oriented_at: '2026-11-20T21:24:14.006683+00:00'
-thesis_read: 'Three hours: 10 commits, 8 carrying work, 4 substantive. The classifier reads 0 supplier, 1 world,
-  2 both and 7 other. The two "both" commits are both supplier decisions reaching the book: D48''s electricity blend
-  is on in the published policy at SPAR 0.5 (0ed751663; decision_policy.py:267 reads 0.5 on origin), and the run
-  now publishes the company''s own debt-recovery records (1624411d2). The one world commit (9ed0d7f15, the gas year
-  re-based on DESNZ ET 7.1) was already filed with its predictions. So supplier-first held for a second stretch.
-  Three of the four previous focus items are finished and leave focus: D48, KNIFE3''s publishing, and fork_salvage,
-  which now skips a locked worktree and has a test with an unlocked twin (ec432f21a). Two wrong rows close on that
-  evidence. Against the thesis itself nothing moved, and the stretch was not built to move it. The one reading that
-  tests inference against the flat rules is the out-of-sample replication of the 0.12 cut. It is still running
-  (pid 3893062, 9.7 GB). At 21:24Z its log shows pair 33333/44444 at the 2025 prospect desk, near its end, and
-  55555/66666 still to run. The per-customer arm therefore stands at -GBP 0.33 (-1.77 to +0.96) against the baseline,
-  in-sample only: untested, not refuted. A new constraint appeared this stretch. Three supplier grades are now queued
-  against "the first book carrying" a commit: D48 at 08:00, and KNIFE3 I1-I5 and the dual-household answer at 09:00
-  on 21 Nov. No book carries any of them (the newest is 6a588a832f, built at 13:42Z), and no book can be built while
-  the replication holds the box. The binding step for the supplier is therefore one book, built once, after the
-  replication, at an origin commit carrying all three. Item 2 says exactly that. One draw note: the previous item
-  1 was drawn at 18:43Z before its embargo could fire, and nothing landed. That is a premise not yet ripe, not work
-  lost. The 18:50Z rewrite made the embargo a file-exists condition, and it is carried unchanged.'
+oriented_at: "2026-11-21T00:22:08.542481+00:00"
+thesis_read: >-
+  Three hours: 12 commits, 9 carrying work, 8 substantive. The classifier reads 1 supplier, 0 world and
+  11 other. Almost all of it was machinery: four HEAD-red-register repairs, the census plugin that killed
+  its own census (89f5e98d3), the hook timer, and a post-publish reader disposition. The one supplier commit
+  (122c7bd89) registers an E7 import on the seam allowlist. The INV_UNIT_RATE_FIXED gas floor (a1f87a716) is
+  the one change with supplier meaning: 736 gas fixed terms are now floored, and 35 flag mid-2023 fixes at 0.59x
+  their window's floor. That is a diagnostic, not a decision. Against the thesis, the stretch went sideways, not
+  backwards: no supplier result moved. Nor was the steer drawn. The brief says none of the three previous focus
+  items was drawn, and the seat-executor log confirms it: every tick from 23:36Z to 00:16Z STOOD DOWN with "no
+  continuation and no unclaimed focus item". Items 1 and 2 were rightly embargoed on files that do not yet exist.
+  Item 3 (B12) named a bare atom, and the executor does not take atoms; the anti-livelock draw has not taken B12
+  in 325 draws. So the previous direction left the Lane 0 executor nothing it could work for three hours. The
+  steer is the thing that drifted, and that is this record's own error (new wrong row). The fix is structural
+  to this record. B12 is re-filed as a Lane 0 slice with a non-atom id. A second supplier item that needs neither
+  the box nor a book is added: B8's holdout, which is held at L2 because no published book carries a holdout row,
+  so nothing measures whether a per-customer treatment beat no treatment. The thesis question still rests on
+  the 0.12 replication. On the log at 00:22Z, seed 33333 finished in 5.7 h and seed 44444 is at November 2023,
+  so pair 33333/44444 writes at about 02:30Z and 55555/66666 at about 14:00Z. Until then, the per-customer arm
+  stands at -GBP 0.33 (-1.77 to +0.96) against the flat-rules twin, in-sample only: untested, not refuted. No
+  previous wrong row closed this stretch. Nothing graded any of them, and their dated rechecks (the replication,
+  N17 on 23 Nov) have not yet come due.
 stretch_reviewed:
-  since: '2026-11-20T18:23:24.032888+00:00'
-  commits: 10
-  substantive: 4
+  since: "2026-11-20T21:24:14.006683+00:00"
+  commits: 12
+  substantive: 8
 focus:
 - id: the-0-12-replication-is-read-out-of-sample
   what: 'DO NOT DRAW BEFORE /var/tmp/vtc-out-cut012/member_55555_66666.json EXISTS. DO NOT DRAW BEFORE
@@ -43,109 +46,124 @@ focus:
     the replication''s grade with intervals; the advantage over the baseline is published with its interval,
     or stated as unreadable with the run that would read it; and the next lever is named from the result.
     That lever is the multi-term retention value (B11/C35) if the cut holds, or the s.12e alternative
-    if it is refuted.'
+    if it is refuted. On the 00:22Z log, the second pair writes about 14:00Z on 21 Nov.'
   lane: B_commercial
   side: supplier
-  written_at: 1795210090.854
+  written_at: 1795220757.856
+- id: b12-writer-one-margin-is-read-on-the-unit-rate
+  what: Lane 0 slice of atom B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost
+    (L1, target L2, DRAWABLE but untaken by the draw in 325 draws). Its dependency W3_3 was graded on
+    67d454905c. Read company/pricing/renewal_rate_chain.py and the tests in B12's file_scope against the
+    atom's title. Is writer 1's realised margin read on the unit rate, with standing-charge revenue net
+    of the network cost it recovers, and does the save take writer 1's floor? If the mechanism is on origin,
+    show one mutation that reds each of its tests. Then record the L2 move through the level gate, citing
+    the 6a588a832f book's renewal rows at floor, and check map headroom first (9,091 bytes at 00:22Z).
+    If any leg is missing, write its section on the pricing knowledge page first (K8), then build the
+    leg and a control that can fail. This needs no run and no book.
+  why: 'The renewal floor prices every customer at every anniversary. If it counts standing-charge income
+    as margin, every per-customer save is priced against the wrong cost, and the value test reads noise
+    on its biggest lever. Filed as a bare atom last stretch, it reached no worker: the executor stood
+    down seven times. Done means: B12 is at L2 on origin with mutation evidence, or its missing leg is
+    named, built and controlled on origin, and the atom''s map row has moved either way.'
+  lane: B_commercial
+  side: supplier
+  written_at: 1795220757.856
+- id: b8-the-book-publishes-its-holdout-so-uplift-is-measured
+  what: 'B8_discovered_price_sensitivity_holdout is held at L2 by its 21 Oct blind pass: "no holdout row
+    closes, so nothing measures the uplift". The 6a588a832f book carries no key containing "holdout".
+    Read company/pricing/discovered_price_sensitivity.py, company/crm/renewal_advice_desk.py and company/policy/decision_policy.py.
+    Establish whether a holdout group is assigned in the standing run and how (assignment must be blind
+    to outcome and drawn before treatment). If one is assigned, make the run publish, per desk and year,
+    treated and held-out counts, retained counts, and the retention difference with its interval, beside
+    the KNIFE3 records in run_output_<sha>_<ts>.json. Add a test that reds when those rows are removed
+    or when assignment reads an outcome. If none is assigned, write that GAP on the B8 knowledge page
+    and build the assignment behind a default-off switch, with the same publishing. Then file one prediction
+    for the first book carrying the commit, naming those exact keys as its readable artefact. Do not grade
+    it here.'
+  why: 'The thesis needs a baseline at every lever, not only at the book level. A per-customer retention
+    treatment with no held-out twin cannot say it did anything, and last stretch''s lesson was that a
+    prediction against an artefact the book does not publish costs a whole grading cycle. This item makes
+    the artefact exist first. It needs no run and does not compete with the replication for the box. Done
+    means: on origin, the run publishes holdout rows (or the GAP and the switch are landed), a control
+    reds on their removal, and a prediction names the keys it will read.'
+  lane: B_commercial
+  side: supplier
+  written_at: 1795220757.856
 - id: one-book-carries-the-blend-the-debt-records-and-the-dual-answer
   what: 'DO NOT DRAW BEFORE /var/tmp/vtc-out-cut012/control_55555_66666.json EXISTS (the replication holds
-    about 9.7 GB, and a book will not fit beside it). Then build ONE published book at an origin/main
+    about 7.6 GB, and a book will not fit beside it). Then build ONE published book at an origin/main
     commit that has 0ed751663 (D48 blend at SPAR 0.5), 1624411d2 (KNIFE3 debt-recovery records) and c41e70832
-    (a dual household answers once) as ancestors; check each with git merge-base --is-ancestor before
-    launch. First check whether sim-runner has already queued or started such a run, and do not launch
-    a second. If none is queued, launch it through launch_long_job. When the book is published, check
-    that its run_output_<sha>_<ts>.json carries the KNIFE3 write-off rows with invoice_ref, the agency
-    remittance rows, and the learner cells. If any is missing, say so in the KNIFE3 finding before a grader
-    reads it. Do not grade here: the continuations d48-grade-the-first-book-built-with-the-blend-at-0-5,
+    (a dual household answers once) as ancestors. If item 3 has landed by then, include it too. Check
+    each with git merge-base --is-ancestor before launch. First check whether sim-runner has already queued
+    or started such a run, and do not launch a second. If none is queued, launch it through launch_long_job.
+    When the book is published, check that its run_output_<sha>_<ts>.json carries the KNIFE3 write-off
+    rows with invoice_ref, the agency remittance rows and the learner cells. If any is missing, say so
+    in the KNIFE3 finding before a grader reads it. Do not grade here: the continuations d48-grade-the-first-book-built-with-the-blend-at-0-5,
     grade-knife3-i1-to-i5-on-the-first-book-carrying-1624411d2 and grade-dual-household-answers-apart-on-the-first-book-carrying-c41e70832
     do that.'
-  why: 'Three supplier grades are queued, and all three wait on the same missing artefact: billing accuracy
-    (D48), the first per-customer decision on recovered cash (KNIFE3), and the dual-fuel offer fix. Last
-    stretch''s lesson was that a prediction filed against an unreadable artefact costs a whole grading
-    cycle, so this item makes the artefact exist and checks it is readable before anyone grades it. Done
-    means: one book, at a commit descending from all three, is published under docs/reports/, and its
-    debt-recovery records are confirmed present or named as missing.'
+  why: 'Three supplier grades wait on the same missing artefact: billing accuracy (D48), the first per-customer
+    decision on recovered cash (KNIFE3), and the dual-fuel offer fix. Done means: one book, at a commit
+    descending from all three, is published under docs/reports/, and its debt-recovery records are confirmed
+    present or named as missing.'
   lane: D_billing_metering
   side: supplier
-  written_at: 1795210090.854
-- id: B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost
-  what: 'Establish where B12 stands before building anything. It is at L1 against target L2 and depends
-    on W3_3 (the network charge split per unit and per day), which was graded on 67d454905c. Read company/pricing/renewal_rate_chain.py
-    and the two tests in B12''s file_scope against its title: is writer 1''s realised margin read on the
-    unit rate, with standing-charge revenue net of the cost it recovers, and does the save take writer
-    1''s floor? If the mechanism is on origin and its tests can fail (show one mutation that reds each),
-    record the L2 move with its evidence through the level gate, citing the 6a588a832f book''s renewal
-    rows at floor. If it is not, write the knowledge page section first (K8), then build the missing leg
-    and its control.'
-  why: 'The renewal floor decides price per customer at every anniversary. If the floor counts standing-charge
-    income as margin, every per-customer save is priced against the wrong cost, so the value test reads
-    noise on its biggest lever. The blocker W3_3 named is gone, and the draw lists B12 as DRAWABLE, yet
-    nothing has moved its row. Done means: B12 is at L2 with evidence on origin, or its missing leg is
-    named, built and controlled.'
-  side: supplier
-  written_at: 1795210090.854
+  written_at: 1795220757.856
 not_now:
+- what: Keeping B12 in focus under its atom id, as the previous record did.
+  why: The executor takes only non-atom items, and the draw has stopped taking B12, so the bare atom id left
+    it unreachable for three hours. A Lane 0 slice reaches a worker on the next tick.
 - what: Launching a twin (flat-book) run at 33333/44444 and 55555/66666 now, so the advantage over the baseline
     is readable out of sample.
-  why: The box holds one 9.7 GB run, and two do not fit. Item 1 first establishes whether the member files already
-    carry both arms. Item 2's book comes first after that, because three supplier grades wait on it, and a twin
-    run only earns its day of compute if the files cannot answer.
+  why: The box already holds the 7.6 GB replication plus a 3.3 GB weather-world build. Item 1 first establishes
+    whether the member files carry both arms, and item 4's book follows, because three grades wait on it.
 - what: Building the multi-term retention value into the offer rule (B11/C35).
-  why: The replication decides whether the cut it would build on is real, and it reads in about 18 hours. Building
-    first would tune to an in-sample +GBP 1.00 on nine households.
-- what: Switching on the corrected renewal churn belief in the standing policy.
-  why: Its pre-registered switch-on rule (a clean-book departure interval that clears zero) is still unmet. Arm
-    A of the running replication carries that belief, so changing the standing policy now would confound the thesis
-    test.
+  why: The replication decides whether the cut it would build on is real, and it reads in about 14 hours. Building
+    first would tune to an in-sample result on nine households.
+- what: Taking the 35 flagged mid-2023 gas fixes from a1f87a716 as a pricing defect to fix now.
+  why: They flag and never breach, and the stated cause is the cap's allowance lagging falling wholesale, which
+    is a world fact a real supplier also faced. Item 2's work on renewal floors is where that would surface as
+    a decision, if it is one.
+- what: More HEAD-red-register and census-machinery repairs as a focus item.
+  why: They took 11 of 12 commits this stretch without a steer, and the 21 Nov census grade is already queued
+    (grade-21-nov-census-after-plugin-fix). Steering more there would deepen the imbalance supplier-first exists
+    to correct.
 - what: World work on N17 (year-to-year metered variance) or on the deemed and flex standing charge.
-  why: Neither blocks a supplier result in focus. N17 has its dated recheck on 23 Nov against 6a588a832f. The settlement
-    gap measures GBP 0.00 per domestic account-day on the book.
-- what: Fast-forwarding the shared checkout, 10 commits behind origin, from this seat.
-  why: The daemons that lack 6 commits are missing only the D48, KNIFE3, W2_30 and fork_salvage landings, and none
-    of those changes how a daemon draws or lands. The checkout advances when the in-flight surgical_land (pid 2711811)
-    finishes. A direction session does not write outside its two files.
-- what: Reaping the ten worktrees that hold unlanded commits, or acting on the 24 live repeating alarms.
-  why: value-test-cut012 is the live replication tree, and it is now protected by the lock fix. The others are
-    15 Oct to 18 Nov salvages costing nothing, and a reap cannot be undone. Every alarm files at LATENT, nothing
-    is BLOCKING, and none sits on the path of items 1 to 3.
+  why: Neither blocks a supplier result in focus. N17 has its dated recheck on 23 Nov, and the settlement gap
+    reads GBP 0.00 per domestic account-day on the book.
+- what: Reaping the ten worktrees that hold unlanded commits, or fast-forwarding the shared checkout (22 behind).
+  why: value-test-cut012 is the live replication tree, and a reap cannot be undone. The checkout advances through
+    landings, and a direction session writes nothing outside its two files.
 wrong:
 - what: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC
     0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- unchanged; the
     replication's arm A carries the corrected ending-term belief, so it reads that belief only as the base the cut
-    is measured from, not as a switch-on grade. 21:24 20 Nov -- unchanged.
+    is measured from, not as a switch-on grade. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged.
   corrected: false
 - what: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median
     same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- the
     book is published (run_output_6a588a832f_20261120T134224Z.json); the 23 Nov recheck reads it. 21:24 20 Nov --
-    unchanged.
+    unchanged. 00:22 21 Nov -- unchanged.
   corrected: false
 - what: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges
     one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account.
     Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c
     -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 18:23
-    20 Nov -- unchanged. 21:24 20 Nov -- unchanged.
+    20 Nov -- unchanged. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged.
   corrected: false
 - what: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules
     twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted
     on the same pair. 18:23 20 Nov -- launched 15:49Z; pair 33333/44444 at September 2023; reads about 15:00Z 21
     Nov (focus item 1). Its pre-registered grade is cut minus A, not the advantage over the twin. 21:24 20 Nov --
-    pair 33333/44444 at its 2025 prospect desk; 55555/66666 still to run; still focus item 1.
+    pair 33333/44444 at its 2025 prospect desk; 55555/66666 still to run; still focus item 1. 00:22 21 Nov -- seed
+    33333 done (5.7 h); seed 44444 at November 2023; the second pair writes about 14:00Z; still focus item 1.
   corrected: false
-- what: THE MACHINE'S, NEW. The 0.12 replication launched at 11:33Z refused in 60 ms at 11:41Z (exit 5), because
-    fork_salvage committed SALVAGE(auto) into its pinned run tree and the diff no longer matched the pin. The s.12f
-    entry had also said the tree "is kept", and by 11:30Z it was gone. The pin was restored and the launch re-armed
-    (9e7cf29d4), but the salvage-into-a-pinned-tree defect is not fixed. 21:24 20 Nov -- CORRECTED in ec432f21a,
-    on origin. fork_salvage skips a locked worktree and logs its lock reason, a test shows an unlocked twin is still
-    salvaged, and 6587f6dde records the one thing left unestablished (whether agent forks arrive locked).
-  corrected: true
-- what: THE SEAT'S, NEW. KNIFE3's I1 to I5 were pre-registered against a book that publishes none of the records
-    they read (no write-off refs, no remittance rows, no learner state), and the previous direction's item 1 told
-    a worker to grade them on 6a588a832f. Only I6 could be graded (0d4ffbe8a). A prediction must name a readable
-    artefact before it is filed. 21:24 20 Nov -- CORRECTED in 1624411d2, on origin. The run publishes every write-off
-    with its GBP and invoice_ref, the remittance rows, the learner cells and the sale rule's decisions. The grade
-    is re-pointed at the first book carrying that commit (continuation grade-knife3-i1-to-i5-on-the-first-book-carrying-1624411d2),
-    and focus item 2 checks the records are present before the grader reads them.
-  corrected: true
+- what: THE SEAT'S, NEW. The previous direction left the Lane 0 executor nothing it could work. Two items were
+    embargoed on files that do not yet exist, and the third (B12) was filed under its bare atom id, which the executor
+    does not take and the draw has stopped taking. The seat-executor stood down every tick from 23:36Z to 00:16Z
+    with "no unclaimed focus item". A direction must carry at least one supplier item a worker can start now, under
+    a non-atom id. 00:22 21 Nov -- re-filed in this record as b12-writer-one-margin-is-read-on-the-unit-rate and
+    b8-the-book-publishes-its-holdout-so-uplift-is-measured; corrected when the next stretch shows either drawn.
+  corrected: false
 for_the_director:
 - id: the-one-work-system-s-decision-map
   raised: '2026-11-20'
