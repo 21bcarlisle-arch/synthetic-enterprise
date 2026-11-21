@@ -27,7 +27,10 @@ CUSTOMERS_DIR = PROJECT / "site" / "data" / "customers"
 
 
 def _combined_ledger_totals(elec, gas):
-    """Python port of combinedLedgerTotals() in site/customers/index.html."""
+    """Both legs' ledger totals. The page this once ported is gone; the household's figures now
+    print from householdFigures() in site/explore/index.html, which takes the deemed account's bills
+    off billed (B7, 7cec44a4b8): a bill inside the occupier window or the void was never this
+    household's, so it is raised and taken straight off as `deemed_account`, never collected."""
     e = (elec or {}).get("ledger")
     g = (gas or {}).get("ledger")
 
@@ -40,6 +43,7 @@ def _combined_ledger_totals(elec, gas):
         collected=get(e, "total_collected_gbp") + get(g, "total_collected_gbp"),
         written_off=get(e, "total_written_off_gross_gbp") + get(g, "total_written_off_gross_gbp"),
         recovered=get(e, "total_recovered_gbp") + get(g, "total_recovered_gbp"),
+        deemed=get(e, "total_deemed_gbp") + get(g, "total_deemed_gbp"),
         scheme_credit=(get(e, "total_scheme_credit_gbp") if e and "total_scheme_credit_gbp" in e else 0)
         + (get(g, "total_scheme_credit_gbp") if g and "total_scheme_credit_gbp" in g else 0),
     )
@@ -60,20 +64,24 @@ def _households():
 
 
 def test_reconciliation_identity_holds_across_full_live_book():
-    """Collected + Outstanding + Written off == Billed, for every real
-    household in the live run (both fuel legs combined) -- the exact
-    identity reconciliationLine() displays and asserts on the page."""
+    """Billed == collected + scheme credit + balance + written off + deemed, for every real
+    household in the live run (both fuel legs combined) -- the footing
+    tools/generate_payment_ledger_data.py states and Explore's householdFigures() prints."""
     households = _households()
     assert households, "no customer JSON to test against -- run the sim first"
-    checked = 0
+    checked = with_deemed = 0
     for base, hh in households.items():
         t = _combined_ledger_totals(hh.get("elec"), hh.get("gas"))
-        lhs = round(t["collected"] + t["scheme_credit"] + t["balance"] + t["written_off"], 2)
+        lhs = round(t["collected"] + t["scheme_credit"] + t["balance"] + t["written_off"]
+                    + t["deemed"], 2)
         assert abs(lhs - round(t["billed"], 2)) < 0.02, (
             base + " reconciliation mismatch: " + str(t) + " lhs=" + str(lhs)
         )
         checked += 1
+        with_deemed += t["deemed"] > 0.005
     assert checked >= 10
+    # The deemed term must be exercised, or dropping it from the footing could not fail.
+    assert with_deemed, "no household carries a deemed bill, so the deemed term is untested"
 
 
 def test_at_least_one_household_has_a_real_write_off_and_one_has_open_balance():
