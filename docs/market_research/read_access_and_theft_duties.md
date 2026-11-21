@@ -181,6 +181,11 @@ Each of these is a different thing, measured and acted on differently.
 - **From 2026** (after our window), suppliers must fix a faulty smart meter within **90 days** of
   being told. DESNZ says "92% of smart meters work as they should". [H] DESNZ press release, 10
   March 2026. Within our window the duty was "all reasonable steps" with no time limit.
+  *Refined 2026-11-21:* the 90 days is an amendment to SLC 49 (electricity) and SLC 33 (gas),
+  counted from when the supplier is "first aware". It carries enforcement, not compensation.
+  Ofgem's 90-day compensation standard (GSOP 4) was **not** decided in January 2026. The GSOP that
+  did start on 23 Feb 2026 for a faulty smart meter, regulation 5A, requires assessment within 5
+  working days, not a fix. See `smart_meter_fault_resolution_and_time_to_restore_2026-11-21.md`.
 - **GAP:** the hazard of a working smart meter dropping out of smart mode, and how long it stays
   out. DESNZ and Ofgem publish stocks, not transitions.
 - **A half-hourly-settled meter is read by construction (build choice, 2026-10-20).** Settlement
