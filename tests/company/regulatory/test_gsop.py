@@ -1,5 +1,7 @@
-import pytest
 from datetime import date
+
+import pytest
+
 from company.compliance.working_days import add_working_days as _add_working_days
 from company.regulatory.gsop import GSOPBook, GSOPPayment, GSOPType
 
@@ -22,10 +24,12 @@ def test_payment_due_date_is_future(book):
     assert p.payment_due_date > date(2022, 3, 1)
 
 
-def test_erroneous_transfer_has_20_working_day_window(book):
+def test_erroneous_transfer_is_paid_within_10_working_days_not_20(book):
+    """Reg 8(2): every standard pays "within 10 working days of the supplier's initial failure".
+    The defect: the 6A AGREEMENT window (20) was used as the PAYMENT window, so the supplier
+    looked compliant for two extra weeks."""
     p = book.record_trigger("C1", GSOPType.ERRONEOUS_TRANSFER, date(2022, 3, 1))
-    # 20 working days from 2022-03-01 (Tuesday)
-    assert (p.payment_due_date - date(2022, 3, 1)).days >= 20
+    assert p.payment_due_date == _add_working_days(date(2022, 3, 1), 10) == date(2022, 3, 15)
 
 
 def test_pay_marks_payment_as_paid(book):
@@ -141,5 +145,5 @@ def test_record_trigger_returns_gsop_payment(book):
     assert isinstance(result, GSOPPayment)
 
 
-def test_gsop_type_has_5_members():
-    assert len(list(GSOPType)) == 5
+def test_gsop_type_has_7_members():
+    assert len(list(GSOPType)) == 7

@@ -214,3 +214,52 @@ The first outcome table for this page (advisor, GB-packs verification file, 25 O
 Named gap 5 stands.
 
 **Counts: confirmed 0 · corrected 0 · still open 1.**
+
+## 6. The switching guaranteed standards, as the regulations write them (read 21 Nov 2026)
+
+Read from legislation.gov.uk, the principal instrument as amended, not from press summaries. Every
+switching standard pays the ONE flat "standard payment" of reg 8, not an amount of its own.
+
+| Standard | Reg | In force | Duty and clock | Who pays |
+|---|---|---|---|---|
+| Identify an erroneous transfer | 6A | 1 May 2019 | old and new supplier "must within 20 working days of the customer notification, agree whether the customer has been transferred without a valid contract" | both (the duty is on both) |
+| Tell the customer the outcome | 6B | 1 May 2019 | the supplier first notified writes within 20 working days | the supplier first notified |
+| Return the customer | 6C | 1 May 2019 | "the old supplier must within 21 working days of the agreement ... re-register the customer" | **old (losing)** supplier |
+| Refund credit after a switch | 6D | 1 May 2019 | within 10 working days of the final bill | old supplier |
+| Avoid an erroneous transfer | 6ZB | 1 May 2020 | "the new supplier must only complete a supplier transfer where there is a valid contract"; the failure occurs "when the old supplier and the new supplier have agreed that the customer has been transferred without a valid contract" | **new (gaining)** supplier |
+| Switch speed | 6ZA | 1 May 2020 | the new supplier completes the transfer within **15 working days** "beginning with the day of receipt by the new supplier of sufficient information" to confirm the customer and identify the meter point(s); a later date the customer asked for is met on that date | **new (gaining)** supplier |
+| Switch speed, amended | 6ZA(3)(a),(d),(4) | **1 April 2024** (S.I. 2024/108) | **5 working days** (6 if the contract was made after 5pm on a working day), beginning with the information day if the customer asked to start inside cooling-off, otherwise with the latest of the two information days and the expiry of the 14 days beginning with the contract day | new supplier |
+| Final bill after a switch | 6CA | 1 May 2020 | within 6 weeks of losing responsibility | old supplier |
+
+- **The payment (reg 8(2)):** "for each such failure, make a payment of £40 (a "standard payment") to
+  the customer who is affected", "within 10 working days of the supplier's initial failure". £30 from
+  1 May 2019; £40 from 2 January 2025 (S.I. 2024/1166). A payment not made in time owes a further
+  "additional standard payment" of the same amount (reg 8(3)-(4)).
+  https://www.legislation.gov.uk/uksi/2015/1544/regulation/8 ;
+  https://www.legislation.gov.uk/uksi/2015/1544/regulation/8/2019-05-01
+- **Instruments:** S.I. 2019/218 (6A-6D, in force 1 May 2019),
+  https://www.legislation.gov.uk/uksi/2019/218/made ; S.I. 2020/116 (6ZA, 6ZB, 6CA, in force 1 May 2020),
+  https://www.legislation.gov.uk/uksi/2020/116/made ; the 2024 switch-speed amendment,
+  https://www.legislation.gov.uk/uksi/2015/1544/regulation/6ZA and Ofgem's decision of 6 Feb 2024,
+  https://www.ofgem.gov.uk/decision/supplier-guaranteed-standard-performance-switch-speed-decision
+- **Exemptions that remove a payment:** a customer who withdraws after completion, suspected fraud
+  (9(7AA)); no usable contact details despite reasonable endeavours (9(7AB), additional payment only).
+- **Before 1 May 2019 there was no statutory switching payment.** The 2015 Regulations' standards were
+  regs 3-6 (appointments, faulty meters, prepayment faults, reconnection); 2019/218 calls 6A-6D "new".
+  This is read from the definitions the amendment replaces, not stated in a source in terms.
+- **A correction this read makes.** `company/regulatory/gsop.py` gave the erroneous-transfer payment a
+  20-working-day window. Twenty is the 6A agreement window; the payment is due within **10** working days
+  of the failure, as for every standard. "Automatic £30 for an ET from 1 May 2020" (§4) is 6ZB, the
+  gaining supplier's own failure, and is consistent with this table.
+
+**What the supplier can observe for each, which is what the code may key on.** 6ZA: the day it received
+sufficient information and the contract day (its own records), and the day the registration service
+confirms it became responsible. 6ZB and 6C: the day the two suppliers agree a transfer had no valid
+contract, which is an inter-supplier record both hold. None of these needs world truth.
+
+**Not established, named rather than picked.** (a) Whether a switch whose information arrived before
+1 April 2024 but completes after it is judged on 15 or 5 days; S.I. 2024/108's transitional text was not
+read. The code keys the regime to the day the clock starts and says so. (b) How often a GB switch misses
+15 or 5 working days, 2016-2025: no published count was found (named gap 3 above is the same hole). (c)
+The erroneous-transfer rate after CSS (named gap 2). The world can therefore draw a 6ZA breach and a
+post-CSS erroneous transfer only once these are found; until then it carries `None` with this reason.
