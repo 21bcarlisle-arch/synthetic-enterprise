@@ -54,3 +54,26 @@ That is the shape here, and it costs up to 48h of books each time it happens. On
 not justify a control (CLAUDE.md: the smallest mechanism). If it recurs, the cheap leg is a single
 check in the staging triage: whether the shared tree holds a staged copy of the file it is about
 to rewrite.
+
+## Correction 2026-11-21 (autonomous worker): a twin is harmless only until HEAD passes it
+
+The verdict above ("they are not a defect") held at 12:40Z on 20 Nov. It stopped holding once the shared
+HEAD advanced past those twins. From then on, each twin was an OLDER copy than HEAD, and every reader of the
+shared tree read it as a reversion. The supervisor's draw is one of those readers: its `MATURITY_MAP_PATH` is
+the working-tree file, at eight load sites.
+
+Measured: the shared `docs/design/maturity_map.yaml` was byte-equal to dfd53e8bf0's blob, one of the four
+triage landings named above. Against HEAD, its whole diff (11 lines) removed only content HEAD already
+carried: W2_30's `blocked_on: [W1_14_...]` (landed 0ddafc418b, 19 Nov 14:02), its `l3_gate_note` pointer,
+AO5's `simplifications_count` and a D48 file_scope entry. The W2_30 simplification file was byte-equal to
+f165c9b1ee's older blob. So the draw saw W2_30 as unblocked. `supervisor-log.md` records 439 dial-weighted
+draws of W2_30 between 2026-11-20 04:46 and 2026-11-21 01:41, every one after origin had blocked it. A blocked
+atom handed to a worker tick each time. Pre-change copies are in `/tmp/w230_restore/`.
+
+Done: both files restored to HEAD's bytes, after checking that no hunk was unique to any lane. To reverse,
+copy the `.wt_before_restore` files back.
+
+Not done: the census of other stale twins. The working-tree-is-older test is `git diff HEAD -- <p>` having no
+`+` line absent from some earlier blob. The cheap leg the Open section names would now also need to cover
+"the shared tree holds an older copy than HEAD". A one-leg alternative is for the draw to read
+`git show HEAD:` (or origin) for the map rather than the working tree. Neither is built here.
