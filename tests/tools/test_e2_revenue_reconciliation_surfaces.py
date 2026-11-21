@@ -104,7 +104,7 @@ EXCLUDED_SUBPATHS = {
 # says 87 controls carrying literal page lists were rewritten to DERIVE from the built site.
 # This one was missed. It is the last of them.
 #
-# WHY IT IS NOW EMPTY, which is a RULING and not rot. RC7 (director, 2026-07-24) forbids a
+# WHY IT WAS EMPTY (2026-08-24 to 2026-11-21), which was a RULING and not rot. RC7 (director, 2026-07-24) forbids a
 # cohort-derived pound aggregate from leading a public surface: "a share of revenue and an
 # account count, never a total". site/index.html carries that ruling in its own source and
 # deliberately does not render the margin figures a later brief asked for. Measured on this
@@ -118,7 +118,13 @@ EXCLUDED_SUBPATHS = {
 # `site/ia_register.py`, not free-text paths: naming a door the IA register no longer
 # advertises now FAILS here, so deleting a door is one edit in the register plus a loud
 # refusal here, instead of a control that quietly rots for four days.
-EXPECTED_NET_MARGIN_DOORS: tuple[str, ...] = ()
+#
+# NO LONGER EMPTY, 2026-11-21. /explore/ prints one household's lifetime net, summed over its
+# fuels ("Lifetime figures across both fuels, on the billed clock"), since 5977203780 (27 Oct)
+# made the customer page's margin column foot. That is a per-account figure, not the cohort
+# pound aggregate RC7 keeps off a public door, and it carries its clock -- so it is a subject of
+# this invariant, and the empty declaration below had gone out of date (red 7 census runs).
+EXPECTED_NET_MARGIN_DOORS: tuple[str, ...] = ("/explore/",)
 
 EXPECTED_EMPTY_REASON = (
     "RC7 (director ruling, 2026-07-24): no cohort-derived pound aggregate may lead a public "
