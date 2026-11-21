@@ -6256,6 +6256,7 @@ PUBLISH_EXTRA_RELATIVE = ("docs/design/maturity_map.yaml", "docs/design/maturity
 #: nothing never carries a ledger write it did not read.
 DOOR_RENDERED_FROM = {"site/data/proof.json": ("docs/observability/coupled_gap_ledger.json",)}
 #: Set by the pre-gate atom_status fold when it folds anything; `_commit_pathspec` reads it.
+# suppression-lint: not-a-suppression _FOLD_WROTE_THE_MAP -- records that the atom_status fold wrote the map, so the publish commit carries it; nothing is silenced
 _FOLD_WROTE_THE_MAP = False
 
 

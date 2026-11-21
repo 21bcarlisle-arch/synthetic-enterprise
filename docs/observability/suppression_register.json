@@ -166,6 +166,40 @@
    "what_still_pages": "the publish gate stays BLOCKED (publish_gate_surgical_scope) while wedged -- publishing does not resume silently; the deadman commit-cadence tier fires INDEPENDENTLY of this throttle. The cooldown only rate-limits the DUPLICATE wedge NTFY and re-arms after PUBLISH_GATE_COOLDOWN_SECONDS (1h).",
    "max_age_seconds": 3600,
    "rearm_trigger": "cooldown re-arms after PUBLISH_GATE_COOLDOWN_SECONDS (3600s); the wedge block itself is un-throttled and the deadman commit-cadence tier is an independent counterpart."
+  },
+  {
+   "id": "phone_watchdog_night_hold",
+   "code_markers": [
+    "QUIET_FROM_HOUR",
+    "QUIET_UNTIL_HOUR",
+    "_quiet"
+   ],
+   "mechanism": "Phone-watchdog night hold: no phone push 22:00-07:00 UK (background/phone_watchdog.py decide())",
+   "commit": "landed with the watchdog (director ruling 4 Nov 2026); registered 21 Nov 2026 when the registration-hole lint named it",
+   "purpose": "The director's own limit (4 Nov, 'Ntfy is fine. As long as it isn't spam'): nothing reaches his phone overnight.",
+   "failure_direction": "silent",
+   "named_failure": "a stall that starts after 22:00 reaches the phone up to 9 h late",
+   "remediation": "law_a",
+   "status": "compliant",
+   "what_still_pages": "nothing is dropped: deliver() returns None (held), the incident stays in state with phoned_at None, and the first run after 07:00 UK phones it. Every incident is also written to docs/status/ on every run, night or day.",
+   "max_age_seconds": 32400,
+   "rearm_trigger": "the hold ends at QUIET_UNTIL_HOUR (07:00 UK), at most 9 h after it starts; a held incident is delivered on the first run after that."
+  },
+  {
+   "id": "declared_wait_quiets_the_wedge_refill",
+   "code_markers": [
+    "quiet_reason"
+   ],
+   "mechanism": "Declared wait: the priority-zero publish-wedge refill stays quiet while an armed watcher awaits the file the owed book needs (background/declared_wait.py quiet_reason, read by supervisor.py)",
+   "commit": "director ruling 18 Nov 2026 ('Yes.'); registered 21 Nov 2026 when the registration-hole lint named it",
+   "purpose": "Stop the refill re-asking a wedge that is already waiting on a named file (59 re-asks on 17-18 Nov, each a commit cycle that repaired nothing).",
+   "failure_direction": "silent",
+   "named_failure": "a watcher that is alive but will never produce its file holds the refill quiet until the 72 h cap",
+   "remediation": "law_a + law_c",
+   "status": "compliant",
+   "what_still_pages": "the publish gate itself stays blocked while wedged; the refill fires at once if the watcher unit is not active, if the file appeared 1 h ago and no book followed, if the episode's cause is not domain_invariant_refused, or if any input is unreadable. The deadman commit-cadence tier is independent of it.",
+   "max_age_seconds": 259200,
+   "rearm_trigger": "EPISODE_CAP_SECONDS (72 h) voids every wait; the watcher going inactive, or its file arriving without a book within BOOK_FOLLOWS_WITHIN_SECONDS (1 h), re-arms it at once."
   }
  ],
  "law_a_gate": "LAW A landed 2026-07-27: every `silent`-biased entry now declares its RE-ARM -- a numeric `max_age_seconds` (time-bound / Law A) and/or a `rearm_trigger` (independent counterpart / Law C). background/suppression_register.py::validate_suppression_register FAILS if a silent suppression declares neither (it could then indefinitely silence a check -- the defect LAW A forbids), or if a `law_a` token lacks the time-bound / a `law_c` token lacks the trigger. R15 both-ways in tests/background/test_suppression_register.py."
