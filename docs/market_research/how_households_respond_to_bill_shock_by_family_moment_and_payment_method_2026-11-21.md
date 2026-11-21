@@ -337,7 +337,7 @@ it should not code price-shock accounts until the forum/review sample has exerci
 
 ## 7. What this changes
 
-- **Code: nothing in this commit.** The world build that consumes this (extending
+- **Code: the media term landed 21 Nov 2026 (§8).** The rest of the world build that consumes this (extending
   `simulation/activation_energy.py`, `simulation/resentment_ledger.py`,
   `simulation/payment_behaviour_source.py`, `simulation/bacs_rails.py`,
   `simulation/contact_propensity.py`, with no parallel shock table) is handed on, after G1.
@@ -345,3 +345,71 @@ it should not code price-shock accounts until the forum/review sample has exerci
   replaces the question it refuses ("by how much does a shock raise the odds of shopping") with a
   design in which no such constant exists: each family and moment fires the household's own
   responses, and the aggregate is graded against T1–T4.
+
+## 8. The world's media term: prediction, filed before measuring (21 Nov 2026)
+
+**What the term is.** A household's exposure to news coverage of energy prices in a week, read as
+that week's coverage share (`per_1000_national_urls`) divided by the mean of the four weeks
+ending a week before it. This is the weekly version of the media page's `week_vs_baseline`
+(day −35 to −8). It is **rise above the background, not absolute loudness**, for the reason that page
+gives in §4a. It reaches a household's activation energy only when the price **that household pays**
+moves. The Guarantee weeks are the case that rules out keying it to a cap headline.
+
+**Prediction, filed before the monthly series below is computed.** Take the months outside the
+collapse (Jan 2016 – Jun 2021 and Jul 2023 – Dec 2025). Read each month's whole-market switching
+against its year and season (the §3.2 ratio), and the month's media ratio as above, averaged over
+the weeks starting in it. Then:
+(a) the rank correlation between the two is **between 0 and 0.3**;
+(b) the least-squares slope of (switching ratio − 1) on (media ratio − 1) is **below 0.10**, so a
+month with twice its background coverage raises market switching by under 10%. This would be
+consistent with T2b's reading that whole-market spikes sit at the edge of the noise.
+If (a) is above 0.3 or (b) is 0.10 or more, media coverage moves market switching more than
+T2b's spike sizes suggest. The term's coupling would then be read from this fit, not from the
+spike table.
+
+**Graded 21 Nov 2026: (b) held; (a) missed its lower bound by a hair.** 59 months (2021 is left out:
+its within-year ratio is broken by the collapse in its second half, giving Jan–Mar readings of 2.3–2.5
+and Apr–Jun readings of 0.3–0.4, so it is graded on its halves as §3.1 says). The seasonal index rebuilt from the
+sheet matches §3.2 to two decimals. Spearman **−0.003** (predicted 0 to 0.3: just below its floor).
+Least-squares slope **−0.014**, bootstrap 95% interval **−0.057 to +0.040** (predicted below 0.10:
+held). The months after coverage do no better: lag-one slope −0.021. With 2021's first half kept in, slope 0.033 (−0.16 to
++0.26). **In the whole-market record, a month of loud coverage does not raise switching.** The loud
+months (Jul 2017 at 2.2× background, Feb 2018 2.4×, Nov 2019 2.2×) read 0.91–1.01 on switching. The
+largest switching excesses (Apr 2019 1.23, Jan 2020 1.26, Jul 2020 1.23) fell in months of ordinary
+coverage (0.9–1.4×).
+
+**What was built** (`simulation/activation_energy.py`, frozen extract
+`sim/data/media_coverage_energy_price_weekly_2016_2025.json`, which cites the series blob it was cut from):
+
+- `media_attention_ratio(date)` gives the week's coverage share over its four-week background,
+  or `None` where the week or its baseline is incomplete at source.
+- `media_moments(date)` names the moments in the week: cap announcement and effective date,
+  supplier announcement and effective date, Guarantee announcement and effective date, and the
+  supplier failure of w/c 20 Sep 2021. That is the only failure week the record dates. The others
+  are a GAP, not a zero.
+- On calendar weeks the extract reads a cap's announcement at a median **2.67**, its effective
+  week at **1.62**, a supplier's announcement at **1.85**, its effective week at **0.89**, and
+  the failure week at **9.4**. These are two cap pulses, one supplier pulse and a failure event,
+  held as properties by `tests/simulation/test_activation_energy_media_term.py`. The calendar
+  week splits a Thursday announcement across two weeks, so single rows read lower than the media
+  page's 7-day window (7 Feb 2019: 1.49 here, 2.5 there).
+- `media_switching_ae_factor(date, own_price_moves)` reaches a household's switching activation
+  energy only when its own price moves, or in a failure week. It divides activation energy by
+  1 + c·(ratio − 1). The **carried coupling c is 0.0**, the fit above, with its interval as the
+  bound any sensitivity run must stay inside.
+
+**What the term moves, stated before any world run.** At c = 0 it moves nothing: T1, T2a, T2b and
+T2d read exactly as before the term existed. That is the measured answer, not an omission. The
+world pressing back through media attention is not visible in whole-market switching. If it exists,
+it lives in one supplier's book (T2c, the 2–6× net-loss band) or in contact. A run at the top of the
+interval (c = 0.040) must keep every T2b month below 1.5. At the failure week's 9.4× that is a 1.34×
+lift on the affected households' hazard, and those households are a minority of the market.
+
+- **G6 — contact and complaint by week.** No weekly GB series of contacts or complaints is on file,
+  so the coupling of coverage to contact is not measured. `MEDIA_CONTACT_COUPLING` is `None`.
+  `contact_propensity` and `resentment_ledger` are not changed: wiring a coupling nobody has
+  measured would be a placeholder. Route: Ofgem's complaints data (quarterly, by supplier) or Citizens Advice
+  helpline volumes, if either is published by week or month.
+- **G7 — per-supplier response to its own announcement.** The T2c band rests on one Centrica
+  reading. The term's single-supplier coupling stays unfitted until a second supplier's
+  monthly net-loss series is found.
