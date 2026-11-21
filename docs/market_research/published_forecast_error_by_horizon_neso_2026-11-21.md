@@ -116,6 +116,8 @@ has three regimes:
    solar error rises 376 → 750 MW.
 2. **About 7–13 days.** There is a **plateau** at the weather-skill limit. The values are flat to
    within noise: wind 1.92–2.01 m/s, solar 843–859 MW. The 10DA wind figure is *above* 13DA.
+   **Corrected the same day, by measurement:** this plateau holds for wind and solar. It does
+   **not** hold for national demand, which keeps rising to about day 11 (see *Measured* below).
 3. **Beyond about 14 days.** The forecast is climatology, built on seasonal-average weather. Its
    error is the weather's own spread around its seasonal mean plus structural error, which is
    0.9% at one year and 3.7% at four for the peak. Lead time stops mattering until the structural
@@ -126,13 +128,73 @@ to the record would fail it. The test should be keyed to this: error is **non-in
 delivery within the sampling noise**, and **flat from the skill horizon outward**. The frame's
 §7 now names this.
 
+## Measured: demand error by lead day (BMRS, FY2021-22 to FY2025-26)
+
+A harness pull, made 2026-11-21. It covers BMRS's own published forecasts against Initial
+National Demand Outturn, with target days from 1 Apr 2021 to 31 Mar 2026. The aggregates are in
+`published_demand_forecast_error_by_lead_day_bmrs_2021_2026.csv` (cuts: all, by FY, by season,
+and the day-ahead series by month). The CSV header states the endpoints and the method. The
+row-level pull (about 2 MB) is not committed; it can be reproduced from those endpoints.
+
+**What is measured.** Two different products, and they are not interchangeable:
+
+- **Day-ahead, half-hourly** (`NDF`). For each half-hour of day D, the forecast is the latest
+  `NDF` publish at or before 10:00 UK on D-1. This is NESO's BP3 metric shape. One trap: `NDF`
+  arrives in *fragments*, and no single publish covers all 48 periods of the next day. A first
+  pass that read one publish, in a 09:00–10:00 window, measured 413 MW and then 644 MW.
+  Neither figure is a measurement; both are recorded here so nobody repeats them.
+- **2–14 days, daily peak** (`NDFD`). There is one publish a day, at about 14:45 UK, of each
+  target day's peak national demand. Lead is the forecast date minus the publish date. It is
+  scored against the day's maximum half-hourly INDO. Lead 1 on this basis is the day's maximum
+  of the day-ahead `NDF`, so the step from lead 1 to lead 2 also contains a change of product
+  and of publish time (10:00 vs 14:45).
+
+**Pre-registered** (written before any number was read):
+P1, day-ahead half-hourly MAE for 2025-26 within 10% of NESO's 682 MW (614–750).
+P2, error rising to about 6 days and flat from 7 to 13 days, as S1's wind and solar tables show.
+
+**P1 holds.** The 2025-26 figure is **695 MW**, 1.9% above 682. By month, Apr–Mar:
+689, 750, 653, 593, 585, 715, 720, 620, 629, 677, 738, 977. Each is within 60 MW of S2's table.
+That agreement is the evidence that the series and the vintage are the ones NESO scores. The
+other years read 598, 617, 601 and 660 for FY2021-22 to FY2024-25 (FY2021-22 lacks May 2021).
+Their mean is 619, against S2's 5-year average of 628.
+
+**P2 is refuted for demand.** Peak MAE by lead (MW), all five FYs together, with n ≈ 1,720 per
+lead:
+
+| lead (days) | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| MAE | 591 | 725 | 762 | 824 | 928 | 1,002 | 1,054 | 1,166 | 1,234 | 1,290 | 1,335 | 1,360 | 1,379 | 1,372 |
+| bias (fc − out) | +26 | −168 | −147 | −138 | −69 | −16 | +72 | +377 | +441 | +473 | +223 | +244 | +256 | +193 |
+| FY range of MAE | 581–615 | 693–783 | 700–817 | 804–858 | 905–959 | 974–1,061 | 999–1,099 | 1,092–1,240 | 1,154–1,291 | 1,207–1,356 | 1,295–1,405 | 1,318–1,449 | 1,325–1,509 | 1,227–1,583 |
+
+- The error keeps rising well past day 7, from 1,054 to 1,290 MW by day 10. It flattens only from
+  about day 11 to day 14 (1,335–1,379). The FY ranges at 11–14 overlap, and those at 7 and 10 do
+  not. Demand does not show the 7-day plateau that S1's wind speed and solar tables show. The
+  probable reason, not tested here, is that demand error is dominated by **temperature**, which
+  keeps forecast skill longer than wind or cloud.
+- **The season decides the shape.** In winter (DJF) the error rises steadily, from 816 MW at lead
+  2 to 1,340 at lead 7 and 1,876 at lead 13. In summer (JJA) it is **flat from day 6 to day 10**
+  (882–901), with a step to about 1,045 at day 11. The 7-day plateau prediction was a summer
+  shape, applied to the whole year.
+- **The bias changes sign and jumps between day 7 and day 8**, from +72 to +377 MW, while MAE
+  steps by +112. That is a method boundary, not a smooth decay: past a week, BMRS's peak
+  forecast leans high. The method change was not identified on the pages read (GAP).
+- Tails are about twice the MAE. The p90 absolute error is 1.2 GW at lead 1, 2.2 GW at lead 7
+  and 2.9 GW at lead 14.
+
+**For B3.** A calibrated day-ahead-to-fortnight schedule for demand now exists, by season. The
+DoD's control should be keyed to "non-increasing toward delivery, within the FY range". It should
+not be keyed to strict monotonicity (lead 14 is below lead 13 in the pooled figure), nor to a
+plateau from day 7, which demand does not have.
+
 ## GAP (not published in what was read)
 
-- **Demand MAE at 2-day and 7-day ahead.** These are the incentivised horizons. In S1 their values
-  appear only in images, and S2 does not report them. The NESO data portal's *Day Ahead Half
-  Hourly Demand Forecast Performance* dataset runs from April 2021 and covers day-ahead only.
-  Pulling BMRS's 2–14-day national demand forecasts against outturn would measure the rest. That
-  is a harness pull and has not been done.
+- ~~Demand MAE at 2-day and 7-day ahead.~~ **Measured 2026-11-21**: see *Measured: demand error
+  by lead day* below. 2DA peak MAE is 725 MW and 7DA is 1,054 MW. It is published nowhere as a
+  number, but it is now measured from the published series. What stays open: the 2DA/7DA figure
+  on NESO's *own* incentive basis (its exact forecast vintage and peak definition), which we
+  match only for day-ahead.
 - **Wind *power* MAE beyond day-ahead.** Only wind *speed* by horizon is published here. The
   1 m/s ≈ 10% conversion is NESO's mid-curve rule of thumb, not a measurement.
 - **Any price forecast.** The system operator publishes no price forecast at any horizon. What a

@@ -348,10 +348,15 @@ documents. These are the 2017 licence report, the BP3 2025-26 Reported Metrics A
   days (wind 1.92–2.01, solar 843–859, with 10DA above 13DA). Beyond 14 days the forecast is
   climatology: seasonal-average weather, with 2–52-week peak demand at 1.1 GW MAE. Years ahead,
   structural error is 0.9% at T-1 and 3.7% at T-4 on a weather-corrected peak.
-- **Still a GAP:** 2DA and 7DA demand MAE, which are published only as images in 2017 and absent
-  from BP3. Also wind *power* error beyond day-ahead, any price forecast, and year-by-year error
-  across 2016–2025. The next prerequisite is a harness pull of BMRS 2–14-day national demand
-  forecasts against outturn, replacing the 2-week sample §4 asked to extend.
+- **Demand by lead day, measured (2026-11-21).** A BMRS pull over FY2021-22 to FY2025-26
+  (`NDF`/`NDFD` against INDO; CSV beside the page) replaces the 2-week sample §4 asked to extend.
+  Day-ahead half-hourly MAE for 2025-26 is 695 MW, against NESO's 682 (pre-registered within
+  10%: holds). Daily-peak MAE is 725 MW at 2DA, 1,054 MW at 7DA and about 1,370 MW at 11–14DA.
+  **Demand has no 7-day plateau** (pre-registered: refuted). The error rises to about day 11,
+  and the shape is seasonal: steady growth in winter, flat from day 6 to day 10 in summer. The
+  bias jumps from +72 to +377 MW between day 7 and day 8.
+- **Still a GAP:** wind *power* error beyond day-ahead, any price forecast, year-by-year error
+  before FY2021-22, and the method change behind the day-8 bias step.
 
 BUILD stays gated (`loop_stage: idle`, provenance `proposal`; MATURITY_MAP.md §8 rule 8). This
 section changes no level.
