@@ -67,3 +67,30 @@ Under K4 this is the practitioner starting point, not the answer. Under K8, it i
 7. **Place it in the world lane** in Monday's weekly review, with its cost. It joins the meter-data faults as world behaviour items. The knowledge page may be split across two weeks.
 
 Close row `your-12-oct-ruling-build-the-world` with this steer as its resolution.
+
+## Addendum, Sat 21 Nov 07:20 GMT: research it, from what customers themselves say
+
+The director's words: "This is my knowledge. But I'd imagine this can be researched and this should be a key part of the knowledge base. I'd have thought that customer review sites are full oft his kind reaction"
+
+What this adds:
+
+1. **His account is a hypothesis to test, not the source.** The knowledge page on bill-shock responses becomes a **key page of the customer-behaviour corpus**, built from evidence.
+2. **Mine what customers say, not only what surveys summarise.**
+   - **Review sites:** Trustpilot pages for GB suppliers, and comparison-site reviews. Read within their terms. Sample and code by hand, or use published analyses of them. Do not bulk-scrape.
+   - **Energy Ombudsman decisions and annual reports.**
+   - **Citizens Advice:** supplier star ratings, complaint data and published case studies.
+   - **Consumer forums:** MoneySavingExpert energy boards.
+   - **Ofgem's consumer engagement surveys and switching statistics.**
+
+   For each account, code:
+   - the shock family (catch-up, mistake, SVT rise, end of fix);
+   - the moment (announcement, effective date, DD change);
+   - payment method;
+   - the first response (ignore, refuse, DD failure, call, complain, switch);
+   - how the supplier handled it;
+   - the outcome (stayed, switched, escalated).
+3. **Know the bias.** Reviews over-represent the angry and the delighted. The world's own feedback model already has this U-shape, at `simulation/feedback_survey.py`. Use review text to establish **which responses exist and how they chain**: the paths and their order. Take **rates** from representative sources (Ofgem surveys, Ombudsman volumes, switching statistics). State that split on the page.
+4. **The same coding feeds the supplier side later.** Real reviews show what good and bad handling looks like. That is the evidence behind "how the issue is handled then affects the likelihood to churn".
+5. **No personal data.** Store codes and short paraphrased examples only, never reviewers' names, under W11.
+
+The advisor offers to run a first research pass after the Mon 23 Nov reset, to stage as evidence for the machine to check against primary sources, as with the 7 Nov packs. Use it if it arrives, but do not wait for it.
