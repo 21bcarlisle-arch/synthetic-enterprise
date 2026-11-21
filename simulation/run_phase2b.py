@@ -79,6 +79,7 @@ from company.interfaces.growth_desk import (
     retention_cut_share_at_risk_tiers,
     retention_cutoff_belief,
     retention_engagement,
+    retention_holdout_by_desk,
     retention_offer_can_buy_anything,
     retention_save_holdout_draws,
     retention_threshold,
@@ -1724,6 +1725,14 @@ def _company_debt_recovery(triad, effective_end: str, payment_method_of) -> dict
     except Exception as exc:  # noqa: BLE001 -- a reporting read must not kill a completed run
         print(f"WARNING [company debt recovery] could not be read: {exc!r}")
         return {"unavailable_because": repr(exc)}
+
+
+def _save_offer_sums_for_the_book():
+    """The run ledger's offered and held-out save counts, or None with no ledger in play."""
+    ledger = active_pressure_ledger()
+    if ledger is None:
+        return None
+    return ledger.retention_offer_sums, ledger.retention_holdout_sums
 
 
 def _box_admission():
@@ -6679,6 +6688,15 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "renewal_notice_log": renewal_notice_log,
         "retention_offer_channel_log": retention_offer_channel_log,
         "retention_save_holdout_log": retention_save_holdout_log,
+        # B8 (2026-11-21): per desk and year, who was held out and what each arm retained, or why
+        # the desk held nobody out. The standing policy runs neither coin, and the book says so.
+        "retention_holdout_by_desk_year": retention_holdout_by_desk(
+            renewal_offer_holdout=_retention_holdout is not None,
+            renewal_offer_outcomes=(_retention_holdout.outcomes(
+                _change_of_supplier_register.losses_notified())
+                if _retention_holdout is not None else ()),
+            save_rate_holdout_on=policy.retention_save_rate_learned_against_holdout,
+            save_offer_sums=_save_offer_sums_for_the_book()),
         "retention_save_rate_lower_bound_log": retention_save_rate_lower_bound_log,
         **({"retention_holdout_log": retention_holdout_log,
             # Q10: each row's days to its first later loss, so any window can be read off the run.

@@ -64,6 +64,7 @@ __all__ = [
     "replacement_cost_avoided_gbp",
     "retention_cut_share_at_price_match",
     "retention_engagement",
+    "retention_holdout_by_desk",
     "retention_offer_can_buy_anything",
     "retention_save_holdout_draws",
     "retention_value_protected",
@@ -627,6 +628,46 @@ def book_retention_holdout(*, renewal_year: int | None, ending_term_type: str | 
     ledger = active_pressure_ledger()
     if ledger is not None:
         ledger.observe_retention_holdout(renewal_year, ending_term_type, account_id, belief)
+
+
+#: The two retention desks a book reports a holdout for: the renewal offer (B8 L3's coin,
+#: `discovered_price_sensitivity.holdout_arm`) and the save offer's own coin
+#: (`competitive_pressure.save_holdout_draws`).
+RETENTION_DESKS = ("renewal_offer", "save_offer")
+
+
+def retention_holdout_by_desk(*, renewal_offer_holdout: bool, renewal_offer_outcomes=(),
+                              save_rate_holdout_on: bool, save_offer_sums=None) -> dict:
+    """(2026-11-21, B8) Per retention desk: whether it held anyone out, and if it did, per renewal
+    year, both arms, how many of each were retained and the interval on the difference.
+
+    A desk with no holdout says so with its reason, never with an empty table: a treatment with no
+    held-out twin cannot say it did anything, and the book must show which desks are in that state.
+    `save_offer_sums` is `(offered_sums, holdout_sums)`, the ledger's per (ending-term type, year)
+    counts; retained there means not lost at that renewal."""
+    from company.pricing.discovered_price_sensitivity import RetentionHoldout, holdout_table_row
+
+    off = "{} is off on this policy, so the desk held no renewal out and its uplift is unmeasured"
+    out: dict[str, dict] = {}
+    if renewal_offer_holdout:
+        out["renewal_offer"] = {"assigned": True, "by_year": RetentionHoldout.holdout_rows_by_year(
+            renewal_offer_outcomes)}
+    else:
+        out["renewal_offer"] = {"assigned": False, "reason": off.format("retention_runs_holdout")}
+    if save_rate_holdout_on and save_offer_sums is not None:
+        offered, held = save_offer_sums
+        years: dict[int, list[int]] = {}
+        for i, sums_by_key in ((0, offered), (2, held)):
+            for (_kind, year), sums in sums_by_key.items():
+                c = years.setdefault(int(year), [0, 0, 0, 0])
+                c[i] += int(sums["n"])
+                c[i + 1] += int(sums["n"]) - int(sums["losses"])
+        out["save_offer"] = {"assigned": True, "by_year": {
+            str(y): holdout_table_row(*c) for y, c in sorted(years.items())}}
+    else:
+        out["save_offer"] = {"assigned": False, "reason": off.format(
+            "retention_save_rate_learned_against_holdout")}
+    return out
 
 
 def retention_bad_debt_charge(default_belief_rate: float | None, billed: float) -> float | None:

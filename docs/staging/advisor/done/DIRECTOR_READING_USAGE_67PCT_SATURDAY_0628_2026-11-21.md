@@ -15,3 +15,20 @@
 
 - Good: the password gate is live, D11 has landed, triage batches 1-3 are done (60 findings disposed, the open count 204 down to 165), the work system has its K8 page, decision map and increment 1 in shadow, and the census runs again. Thank you.
 - **Chase: the gate's side door.** The 20 Nov 08:18 commit found that pre-gate Pages deployments (c156dcf3, 09a031ce) still serve the whole site anonymously, and planned a dispatched sweep. The advisor finds no sweep run in the Actions list, and no commit closing it. Dispatch it, confirm every deployment address answers 401 or is gone, and say so in a commit. If deleting old deployments is not reversible, record that in the commit. The content is also in git, so deleting them destroys no evidence.
+
+## Done
+
+*Delivery seat (executor worktree), 2026-11-21 ~06:50 GMT.*
+
+- **The reading:** the pace was noted. This turn kept to the B8 landing it had already drawn and
+  built nothing larger.
+- **The chase was already answered, but on a line the advisor could not find.** The sweep ran on
+  20 Nov. `pages-close-open-deployments.yml` was dispatched twice: run 44701674785 at 08:19Z, and
+  run 44702018437 at 08:22Z, which took 38m58s. Both succeeded. The workflow fails if any deployment
+  address still answers 200. Its readings landed in `7d99949ce7` (20 Nov 09:49Z): 3,667 open
+  deployments deleted, 0 refused, every remaining one 401. They were in the second clause of a KNIFE3
+  commit message, which is why the Actions list and the commit titles looked empty.
+- **Re-asked from outside just now:** `c156dcf3.poesys-net.pages.dev` returns 404,
+  `09a031ce.poesys-net.pages.dev` returns 404, and `poesys.net` returns 401.
+- **Reversibility:** a deleted Pages deployment cannot be restored. Every one was a build of a
+  commit that is still in git, so redeploying that commit rebuilds it. No evidence was destroyed.

@@ -207,8 +207,6 @@ def estimate_offer_effect(observations) -> OfferEffectEstimate:
     underpowered holdout is a result, not a failure. An arm with no rows is refused by name: a
     difference against nothing is not an estimate.
     """
-    from statistics import NormalDist
-
     counts = {"treated": [0, 0], "holdout": [0, 0]}
     for row in observations:
         arm = counts.get(row["arm"])
@@ -217,6 +215,14 @@ def estimate_offer_effect(observations) -> OfferEffectEstimate:
         arm[0] += 1
         arm[1] += bool(row["stayed"])
     (n1, s1), (n0, s0) = counts["treated"], counts["holdout"]
+    return offer_effect_from_counts(n1, s1, n0, s0)
+
+
+def offer_effect_from_counts(n1: int, s1: int, n0: int, s0: int) -> OfferEffectEstimate:
+    """`estimate_offer_effect` on counts already tallied: treated `n1` of whom `s1` stayed, held out
+    `n0` of whom `s0` stayed. The save desk keeps counts, not rows, so both desks read one interval."""
+    from statistics import NormalDist
+
     if not n1 or not n0:
         empty = "treated" if not n1 else "holdout"
         return OfferEffectEstimate(n1, n0, s1, s0, None, None, None, "refused",
@@ -521,6 +527,23 @@ RETENTION_OUTCOME_WINDOW_DAYS: int | None = None
 RENEWAL_KINDS = ("left_at_decision", "re_fixed", "declined_fix_on_default")
 
 
+#: The keys of one year's row in the book's `retention_holdout_by_desk_year`, on either desk.
+HOLDOUT_ROW_KEYS = ("treated", "held_out", "retained_treated", "retained_held_out", "interval")
+
+
+def holdout_table_row(treated: int, retained_treated: int, held_out: int,
+                      retained_held_out: int) -> dict:
+    """One year of one desk's holdout as the book publishes it: both arms, how many of each were
+    retained, and the interval on the difference in retained shares (None, with its reason, where
+    an arm is empty: a difference against nothing is not an estimate)."""
+    e = offer_effect_from_counts(treated, retained_treated, held_out, retained_held_out)
+    return {"treated": treated, "held_out": held_out, "retained_treated": retained_treated,
+            "retained_held_out": retained_held_out,
+            "interval": (None if e.effect is None else
+                         {"effect": e.effect, "low": e.low, "high": e.high, "verdict": e.verdict}),
+            "reason": e.reason}
+
+
 class RetentionHoldout:
     """The run's holdout rows, and the decision they support at a given day.
 
@@ -615,6 +638,23 @@ class RetentionHoldout:
         return arm, retention_cut_on_belief(
             belief, stay_belief=stay_belief, term_margin_gbp=term_margin_gbp,
             cut_gbp=cut_gbp_per_mwh * billed_kwh / 1000.0)
+
+    @staticmethod
+    def holdout_rows_by_year(outcomes) -> dict[str, dict]:
+        """`outcomes()` tallied per renewal year into the two arms' counts, for the book. Retained
+        means STAYED AT THE DECISION: with no outcome window established
+        (`RETENTION_OUTCOME_WINDOW_DAYS` is None) that is the only retention the rows can claim, and
+        `days_to_later_loss` stays on the rows for any window a reader brings."""
+        counts: dict[str, list[int]] = {}
+        for row in outcomes or ():
+            year = str(row["event_date"])[:4]
+            c = counts.setdefault(year, [0, 0, 0, 0])
+            i = 0 if row["arm"] == "treated" else 2 if row["arm"] == "holdout" else None
+            if i is None:
+                raise ValueError(f"a holdout row names no arm the company ran: {row['arm']!r}")
+            c[i] += 1
+            c[i + 1] += bool(row["stayed_at_decision"])
+        return {year: holdout_table_row(*c) for year, c in sorted(counts.items())}
 
     @staticmethod
     def would_offer(decision: CutDecision | None, standing_guard_offers: bool) -> bool:

@@ -105,6 +105,19 @@ is why they fitted a quadratic. The world's slope per £ also falls as the cut g
    opted-in choosers) and CMOL/CMOC's 30-day population figures (0.00005–0.00013) are the two ends
    it should be graded against.
 
+5. **GAP (2026-11-21): the standing book holds no renewal out, on either retention desk.** Point 3
+   says no published source gives the slope causally, so the company's own holdout is the only
+   instrument that can. Both coins exist and are blind (each reads only the account id and the
+   day: `discovered_price_sensitivity.holdout_arm`, `competitive_pressure.save_holdout_draws`).
+   But both sit behind switches that are off in every standing policy (`retention_runs_holdout`,
+   `retention_save_rate_learned_against_holdout`). Since 2026-11-21 the book says so per desk and
+   year (`retention_holdout_by_desk_year`). **Next step, not built:** draw the holdout assignment
+   blind, BEFORE any treatment is decided, at a share sized by `save_holdout_share`. Put it behind
+   one default-off switch, so that a standing run can carry a held-out twin for every retention
+   lever without the guard's own decision choosing who is in it. Unknown, and so not a value to
+   pick: the share a real GB retention desk holds out. No published source was found, so it is a
+   practitioner question (K4).
+
 ## 4. Sources tried and not used
 
 - **Giulietti, Waddams Price & Waterson (2005)**, *Consumer choice and competition policy*, Economic
