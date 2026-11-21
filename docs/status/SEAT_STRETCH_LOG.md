@@ -8,6 +8,46 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-21 — orientation: Three hours: 14 commits, 12 carrying work, 6 substantive
+
+<!-- head: fc7976e4f8e0 -->
+
+*Written by the orientation seat from its own record (2026-11-21T09:22:20.266245+00:00; 14 commits, 6 substantive, since 2026-11-21T06:20:17.525343+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 1 both, 13 other.
+
+## What the stretch meant
+
+Three hours: 14 commits, 12 carrying work, 6 substantive. The classifier reads 0 supplier, 0 world, 1 both and 13 other, and that undercounts the supplier side: the replication grade and B8 are both supplier work. The steer bit this time. Both of last stretch's live items landed. Pair 33333/44444 was graded at 06:27 (300302799). Cut minus A on the value arm reads +GBP 1.10 (+0.37 to +2.14) against a prediction of +0.60 (-0.60 to +1.80), so it HELD. The flat book moved -GBP 0.008, also HELD. Value arm minus flat book with the cut reads +GBP 7.27 (+0.95 to +13.33). B8's holdout publishing landed as 775a3c46c through launch_long_job, so the seat's embargo row and the machine's stranded-landing row are both corrected. But the grade also showed that the thesis test is not yet designed, and this is the thing this stretch means. The replication re-draws churn on the SAME households. Five of its ten up-movers are among the nine the 0.12 cut was fitted to reach, and they carry GBP 5,701 of the GBP 12,407. There is no flat-rules twin at these seeds either. So even a clean second pair can say only that the cut is not redraw noise. It cannot say the per-customer arm beats flat rules on households it was not tuned on. The open -GBP 0.33 row therefore stays open, and the work that can close it is a fresh-population test (SE_POPULATION_SEED, EP17) with the twin, pre-registered now while pair 2 is still unread. That is item 1. A blocking supplier control surfaced too: the director's "a save is not paid for by the stayers" condition is red on equal arms. Three households carry a +0.35% raise in July 2018. Pair 55555/66666 is slower than the 15:00Z estimate (its log is in mid-2019), so the book that grades D48, KNIFE3, the dual answer and B12 still waits behind it. The checkout is 44 behind origin. The executor is taking the customer-voice theme map now.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- unchanged; the replication's arm A carries the corrected ending-term belief, so it reads that belief only as the base the cut is measured from, not as a switch-on grade. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged. 06:20 21 Nov -- unchanged. 09:22 21 Nov -- unchanged.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- the book is published (run_output_6a588a832f_20261120T134224Z.json); the 23 Nov recheck reads it. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged; the 23 Nov recheck stands. 06:20 21 Nov -- unchanged; the 23 Nov recheck stands. 09:22 21 Nov -- unchanged; the 23 Nov recheck stands.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 18:23 20 Nov -- unchanged. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged. 06:20 21 Nov -- unchanged. 09:22 21 Nov -- unchanged.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. 18:23 20 Nov -- launched 15:49Z; pair 33333/44444 at September 2023; reads about 15:00Z 21 Nov (focus item 1). Its pre-registered grade is cut minus A, not the advantage over the twin. 21:24 20 Nov -- pair 33333/44444 at its 2025 prospect desk; 55555/66666 still to run; still focus item 1. 00:22 21 Nov -- seed 33333 done (5.7 h); seed 44444 at November 2023; the second pair writes about 14:00Z; still focus item 1. 03:24 21 Nov -- pair 33333/44444 written at 03:19Z (member and control files in /var/tmp/vtc-out-cut012); pair 55555/66666 started then, at December 2017 on the log, writes about 15:00Z; still focus item 1, now readable one pair early. 06:20 21 Nov -- unchanged. Pair 33333/44444 has been on disk since 03:19Z and is still ungraded, because the item that grades it was embargoed by its own Step B (see the seat's row below). It is re-filed as focus item 1 with no embargo text. 55555/66666 writes about 15:00Z. 09:22 21 Nov -- still open. Pair 33333/44444 graded (300302799), with cut minus A +GBP 1.10, HELD, and value minus flat book +GBP 7.27 (+0.95 to +13.33). But there is no twin at these seeds, and the pair reuses the fitted households, so this row cannot close on it. The test that can close it is focus item 1, the fresh population with the twin.
+- corrected: THE SEAT'S, NEW. The 03:24 record put 'DO NOT DRAW BEFORE <file> EXISTS' inside item 1's STEP B. The lane's embargo parser reads the whole WHAT, so the executor treated the entire item as embargoed. Grading pair 33333/44444 (on disk since 03:19Z) was never drawn: the item does not appear once in seat-executor-log, and from 05:36Z to 06:15Z the executor stood down five times with 'no unclaimed focus item'. This is the same shape as the 00:22 row I marked corrected. The rule is now one embargo per item, and an item that can start now carries no embargo phrase anywhere in its text. 06:20 21 Nov -- re-filed: the pair-1 grade and the pair-2 grade are separate items.
+- corrected: THE MACHINE'S, NEW. B8's holdout publishing was built and twice put through surgical_land inside one 5400s executor tick (pids 2494806, then 3293850). The tick ended before either gate finished, so the work sits uncommitted in /var/tmp/se-seat-executor: growth_desk.py, discovered_price_sensitivity.py, run_phase2b.py, a new test and a staging finding. The item was then stopped after 3 empty turns, which says nothing was done when the work was done and only its landing was cut short. 06:20 21 Nov -- re-filed as a landing item that runs the gate under launch_long_job so it outlives the tick.
+- corrected: THE SEAT'S, NEW. The 06:20 record called pair 33333/44444 a test on "households its cut was not fitted to". It is not. The replication re-draws churn on the same population, and five of its ten up-movers are in the fitted nine. The grader corrected the claim beside it in s.12f (300302799), and focus item 1 now carries the test that was assumed.
+
+## Chosen against
+
+- Launching the fresh-population run now, beside the replication.
+- Treating pair 1's +GBP 7.27 over the flat book as closing the -GBP 0.33 row.
+- Drawing the dated media-coverage series for price-rise announcements (continuation queue).
+- Fast-forwarding the shared checkout (44 behind) or reaping the ten worktrees with unlanded commits.
+- World work on N17 or the deemed and flex standing charge.
+
+## Focus for the next stretch
+
+- `the-cut-is-tested-on-a-population-it-was-not-fitted-on-against-the-twin`
+- `the-stayers-control-names-the-july-2018-raise`
+- `b8-blind-retention-holdout-behind-a-default-off-switch`
+- `grade-the-0-12-replication-pair-55555-66666-and-the-two-pair-mean`
+- `one-book-carries-the-blend-the-debt-records-the-dual-answer-and-b12`
+
+---
+
 ## 2026-11-21 — orientation: Three hours: 2 commits, both carrying work, 1 substantive
 
 <!-- head: 43827f723485 -->
