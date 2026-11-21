@@ -198,6 +198,12 @@ learnable and defeat the point of giving the company a genuine wall.
   dedicated DISCOVER pass is a genuine prerequisite before BUILD, not a blocker to registering
   this FRAME.
 
+  **Corrected 2026-11-21 (§8):** NESO's own published record now sources the day-ahead
+  figures, the week-ahead *shape* (wind speed and solar MAE from 0 to 13 days), 2–52-week peak
+  demand, and T-1/T-4. 2-day and 7-day *demand* MAE remain a GAP. Price stays UNSOURCED, because
+  the system operator publishes no price forecast. The "monotonically non-increasing" shape above
+  holds only out to about 6 days. Beyond that the record is flat.
+
 This is the R13 split, stated explicitly: **the error-convergence schedule itself is
 BASELINE fidelity** — it must be decided by external evidence (Elexon/NESO published
 accuracy), blind to company P&L, exactly like `sim/scenario/fidelity_check.py`'s moment
@@ -286,7 +292,11 @@ not asserted:
    ≥1 variable (demand or wind, whichever has the cleaner anchor at BUILD time — §1.3
    currently favours demand), each publish carrying a non-zero, non-deterministic error
    whose declared σ/MAE at successive publish times strictly narrows toward the delivery
-   date, calibrated against the real Elexon pull (extended per §4, not the 2-week sample
+   date, [*Corrected 2026-11-21:* strictly narrowing is right for day-ahead against week-ahead,
+   which is where NESO's 0–6-day error grows. It is wrong past the weather-skill horizon of
+   about 7 days, where the published error is flat to within noise. Key the control to this:
+   non-increasing toward delivery within sampling noise, flat from the skill horizon outward
+   (§8).] calibrated against the real Elexon pull (extended per §4, not the 2-week sample
    as-is).
 2. `SimInterface.get_published_forecast()` exists on the seam (§2), reads ONLY the published
    forecast object (never the outturn), and a static/epistemic verifier test asserts no
@@ -321,3 +331,28 @@ near-misses). Week-ahead and season-ahead are real, named follow-on increments, 
 dropped scope — proceeding on this recommendation now (PROCEED_BY_DEFAULT: none of the above
 is a one-way door; the R13 calibration source and the C-twin registration are logged, not a
 values decision).
+
+---
+
+## 8. Calibration sources found (DISCOVER, 2026-11-21)
+
+`docs/market_research/published_forecast_error_by_horizon_neso_2026-11-21.md` reads three NESO
+documents. These are the 2017 licence report, the BP3 2025-26 Reported Metrics Annex and the
+2026 forecasting strategy. What they establish:
+
+- **Day-ahead demand** is 682 MW MAE for 2025-26 (5-year average 628 MW), monthly from 579 to
+  985 MW. **Day-ahead BMU wind** is 4.58% of capacity (5-year average 4.71%). Both come with
+  monthly 5-year averages, which give the seasonal shape.
+- **The shape by horizon has three regimes, not one monotone curve.** Error grows from 0 to
+  about 6 days (wind speed 0.55 → 1.93 m/s, solar 376 → 750 MW). It plateaus from about 7 to 13
+  days (wind 1.92–2.01, solar 843–859, with 10DA above 13DA). Beyond 14 days the forecast is
+  climatology: seasonal-average weather, with 2–52-week peak demand at 1.1 GW MAE. Years ahead,
+  structural error is 0.9% at T-1 and 3.7% at T-4 on a weather-corrected peak.
+- **Still a GAP:** 2DA and 7DA demand MAE, which are published only as images in 2017 and absent
+  from BP3. Also wind *power* error beyond day-ahead, any price forecast, and year-by-year error
+  across 2016–2025. The next prerequisite is a harness pull of BMRS 2–14-day national demand
+  forecasts against outturn, replacing the 2-week sample §4 asked to extend.
+
+BUILD stays gated (`loop_stage: idle`, provenance `proposal`; MATURITY_MAP.md §8 rule 8). This
+section changes no level.
+
