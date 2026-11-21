@@ -257,3 +257,23 @@ for_the_director:
   status: open
   resolution: ''
   evidence: docs/market_research/retention_slope_per_pound_of_renewal_cut.md §3.5
+- id: practitioner-number-needed-how-long-is-a
+  raised: '2026-11-21'
+  kind: strategy
+  decision_kind: outside_source
+  what: 'Practitioner number needed: how long is a GB energy phone call once answered (average handle
+    time), and roughly how many calls a year per customer? Nothing published gives either (searched Ofgem
+    guidance and data portal, NI Utility Regulator, supplier reports), and handle time sets the staffing
+    a supplier needs almost one for one.'
+  proposal: Give a range from the trade (e.g. 'about 6 to 10 minutes; billing calls longer'), or say you
+    don't know. I will carry it as a stated belief with your range, labelled as yours, and wire the world's
+    queue (simulation/contact_centre.py phone_queue, landed today, which refuses without it) into the
+    run, so the supplier's staffing choice moves the wait its customers get.
+  recommendation: I recommend you give a handle-time range from the trade if you have one. Absent an answer
+    by the due date I recommend keeping the queue unwired, with the 6-minute provisional draw unchanged,
+    rather than inventing a handle time.
+  based_on: 5cb7b61c9a
+  status: open
+  resolution: ''
+  evidence: docs/market_research/contact_centre_staffing_cost_and_call_wait_gb_energy_2026-11-21.md s.5
+    (GAP table) and s.4 (agents scale with handle time almost one for one)
