@@ -19,8 +19,10 @@ WHAT IS DRAWN AND WHAT IS NOT
   never be failed. That UNDERSTATES 6ZA payments; ``registration_delay_working_days`` carries
   ``None`` with this reason rather than a zero that would read as measured.
 * **Not built:** an erroneously transferred customer is returned to its old supplier (reg 6C, the
-  OLD supplier's duty) within about 21 working days. The world keeps the household on supply, so the
-  book carries about 0.5% of pre-CSS gains it should have lost. Owed as the next increment.
+  OLD supplier's duty) within about 21 working days, and the payment is credited to its account.
+  Neither can be built yet: no won switch is ever put on supply (`ACQUIRED_CUSTOMERS` is not in the
+  settlement roster), so there is no supply to end and no ledger to credit.
+  `docs/staging/SEAT_FINDING_A_WON_SWITCH_IS_NEVER_PUT_ON_SUPPLY_SO_THE_SWITCHING_GSOP_HAS_NO_ACCOUNT_TO_CREDIT_2026-11-21.md`.
 """
 from __future__ import annotations
 

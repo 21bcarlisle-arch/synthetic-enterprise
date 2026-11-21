@@ -6711,8 +6711,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "acquisition_spend_events": acquisition_spend_events,
         "acquisition_funnel_log": acquisition_funnel_log,
         # Regs 6ZA/6ZB: the world's registration facts per won switch, and the company's answer --
-        # every standard payment it owes on them, each an account credit (posting to the ledger is
-        # not built yet: `world-posts-switching-gsop-credit-and-returns-erroneous-gain`).
+        # every standard payment it owes on them, each an account credit. Not posted: a won switch
+        # is never put on supply, so it has no ledger (SEAT_FINDING_A_WON_SWITCH_IS_NEVER_PUT_ON_
+        # SUPPLY_SO_THE_SWITCHING_GSOP_HAS_NO_ACCOUNT_TO_CREDIT_2026-11-21).
         "gain_registration_log": gain_registration_log,
         "switching_gsop_payments": switching_payments_on_gains(gain_registration_log),
         "fixed_cost_events": fixed_cost_events,
