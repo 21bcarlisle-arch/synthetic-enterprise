@@ -1,0 +1,69 @@
+**Severity:** BLOCKING · **Lane:** W2_customer_generator · **Epoch:** unassigned · **Atom:** `unminted`
+
+# [DIRECTOR-STEER] Bill-shock responses emerge from household behaviour, and are checked against history
+
+**Type:** STEER, through the advisor channel. It answers `for_the_director` row `your-12-oct-ruling-build-the-world` (DD4b), and goes further than the row asked. The advisor recommended building DD4b on a range starting at zero, and asked for any practitioner figure. The director answered with a design instead. His words, verbatim, from chat, Sat 21 Nov 07:15 GMT:
+
+> "For bill shock I think there are different types. One is catch up bills, where estimates are updated or usage has changed. Or where a mistake is made. These results in a few actions. First people refuse to pay it, or if they don't have the money in their account the DD the DD fails. Some will not notice for while. Some will notice and call. This probably varies by payment method a lot. How the issue is handled then affects the likelihood to churn. The other type is where prices go up, due to variable price changes or end of fixed term. These odds need to come from the human behaviour assumed below in the SIM. Some will lapse, some will get the next best deal front he supplier. Some will shop around at this point. This is complex and thinking through the subtlty is important and valuable. I want to drive behaviour from a range of human responses to events driven by financial need and different engagement and attitude. I want to cross check that this matches approx events in history. IE total churn. IE. The spikes in churn we see when SVT tariff rises are announced. (NB the price shock for svt is also the announcements, the effective date and then when the impact hits the DD level). The biggest spike is media coverage. Then smaller ones are hard to see. What we know about fixed customers is that very few leave mid term, even without termination fees. Prices have to fall very far for people to bother, unless promoted by the supplier to take a lower price deal."
+
+Under K4 this is the practitioner starting point, not the answer. Under K8, it is checked against published evidence before it is built.
+
+## What he is saying, structured by the advisor (check it against his words above)
+
+**1. Bill shock is not one thing. There are at least two families.**
+
+- **Catch-up and correction shocks.** Causes: a stale estimate is corrected, usage changed, or the supplier made a mistake. The household responses form a set:
+  - refuse to pay;
+  - the DD fails for lack of funds;
+  - does not notice for a while;
+  - notices and calls.
+
+  The mix **varies strongly by payment method**. **How the supplier handles the contact then moves the odds of churn.** This is the supplier's lever, and it must be visible in the world's response.
+- **Price shocks.** Causes: a variable (SVT) price rise, or the end of a fixed term. The household responses:
+  - lapse onto the default;
+  - take the supplier's next-best retention deal;
+  - shop around.
+
+  For SVT, the shock has **three moments**: the announcement, the effective date, and the date the change reaches the DD amount. **The biggest response is driven by media coverage.** The smaller ones are hard to see in the data.
+
+**2. Responses come from people, not from a fitted amplitude.**
+
+- Drive them from a range of human responses to events, shaped by **financial need** and **engagement and attitude**.
+- These are the hidden household traits already being built: the parsimony factors, the needs and the hidden utility.
+- No single "shock raises shopping odds by X" constant is wanted. The aggregate should emerge.
+
+**3. Check against history; do not fit to it.**
+
+- The emergent behaviour must roughly reproduce:
+  - **total churn** levels;
+  - **the spikes when SVT rises are announced**, largest where media coverage was largest;
+  - **the near-absence of mid-term leaving by fixed customers**, even with no exit fee. Prices must fall very far before they bother, unless the supplier itself promotes a lower-priced deal.
+
+## What is asked (the machine owns the design)
+
+1. **K8 first.** Amend or write the knowledge page on bill-shock responses by family and by payment method. Build on what exists:
+   - the 7 Nov evidence pack `DIRECTOR_EVIDENCE_WHAT_HOUSEHOLDS_DO_AFTER_A_PAIN_POINT` (two-layer grievance and trigger-window model; Centrica's roughly 4x monthly loss spike after the 2018 rise; 42% with cause not complaining; 46% whose DD doubled not challenging it; 19% acting at the end of a fix);
+   - `does_a_bill_shock_event_raise_the_odds_a_household_shops.md`;
+   - Ofgem switching statistics (monthly series, for the spikes);
+   - price-rise announcement dates and media intensity, 2016-2025;
+   - mid-term fixed-tariff leaving rates.
+2. **Model the events as events.** Each household reacts through its own traits (financial need, engagement, attitude, payment method) and its hidden utility. The world's existing pieces carry it:
+   - activation energy;
+   - grievance (the resentment ledger);
+   - payment behaviour;
+   - DD failure on the Bacs rails;
+   - contact.
+
+   Extend these rather than adding a parallel "shock response" table. Where a rate is not published, it is a stated belief with a range, under K2 and F11, not an invented point value.
+3. **Media coverage is a world input,** dated, at the national level. It reaches households through their engagement. Find a published or measurable proxy for its intensity, for example the count of national news stories on each price-rise announcement. Do not invent one.
+4. **The supplier's handling matters.** The world must let a good response to a catch-up shock lower churn and a bad one raise it, so the supplier has something real to learn. The supplier's handling itself is supplier-lane work.
+5. **Validation is a gate, not a fit.** Name the historical targets and their tolerances before running:
+   - annual and monthly churn;
+   - the size and timing of announcement spikes;
+   - mid-term fixed leaving.
+
+   Report where the emergent behaviour lands. A miss is a finding about the behaviour, not a dial to turn.
+6. **DD4b and the payment-plan engine's grade.** Build the price-shock and catch-up families as above. The 12 Oct ruling's intent (the world reacts to a DD shock before the engine is graded) now comes from this design, not from a single amplitude. Until it lands, the advisor's interim recommendation stands as a fallback that has been accepted: grade the engine at both ends of a range that starts at zero, not parked indefinitely.
+7. **Place it in the world lane** in Monday's weekly review, with its cost. It joins the meter-data faults as world behaviour items. The knowledge page may be split across two weeks.
+
+Close row `your-12-oct-ruling-build-the-world` with this steer as its resolution.
