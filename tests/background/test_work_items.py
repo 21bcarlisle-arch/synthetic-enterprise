@@ -245,3 +245,56 @@ def test_a_share_table_refuses_a_row_below_its_floor_and_a_table_with_no_floor(t
         wi.load_shares(none)
     ok = _share_table(tmp_path, "weekly_split:\n  floor: 5\n  shares: {correctness: 95, knowledge: 5}\n")
     assert wi.load_shares(ok) == {"correctness": 0.95, "knowledge": 0.05}
+
+
+def _atom(aid, lane, cur=1, tgt=3, dial=50, **kw):
+    return {"id": aid, "lane": lane, "level_current": cur, "level_target": tgt,
+            "dial_inherited": dial, "loop_stage": "build", **kw}
+
+
+def test_each_gapped_atom_becomes_one_dial_free_step_in_its_share_row():
+    """Defect named: the retired dial leaking back into the pick through the atom source, or an
+    unassessed/finished atom being drawn as work."""
+    atoms = [_atom("W2_a", "W2_customer_generator"), _atom("H_b", "H_harness", dial=5),
+             _atom("C_c", "C_customer_ops", depends_on=["W2_a"], blocked_on=["not_an_atom"]),
+             _atom("D_done", "D_billing_metering", cur=3, tgt=3),
+             _atom("D_null", "D_billing_metering", cur=None)]
+    items, refused = wi.items_from_maturity_map(atoms)
+    by_atom = {i["atom"]: i for i in items}
+    assert set(by_atom) == {"W2_a", "H_b", "C_c"} and refused == []
+    assert {a: wi.share_row(i) for a, i in by_atom.items()} == {
+        "W2_a": "world_feature", "H_b": "harness", "C_c": "supplier_feature"}
+    assert by_atom["C_c"]["blocked_by"] == ["atom-w2-a"]
+    assert all(wi.validate(i) == [] for i in items)
+    assert not any("dial" in k for i in items for k in i)
+    # Two steps in one row that differ only by dial: the low-dial one comes first by id, so a pick
+    # that still saw the dial would choose W2_a.
+    low, high = wi.items_from_maturity_map([_atom("W2_0", "W2_customer_generator", dial=5),
+                                            _atom("W2_a", "W2_customer_generator", dial=50)])[0]
+    assert wi.next_item([high, low], {"world_feature": 1.0}).item["atom"] == "W2_0"
+
+
+def test_the_map_flag_feeds_atom_steps_into_the_shadow_and_off_feeds_none(tmp_path):
+    root = _staging(tmp_path, {})
+    flag = tmp_path / "cutover.yaml"
+    log = tmp_path / "shadow.jsonl"
+    atoms = [_atom("W2_a", "W2_customer_generator")]
+    common = dict(log_path=log, cutover_path=flag, staging_root=root,
+                  priority_path=wi.PRIORITY_ORDER, items_dir=tmp_path / "items", now=NOW)
+    flag.write_text("staging_findings: shadow\n")
+    rec = wi.shadow_record("W2_a -- x (dial=50)", **common)
+    assert rec["pick"] is None and rec["ladder_names_any_atom"] is None
+
+    rec = wi.shadow_record("W2_a -- x (dial=50)", atoms=atoms, **common)
+    assert (rec["pick"], rec["pick_source"]) == ("atom-w2-a", "atom_step")
+    assert rec["ladder_names_pick"] is True and rec["ladder_names_any_atom"] is True
+    rec = wi.shadow_record("H_zz -- y", atoms=atoms, **common)
+    assert rec["ladder_names_pick"] is False and rec["ladder_names_any_atom"] is False
+    assert "the ladder drew a map atom in 1 of 2" in wi.compare(log)
+
+
+def test_the_live_cutover_file_puts_the_map_in_shadow_and_the_live_map_maps_whole():
+    assert wi.cutover_mode(source="maturity_map") in wi.CUTOVER_MODES
+    items, refused = wi.items_from_maturity_map(wi._live_atoms())
+    assert refused == [] and all(wi.validate(i) == [] for i in items)
+    assert {wi.share_row(i) for i in items} <= set(wi.load_shares())

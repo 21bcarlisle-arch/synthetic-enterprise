@@ -21,10 +21,15 @@ What this increment is and is not:
   ladder's own string; it logs what `next_item()` would have picked next to it and changes nothing.
   `--compare` reads the day back.
 
+* **The second source (D3, D7).** `items_from_maturity_map()` turns each live atom with a level gap
+  into an `atom_step` item, behind its own flag (`maturity_map:` in the cut-over file). The atom's
+  `dial_inherited` is deliberately NOT carried: the director retired the dials on 21 Nov, so a
+  map atom reaches the pick only through its share row, like any other item. In shadow this is
+  the side-by-side of the dial-weighted self-refill against the share table; at cut-over the
+  supervisor's `_maturity_map_draw` is deleted in the same commit (D9 step 3).
+
 Not yet here, and where each goes: the claim (D5) replaces the delivery-lane and seat claim stores
-in the migration that deletes them; the draw-count park needs that claim; the dials (D7) wait for
-the director's answer on the for_the_director row `the-one-work-system-s-decision-map` and only
-matter once atom steps are a source, which none is yet.
+in the migration that deletes them; the draw-count park needs that claim.
 """
 
 from __future__ import annotations
@@ -214,20 +219,99 @@ def items_from_staging(staging_root: Path = STAGING_ROOT) -> tuple[list[dict], l
     return items, refused
 
 
-def cutover_mode(path: Path = CUTOVER_FILE) -> str:
-    """The staging-findings cut-over flag. An unreadable or unknown value reads `off`, by name."""
+# ---------------------------------------------------------------------------------------------
+# The second source: maturity-map atom steps (D3, D7), with no dial
+# ---------------------------------------------------------------------------------------------
+
+#: The map records no date a step opened. Every atom step carries this one, the day the map became
+#: the self-refill's draw source (MATURITY_MAP.md §6, 2026-07-10), so the age rule ties across
+#: atoms and the id breaks the tie. GAP: a real per-step age needs the date written at migration
+#: (`--migrate --write`), not invented here.
+ATOM_STEP_OPENED_AT = "2026-07-10T00:00:00+00:00"
+
+
+def atom_item_id(atom_id: str) -> str:
+    return "atom-" + re.sub(r"[^a-z0-9]+", "-", str(atom_id).lower()).strip("-")
+
+
+def items_from_maturity_map(atoms: list[dict]) -> tuple[list[dict], list[str]]:
+    """One `atom_step` item per live atom whose level is below its target, and the atoms refused.
+
+    The rule is the old draw's own candidacy (a real gap; `level_current: null` is unassessed and
+    never drawn) with the dial removed. `kind` is `harness` on the building side and `feature`
+    elsewhere, so the atom lands in the share row the 16 Nov review sized for it. `severity` is
+    RECORDED because a planned level step reports nothing wrong. A dependency or `blocked_on` that
+    names another live gapped atom becomes `blocked_by`, so the step waits until that one is done.
+    """
+    gapped = {a.get("id") for a in atoms
+              if a.get("level_current") is not None and a.get("level_target") is not None
+              and a["level_current"] < a["level_target"]}
+    items: list[dict] = []
+    refused: list[str] = []
+    for a in atoms:
+        aid = a.get("id")
+        if aid not in gapped:
+            continue
+        side = FINDING_LANE_TO_SIDE.get(a.get("lane") or "")
+        if side is None:
+            refused.append(f"{aid}: lane {a.get('lane')!r} has no side")
+            continue
+        waits = [d for d in (a.get("depends_on") or []) + (a.get("blocked_on") or [])
+                 if d in gapped and d != aid]
+        items.append({
+            "id": atom_item_id(aid),
+            "title": f"{aid}: level {a['level_current']} -> {a['level_target']} "
+                     f"({a.get('loop_stage') or '?'})",
+            "lane": side,
+            "kind": "harness" if side == "building" else "feature",
+            "affects": None,
+            "class": "standard",
+            "severity": "RECORDED",
+            "source": "atom_step",
+            "evidence": [f"docs/design/maturity_map.yaml#{aid}"],
+            "knowledge_gap": None,
+            "insight": None,
+            "decider": "machine",
+            "director_rank": None,
+            "atom": aid,
+            "blocked_by": sorted({atom_item_id(d) for d in waits}),
+            "occurrences": 1,
+            "state": "open",
+            "opened_at": ATOM_STEP_OPENED_AT,
+            "chosen_at": None,
+            "closed_at": None,
+            "chosen_by": None,
+            "done_evidence": None,
+            "parked": None,
+            "obsolete": None,
+            "finding_lane": a.get("lane"),
+        })
+    return items, refused
+
+
+def _live_atoms() -> list[dict]:
+    from tools import maturity_map_store
+    return maturity_map_store.load_live_atoms()
+
+
+def cutover_mode(path: Path = CUTOVER_FILE, source: str = "staging_findings") -> str:
+    """One source's cut-over flag. An unreadable or unknown value reads `off`, by name."""
     try:
-        mode = (yaml.safe_load(path.read_text(encoding="utf-8")) or {}).get("staging_findings")
+        mode = (yaml.safe_load(path.read_text(encoding="utf-8")) or {}).get(source)
     except (OSError, yaml.YAMLError):
         return "off"
     return mode if mode in CUTOVER_MODES else "off"
 
 
-def all_items(staging_root: Path = STAGING_ROOT, items_dir: Path = ITEMS_DIR) -> list[dict]:
-    """The store as the pick reads it: written items, plus staging-derived ones not yet written."""
+def all_items(staging_root: Path = STAGING_ROOT, items_dir: Path = ITEMS_DIR,
+              atoms: list[dict] | None = None) -> list[dict]:
+    """The store as the pick reads it: written items, plus derived ones not yet written. `atoms`
+    is the map's live atoms when its flag is on in shadow, else None and no atom step is read."""
     stored = stored_items(items_dir)
     seen = {i["id"] for i in stored}
     derived, _ = items_from_staging(staging_root)
+    if atoms is not None:
+        derived += items_from_maturity_map(atoms)[0]
     return stored + [i for i in derived if i["id"] not in seen]
 
 
@@ -401,7 +485,7 @@ def shadow_log_path() -> Path:
 def shadow_record(ladder: str | None, *, log_path: Path | None = None,
                   cutover_path: Path = CUTOVER_FILE, staging_root: Path = STAGING_ROOT,
                   priority_path: Path = PRIORITY_ORDER, items_dir: Path = ITEMS_DIR,
-                  now: datetime | None = None) -> dict | None:
+                  now: datetime | None = None, atoms: list[dict] | None = None) -> dict | None:
     """Log what `next_item()` would pick beside what the ladder drew. Changes nothing.
 
     Returns the record, or None when the flag is off. `ladder_names_pick` says whether the
@@ -417,10 +501,19 @@ def shadow_record(ladder: str | None, *, log_path: Path | None = None,
         from background.live_ledger_guard import guard_live_ledger_write
         path = guard_live_ledger_write(shadow_log_path(), writer="work_items.shadow_record")
     now = now or datetime.now(timezone.utc)
-    items = all_items(staging_root, items_dir)
+    if atoms is None and cutover_mode(cutover_path, "maturity_map") == "shadow":
+        atoms = _live_atoms()
+    items = all_items(staging_root, items_dir, atoms)
     pick = next_item(items, load_shares(priority_path), now=now)
-    evidence = (pick.item or {}).get("evidence") or []
-    finding_names = {Path(e).name for i in items for e in i.get("evidence") or []}
+    picked = pick.item or {}
+    evidence = picked.get("evidence") or []
+    finding_names = {Path(e).name for i in items if i["source"] == "finding"
+                     for e in i.get("evidence") or []}
+    atom_ids = {i["atom"] for i in items if i["source"] == "atom_step"}
+    # The dial draw's line opens with the atom id, so an atom pick is named by its id.
+    names_pick = (bool(ladder and picked.get("atom") and picked["atom"] in ladder)
+                  if picked.get("source") == "atom_step"
+                  else bool(ladder and any(Path(e).name in ladder for e in evidence)))
     record = {
         "at": now.isoformat(timespec="seconds"),
         "pick": (pick.item or {}).get("id"),
@@ -428,10 +521,15 @@ def shadow_record(ladder: str | None, *, log_path: Path | None = None,
         "pick_severity": (pick.item or {}).get("severity"),
         "reason": pick.reason,
         "ladder_head": (ladder or "")[:300],
-        "ladder_names_pick": bool(ladder and any(Path(e).name in ladder for e in evidence)),
+        "pick_source": picked.get("source"),
+        "ladder_names_pick": names_pick,
         # How often the old ladder draws a staging finding at all; without it a low
         # ladder_names_pick cannot be told from a ladder that simply draws atoms.
         "ladder_names_any_finding": bool(ladder and any(n in ladder for n in finding_names)),
+        # The same denominator for the dial draw: how often the ladder handed out a map atom at all.
+        # None, not False, when the map flag is off, so a day without atoms cannot read as zero.
+        "ladder_names_any_atom": (bool(ladder and any(a in ladder for a in atom_ids))
+                                  if atoms is not None else None),
     }
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as fh:
@@ -448,13 +546,19 @@ def compare(log_path: Path | None = None) -> str:
         return "shadow log is empty"
     named = sum(r["ladder_names_pick"] for r in rows)
     any_finding = sum(r.get("ladder_names_any_finding", False) for r in rows)
+    atom_rows = [r for r in rows if r.get("ladder_names_any_atom") is not None]
     picks: dict[str, int] = {}
     for r in rows:
         picks[r["pick"] or "(none)"] = picks.get(r["pick"] or "(none)", 0) + 1
     lines = [f"{len(rows)} draws from {rows[0]['at']} to {rows[-1]['at']}",
              f"the ladder named the new pick's document in {named} of {len(rows)}",
-             f"the ladder named any staging finding in {any_finding} of {len(rows)}",
-             "new picks:"]
+             f"the ladder named any staging finding in {any_finding} of {len(rows)}"]
+    if atom_rows:
+        lines.append(f"with the map in shadow: the ladder drew a map atom in "
+                     f"{sum(r['ladder_names_any_atom'] for r in atom_rows)} of {len(atom_rows)}, "
+                     f"the new pick was an atom step in "
+                     f"{sum(r.get('pick_source') == 'atom_step' for r in atom_rows)}")
+    lines.append("new picks:")
     lines += [f"  {n:>4}  {pid}" for pid, n in sorted(picks.items(), key=lambda kv: -kv[1])]
     return "\n".join(lines)
 
@@ -487,7 +591,8 @@ def main(argv: list[str] | None = None) -> int:
         for r in refused:
             print(f"  refused {r}")
         return 0
-    pick = next_item(all_items(), load_shares())
+    atoms = _live_atoms() if cutover_mode(source="maturity_map") == "shadow" else None
+    pick = next_item(all_items(atoms=atoms), load_shares())
     print(pick.reason)
     return 0
 

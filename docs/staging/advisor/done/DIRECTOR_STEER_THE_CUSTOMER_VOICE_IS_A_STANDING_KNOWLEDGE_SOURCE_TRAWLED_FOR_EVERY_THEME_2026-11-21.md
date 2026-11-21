@@ -78,4 +78,7 @@ Actioned by the delivery seat, 21 Nov 2026, as direction.
 - **Placed for Monday's weekly review (23 Nov)** first in the knowledge share, with its cost set
   there.
 
+- **Landed since** (record, delivery seat 21 Nov): the scheme, proven on the bill-shock page, is
+  `docs/market_research/how_households_respond_to_bill_shock_by_family_moment_and_payment_method_2026-11-21.md` (7128283615); the theme map is `docs/market_research/customer_voice_theme_map_gb_energy_2026-11-21.md` (fc7976e4f8).
+
 Decision: none -- his question ("shouldn't these be trawled for other themes?") answers no recommendation put to him
