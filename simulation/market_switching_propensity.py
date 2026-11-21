@@ -180,6 +180,18 @@ def published_departure_band() -> dict[int, tuple[float, float]]:
     }
 
 
+def published_accounts_millions() -> dict[int, float]:
+    """`{year: accounts}`: the band's own denominator, all GB domestic electricity accounts (millions).
+
+    Read from the same commons object as the rates, so a reader who needs "how many accounts were
+    there" (`simulation/supplier_failures_2021_22.py`, a SoLR move's per-account chance) takes the
+    publisher's figure for that year rather than a flat 28m.
+    """
+    raw = json.loads(_COMMONS.read_text())
+    return {int(r["year"]): float(r["accounts_millions"])
+            for r in raw["rates"] if r.get("accounts_millions") is not None}
+
+
 def _curve_rate(year: int) -> float:
     """The savings curve's own answer for a year, before any level correction."""
     savings = MARKET_SAVINGS_BY_YEAR.get(year, 150.0)
