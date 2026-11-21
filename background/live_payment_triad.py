@@ -946,6 +946,13 @@ class LivePaymentTriad:
             "moratorium_active": self._consumer.breathing_space.moratorium_active(account, as_of),
         }
 
+    def account_held_on_a_save(self, customer_id: str, saved_from: date) -> None:
+        """The run tells the COMPANY's consumer it held this leg's account on a save whose first
+        saved term starts on `saved_from` -- the company's own act, so its own record
+        (`PaymentObservationConsumer.account_held_on_a_save`), beside the premium's
+        `PortfolioMarginBook.account_held_on_a_save`."""
+        self._consumer.account_held_on_a_save(account_of(customer_id), saved_from)
+
     def default_belief_rate(self, as_of: date, arrears_state: str, *, payment_method_of) -> float:
         """The bad-debt charge per GBP billed the COMPANY has learned from its own book, for a
         renewal on `as_of` by an account in `arrears_state` -- a

@@ -67,7 +67,7 @@ from __future__ import annotations
 import dataclasses
 import datetime as dt
 from dataclasses import dataclass
-from typing import Callable, Iterable, Optional
+from typing import Callable, Iterable, Mapping, Optional
 
 from company.billing.account_ledger import LedgerBook, LedgerEventType
 from company.billing.arrears_engine import (
@@ -394,15 +394,29 @@ def default_belief(
     *,
     decided_on: dt.date,
     arrears_state: str,
+    held_on_a_save: Optional[Mapping[str, dt.date]] = None,
 ) -> DefaultBelief:
     """The expected charge share for one renewal, from outcomes the company knew BEFORE `decided_on`.
 
     Point-in-time by construction: a reading made on or after the decision date is not read, so a
     renewal priced before any outcome resolved gets exactly the prior. Of each account-year, only
     its latest reading before the decision counts.
+
+    A SAVE DOES NOT TEACH THE BAD-DEBT RATE. `held_on_a_save` is the company's own record of the
+    accounts it held on a save, each with the start of its first saved term. A reading of such an
+    account resolved on or after that date is not read: the save bills the same loss over a
+    smaller bill, so the money-weighted share would rise because of the save's price, and every
+    stayer in the cell would carry it in its strike (the stayers control, 2026-11-21: a saved
+    account's billing raised three stayers' July 2018 strikes by 0.35%). Its readings resolved
+    before the save stay; they are the same whatever the save billed. The premium reads its own
+    margin the same way (`PortfolioMarginBook.account_held_on_a_save`).
     """
+    held = held_on_a_save or {}
     known: dict = {}
     for o in observations:
+        saved_from = held.get(o.account_id)
+        if saved_from is not None and o.resolved_on >= saved_from:
+            continue
         if o.resolved_on < decided_on and o.arrears_state == arrears_state:
             key = (o.account_id, o.year_start)
             if key not in known or o.resolved_on > known[key].resolved_on:

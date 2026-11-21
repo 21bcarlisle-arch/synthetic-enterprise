@@ -2326,7 +2326,17 @@ class PaymentObservationConsumer:
         observations = observe_book(
             self.ledger_book, as_of=as_of, payment_method_of=payment_method_of,
             arrears_state_at=arrears_state_at, memo=memo)
-        return default_belief(observations, decided_on=as_of, arrears_state=arrears_state).rate
+        return default_belief(observations, decided_on=as_of, arrears_state=arrears_state,
+                              held_on_a_save=self.__dict__.get("_held_on_a_save", {})).rate
+
+    def account_held_on_a_save(self, account_id: str, saved_from: dt.date) -> None:
+        """Record that THIS company held `account_id` on a save whose first saved term starts on
+        `saved_from`. A supplier knows whom it saved. The belief stops reading that account's
+        outcomes from then (`default_belief`, "a save does not teach the bad-debt rate"); the first
+        save's date is kept, as a later save starts inside an already-saved account's record."""
+        held = self.__dict__.setdefault("_held_on_a_save", {})
+        if account_id not in held or saved_from < held[account_id]:
+            held[account_id] = saved_from
 
     def provision_stock(self, on: dt.date, *, payment_method_of, crisis_overlay: bool = False,
                         arrears_overlay: bool = False) -> dict:

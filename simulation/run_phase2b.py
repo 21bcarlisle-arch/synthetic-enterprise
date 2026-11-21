@@ -3775,6 +3775,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         if _carried_billed is not None:
             unit_rate = _carried_billed
             _held_on_a_save = True
+            _payment_triad.account_held_on_a_save(cid, date.fromisoformat(term_start_str[:10]))
             _offer_vs_default = None
 
         # Phase 11a: record basis risk (company estimate vs sim ground truth)
@@ -4965,6 +4966,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     unit_rate = billed_rate_when_saved(unit_rate, _save_rate)
                     _held_on_a_save = True
                     _portfolio_margins.account_held_on_a_save(billing_account)
+                    _payment_triad.account_held_on_a_save(
+                        cid, date.fromisoformat(term_start_str[:10]))
                     event = {**_asked, "event_type": "renewed", "departure_cause": None,
                              "saved_on_loss_notice": True}
                     if not _indexed_tariff:

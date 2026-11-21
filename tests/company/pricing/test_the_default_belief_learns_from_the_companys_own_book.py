@@ -11,7 +11,11 @@ Defect each control names:
   * an account the register answers `None` for (not one the price learns from) is learned from anyway;
   * an account that pays down arrears it began the year with is learned as a NEGATIVE loss (the
     release of last year's provision read as this year's gain), so a thin cell of them prices a
-    debtor as a source of value (`df9792c57`).
+    debtor as a source of value (`df9792c57`);
+  * a save's lower bill teaches the belief: the same loss over a smaller bill raises the cell's
+    money-weighted share, so every stayer in the cell pays for the save in its strike (the stayers
+    control, 2026-11-21: +0.35% on three households' July 2018 strikes); or the fix over-reaches
+    and drops the saved account's readings from BEFORE its save, which no save price can move.
 """
 
 import datetime as dt
@@ -370,3 +374,29 @@ def test_a_negative_belief_is_refused_wherever_it_reaches_a_price():
         assert _chain_rate(0.0) is not None
         with pytest.raises(ExpectedLossBeliefOutOfRangeError):
             _chain_rate(-0.0083)
+
+
+def test_a_save_does_not_teach_the_bad_debt_rate_and_the_pre_save_reading_still_counts():
+    """The property, not a count: whatever the save billed, the belief is the same, so no stayer's
+    strike moves with the save price. The saved account's reading from before its save is the same
+    in every arm and still counts."""
+    saved_from = dt.date(2018, 4, 1)
+    pre, post = dt.date(2018, 3, 1), dt.date(2019, 3, 1)
+    decided_on = dt.date(2019, 7, 1)
+    others = [_year(f"W{i}", DD, 0.15, post, state="worsening") for i in range(6)]
+    held = {"SAVED": saved_from}
+
+    def belief(save_billed, held_on_a_save):
+        saved = [AccountYear("SAVED", DD, "worsening", pre - dt.timedelta(days=365), pre,
+                             1200.0, False, 360.0),
+                 AccountYear("SAVED", DD, "worsening", post - dt.timedelta(days=365), post,
+                             save_billed, False, 200.0)]
+        return default_belief(others + saved, decided_on=decided_on, arrears_state="worsening",
+                              held_on_a_save=held_on_a_save)
+
+    at_renewal, at_save = belief(1288.38, held), belief(1173.40, held)
+    assert at_renewal.rate == at_save.rate, (at_renewal, at_save)
+    # The pre-save year is still read: 6 others + the saved account's year before its save.
+    assert at_save.account_years == 7 and at_save.charge_gbp == round(6 * 180.0 + 360.0, 2), at_save
+    # Without the record the save's price moves the belief: the channel this control guards.
+    assert belief(1288.38, None).rate != belief(1173.40, None).rate

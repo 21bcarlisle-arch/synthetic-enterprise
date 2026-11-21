@@ -239,3 +239,29 @@ priced with no bad debt in it loses that share of revenue on every term, in ever
 - No published source says how a supplier loads bad debt into a fixed unit rate: per MWh, per
   customer, by payment method, or by arrears state. The cap's per-customer, by-method form is what the regulator does.
   The per-MWh form here is the design's, because the strike is a unit rate.
+
+## A save does not teach the bad-debt rate (added 2026-11-21)
+
+Opened by `docs/staging/WORKER_FINDING_THE_STAYERS_CONTROL_IS_RED_ON_EQUAL_ARMS_AND_THREE_HOUSEHOLDS_CARRY_A_0_35_PERCENT_RAISE_2026-11-21.md`.
+The bad-debt belief in the section above is money-weighted: charge over billed, per arrears cell. A
+saved account is billed at its save, below its renewal offer, and its loss does not change with the
+price. So the same loss over a smaller bill raised the cell's share, and every stayer priced on that
+cell carried the save in its strike. In the 7-year `worsening` cell one saved account billed
+GBP 1,173.40 at its save, against GBP 1,288.38 at its renewal, moved the belief from 0.162094 to
+0.166133. That raised three stayers' July 2018 strikes by 0.35%.
+
+**Established, from the company's own record only.** A supplier knows whom it held on a save and
+from which term. No published source says how a supplier's bad-debt loading treats retained
+accounts, so this is a design choice, the same one the portfolio premium already makes about its own
+margin (`PortfolioMarginBook.account_held_on_a_save`, since 2026-10-08).
+
+**What follows, as a design choice made here.** `default_belief(held_on_a_save=)` does not read a
+saved account's readings resolved on or after the start of its first saved term. Its readings
+resolved before the save stay: they are the same whatever the save billed. The run records each
+save where it is billed, on the saved leg and on the household's carried leg
+(`LivePaymentTriad.account_held_on_a_save` → `PaymentObservationConsumer.account_held_on_a_save`).
+
+**GAP.** Dropping a saved account's later readings also drops whatever true loss signal they carry.
+Whether a saved cohort defaults differently from stayers is unmeasured here. If it does, the right
+belief would read the save's loss over the bill the account would have paid at its renewal, which a
+supplier can compute; that is not built.
