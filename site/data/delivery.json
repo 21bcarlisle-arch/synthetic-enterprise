@@ -1,9 +1,63 @@
 {
- "generated_at": "2026-11-21T12:25:10.666367+00:00",
+ "generated_at": "2026-11-21T15:27:22.525107+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "fbd29e45f",
+    "at": "2026-11-21T14:30:00Z",
+    "subject": "Knowledge first for the smart-meter fault path (K8): a supplier's duty to restore a non-communicating meter is \"all reasonable steps\" with no clock inside 2016-2025, and time to restore is undefined in our world because a silent meter is held silent for life and the supplier has no restore action, so V-T2 (5-21% smart dispute share, 4x) is unreachable by construction",
+    "substantive": true
+   },
+   {
+    "sha": "e15aa9241",
+    "at": "2026-11-21T14:22:41Z",
+    "subject": "delivery seat: merge origin/main into the one-work-system cut-over landing (upstream does not touch its paths)",
+    "substantive": false
+   },
+   {
+    "sha": "5532d24b2",
+    "at": "2026-11-21T14:20:04Z",
+    "subject": "One work system, increment 3: the staging findings are cut over to the item store. The side-by-side day passed its own test (P4 0 real failures; where both draws named a finding they agreed 96 of 96; each of the 3 picks is one triage accepts), so staging_findings is \"on\", 179 findings are items in docs/work/items/, rung 1c and the draw read the store, and the root listing drops them (161 names to 1)",
+    "substantive": true
+   },
+   {
+    "sha": "6ed962b6c",
+    "at": "2026-11-21T13:42:27Z",
+    "subject": "The promotion route stops refusing efficiency trial E-e's own write: a minimal-arm executor turn has the draft written over CLAUDE.md before it starts, and promote_worktree_landing counted those machine bytes as the writer's unfinished work, so every minimal-arm landing in the trial week could land but never promote (found by this turn's own promotion of 80e1ba16a). A dirty CLAUDE.md is now passed only when its bytes are EXACTLY the draft's; any real edit, including one on top of the draft, is still refused. Mutation-proven both ways. Finding filed LATENT: the E-e read should flag minimal-arm turns refused on M CLAUDE.md before this commit.",
+    "substantive": true
+   },
+   {
+    "sha": "80e1ba16a",
+    "at": "2026-11-21T13:27:32Z",
+    "subject": "Bill-shock G1, second reading: every announcement window is now counted, and the announcement week, not the effective week, is the media moment (supplier rises 2016-18: median 1.5x the month before against 0.7x at the effective date, louder in 12 of 15). The pre-registered prediction held: the Feb 2019 cap week rose 2.5x its baseline against British Gas Aug 2017's 5.9x. The loudest day of the decade (26 Aug 2022, 38.8 per 1,000) is only a 2.5x week because that whole summer was already loud, so absolute loudness and rise above background are different quantities, and the world's media term must name which one it uses. The Guarantee weeks read 0.9 and 0.7.",
+    "substantive": true
+   },
+   {
+    "sha": "4b9c82701",
+    "at": "2026-11-21T13:19:46Z",
+    "subject": "head-green-census s.12: the 21 Nov night cannot test the plugin fix -- the shared tree's HEAD has sat at 270bf6a178 since 20 Nov 18:03 (60 behind origin, 21 paths hold the fast-forward), so 89f5e98d3 is not in the subject; Q1-Q3 ungraded, the QUEUED line names a dead landing while the live refusal is memory behind the value-test long job, and today's run is pre-registered as a positive control (stops near 6033 on the unfixed plugin)",
+    "substantive": false
+   },
+   {
+    "sha": "bcb243e3d",
+    "at": "2026-11-21T13:01:11Z",
+    "subject": "delivery seat: merge origin/main into the B8 blind-holdout landing (upstream does not touch its paths)",
+    "substantive": false
+   },
+   {
+    "sha": "318d042e7",
+    "at": "2026-11-21T12:59:20Z",
+    "subject": "B8's blind retention holdout is built behind one default-off switch: a coin drawn over every renewal the desk considers, before the cut, the guard or either other coin, at the power-derived share 0.272 (save_holdout_share), withholding the proactive approach only and never the re-fix tariff",
+    "substantive": true
+   },
+   {
+    "sha": "4194f55a1",
+    "at": "2026-11-21T12:50:42Z",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "93d1babc8",
     "at": "2026-11-21T12:05:23Z",
@@ -189,89 +243,27 @@
     "at": "2026-11-21T03:00:18Z",
     "subject": "HEAD red register, test_the_register_is_EXACTLY_the_bare_world_constants made green (7 census runs red): two new world constants cite their sources and one anchored constant is struck from the register",
     "substantive": true
-   },
-   {
-    "sha": "5d6253e9e",
-    "at": "2026-11-21T02:20:01Z",
-    "subject": "HEAD red register, test_suppression_lint::test_live_tree_passes made green (16 census runs red): two real suppressions registered, one false positive waived",
-    "substantive": true
-   },
-   {
-    "sha": "6e79035d9",
-    "at": "2026-11-21T01:45:11Z",
-    "subject": "Stale twin copies in the shared tree misled the draw: the working-tree maturity map (byte-equal to dfd53e8bf0) read W2_30 as unblocked, so the supervisor drew a blocked atom 439 times from 20 Nov 04:46 to 21 Nov 01:41; both files restored to HEAD, correction filed beside the 20 Nov finding's \"not a defect\" verdict",
-    "substantive": false
-   },
-   {
-    "sha": "a6de6f977",
-    "at": "2026-11-21T01:40:02Z",
-    "subject": "B12: writer 1 puts back the fixed network cost its standing charge recovers, so a post-TCR fixed term is no longer read about 21 points short",
-    "substantive": true
-   },
-   {
-    "sha": "52150fb17",
-    "at": "2026-11-21T00:48:56Z",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "5d9d09693",
-    "at": "2026-11-20T23:52:36Z",
-    "subject": "A post-publish reader red that a later commit fixed can carry its disposition: the 6af7fd0bfd book's contracted-tariff red re-ledgered with current code reads 0 of 53,605 bills disagreeing (53,373 agreed, 232 bounded), so it stands only until the next publish",
-    "substantive": true
-   },
-   {
-    "sha": "6e184e9c3",
-    "at": "2026-11-20T23:28:43Z",
-    "subject": "W2_30's block_reason carries today's count, not 19 Nov's: 287 of 589 gas legs settle on their own split on book 6a588a832f (the row still said 1 premise in 4 and 361/473 gas legs on the fallback, from run 7f0723b46e)",
-    "substantive": true
-   },
-   {
-    "sha": "a714596c3",
-    "at": "2026-11-20T22:59:00Z",
-    "subject": "HEAD red register, test_every_step_the_hook_runs_is_timed made green: the hook-chain timer now times ukds_microdata_refusal (in the hook since 2 Nov) and direction_seat_window (since 11 Nov), both flagged as staged-set floors",
-    "substantive": true
-   },
-   {
-    "sha": "78241c7f2",
-    "at": "2026-11-20T22:51:03Z",
-    "subject": "delivery seat: merge origin/main into the census-plugin landing (upstream does not touch its paths)",
-    "substantive": false
-   },
-   {
-    "sha": "89f5e98d3",
-    "at": "2026-11-20T22:48:22Z",
-    "subject": "head-green-census: the 20 Nov census queued, was admitted after the value-test job ended at 07:59, and ran -- outcome (a) of s.10 -- but its own progress plugin killed it at test 6033: a test that monkeypatches builtins.open is still patched when the call-phase report fires, so the plugin's open() raised inside a hook (INTERNALERROR). The plugin now binds the real open at import; control test_a_test_that_patches_open_does_not_end_the_census, mutation back to the builtin fires; s.11 grades s.10 and pre-registers 21 Nov",
-    "substantive": true
    }
   ],
-  "substantive": 23,
-  "mechanical": 17,
+  "substantive": 22,
+  "mechanical": 18,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-11-21T12:20:13.794792+00:00",
+  "oriented_at": "2026-11-21T15:23:02.532183+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "Three hours: 13 commits, 10 carrying work, 8 substantive. The split reads 1 supplier, 1 world, 1 both and 10 other, and this time the classifier is roughly right: the stretch went mostly to knowledge pages and world mechanics (the GDELT coverage series, the 2021-22 SoLR failures, the switching GSOP, the phone queue on both sides of the wall). Those came off the continuation queue as director-steered items, not off the focus. Against the thesis the one move that matters landed: the out-of-sample test is now pre-registered (s.12g, eb41172a1) before pair 2 could shape it. It runs the 0.12 cut on book 61118, against A and the flat-rules twin, on households it was not fitted to, and it predicts the advantage below the refutation line (-GBP 0.40, -2.00 to +1.20). Its watcher is armed and alive. That is the first test design that can say whether inference beats flat rules rather than whether a tuned cut survives a redraw. It also means the honest standing answer is still 'not shown': the only twin comparison on file is -GBP 0.33, in-sample. Nothing went backwards, but nothing moved a level either. Of last stretch's five focus items, item 1 landed and is gone. Item 2 (the stayers control) is being worked right now in /var/tmp/se-seat-stayers-belief and stays in focus. Item 3 (B8's holdout switch) has not landed and moves up. Items 4 and 5 are still correctly embargoed: control_55555_66666.json does not exist, and the child's log is at December 2023 nine hours in, so it writes about 14:30-15:00Z. Of the three Lane 0 rows drawn with nothing landed, the-0-12-replication-is-read-out-of-sample is spent (300302799 graded it, eb41172a1 filed the real test), and the B8 and KNIFE3 grade rows were drawn before their book existed and are premise-not-ripe, not undone work. My own error this stretch: I put the media-coverage series in not_now as world work that blocked nothing, when the director's 21 Nov bill-shock steer asked for it. The machine built it anyway, which was the right call. The checkout is 57 behind origin, so every daemon runs code the branch has moved past. That is left alone because a fast-forward under a live pinned run is not this session's to make.",
+  "thesis_read": "Three hours: 9 commits, 7 carrying work, and the split is again almost all 'other' (knowledge pages, the one-work-system cut-over, a promotion-route fix, the bill-shock media reading). One supplier move landed: B8's blind retention holdout is on origin behind a default-off switch at the power-derived share 0.272 (318d042e7). That gives the retention lever its own held-out twin when switched on, so the lever can sign its own effect instead of borrowing the book's. Against the thesis nothing was graded and nothing moved a level. The honest standing answer is still 'not shown': the only comparison with the flat-rules twin is -GBP 0.33, in-sample. The stretch's real loss is the stayers control. The fix is built and traced to one channel: a saved account's smaller bill moved the money-weighted bad-debt belief, 0.162094 to 0.166133, and that ratio of 1.00348 is the whole 0.35% July 2018 raise. Its 8 controls pass (/var/tmp/se-exec-stayers/control.log). But both landings died on avoidable mistakes. The first passed surgical_land a -F it does not accept. The second named docs/staging/done/<the finding>, which exists nowhere: the finding is still at the staging root on origin. So the director's own retention condition is still red at origin with the answer sitting on disk. That is item 1, as a landing and not a rebuild. The replication child for pair 55555/66666 is at its 2025 prospect desk, about an hour late against the 15:00Z estimate and still alive, so items 2 and 3 stay embargoed on its file. The shared checkout is now 66 behind origin. Because of that the head-green census cannot test the plugin fix (4b9c82701), and every daemon runs code the branch has moved past. Last record left the checkout alone 'under a live pinned run', but the pinned run executes from /var/tmp, so I now treat that caution as unverified and make the check itself an item. The three Lane 0 rows drawn with nothing landed: the-0-12-replication-is-read-out-of-sample was spent by 300302799 and eb41172a1. The B8 and KNIFE3 grades were drawn before any book carried their commits, and they are premise-not-ripe (their re-queued rows wait for item 3's book). The previous focus did reach the draw: the B8 item was drawn and landed.",
   "focus": [
    {
     "id": "the-stayers-control-names-the-july-2018-raise",
-    "what": "tests/simulation/test_a_save_is_not_paid_for_by_the_stayers.py::test_no_stayer_price_moves_with_the_save_price is red at origin on equal arms. A tick is on it now (/var/tmp/se-seat-stayers-belief/fixed.py, pids 3199375/3199376). Read its output first and do not restart it. Read docs/staging/WORKER_FINDING_THE_STAYERS_CONTROL_IS_RED_ON_EQUAL_ARMS_AND_THREE_HOUSEHOLDS_CARRY_A_0_35_PERCENT_RAISE_2026-11-21.md. Trace the path by which the July 2018 rows (three households, about +0.35% on both fuels) move with the save price. Fix it if it is a defect. If it is a legitimate portfolio effect, say why in the test and key the control to that property, not to today's count. Give the 114 whisper rows under 6e-5 a stated reason, and do not loosen the tolerance to pass. Land under launch_long_job so the gate outlives the tick, and retire or re-state the finding.",
-    "why": "This is the director's own condition on retention, that a save is not paid for by the people who stay, and it is the last HEAD-red control. Item 2 and s.12g's run both lean on the same lever. Done means the control is green at origin for a named reason, or the remaining red is one fully named path with its finding re-filed.",
+    "what": "LAND the built fix; do not re-trace or rebuild it. The work is done: the trace and message are in /var/tmp/se-exec-stayers/commit_msg.txt, the working copies in /var/tmp/se-seat-stayers-belief, and the controls passed 8 of 8 (/var/tmp/se-exec-stayers/control.log). Landing died twice. land.log: surgical_land has no -F, so pass -m \"$(cat /var/tmp/se-exec-stayers/commit_msg.txt)\". land2.log: the pathspec named docs/staging/done/WORKER_FINDING_THE_STAYERS_CONTROL_IS_RED_ON_EQUAL_ARMS_AND_THREE_HOUSEHOLDS_CARRY_A_0_35_PERCENT_RAISE_2026-11-21.md, which does not exist. Retire the finding the way 5532d24b2's cut-over now retires staging findings (read .claude/skills/staging-protocol/SKILL.md at origin), or use --content/--content-remove. Diff each changed file against origin/main first: default_belief.py, payment_observation_consumer.py, live_payment_triad.py, run_phase2b.py and the test. Origin moved under them (775a3c46c, a6de6f977 and 318d042e7 touch the same files), so use tools/isolate_hunks.py if a file carries other work. Re-run the stayers control and the default-belief test on the landed tree, and land under launch_long_job.",
+    "why": "The director's condition on retention, that a save is not paid for by the people who stay, is red at origin while a traced, green fix sits on disk. That is finished work that never left the tree, the worst state work can be in. Done means the control is green on origin/main, with the commit naming the belief channel and the finding retired.",
     "lane": "B_commercial",
     "side": "supplier",
-    "written_at": 1795263883.967
-   },
-   {
-    "id": "b8-blind-retention-holdout-behind-a-default-off-switch",
-    "what": "Build B8's blind holdout as the open director row b8-s-retention-holdout-needs-two-practitioner proposes, behind one default-off switch. Draw a random share of the renewals a retention desk would approach BEFORE treatment, and withhold only the proactive approach from them, never the tariff. The share comes from company/crm/competitive_pressure.py save_holdout_share, not from a picked number. Per K8, first amend the GAP on docs/market_research/retention_slope_per_pound_of_renewal_cut.md s.3.5. Add one test that the switch can assign (both partitions non-empty) and one that it is off by default with the standing book byte-identical. The assignment publishes through retention_holdout_by_desk_year (775a3c46c). Cite the page in the commit, and land under launch_long_job.",
-    "why": "A lever with no held-out twin cannot sign its own effect: Ascarza 2016's offer raised churn. The thesis needs a baseline at each lever, not only at the book. It is default-off, so it adds no variable to any standing or pinned run, and the open director row does not block building it. It was in focus last stretch and was not drawn. Done means the switch is on origin, off by default, proven able to assign, with the page cited.",
-    "lane": "B_commercial",
-    "side": "supplier",
-    "written_at": 1795263883.967
+    "written_at": 1795274824.328
    },
    {
     "id": "grade-the-0-12-replication-pair-55555-66666-and-the-two-pair-mean",
@@ -288,27 +280,39 @@
     "lane": "D_billing_metering",
     "side": "supplier",
     "written_at": 1795263883.967
+   },
+   {
+    "id": "shared-tree-rejoins-origin-21-nov",
+    "what": "Advance /home/rich/synthetic-enterprise from 270bf6a178 to origin/main (66 behind). Before touching it, read /proc/<pid>/cwd and the import roots of pids 2258951 and 3893028 (the vtc replication driver) and of the s.12g watcher vtc-cut012-new-book-watch. If none imports from the shared tree, proceed. If one does, wait for the 55555/66666 file and say so. List the blockers with origin_reconcile.paths_blocking_fast_forward. For each modified path, land its hunks with isolate_hunks + surgical_land --content when it is unlanded work, or show it equals origin. Never stash, checkout or reset-hard. Then restart the daemons the brief lists as lacking origin commits.",
+    "why": "Every declared daemon runs code the branch has moved past, including the supervisor without its own cut-over commit 5532d24b2. The head-green census cannot test the plugin fix, so its 22 Nov grade will be void again. Last record's reason for leaving the checkout alone was never checked. Done means HEAD equals origin/main in the shared tree with no lane's work lost, or one named process that pins it.",
+    "lane": "H_harness",
+    "side": "other",
+    "written_at": 1795274824.328
    }
   ],
   "not_now": [
    {
-    "what": "Starting s.12g's fresh-population run by hand, or re-arming it.",
-    "why": "Its watcher is active and waits for the replication child, box_free and the pin, so a second launcher would only make a second writer. The run takes about 34 h, and nothing gains from starting it an hour earlier."
+    "what": "Rebuilding or re-tracing the stayers fix in a fresh worktree because the old landing died.",
+    "why": "The trace is complete and its controls pass. Only the landing failed, and on two argument errors. A rebuild costs 35+ minutes of controls and a second writer on the same files."
+   },
+   {
+    "what": "Drawing the smart-meter restore capability (supplier-resolves-a-non-communicating-smart-meter...) ahead of item 1.",
+    "why": "fbd29e45f shows V-T2 is unreachable until the supplier has a restore action and the world un-silences meters, which is a two-sided build. The queue keeps it drawable. It loses only on order, to a finished retention fix that needs landing."
+   },
+   {
+    "what": "Starting s.12g's fresh-population run by hand, or re-arming its watcher.",
+    "why": "Its watcher waits for the replication child, which is alive at 2025-01. A second launcher would make a second writer for no gain in hours."
    },
    {
     "what": "Wiring simulation/contact_centre.py's phone queue into the standing run.",
-    "why": "It refuses without an average handle time, and the director's open row asks him for that range. Inventing a handle time to wire it would be the \u00a3150-CAC shape. The staffing desk and the world's Erlang C are landed and wait on his answer, not on work."
+    "why": "It refuses without a handle time, and the director's open row asks him for that range. Inventing one is the GBP 150-CAC shape."
    },
    {
-    "what": "Drawing the world-side SoLR prospect-pool and registration-completion items ahead of the focus.",
-    "why": "Both are queued, director-steered and drawable, so they will be worked anyway. But neither unblocks a supplier result in focus, and the stretch already gave the world and knowledge side most of its commits."
+    "what": "Reaping the ten worktrees that hold commits no remote keeps, including the seven se-stayers-* trees.",
+    "why": "value-test-cut012 is pinned to the live replication, and se-seat-stayers-belief holds item 1 until it lands. A reap cannot be undone. Item 1 says to clear the stayers trees once their work is on origin."
    },
    {
-    "what": "Fast-forwarding the shared checkout (57 behind) or reaping the ten worktrees with unlanded commits.",
-    "why": "value-test-cut012 is pinned to the live replication and to s.12g's watcher, and a reap cannot be undone. This session writes only its two files. The divergence is recorded here for the seat."
-   },
-   {
-    "what": "World work on N17 or the deemed and flex standing charge.",
+    "what": "World work on N17 or on the deemed and flex standing charge.",
     "why": "Neither blocks a supplier result in focus. N17 has its 23 Nov recheck, and the settlement gap reads GBP 0.00 per domestic account-day."
    }
   ],
@@ -380,17 +384,17 @@
     "evidence": "docs/market_research/contact_centre_staffing_cost_and_call_wait_gb_energy_2026-11-21.md s.5 (GAP table) and s.4 (agents scale with handle time almost one for one)"
    }
   ],
-  "orientations_recorded": 18,
+  "orientations_recorded": 19,
   "skips_recorded": 0,
-  "refusals_recorded": 2
+  "refusals_recorded": 1
  },
  "what_it_got_wrong": {
   "problems": [
    {
     "key": "triage:the-live-renewal-belief-ranks-leavers-backwards",
-    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- unchanged; the replication's arm A carries the corrected ending-term belief, so it reads that belief only as the base the cut is measured from, not as a switch-on grade. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged. 06:20 21 Nov -- unchanged. 09:22 21 Nov -- unchanged. 12:20 21 Nov -- unchanged; the policy switch waits on a clean-book grade, and the next clean book is focus item 5.",
-    "last_at": "2026-11-21T12:20:13.794792+00:00",
-    "first_at": "2026-11-17T00:21:51.619469+00:00",
+    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- unchanged; the replication's arm A carries the corrected ending-term belief, so it reads that belief only as the base the cut is measured from, not as a switch-on grade. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged. 06:20 21 Nov -- unchanged. 09:22 21 Nov -- unchanged. 12:20 21 Nov -- unchanged; the policy switch waits on a clean-book grade, and the next clean book is focus item 5. 15:23 21 Nov -- unchanged; the switch still waits on a clean-book grade (focus item 3's book).",
+    "last_at": "2026-11-21T15:23:02.532183+00:00",
+    "first_at": "2026-11-17T03:24:08.371897+00:00",
     "times_listed": 40,
     "corrected": false,
     "fate": "fix",
@@ -401,9 +405,9 @@
    },
    {
     "key": "triage:metered-electricity-barely-moves-year-to-year",
-    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- the book is published (run_output_6a588a832f_20261120T134224Z.json); the 23 Nov recheck reads it. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged; the 23 Nov recheck stands. 06:20 21 Nov -- unchanged; the 23 Nov recheck stands. 09:22 21 Nov -- unchanged; the 23 Nov recheck stands. 12:20 21 Nov -- unchanged; the 23 Nov recheck stands.",
-    "last_at": "2026-11-21T12:20:13.794792+00:00",
-    "first_at": "2026-11-17T00:21:51.619469+00:00",
+    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- the book is published (run_output_6a588a832f_20261120T134224Z.json); the 23 Nov recheck reads it. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged; the 23 Nov recheck stands. 06:20 21 Nov -- unchanged; the 23 Nov recheck stands. 09:22 21 Nov -- unchanged; the 23 Nov recheck stands. 12:20 21 Nov -- unchanged; the 23 Nov recheck stands. 15:23 21 Nov -- unchanged; the 23 Nov recheck stands.",
+    "last_at": "2026-11-21T15:23:02.532183+00:00",
+    "first_at": "2026-11-17T03:24:08.371897+00:00",
     "times_listed": 40,
     "corrected": false,
     "fate": "fix",
@@ -414,9 +418,9 @@
    },
    {
     "key": "triage:settlement-books-no-standing-charge-the-bill-charges",
-    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 18:23 20 Nov -- unchanged. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged. 06:20 21 Nov -- unchanged. 09:22 21 Nov -- unchanged. 12:20 21 Nov -- unchanged.",
-    "last_at": "2026-11-21T12:20:13.794792+00:00",
-    "first_at": "2026-11-17T00:21:51.619469+00:00",
+    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 18:23 20 Nov -- unchanged. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged. 06:20 21 Nov -- unchanged. 09:22 21 Nov -- unchanged. 12:20 21 Nov -- unchanged. 15:23 21 Nov -- unchanged.",
+    "last_at": "2026-11-21T15:23:02.532183+00:00",
+    "first_at": "2026-11-17T03:24:08.371897+00:00",
     "times_listed": 40,
     "corrected": false,
     "fate": "fix",
@@ -427,10 +431,23 @@
    },
    {
     "key": "text:with the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin",
-    "what": "THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. 18:23 20 Nov -- launched 15:49Z; pair 33333/44444 at September 2023; reads about 15:00Z 21 Nov (focus item 1). Its pre-registered grade is cut minus A, not the advantage over the twin. 21:24 20 Nov -- pair 33333/44444 at its 2025 prospect desk; 55555/66666 still to run; still focus item 1. 00:22 21 Nov -- seed 33333 done (5.7 h); seed 44444 at November 2023; the second pair writes about 14:00Z; still focus item 1. 03:24 21 Nov -- pair 33333/44444 written at 03:19Z (member and control files in /var/tmp/vtc-out-cut012); pair 55555/66666 started then, at December 2017 on the log, writes about 15:00Z; still focus item 1, now readable one pair early. 06:20 21 Nov -- unchanged. Pair 33333/44444 has been on disk since 03:19Z and is still ungraded, because the item that grades it was embargoed by its own Step B (see the seat's row below). It is re-filed as focus item 1 with no embargo text. 55555/66666 writes about 15:00Z. 09:22 21 Nov -- still open. Pair 33333/44444 graded (300302799), with cut minus A +GBP 1.10, HELD, and value minus flat book +GBP 7.27 (+0.95 to +13.33). But there is no twin at these seeds, and the pair reuses the fitted households, so this row cannot close on it. The test that can close it is focus item 1, the fresh population with the twin. 12:20 21 Nov -- still open. The fresh-population test is pre-registered on book 61118 (s.12g, eb41172a1, 09:40Z, before pair 55555/66666's file) with P1 at -GBP 0.40 (-2.00 to +1.20), refuted below zero, and its watcher vtc-cut012-new-book-watch is active, waiting for the replication child. About 34 h of runs, so it cannot close this stretch or the next; focus items 3 and 4 are the reads on the way.",
-    "last_at": "2026-11-21T12:20:13.794792+00:00",
+    "what": "THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. 18:23 20 Nov -- launched 15:49Z; pair 33333/44444 at September 2023; reads about 15:00Z 21 Nov (focus item 1). Its pre-registered grade is cut minus A, not the advantage over the twin. 21:24 20 Nov -- pair 33333/44444 at its 2025 prospect desk; 55555/66666 still to run; still focus item 1. 00:22 21 Nov -- seed 33333 done (5.7 h); seed 44444 at November 2023; the second pair writes about 14:00Z; still focus item 1. 03:24 21 Nov -- pair 33333/44444 written at 03:19Z (member and control files in /var/tmp/vtc-out-cut012); pair 55555/66666 started then, at December 2017 on the log, writes about 15:00Z; still focus item 1, now readable one pair early. 06:20 21 Nov -- unchanged. Pair 33333/44444 has been on disk since 03:19Z and is still ungraded, because the item that grades it was embargoed by its own Step B (see the seat's row below). It is re-filed as focus item 1 with no embargo text. 55555/66666 writes about 15:00Z. 09:22 21 Nov -- still open. Pair 33333/44444 graded (300302799), with cut minus A +GBP 1.10, HELD, and value minus flat book +GBP 7.27 (+0.95 to +13.33). But there is no twin at these seeds, and the pair reuses the fitted households, so this row cannot close on it. The test that can close it is focus item 1, the fresh population with the twin. 12:20 21 Nov -- still open. The fresh-population test is pre-registered on book 61118 (s.12g, eb41172a1, 09:40Z, before pair 55555/66666's file) with P1 at -GBP 0.40 (-2.00 to +1.20), refuted below zero, and its watcher vtc-cut012-new-book-watch is active, waiting for the replication child. About 34 h of runs, so it cannot close this stretch or the next; focus items 3 and 4 are the reads on the way. 15:23 21 Nov -- still open. Nothing graded this stretch. Replication child 55555/66666 is at its 2025 prospect desk, about an hour late but alive. The s.12g fresh-population test with the twin remains the only one that can close this row.",
+    "last_at": "2026-11-21T15:23:02.532183+00:00",
     "first_at": "2026-11-20T09:20:07.819595+00:00",
-    "times_listed": 11,
+    "times_listed": 12,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the stayers fix was finished and green (8 of 8 controls), and both its landings died on avoidable argument errors",
+    "what": "THE MACHINE'S, NEW. The stayers fix was finished and green (8 of 8 controls), and both its landings died on avoidable argument errors. stayers-belief-land passed surgical_land a -F it does not accept. stayers-belief-land2 named a docs/staging/done/ copy of the finding that never existed. So a red director-condition control stayed red at origin with its answer on disk, and the previous record told the next tick 'do not restart it' without saying the run had ended. A landing script is not dry-run against surgical_land's argument parser and the tree before launch.",
+    "last_at": "2026-11-21T15:23:02.532183+00:00",
+    "first_at": "2026-11-21T15:23:02.532183+00:00",
+    "times_listed": 1,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -754,8 +771,8 @@
     "key": "triage:a-landing-loses-its-race-to-origin",
     "what": "THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 03:20 19 Nov -- graded corrected on its own criterion. A second stretch has passed with no written_at banner commit. D48's log has been read: it was killed at the unit's teardown and did not lose a race (new row below).",
     "last_at": "2026-11-19T03:20:44.845299+00:00",
-    "first_at": "2026-11-17T00:21:51.619469+00:00",
-    "times_listed": 19,
+    "first_at": "2026-11-17T03:24:08.371897+00:00",
+    "times_listed": 18,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -806,8 +823,8 @@
     "key": "triage:a-cold-reader-sees-only-what-its-trade-looks-for",
     "what": "THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 15:21 18 Nov -- corrected on the live book: 0 of 1,044 supply points share a serial, and 0 of 23,799 gas bills charge with no volume, on 6af7fd0bfd (3727cdbb3).",
     "last_at": "2026-11-18T15:21:49.370919+00:00",
-    "first_at": "2026-11-17T00:21:51.619469+00:00",
-    "times_listed": 15,
+    "first_at": "2026-11-17T03:24:08.371897+00:00",
+    "times_listed": 14,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -845,8 +862,8 @@
     "key": "triage:the-account-page-drops-cash-the-household-repaid",
     "what": "THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: 0 legs, GBP 0.00 on the verified 6af7fd0bfd book (49d41097b).",
     "last_at": "2026-11-18T12:24:07.112567+00:00",
-    "first_at": "2026-11-17T00:21:51.619469+00:00",
-    "times_listed": 14,
+    "first_at": "2026-11-17T03:24:08.371897+00:00",
+    "times_listed": 13,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -858,8 +875,8 @@
     "key": "triage:the-capabilities-page-says-nothing-was-fixed",
     "what": "THE MACHINE'S, NEW. The live Capabilities page told the director \"Fixed in the 7 days to 11 Nov 2026 -- Nothing recorded\" after a week that fixed dozens of money classes. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: https://poesys.net/capabilities/ serves \"Fixed in the 7 days to 18 Nov 2026\" with dated items, and its lead says the thesis question in words, not book totals.",
     "last_at": "2026-11-18T12:24:07.112567+00:00",
-    "first_at": "2026-11-17T00:21:51.619469+00:00",
-    "times_listed": 14,
+    "first_at": "2026-11-17T03:24:08.371897+00:00",
+    "times_listed": 13,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -871,8 +888,8 @@
     "key": "text:the 16 nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 nov book",
     "what": "THE COMPANY'S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 Nov book. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: origin's publish_provenance reads last_verified 6af7fd0bfd at 10:20:38Z with paused_since null, and the episode closed at 11:03Z.",
     "last_at": "2026-11-18T12:24:07.112567+00:00",
-    "first_at": "2026-11-17T00:21:51.619469+00:00",
-    "times_listed": 14,
+    "first_at": "2026-11-17T03:24:08.371897+00:00",
+    "times_listed": 13,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1066,8 +1083,8 @@
     "key": "text:the 12:20 record's focus drew 1 of 5 in this stretch, and the supplier side landed nothing",
     "what": "THE SEAT'S, NEW. The 12:20 record's focus drew 1 of 5 in this stretch, and the supplier side landed nothing. [Earlier tails are in decisions.jsonl.] 06:21 17 Nov -- corrected. The 03:24 record's first two drawn items both landed: the value grade (33a0fb04c) and the gate hour (62eda765e), which carried D5's page half (1bce17aa4) through.",
     "last_at": "2026-11-17T06:21:02.651517+00:00",
-    "first_at": "2026-11-17T00:21:51.619469+00:00",
-    "times_listed": 3,
+    "first_at": "2026-11-17T03:24:08.371897+00:00",
+    "times_listed": 2,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1079,8 +1096,8 @@
     "key": "text:d5's page landing (the third attempt, launched 21:39) was refused at 23:41 because sh tools/git-hooks/pre-commit ran past surgical_land's 3600-second limit, while process_run_complete re-ran the publisher beside it",
     "what": "THE MACHINE'S, NEW. D5's page landing (the third attempt, launched 21:39) was refused at 23:41 because sh tools/git-hooks/pre-commit ran past surgical_land's 3600-second limit, while process_run_complete re-ran the publisher beside it. [Earlier tails are in decisions.jsonl.] 06:21 17 Nov -- corrected. The fix is on origin (62eda765e), and D5's C1 gate then passed first time at 2,176 s and 2,156 s.",
     "last_at": "2026-11-17T06:21:02.651517+00:00",
-    "first_at": "2026-11-17T00:21:51.619469+00:00",
-    "times_listed": 3,
+    "first_at": "2026-11-17T03:24:08.371897+00:00",
+    "times_listed": 2,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1102,18 +1119,43 @@
     "reason": "Triaged 2026-11-17 by the delivery seat. A guard that trusts a dead holder's pid is the dead-holder shape already folded there (a-stale-land-holder-blocks-the-draw-unrechecked, a-guest-poweroff-leaves-dead-jobs-listed-live). The instance cost no work: d5-land8 died at 04:20, and d5-land9 ran its steps one after another, landing the gate-hour fix (62eda765e) and then D5's page half (1bce17aa4) on gates of 2,176 s and 2,156 s. Whether two concurrent gates inflate the hour was never measured, and it matters less now that one gate fits the limit by about 24 minutes. Reopen as a fix if two surgical_land gates overlap again and one of them is refused on the timeout."
    }
   ],
-  "distinct": 55,
+  "distinct": 56,
   "triaged": 10,
   "triaged_by_fate": {
    "fix": 9,
    "fold": 1,
    "accept": 0
   },
-  "untriaged": 45,
-  "distinct_open": 10,
-  "rows": 358,
+  "untriaged": 46,
+  "distinct_open": 11,
+  "rows": 353,
   "triage_register": "read",
   "entries": [
+   {
+    "at": "2026-11-21T15:23:02.532183+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-11-21T15:23:02.532183+00:00",
+    "corrected": false,
+    "problem": "triage:metered-electricity-barely-moves-year-to-year"
+   },
+   {
+    "at": "2026-11-21T15:23:02.532183+00:00",
+    "corrected": false,
+    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
+   },
+   {
+    "at": "2026-11-21T15:23:02.532183+00:00",
+    "corrected": false,
+    "problem": "text:with the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin"
+   },
+   {
+    "at": "2026-11-21T15:23:02.532183+00:00",
+    "corrected": false,
+    "problem": "text:the stayers fix was finished and green (8 of 8 controls), and both its landings died on avoidable argument errors"
+   },
    {
     "at": "2026-11-21T12:20:13.794792+00:00",
     "corrected": false,
@@ -2853,56 +2895,6 @@
     "at": "2026-11-17T03:24:08.371897+00:00",
     "corrected": false,
     "problem": "triage:a-landing-guard-reads-a-dead-pid-as-never-started"
-   },
-   {
-    "at": "2026-11-17T00:21:51.619469+00:00",
-    "corrected": false,
-    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
-   },
-   {
-    "at": "2026-11-17T00:21:51.619469+00:00",
-    "corrected": false,
-    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
-   },
-   {
-    "at": "2026-11-17T00:21:51.619469+00:00",
-    "corrected": false,
-    "problem": "triage:metered-electricity-barely-moves-year-to-year"
-   },
-   {
-    "at": "2026-11-17T00:21:51.619469+00:00",
-    "corrected": false,
-    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
-   },
-   {
-    "at": "2026-11-17T00:21:51.619469+00:00",
-    "corrected": false,
-    "problem": "triage:the-account-page-drops-cash-the-household-repaid"
-   },
-   {
-    "at": "2026-11-17T00:21:51.619469+00:00",
-    "corrected": false,
-    "problem": "triage:the-capabilities-page-says-nothing-was-fixed"
-   },
-   {
-    "at": "2026-11-17T00:21:51.619469+00:00",
-    "corrected": false,
-    "problem": "triage:a-landing-loses-its-race-to-origin"
-   },
-   {
-    "at": "2026-11-17T00:21:51.619469+00:00",
-    "corrected": false,
-    "problem": "text:the 16 nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 nov book"
-   },
-   {
-    "at": "2026-11-17T00:21:51.619469+00:00",
-    "corrected": false,
-    "problem": "text:the 12:20 record's focus drew 1 of 5 in this stretch, and the supplier side landed nothing"
-   },
-   {
-    "at": "2026-11-17T00:21:51.619469+00:00",
-    "corrected": false,
-    "problem": "text:d5's page landing (the third attempt, launched 21:39) was refused at 23:41 because sh tools/git-hooks/pre-commit ran past surgical_land's 3600-second limit, while process_run_complete re-ran the publisher beside it"
    }
   ],
   "refused_own_records": [
@@ -2919,7 +2911,7 @@
     "problems": []
    }
   ],
-  "outstanding": 298,
+  "outstanding": 293,
   "corrected": 60,
   "correction_not_recorded": 0,
   "empty_means": ""
@@ -2927,11 +2919,39 @@
  "what_next": {
   "focus": [
    "the-stayers-control-names-the-july-2018-raise",
-   "b8-blind-retention-holdout-behind-a-default-off-switch",
    "grade-the-0-12-replication-pair-55555-66666-and-the-two-pair-mean",
-   "one-book-carries-the-blend-the-debt-records-the-dual-answer-and-b12"
+   "one-book-carries-the-blend-the-debt-records-the-dual-answer-and-b12",
+   "shared-tree-rejoins-origin-21-nov"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "the-stayers-control-names-the-july-2018-raise"
+      ],
+      "focus": [
+       "the-stayers-control-names-the-july-2018-raise",
+       "b8-blind-retention-holdout-behind-a-default-off-switch",
+       "grade-the-0-12-replication-pair-55555-66666-and-the-two-pair-mean",
+       "one-book-carries-the-blend-the-debt-records-the-dual-answer-and-b12"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "the-stayers-control-names-the-july-2018-raise"
+    ],
+    "focus": [
+     "the-stayers-control-names-the-july-2018-raise",
+     "b8-blind-retention-holdout-behind-a-default-off-switch",
+     "grade-the-0-12-replication-pair-55555-66666-and-the-two-pair-mean",
+     "one-book-carries-the-blend-the-debt-records-the-dual-answer-and-b12"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-21T12:20:13.794792+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-11-21T12:20:13.794792+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -3051,34 +3071,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-21T00:22:08.542481+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-11-21T00:22:08.542481+00:00"
-   },
-   {
-    "by_class": {
-     "atom": {
-      "drawn": [],
-      "focus": [
-       "B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost"
-      ],
-      "steered": false
-     },
-     "lane_0": {
-      "drawn": [],
-      "focus": [
-       "the-0-12-replication-is-read-out-of-sample",
-       "one-book-carries-the-blend-the-debt-records-and-the-dual-answer"
-      ],
-      "steered": false
-     }
-    },
-    "drawn": [],
-    "focus": [
-     "the-0-12-replication-is-read-out-of-sample",
-     "one-book-carries-the-blend-the-debt-records-and-the-dual-answer",
-     "B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost"
-    ],
-    "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting (measured over this stretch only -- the 3.0h since 2026-11-20T21:24:14.006683+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": false,
-    "window": "this stretch only -- the 3.0h since 2026-11-20T21:24:14.006683+00:00"
    }
   ],
   "steered_recently": true,
@@ -3086,14 +3078,14 @@
  },
  "the_queues_link_to_the_map": {
   "available": true,
-  "population": 161,
-  "chained": 158,
+  "population": 162,
+  "chained": 159,
   "minted": 57,
-  "unminted": 101,
+  "unminted": 102,
   "unminted_by_kind": {
    "alarm": 2,
    "directive": 3,
-   "finding": 88,
+   "finding": 89,
    "reference": 1,
    "unknown": 7
   },
@@ -3354,11 +3346,11 @@
     },
     {
      "date": "2026-11-21",
-     "commit": "93d1babc8",
-     "population": 160,
-     "chained": 157,
+     "commit": "fbd29e45f",
+     "population": 161,
+     "chained": 158,
      "minted": 57,
-     "unminted": 100,
+     "unminted": 101,
      "unread": 55
     }
    ]

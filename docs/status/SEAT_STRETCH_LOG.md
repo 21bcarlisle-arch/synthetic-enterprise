@@ -8,6 +8,44 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-21 — orientation: Three hours: 9 commits, 7 carrying work, and the split is again almost all 'other' (knowledge pages, the one-work-system cut-over, a promotion-route fix, the bill-shoc
+
+<!-- head: fbd29e45fb1f -->
+
+*Written by the orientation seat from its own record (2026-11-21T15:23:02.532183+00:00; 9 commits, 5 substantive, since 2026-11-21T12:20:13.794792+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 1 both, 8 other.
+
+## What the stretch meant
+
+Three hours: 9 commits, 7 carrying work, and the split is again almost all 'other' (knowledge pages, the one-work-system cut-over, a promotion-route fix, the bill-shock media reading). One supplier move landed: B8's blind retention holdout is on origin behind a default-off switch at the power-derived share 0.272 (318d042e7). That gives the retention lever its own held-out twin when switched on, so the lever can sign its own effect instead of borrowing the book's. Against the thesis nothing was graded and nothing moved a level. The honest standing answer is still 'not shown': the only comparison with the flat-rules twin is -GBP 0.33, in-sample. The stretch's real loss is the stayers control. The fix is built and traced to one channel: a saved account's smaller bill moved the money-weighted bad-debt belief, 0.162094 to 0.166133, and that ratio of 1.00348 is the whole 0.35% July 2018 raise. Its 8 controls pass (/var/tmp/se-exec-stayers/control.log). But both landings died on avoidable mistakes. The first passed surgical_land a -F it does not accept. The second named docs/staging/done/<the finding>, which exists nowhere: the finding is still at the staging root on origin. So the director's own retention condition is still red at origin with the answer sitting on disk. That is item 1, as a landing and not a rebuild. The replication child for pair 55555/66666 is at its 2025 prospect desk, about an hour late against the 15:00Z estimate and still alive, so items 2 and 3 stay embargoed on its file. The shared checkout is now 66 behind origin. Because of that the head-green census cannot test the plugin fix (4b9c82701), and every daemon runs code the branch has moved past. Last record left the checkout alone 'under a live pinned run', but the pinned run executes from /var/tmp, so I now treat that caution as unverified and make the check itself an item. The three Lane 0 rows drawn with nothing landed: the-0-12-replication-is-read-out-of-sample was spent by 300302799 and eb41172a1. The B8 and KNIFE3 grades were drawn before any book carried their commits, and they are premise-not-ripe (their re-queued rows wait for item 3's book). The previous focus did reach the draw: the B8 item was drawn and landed.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- unchanged; the replication's arm A carries the corrected ending-term belief, so it reads that belief only as the base the cut is measured from, not as a switch-on grade. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged. 06:20 21 Nov -- unchanged. 09:22 21 Nov -- unchanged. 12:20 21 Nov -- unchanged; the policy switch waits on a clean-book grade, and the next clean book is focus item 5. 15:23 21 Nov -- unchanged; the switch still waits on a clean-book grade (focus item 3's book).
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- the book is published (run_output_6a588a832f_20261120T134224Z.json); the 23 Nov recheck reads it. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged; the 23 Nov recheck stands. 06:20 21 Nov -- unchanged; the 23 Nov recheck stands. 09:22 21 Nov -- unchanged; the 23 Nov recheck stands. 12:20 21 Nov -- unchanged; the 23 Nov recheck stands. 15:23 21 Nov -- unchanged; the 23 Nov recheck stands.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 18:23 20 Nov -- unchanged. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged. 06:20 21 Nov -- unchanged. 09:22 21 Nov -- unchanged. 12:20 21 Nov -- unchanged. 15:23 21 Nov -- unchanged.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. 18:23 20 Nov -- launched 15:49Z; pair 33333/44444 at September 2023; reads about 15:00Z 21 Nov (focus item 1). Its pre-registered grade is cut minus A, not the advantage over the twin. 21:24 20 Nov -- pair 33333/44444 at its 2025 prospect desk; 55555/66666 still to run; still focus item 1. 00:22 21 Nov -- seed 33333 done (5.7 h); seed 44444 at November 2023; the second pair writes about 14:00Z; still focus item 1. 03:24 21 Nov -- pair 33333/44444 written at 03:19Z (member and control files in /var/tmp/vtc-out-cut012); pair 55555/66666 started then, at December 2017 on the log, writes about 15:00Z; still focus item 1, now readable one pair early. 06:20 21 Nov -- unchanged. Pair 33333/44444 has been on disk since 03:19Z and is still ungraded, because the item that grades it was embargoed by its own Step B (see the seat's row below). It is re-filed as focus item 1 with no embargo text. 55555/66666 writes about 15:00Z. 09:22 21 Nov -- still open. Pair 33333/44444 graded (300302799), with cut minus A +GBP 1.10, HELD, and value minus flat book +GBP 7.27 (+0.95 to +13.33). But there is no twin at these seeds, and the pair reuses the fitted households, so this row cannot close on it. The test that can close it is focus item 1, the fresh population with the twin. 12:20 21 Nov -- still open. The fresh-population test is pre-registered on book 61118 (s.12g, eb41172a1, 09:40Z, before pair 55555/66666's file) with P1 at -GBP 0.40 (-2.00 to +1.20), refuted below zero, and its watcher vtc-cut012-new-book-watch is active, waiting for the replication child. About 34 h of runs, so it cannot close this stretch or the next; focus items 3 and 4 are the reads on the way. 15:23 21 Nov -- still open. Nothing graded this stretch. Replication child 55555/66666 is at its 2025 prospect desk, about an hour late but alive. The s.12g fresh-population test with the twin remains the only one that can close this row.
+- NOT corrected: THE MACHINE'S, NEW. The stayers fix was finished and green (8 of 8 controls), and both its landings died on avoidable argument errors. stayers-belief-land passed surgical_land a -F it does not accept. stayers-belief-land2 named a docs/staging/done/ copy of the finding that never existed. So a red director-condition control stayed red at origin with its answer on disk, and the previous record told the next tick 'do not restart it' without saying the run had ended. A landing script is not dry-run against surgical_land's argument parser and the tree before launch.
+
+## Chosen against
+
+- Rebuilding or re-tracing the stayers fix in a fresh worktree because the old landing died.
+- Drawing the smart-meter restore capability (supplier-resolves-a-non-communicating-smart-meter...) ahead of item 1.
+- Starting s.12g's fresh-population run by hand, or re-arming its watcher.
+- Wiring simulation/contact_centre.py's phone queue into the standing run.
+- Reaping the ten worktrees that hold commits no remote keeps, including the seven se-stayers-* trees.
+- World work on N17 or on the deemed and flex standing charge.
+
+## Focus for the next stretch
+
+- `the-stayers-control-names-the-july-2018-raise`
+- `grade-the-0-12-replication-pair-55555-66666-and-the-two-pair-mean`
+- `one-book-carries-the-blend-the-debt-records-the-dual-answer-and-b12`
+- `shared-tree-rejoins-origin-21-nov`
+
+---
+
 ## 2026-11-21 — orientation: Three hours: 13 commits, 10 carrying work, 8 substantive
 
 <!-- head: 93d1babc876d -->
