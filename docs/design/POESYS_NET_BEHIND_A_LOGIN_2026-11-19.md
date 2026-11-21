@@ -164,6 +164,8 @@ one-click rollback to a pre-gate deployment, and a rollback to one would take th
 anonymously and 2 answered 401. The delete run (44702018437) deleted 3,667 and refused 0. Its re-read
 found every remaining deployment refusing an anonymous fetch. Read from outside afterwards:
 `c156dcf3` and `09a031ce` answer 404, `42c9e199` 401, and `poesys.net` and `poesys-net.pages.dev` 401.
+*Re-read, 21 Nov 06:56Z:* read-only run 44877870397 found 11 deployments, every address 401, none open.
+The deletion cannot be undone in Cloudflare. It is rebuildable from git, so no evidence is lost.
 
 The Actions log was searched for every 6-character fragment of the password, and none was found.
 *Correction, recorded beside the claim:* the first password was rotated before it went live. A

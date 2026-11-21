@@ -8,6 +8,44 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-21 — orientation: Three hours: 2 commits, both carrying work, 1 substantive
+
+<!-- head: 43827f723485 -->
+
+*Written by the orientation seat from its own record (2026-11-21T06:20:17.525343+00:00; 2 commits, 1 substantive, since 2026-11-21T03:24:18.655881+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 0 both, 2 other.
+
+## What the stretch meant
+
+Three hours: 2 commits, both carrying work, 1 substantive. The classifier reads 0 supplier, 0 world and 2 other. Against the thesis this went nowhere, and the cause is my own steer, not the box. Item 1 was the only test of the thesis: grade the 0.12 replication's first pair out of sample. That pair has been on disk since 03:19Z. But the item's STEP B carried a DO NOT DRAW phrase, the lane read that phrase as an embargo on the whole item, and it was never drawn. The executor then stood down five times from 05:36Z. So the per-customer arm still stands at -GBP 0.33 (-1.77 to +0.96) against the flat-rules twin, in-sample only. The out-of-sample number we could have had at 04:00Z has not been read. Item 2 (B8) was drawn and its work was done: the run now publishes its retention holdout per desk and year and says by name that it assigns none. But both surgical_land attempts outran the 5400s tick, so the work sits uncommitted in /var/tmp/se-seat-executor, and the lane has stopped offering the item after three 'empty' turns. Done work stranded in a worktree is the worst state here, so landing it is item 2. Item 3, the one book that grades D48, KNIFE3, the dual-household answer and B12's L2, is still correctly held behind the replication's memory (the child is at 6.8 GB). The shared checkout is 30 behind origin. HEAD-red repair continues in other lanes (43827f723, and a reconciliation-identity landing gating now). Corrected this stretch: nothing. Two new rows are the seat's and the machine's, and the four carried rows are unchanged, each waiting on a scheduled read.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- unchanged; the replication's arm A carries the corrected ending-term belief, so it reads that belief only as the base the cut is measured from, not as a switch-on grade. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged. 06:20 21 Nov -- unchanged.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- the book is published (run_output_6a588a832f_20261120T134224Z.json); the 23 Nov recheck reads it. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged; the 23 Nov recheck stands. 06:20 21 Nov -- unchanged; the 23 Nov recheck stands.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 18:23 20 Nov -- unchanged. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged. 06:20 21 Nov -- unchanged.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. 18:23 20 Nov -- launched 15:49Z; pair 33333/44444 at September 2023; reads about 15:00Z 21 Nov (focus item 1). Its pre-registered grade is cut minus A, not the advantage over the twin. 21:24 20 Nov -- pair 33333/44444 at its 2025 prospect desk; 55555/66666 still to run; still focus item 1. 00:22 21 Nov -- seed 33333 done (5.7 h); seed 44444 at November 2023; the second pair writes about 14:00Z; still focus item 1. 03:24 21 Nov -- pair 33333/44444 written at 03:19Z (member and control files in /var/tmp/vtc-out-cut012); pair 55555/66666 started then, at December 2017 on the log, writes about 15:00Z; still focus item 1, now readable one pair early. 06:20 21 Nov -- unchanged. Pair 33333/44444 has been on disk since 03:19Z and is still ungraded, because the item that grades it was embargoed by its own Step B (see the seat's row below). It is re-filed as focus item 1 with no embargo text. 55555/66666 writes about 15:00Z.
+- NOT corrected: THE SEAT'S, NEW. The 03:24 record put 'DO NOT DRAW BEFORE <file> EXISTS' inside item 1's STEP B. The lane's embargo parser reads the whole WHAT, so the executor treated the entire item as embargoed. Grading pair 33333/44444 (on disk since 03:19Z) was never drawn: the item does not appear once in seat-executor-log, and from 05:36Z to 06:15Z the executor stood down five times with 'no unclaimed focus item'. This is the same shape as the 00:22 row I marked corrected. The rule is now one embargo per item, and an item that can start now carries no embargo phrase anywhere in its text. 06:20 21 Nov -- re-filed: the pair-1 grade and the pair-2 grade are separate items.
+- NOT corrected: THE MACHINE'S, NEW. B8's holdout publishing was built and twice put through surgical_land inside one 5400s executor tick (pids 2494806, then 3293850). The tick ended before either gate finished, so the work sits uncommitted in /var/tmp/se-seat-executor: growth_desk.py, discovered_price_sensitivity.py, run_phase2b.py, a new test and a staging finding. The item was then stopped after 3 empty turns, which says nothing was done when the work was done and only its landing was cut short. 06:20 21 Nov -- re-filed as a landing item that runs the gate under launch_long_job so it outlives the tick.
+
+## Chosen against
+
+- Putting both replication pairs back in one item, as the 03:24 record did.
+- Rebuilding B8 from scratch under a fresh worker, because its item was stopped as empty.
+- Building B8's blind holdout assignment now.
+- Fast-forwarding the shared checkout (30 behind) or reaping the ten worktrees that hold unlanded commits.
+- World work on N17 or on the deemed and flex standing charge.
+
+## Focus for the next stretch
+
+- `grade-the-0-12-replication-pair-33333-44444-now`
+- `land-the-b8-holdout-publishing-from-the-executor-worktree`
+- `grade-the-0-12-replication-pair-55555-66666-and-the-two-pair-mean`
+- `one-book-carries-the-blend-the-debt-records-the-dual-answer-and-b12`
+
+---
+
 ## 2026-11-21 — orientation: Three hours: 6 commits, all 6 carrying work, 4 substantive
 
 <!-- head: 25cbe1a1ba90 -->

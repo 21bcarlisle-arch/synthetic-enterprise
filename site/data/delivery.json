@@ -1,9 +1,21 @@
 {
- "generated_at": "2026-11-21T03:28:06.644282+00:00",
+ "generated_at": "2026-11-21T06:23:49.146241+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "43827f723",
+    "at": "2026-11-21T04:06:17Z",
+    "subject": "HEAD red register, the e2 margin-surface trio made green (7 census runs red): /explore/ prints a household's lifetime net on the billed clock, so it is registered as a net-margin door and the empty declaration is retired",
+    "substantive": true
+   },
+   {
+    "sha": "ca8a893f7",
+    "at": "2026-11-21T03:51:34Z",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "25cbe1a1b",
     "at": "2026-11-21T03:04:21Z",
@@ -231,81 +243,73 @@
     "at": "2026-11-20T15:48:30Z",
     "subject": "A CLAUDE.md line whose absence shows can move to a diff-triggered item instead of staying always-loaded: nine items, each firing on the past diff that touched what it guards, carrying 4,980 of 23,818 characters (~2,072 of ~9,908 tokens), and inert until trial E-e says move",
     "substantive": true
-   },
-   {
-    "sha": "9739e7bad",
-    "at": "2026-11-20T15:12:29Z",
-    "subject": "One VAT reading of a period, with or without its volume and its date: an SME period of no length is standard-rated, as the checker already said; the invoice fallback reads through the biller; the biller takes the period's first day and zero-rates GB electricity that qualified for the reduced rate from 1 Oct 2026, SME de minimis included",
-    "substantive": true
-   },
-   {
-    "sha": "aaa937736",
-    "at": "2026-11-20T14:32:03Z",
-    "subject": "Three empty turns stop an id: the executor files it, and the draw skips it until it is rewritten or landed",
-    "substantive": true
    }
   ],
-  "substantive": 23,
-  "mechanical": 17,
+  "substantive": 22,
+  "mechanical": 18,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-11-21T03:24:18.655881+00:00",
+  "oriented_at": "2026-11-21T06:20:17.525343+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "Three hours: 6 commits, all 6 carrying work, 4 substantive. The classifier reads 0 supplier, 1 world, 1 both and 4 other. The steer bit this time. Last record's fix was to file B12 and B8 as Lane 0 slices, and both were drawn. a6de6f977 is the stretch's one supplier result: writer 1 now adds back the fixed network cost that its standing charge recovers, so a post-TCR fixed term is no longer read about 21 points short. That is a real correction to the floor every anniversary price is set against. B12 is now honestly parked (25cbe1a1b): no build is left, and L2 is graded on the first book carrying a6de6f977. B8's holdout is in its surgical_land gate now (pid 2062103), not yet on origin. The rest was HEAD-red repair (two registers made green) and a stale working-tree map that had drawn a blocked W2_30 439 times, which 6e79035d9 put right. Against the thesis, the position has not moved. The per-customer arm stands at -GBP 0.33 (-1.77 to +0.96) against the flat-rules twin, in-sample only. But the out-of-sample reading is now half here: pair 33333/44444 of the 0.12 replication was written at 03:19Z, and pair 55555/66666 started then and reads about 15:00Z. Item 1 now grades the first pair against its pre-registered per-pair prediction immediately, unrevised, and then the two-pair mean when the second pair lands. So the thesis question gets its first out-of-sample number this stretch instead of in twelve hours. Three supplier grades and B12's L2 now wait on one book that carries all their commits. That book cannot start beside the replication on this box, so it is the single most valuable artefact after the replication. The shared checkout is 28 commits behind origin, and every daemon imports code the branch has moved past. It advances through landings, and the book must be built at an origin commit for exactly that reason. Corrected this stretch: the seat's own nothing-workable row (both slices drawn) and the stale-map draw (6e79035d9). The four other carried rows are unchanged, and each is waiting on a read already scheduled.",
+  "thesis_read": "Three hours: 2 commits, both carrying work, 1 substantive. The classifier reads 0 supplier, 0 world and 2 other. Against the thesis this went nowhere, and the cause is my own steer, not the box. Item 1 was the only test of the thesis: grade the 0.12 replication's first pair out of sample. That pair has been on disk since 03:19Z. But the item's STEP B carried a DO NOT DRAW phrase, the lane read that phrase as an embargo on the whole item, and it was never drawn. The executor then stood down five times from 05:36Z. So the per-customer arm still stands at -GBP 0.33 (-1.77 to +0.96) against the flat-rules twin, in-sample only. The out-of-sample number we could have had at 04:00Z has not been read. Item 2 (B8) was drawn and its work was done: the run now publishes its retention holdout per desk and year and says by name that it assigns none. But both surgical_land attempts outran the 5400s tick, so the work sits uncommitted in /var/tmp/se-seat-executor, and the lane has stopped offering the item after three 'empty' turns. Done work stranded in a worktree is the worst state here, so landing it is item 2. Item 3, the one book that grades D48, KNIFE3, the dual-household answer and B12's L2, is still correctly held behind the replication's memory (the child is at 6.8 GB). The shared checkout is 30 behind origin. HEAD-red repair continues in other lanes (43827f723, and a reconciliation-identity landing gating now). Corrected this stretch: nothing. Two new rows are the seat's and the machine's, and the four carried rows are unchanged, each waiting on a scheduled read.",
   "focus": [
    {
-    "id": "the-0-12-replication-is-read-out-of-sample",
-    "what": "Pair 33333/44444 is written (/var/tmp/vtc-out-cut012/member_33333_44444.json and control_33333_44444.json, 03:19Z). STEP A, now: check that its sidecar tree_patch hashes to the pin 2b312c4d...114d. If it does not, say so and do not grade it. Then grade it against the per-pair prediction filed before the run in docs/design/THE_VALUE_TEST_REDESIGN.md, under 'The replication is launched on 33333/44444 and 55555/66666'. That prediction is cut minus A on the value arm, +GBP 0.60 (-0.60 to +1.80), with the flat book (control arm) moving by less than GBP 0.10. Use /var/tmp/vtc-rep-driver/grade_rep.py or grade_paired_cut012.py's method against /var/tmp/vta-out-flag1. Write the pair's number and interval beside the prediction, unrevised, and land with `Graded: value-test held=<n> missed=<n>`. If the member file carries both arms on the same households, also publish the value arm minus the flat book for this pair; if it does not, say so in one line. STEP B: DO NOT DRAW BEFORE /var/tmp/vtc-out-cut012/control_55555_66666.json EXISTS (wait with tools.wait_for on the file, never pgrep). Then grade pair 55555/66666 the same way, and the two-pair mean against its refutation line (refuted if the mean is below zero). Only then unlock /var/tmp/value-test-cut012.",
-    "why": "This is the only reading that tests the thesis: does the per-customer arm, using what it inferred, beat flat rules on households its cut was not fitted to? Half of it has been readable since 03:19Z. Done means: the s.12f section carries both pairs' grades and the two-pair mean with intervals; the advantage over the baseline is published with its interval, or stated as unreadable with the run that would read it; and the next lever is named from the result. That lever is B11/C35 multi-term value if the cut holds, or s.12e's alternative if it is refuted.",
+    "id": "grade-the-0-12-replication-pair-33333-44444-now",
+    "what": "Pair 33333/44444 is on disk: /var/tmp/vtc-out-cut012/member_33333_44444.json and control_33333_44444.json, written 03:19Z. First check that its sidecar tree_patch hashes to the pin 2b312c4d...114d. If it does not, say so in THE_VALUE_TEST_REDESIGN.md and stop. Then grade it against the per-pair prediction filed before the run in docs/design/THE_VALUE_TEST_REDESIGN.md, under 'The replication is launched on 33333/44444 and 55555/66666'. That prediction is cut minus A on the value arm, +GBP 0.60 (-0.60 to +1.80), with the flat book (control arm) moving by less than GBP 0.10. Use the method in /var/tmp/vtc-rep-driver/grade_rep.py (or grade_paired_cut012.py) against /var/tmp/vta-out-flag1. Write the pair's number and interval beside the prediction, unrevised. If the member file carries both arms on the same households, also publish the value arm minus the flat book for this pair, with its interval; if it does not, say so in one line. Land by pathspec with `Graded: value-test held=<n> missed=<n>`. Do not touch or unlock /var/tmp/value-test-cut012, because pair 55555/66666 is still running from it.",
+    "why": "This is the thesis's one live test: does the per-customer arm beat flat rules on households its cut was not fitted to? It has been readable for three hours and was blocked only by my own wording. Done means: the s.12f section carries pair 33333/44444's graded number and interval beside its prediction, plus the advantage over the twin for that pair or a line saying why it cannot be read.",
     "lane": "B_commercial",
     "side": "supplier",
-    "written_at": 1795231669.785
+    "written_at": 1795242212.013
    },
    {
-    "id": "b8-the-book-publishes-its-holdout-so-uplift-is-measured",
-    "what": "First check whether the B8 surgical_land started at about 03:01Z ('B8: the run publishes its retention holdout per desk and year, and the standing book says by name that it assigns none') has landed on origin. Do not start a second landing while it is gating. If it was refused, read the refusal, fix the named cause, and land again by pathspec through tools.surgical_land. Once it is on origin, file ONE prediction for the first book carrying that commit. It should name the exact run_output keys it will read and what each will hold (by its own message, the book will say by name that it assigns no holdout). Then append B8's next step to its knowledge page as a GAP: blind holdout assignment drawn before treatment, behind a default-off switch. Do not build the assignment in this item.",
-    "why": "A per-customer retention treatment with no held-out twin cannot say it did anything, and the thesis needs a baseline at every lever, not only at the book level. A prediction against an artefact the book does not publish costs a whole grading cycle, which is why the artefact goes first. Done means: the holdout publishing is on origin, a prediction names its keys, and the assignment gap is written on the knowledge page.",
+    "id": "land-the-b8-holdout-publishing-from-the-executor-worktree",
+    "what": "The B8 work is finished and uncommitted in /var/tmp/se-seat-executor: company/interfaces/growth_desk.py, company/pricing/discovered_price_sensitivity.py, simulation/run_phase2b.py, docs/market_research/retention_slope_per_pound_of_renewal_cut.md, tests/company/test_the_book_publishes_its_retention_holdout_by_desk_and_year.py and docs/staging/SEAT_FINDING_B8_NO_RETENTION_DESK_HOLDS_ANYONE_OUT_IN_THE_STANDING_RUN_AND_THE_BOOK_NOW_SAYS_SO_PER_DESK_AND_YEAR_2026-11-21.md. First check that no surgical_land for B8 is still running, and that origin/main does not already carry it. Then land those paths only, never the observability files, through tools.surgical_land, launched via background/launch_long_job.py so the gate outlives the tick. Bind the landing to b8-the-book-publishes-its-holdout-so-uplift-is-measured with --landed. If the gate refuses, fix the named cause and land again. Once it is on origin, file ONE prediction for the first book carrying the commit, naming the exact run_output keys it will read and what each will hold. Add B8's next step to its knowledge page as a GAP: blind holdout assignment, drawn before treatment, behind a default-off switch. Do not build it here.",
+    "why": "A retention treatment with no held-out twin cannot say it did anything, and the thesis needs a baseline at each lever. The work exists, and only the landing was cut short by the tick's 5400s limit. Done means: the B8 commit is on origin and bound to its claim, the prediction names its keys, and the GAP is on the knowledge page.",
     "lane": "B_commercial",
     "side": "supplier",
-    "written_at": 1795231669.785
+    "written_at": 1795242212.013
+   },
+   {
+    "id": "grade-the-0-12-replication-pair-55555-66666-and-the-two-pair-mean",
+    "what": "DO NOT DRAW BEFORE /var/tmp/vtc-out-cut012/control_55555_66666.json EXISTS. Then check its tree_patch against the pin, grade pair 55555/66666 the same way pair 33333/44444 was graded, and grade the two-pair mean against its refutation line (refuted if the mean is below zero). Publish the advantage over the flat-rules twin with its interval, and name the next lever: B11/C35 multi-term value if the cut holds, s.12e's alternative if it is refuted. Land with a Graded trailer. Only then unlock /var/tmp/value-test-cut012.",
+    "why": "This is the second half of the out-of-sample test, and its result decides the next supplier lever. Done means: the s.12f section carries both pairs and the mean with intervals, the next lever is named, and the replication worktree is released.",
+    "lane": "B_commercial",
+    "side": "supplier",
+    "written_at": 1795242212.013
    },
    {
     "id": "one-book-carries-the-blend-the-debt-records-the-dual-answer-and-b12",
-    "what": "DO NOT DRAW BEFORE /var/tmp/vtc-out-cut012/control_55555_66666.json EXISTS. The replication holds about 7.6 GB, and a book will not fit beside it. Then build ONE published book at an origin/main commit that has all of these as ancestors (check each with git merge-base --is-ancestor before launch): 0ed751663 (D48 blend at SPAR 0.5), 1624411d2 (KNIFE3 debt-recovery records), c41e70832 (a dual household answers once), a6de6f977 (B12 writer-1 network add-back), and the B8 holdout commit if item 2 has landed it. First check whether sim-runner has already queued or started such a run, and do not launch a second. Otherwise launch through launch_long_job. When it is published, confirm that run_output_<sha>_<ts>.json carries the KNIFE3 write-off rows with invoice_ref, the agency remittance rows and the learner cells, and the B8 holdout keys. Name any that are missing in their findings before a grader reads them. Do not grade here: the continuations d48-grade-the-first-book-built-with-the-blend-at-0-5, grade-knife3-i1-to-i5-on-the-first-book-carrying-1624411d2 and grade-dual-household-answers-apart-on-the-first-book-carrying-c41e70832, and B12's parked L2 read, do that.",
-    "why": "Four supplier grades wait on this one missing artefact: billing accuracy (D48), the first per-customer decision on recovered cash (KNIFE3), the dual-fuel offer fix, and the renewal floor every anniversary price is set against (B12 L2). Done means: one book, at a commit descending from all of them, is published under docs/reports/, and its debt and holdout records are confirmed present or named as missing.",
+    "what": "DO NOT DRAW BEFORE /var/tmp/vtc-out-cut012/control_55555_66666.json EXISTS. The replication holds about 7 GB, and a book will not fit beside it. Then build ONE published book at an origin/main commit that has all of these as ancestors (check each with git merge-base --is-ancestor): 0ed751663, 1624411d2, c41e70832, a6de6f977, and the B8 commit if item 2 has landed it. First check whether sim-runner has already queued or started such a run, and do not launch a second. Otherwise launch through launch_long_job. When it is published, confirm the run_output carries the KNIFE3 write-off rows with invoice_ref, the remittance rows, the learner cells and the B8 holdout keys, and name any that are missing. Do not grade here: the queued continuations do that.",
+    "why": "Four supplier grades wait on this one artefact: D48 billing accuracy, KNIFE3 recovered cash, the dual-fuel answer, and B12's renewal floor at L2. Done means: one such book is published under docs/reports/, and its records are confirmed present or named missing.",
     "lane": "D_billing_metering",
     "side": "supplier",
-    "written_at": 1795231669.785
+    "written_at": 1795242212.013
    }
   ],
   "not_now": [
    {
-    "what": "Waiting for both replication pairs before grading either, as the previous record did.",
-    "why": "The per-pair prediction was filed before the run, so reading pair 1 now does not change it. Waiting twelve hours for nothing leaves the executor idle on the thesis's one live test."
+    "what": "Putting both replication pairs back in one item, as the 03:24 record did.",
+    "why": "The lane reads an embargo anywhere in the WHAT, so a single item hid the grade that was ready behind the one that was not. That cost the whole stretch. One embargo per item."
    },
    {
-    "what": "Keeping B12 in focus.",
-    "why": "Its build landed (a6de6f977) and its row is parked on a book (25cbe1a1b). Its remaining step is item 3's book, so it rides there rather than holding a slot."
+    "what": "Rebuilding B8 from scratch under a fresh worker, because its item was stopped as empty.",
+    "why": "The work exists in /var/tmp/se-seat-executor, and only its gate outran the tick. Redoing it would discard finished work and risk a second writer on the same paths."
    },
    {
-    "what": "Building B8's blind holdout assignment now, in the same item as its publishing.",
-    "why": "The publishing landing is still in its gate. Stacking a behaviour change on it before the first book reads 'none assigned' would mean a second variable in that book. The assignment goes on the knowledge page first (K8)."
+    "what": "Building B8's blind holdout assignment now.",
+    "why": "The publishing is not on origin yet. A behaviour change stacked on it before the first book reads 'none assigned' would put a second variable in that book. K8: knowledge page first."
    },
    {
-    "what": "Launching the D48 smart-meter-exchange flip pair, now that P0 (397cc8df3) is on origin.",
-    "why": "Its own pre-registered sequence puts it after churn_roll, candidate A, B11 M7 and the retention-netting pair, and the box holds the replication. Jumping that queue would put two pairs on one box and break attribution."
-   },
-   {
-    "what": "Fast-forwarding the shared checkout (28 behind) or reaping the ten worktrees with unlanded commits.",
-    "why": "value-test-cut012 is the live replication tree, and a reap cannot be undone. The checkout advances through landings, and a direction session writes nothing outside its two files."
+    "what": "Fast-forwarding the shared checkout (30 behind) or reaping the ten worktrees that hold unlanded commits.",
+    "why": "value-test-cut012 and se-seat-executor hold live work, and a reap cannot be undone. The checkout advances through landings, and this session writes only its two files."
    },
    {
     "what": "World work on N17 or on the deemed and flex standing charge.",
-    "why": "Neither blocks a supplier result in focus. N17 has its dated 23 Nov recheck, and the settlement gap reads GBP 0.00 per domestic account-day on the book."
+    "why": "Neither blocks a supplier result in focus. N17 has its 23 Nov recheck, and the settlement gap reads GBP 0.00 per domestic account-day."
    }
   ],
   "for_the_director": [
@@ -344,8 +348,8 @@
   "problems": [
    {
     "key": "triage:the-live-renewal-belief-ranks-leavers-backwards",
-    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- unchanged; the replication's arm A carries the corrected ending-term belief, so it reads that belief only as the base the cut is measured from, not as a switch-on grade. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged.",
-    "last_at": "2026-11-21T03:24:18.655881+00:00",
+    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- unchanged; the replication's arm A carries the corrected ending-term belief, so it reads that belief only as the base the cut is measured from, not as a switch-on grade. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged. 06:20 21 Nov -- unchanged.",
+    "last_at": "2026-11-21T06:20:17.525343+00:00",
     "first_at": "2026-11-16T18:24:27.397925+00:00",
     "times_listed": 40,
     "corrected": false,
@@ -357,8 +361,8 @@
    },
    {
     "key": "triage:metered-electricity-barely-moves-year-to-year",
-    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- the book is published (run_output_6a588a832f_20261120T134224Z.json); the 23 Nov recheck reads it. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged; the 23 Nov recheck stands.",
-    "last_at": "2026-11-21T03:24:18.655881+00:00",
+    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- the book is published (run_output_6a588a832f_20261120T134224Z.json); the 23 Nov recheck reads it. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged; the 23 Nov recheck stands. 06:20 21 Nov -- unchanged; the 23 Nov recheck stands.",
+    "last_at": "2026-11-21T06:20:17.525343+00:00",
     "first_at": "2026-11-16T18:24:27.397925+00:00",
     "times_listed": 40,
     "corrected": false,
@@ -370,8 +374,8 @@
    },
    {
     "key": "triage:settlement-books-no-standing-charge-the-bill-charges",
-    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 18:23 20 Nov -- unchanged. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged.",
-    "last_at": "2026-11-21T03:24:18.655881+00:00",
+    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 18:23 20 Nov -- unchanged. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged. 06:20 21 Nov -- unchanged.",
+    "last_at": "2026-11-21T06:20:17.525343+00:00",
     "first_at": "2026-11-16T18:24:27.397925+00:00",
     "times_listed": 40,
     "corrected": false,
@@ -383,10 +387,36 @@
    },
    {
     "key": "text:with the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin",
-    "what": "THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. 18:23 20 Nov -- launched 15:49Z; pair 33333/44444 at September 2023; reads about 15:00Z 21 Nov (focus item 1). Its pre-registered grade is cut minus A, not the advantage over the twin. 21:24 20 Nov -- pair 33333/44444 at its 2025 prospect desk; 55555/66666 still to run; still focus item 1. 00:22 21 Nov -- seed 33333 done (5.7 h); seed 44444 at November 2023; the second pair writes about 14:00Z; still focus item 1. 03:24 21 Nov -- pair 33333/44444 written at 03:19Z (member and control files in /var/tmp/vtc-out-cut012); pair 55555/66666 started then, at December 2017 on the log, writes about 15:00Z; still focus item 1, now readable one pair early.",
-    "last_at": "2026-11-21T03:24:18.655881+00:00",
+    "what": "THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. 18:23 20 Nov -- launched 15:49Z; pair 33333/44444 at September 2023; reads about 15:00Z 21 Nov (focus item 1). Its pre-registered grade is cut minus A, not the advantage over the twin. 21:24 20 Nov -- pair 33333/44444 at its 2025 prospect desk; 55555/66666 still to run; still focus item 1. 00:22 21 Nov -- seed 33333 done (5.7 h); seed 44444 at November 2023; the second pair writes about 14:00Z; still focus item 1. 03:24 21 Nov -- pair 33333/44444 written at 03:19Z (member and control files in /var/tmp/vtc-out-cut012); pair 55555/66666 started then, at December 2017 on the log, writes about 15:00Z; still focus item 1, now readable one pair early. 06:20 21 Nov -- unchanged. Pair 33333/44444 has been on disk since 03:19Z and is still ungraded, because the item that grades it was embargoed by its own Step B (see the seat's row below). It is re-filed as focus item 1 with no embargo text. 55555/66666 writes about 15:00Z.",
+    "last_at": "2026-11-21T06:20:17.525343+00:00",
     "first_at": "2026-11-20T09:20:07.819595+00:00",
-    "times_listed": 8,
+    "times_listed": 9,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the 03:24 record put 'do not draw before <file> exists' inside item 1's step b",
+    "what": "THE SEAT'S, NEW. The 03:24 record put 'DO NOT DRAW BEFORE <file> EXISTS' inside item 1's STEP B. The lane's embargo parser reads the whole WHAT, so the executor treated the entire item as embargoed. Grading pair 33333/44444 (on disk since 03:19Z) was never drawn: the item does not appear once in seat-executor-log, and from 05:36Z to 06:15Z the executor stood down five times with 'no unclaimed focus item'. This is the same shape as the 00:22 row I marked corrected. The rule is now one embargo per item, and an item that can start now carries no embargo phrase anywhere in its text. 06:20 21 Nov -- re-filed: the pair-1 grade and the pair-2 grade are separate items.",
+    "last_at": "2026-11-21T06:20:17.525343+00:00",
+    "first_at": "2026-11-21T06:20:17.525343+00:00",
+    "times_listed": 1,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:b8's holdout publishing was built and twice put through surgical_land inside one 5400s executor tick (pids 2494806, then 3293850)",
+    "what": "THE MACHINE'S, NEW. B8's holdout publishing was built and twice put through surgical_land inside one 5400s executor tick (pids 2494806, then 3293850). The tick ended before either gate finished, so the work sits uncommitted in /var/tmp/se-seat-executor: growth_desk.py, discovered_price_sensitivity.py, run_phase2b.py, a new test and a staging finding. The item was then stopped after 3 empty turns, which says nothing was done when the work was done and only its landing was cut short. 06:20 21 Nov -- re-filed as a landing item that runs the gate under launch_long_job so it outlives the tick.",
+    "last_at": "2026-11-21T06:20:17.525343+00:00",
+    "first_at": "2026-11-21T06:20:17.525343+00:00",
+    "times_listed": 1,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -659,7 +689,7 @@
     "what": "THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 03:20 19 Nov -- graded corrected on its own criterion. A second stretch has passed with no written_at banner commit. D48's log has been read: it was killed at the unit's teardown and did not lose a race (new row below).",
     "last_at": "2026-11-19T03:20:44.845299+00:00",
     "first_at": "2026-11-16T18:24:27.397925+00:00",
-    "times_listed": 22,
+    "times_listed": 21,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -711,7 +741,7 @@
     "what": "THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 15:21 18 Nov -- corrected on the live book: 0 of 1,044 supply points share a serial, and 0 of 23,799 gas bills charge with no volume, on 6af7fd0bfd (3727cdbb3).",
     "last_at": "2026-11-18T15:21:49.370919+00:00",
     "first_at": "2026-11-16T18:24:27.397925+00:00",
-    "times_listed": 18,
+    "times_listed": 17,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -750,7 +780,7 @@
     "what": "THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: 0 legs, GBP 0.00 on the verified 6af7fd0bfd book (49d41097b).",
     "last_at": "2026-11-18T12:24:07.112567+00:00",
     "first_at": "2026-11-16T18:24:27.397925+00:00",
-    "times_listed": 17,
+    "times_listed": 16,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -763,7 +793,7 @@
     "what": "THE MACHINE'S, NEW. The live Capabilities page told the director \"Fixed in the 7 days to 11 Nov 2026 -- Nothing recorded\" after a week that fixed dozens of money classes. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: https://poesys.net/capabilities/ serves \"Fixed in the 7 days to 18 Nov 2026\" with dated items, and its lead says the thesis question in words, not book totals.",
     "last_at": "2026-11-18T12:24:07.112567+00:00",
     "first_at": "2026-11-16T18:24:27.397925+00:00",
-    "times_listed": 17,
+    "times_listed": 16,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -776,7 +806,7 @@
     "what": "THE COMPANY'S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 Nov book. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: origin's publish_provenance reads last_verified 6af7fd0bfd at 10:20:38Z with paused_since null, and the episode closed at 11:03Z.",
     "last_at": "2026-11-18T12:24:07.112567+00:00",
     "first_at": "2026-11-16T18:24:27.397925+00:00",
-    "times_listed": 17,
+    "times_listed": 16,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1010,7 +1040,7 @@
     "what": "THE MACHINE'S, NEW. The orientation brief counts a retired finding as BLOCKING. The 205-of-238 refund finding was retired on origin by 63ede2e3b, but the shared tree still holds it in docs/staging/, so the brief lists 3 BLOCKING findings where origin has 2. The brief reads findings from the working copy, not from origin. [Earlier tails are in decisions.jsonl.] 21:23 16 Nov -- unchanged in kind. The brief again lists 3 BLOCKING, and one of them (WORKER_FINDING_THE_CANON_DRIFTS_FROM_THE_CODE_0A2E477ACB) is not in origin's staging root, only the shared tree's.",
     "last_at": "2026-11-16T21:23:08.620182+00:00",
     "first_at": "2026-11-16T18:24:27.397925+00:00",
-    "times_listed": 3,
+    "times_listed": 2,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -1023,7 +1053,7 @@
     "what": "THE SEAT'S, NEW. The 09:23 record never reached origin. Its landing was refused at 09:53 by the knowledge gate on docs/staging/advisor/done/DIRECTOR_RULING_EP11_REFRAME_APPROVED_SANDBOX_STAYS_A_LATER_DIRECTOR_RUNG_2026-11-16.md, a file another lane had landed on origin four minutes earlier (209f1b93f). The gate read the merge's combined diff, not the seat's own paths. Four of today's advisor/done files on origin carry no Knowledge line, so this record can be refused the same way. The earlier 'corrected' row fixed a different cause (the bracket sweep). Focus item 5. [Earlier tails are in decisions.jsonl.] 21:23 16 Nov -- unchanged on the cause, and the 18:24 record was also refused, for a different cause (see the new row). Focus item 3.",
     "last_at": "2026-11-16T21:23:08.620182+00:00",
     "first_at": "2026-11-16T18:24:27.397925+00:00",
-    "times_listed": 4,
+    "times_listed": 3,
     "corrected": false,
     "fate": "accept",
     "status": null,
@@ -1036,7 +1066,7 @@
     "what": "THE SEAT'S, NEW. The 12:20 record's focus drew 1 of 5 in this stretch, and the supplier side landed nothing (commit split: 0 supplier, 1 world, 11 other). Item 1's first instruction, re-stamping two continuations, was never done, and it took one command each. A long first item bundled a cheap safety step with a grade that cannot start before tonight, and the cheap step was never taken. This record makes the re-stamp its own first step and names the command. [Earlier tails are in decisions.jsonl.] 21:23 16 Nov -- repeated. The 18:24 record drew 0 of 5 in its 3.0h, and b11-m7 still carries no wait after four asks. Over that stretch the one worker drew continuations (DD_seasonal_cashflow_physics, n29-blind-row-residual-23), and each holds a tick for about an hour. So the b11-m7 re-stamp now rides on the grade it waits for (focus item 1), which is drawable.",
     "last_at": "2026-11-16T21:23:08.620182+00:00",
     "first_at": "2026-11-16T18:24:27.397925+00:00",
-    "times_listed": 3,
+    "times_listed": 2,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -1049,7 +1079,7 @@
     "what": "THE SEAT'S, NEW. Two records named the publish blocker in focus by its atom id (DD_seasonal_cashflow_physics), which only biases a draw that has stopped taking that atom (999 unchanged draws, 'not drawn this stretch'). So the one fix between the project and a published book had no route to a worker for about six hours. 21:23 16 Nov -- corrected. The work reached a worker through the continuation queue and not through the Lane 0 id. DD_seasonal_cashflow_physics was claimed at 20:22Z, and its page-side landing is running.",
     "last_at": "2026-11-16T21:23:08.620182+00:00",
     "first_at": "2026-11-16T18:24:27.397925+00:00",
-    "times_listed": 3,
+    "times_listed": 2,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1062,7 +1092,7 @@
     "what": "THE MACHINE'S, NEW. The worker tick has drawn 'HEAD_RED_REGISTER.md: 17 owed' 298 times since 4 Nov (17 times today), and the register has not been re-rendered since its 4 Nov 07:54 run at b3ce2a4e7. docs/observability/.head_red_observed.json was last written then too, although head_green_census ran this morning holding 11,981 MB. So about 300 Opus invocations were dispatched against a twelve-day-old count that no fix can move. Focus item 4. [Earlier tails are in decisions.jsonl.] 18:24 16 Nov: Corrected by 7743cde68. A register older than a failed census attempt is marked STALE and the draw returns nothing for it (tests/background/test_a_stale_head_red_register_is_not_drawn.py, 7 of 7 mutations fire). The re-render is graded on the 17 Nov 03:30 census (continuation grade-the-17-nov-head-green-census-pre-registration).",
     "last_at": "2026-11-16T18:24:27.397925+00:00",
     "first_at": "2026-11-16T18:24:27.397925+00:00",
-    "times_listed": 2,
+    "times_listed": 1,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1071,18 +1101,48 @@
     "reason": null
    }
   ],
-  "distinct": 56,
+  "distinct": 58,
   "triaged": 12,
   "triaged_by_fate": {
    "fix": 9,
    "fold": 2,
    "accept": 1
   },
-  "untriaged": 44,
-  "distinct_open": 11,
-  "rows": 379,
+  "untriaged": 46,
+  "distinct_open": 13,
+  "rows": 372,
   "triage_register": "read",
   "entries": [
+   {
+    "at": "2026-11-21T06:20:17.525343+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-11-21T06:20:17.525343+00:00",
+    "corrected": false,
+    "problem": "triage:metered-electricity-barely-moves-year-to-year"
+   },
+   {
+    "at": "2026-11-21T06:20:17.525343+00:00",
+    "corrected": false,
+    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
+   },
+   {
+    "at": "2026-11-21T06:20:17.525343+00:00",
+    "corrected": false,
+    "problem": "text:with the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin"
+   },
+   {
+    "at": "2026-11-21T06:20:17.525343+00:00",
+    "corrected": false,
+    "problem": "text:the 03:24 record put 'do not draw before <file> exists' inside item 1's step b"
+   },
+   {
+    "at": "2026-11-21T06:20:17.525343+00:00",
+    "corrected": false,
+    "problem": "text:b8's holdout publishing was built and twice put through surgical_land inside one 5400s executor tick (pids 2494806, then 3293850)"
+   },
    {
     "at": "2026-11-21T03:24:18.655881+00:00",
     "corrected": false,
@@ -2912,71 +2972,6 @@
     "at": "2026-11-16T18:24:27.397925+00:00",
     "corrected": false,
     "problem": "text:two records named the publish blocker in focus by its atom id (dd_seasonal_cashflow_physics), which only biases a draw that has stopped taking that atom (999 unchanged draws, 'not drawn this stretch')"
-   },
-   {
-    "at": "2026-11-16T18:24:27.397925+00:00",
-    "corrected": false,
-    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
-   },
-   {
-    "at": "2026-11-16T18:24:27.397925+00:00",
-    "corrected": false,
-    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
-   },
-   {
-    "at": "2026-11-16T18:24:27.397925+00:00",
-    "corrected": false,
-    "problem": "triage:metered-electricity-barely-moves-year-to-year"
-   },
-   {
-    "at": "2026-11-16T18:24:27.397925+00:00",
-    "corrected": false,
-    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
-   },
-   {
-    "at": "2026-11-16T18:24:27.397925+00:00",
-    "corrected": false,
-    "problem": "triage:the-account-page-drops-cash-the-household-repaid"
-   },
-   {
-    "at": "2026-11-16T18:24:27.397925+00:00",
-    "corrected": false,
-    "problem": "triage:the-brief-counts-a-finding-retired-on-origin-as-blocking"
-   },
-   {
-    "at": "2026-11-16T18:24:27.397925+00:00",
-    "corrected": false,
-    "problem": "triage:the-capabilities-page-says-nothing-was-fixed"
-   },
-   {
-    "at": "2026-11-16T18:24:27.397925+00:00",
-    "corrected": false,
-    "problem": "triage:a-landing-loses-its-race-to-origin"
-   },
-   {
-    "at": "2026-11-16T18:24:27.397925+00:00",
-    "corrected": false,
-    "problem": "text:the 16 nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 nov book"
-   },
-   {
-    "at": "2026-11-16T18:24:27.397925+00:00",
-    "corrected": false,
-    "problem": "triage:a-seat-record-is-refused-on-something-other-than-its-content"
-   },
-   {
-    "at": "2026-11-16T18:24:27.397925+00:00",
-    "corrected": true,
-    "problem": "text:the worker tick has drawn 'head_red_register.md: 17 owed' 298 times since 4 nov (17 times today), and the register has not been re-rendered since its 4 nov 07:54 run at b3ce2a4e7"
-   },
-   {
-    "at": "2026-11-16T18:24:27.397925+00:00",
-    "corrected": false,
-    "problem": "text:the 12:20 record's focus drew 1 of 5 in this stretch, and the supplier side landed nothing (commit split: 0 supplier, 1 world, 11 other)"
-   },
-   {
-    "at": "2026-11-16T18:24:27.397925+00:00",
-    "corrected": false,
-    "problem": "text:two records named the publish blocker in focus by its atom id (dd_seasonal_cashflow_physics), which only biases a draw that has stopped taking that atom (999 unchanged draws, 'not drawn this stretch')"
    }
   ],
   "refused_own_records": [
@@ -2997,18 +2992,45 @@
     "problems": []
    }
   ],
-  "outstanding": 320,
-  "corrected": 59,
+  "outstanding": 314,
+  "corrected": 58,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "the-0-12-replication-is-read-out-of-sample",
-   "b8-the-book-publishes-its-holdout-so-uplift-is-measured",
+   "grade-the-0-12-replication-pair-33333-44444-now",
+   "land-the-b8-holdout-publishing-from-the-executor-worktree",
+   "grade-the-0-12-replication-pair-55555-66666-and-the-two-pair-mean",
    "one-book-carries-the-blend-the-debt-records-the-dual-answer-and-b12"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "b8-the-book-publishes-its-holdout-so-uplift-is-measured"
+      ],
+      "focus": [
+       "the-0-12-replication-is-read-out-of-sample",
+       "b8-the-book-publishes-its-holdout-so-uplift-is-measured",
+       "one-book-carries-the-blend-the-debt-records-the-dual-answer-and-b12"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "b8-the-book-publishes-its-holdout-so-uplift-is-measured"
+    ],
+    "focus": [
+     "the-0-12-replication-is-read-out-of-sample",
+     "b8-the-book-publishes-its-holdout-so-uplift-is-measured",
+     "one-book-carries-the-blend-the-debt-records-the-dual-answer-and-b12"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 2.9h since 2026-11-21T03:24:18.655881+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 2.9h since 2026-11-21T03:24:18.655881+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -3132,36 +3154,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-20T15:23:55.572760+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-11-20T15:23:55.572760+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "the-shared-checkout-rejoins-origin-so-the-book-runs",
-       "a-dual-household-answers-its-anniversary-offer-once"
-      ],
-      "focus": [
-       "the-shared-checkout-rejoins-origin-so-the-book-runs",
-       "d48-the-electricity-blend-goes-on-in-the-published-policy",
-       "a-dual-household-answers-its-anniversary-offer-once",
-       "the-four-unparsed-grades-reach-the-learning-loop"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "the-shared-checkout-rejoins-origin-so-the-book-runs",
-     "a-dual-household-answers-its-anniversary-offer-once"
-    ],
-    "focus": [
-     "the-shared-checkout-rejoins-origin-so-the-book-runs",
-     "d48-the-electricity-blend-goes-on-in-the-published-policy",
-     "a-dual-household-answers-its-anniversary-offer-once",
-     "the-four-unparsed-grades-reach-the-learning-loop"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.1h since 2026-11-20T12:20:35.333416+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.1h since 2026-11-20T12:20:35.333416+00:00"
    }
   ],
   "steered_recently": true,
@@ -3436,7 +3428,7 @@
     },
     {
      "date": "2026-11-21",
-     "commit": "25cbe1a1b",
+     "commit": "43827f723",
      "population": 157,
      "chained": 154,
      "minted": 56,

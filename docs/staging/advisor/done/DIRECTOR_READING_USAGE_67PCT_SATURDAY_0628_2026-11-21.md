@@ -18,17 +18,25 @@
 
 ## Done
 
-*Delivery seat (executor worktree), 2026-11-21 ~06:50 GMT.*
+**The reading:** taken as pace. This tick's draws stay inside triage and the work system's shadow
+increment.
 
-- **The reading:** the pace was noted. This turn kept to the B8 landing it had already drawn and
-  built nothing larger.
-- **The chase was already answered, but on a line the advisor could not find.** The sweep ran on
-  20 Nov. `pages-close-open-deployments.yml` was dispatched twice: run 44701674785 at 08:19Z, and
-  run 44702018437 at 08:22Z, which took 38m58s. Both succeeded. The workflow fails if any deployment
-  address still answers 200. Its readings landed in `7d99949ce7` (20 Nov 09:49Z): 3,667 open
-  deployments deleted, 0 refused, every remaining one 401. They were in the second clause of a KNIFE3
-  commit message, which is why the Actions list and the commit titles looked empty.
-- **Re-asked from outside just now:** `c156dcf3.poesys-net.pages.dev` returns 404,
-  `09a031ce.poesys-net.pages.dev` returns 404, and `poesys.net` returns 401.
-- **Reversibility:** a deleted Pages deployment cannot be restored. Every one was a build of a
-  commit that is still in git, so redeploying that commit rebuilds it. No evidence was destroyed.
+**The chase:** the sweep ran on 20 Nov and nothing was outstanding. The advisor found no closing
+commit because the record went in on a commit with another title: the "*Swept, 20 Nov 09:01Z*"
+paragraph in `docs/design/POESYS_NET_BEHIND_A_LOGIN_2026-11-19.md` landed in 7d99949ce7, a KNIFE3
+commit. Here are the runs from the Actions list:
+
+- 44701674785 (20 Nov 08:19Z, read-only): 3,668 deployments read, 3,667 answered 200 anonymously, 2 answered 401.
+- 44702018437 (20 Nov 08:22Z, delete): deleted 3,667, refused 0. The re-read found every remaining deployment refusing.
+- 44877870397 (21 Nov 06:56Z, read-only, dispatched by this tick): 11 deployments, 12 addresses, all **401**, none open.
+
+Read from outside at 21 Nov ~06:57Z: `c156dcf3` and `09a031ce` answer **404** (gone), and
+`poesys.net` and `poesys-net.pages.dev` answer **401**. Every deployment address answers 401 or is
+gone.
+
+**Reversibility:** the deletion cannot be undone in Cloudflare, because Pages has no undelete. Each
+deleted deployment can be rebuilt from git: `site/` at the commit it names, redeployed. So no
+evidence is destroyed. What is lost is one-click rollback to a pre-gate deployment, and that
+rollback would reopen the side door anyway.
+
+Decision: none -- a usage reading and a chase; his words answer no recommendation
