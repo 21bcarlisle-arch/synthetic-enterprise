@@ -126,8 +126,8 @@ the share**. GDELT saw anywhere from about 800 national-outlet URLs a day (weeke
 3,600 over the decade, and the yearly median falls from about 3,100 (2017–18) to 1,400 (2022)
 (161 days measured so far). A row
 whose date basis is "article date" or "unverified" may sit a day off its announcement, which
-can halve the day count (ScottishPower, 23 Aug 2018, reads 0). **The week and baseline columns
-in the series are blank until the pull reaches them; see §6.**
+can halve the day count (ScottishPower, 23 Aug 2018, reads 0). The week against its baseline
+is in §4a.
 
 | Announced | Who | Change | Articles that day | Per 1,000 national articles |
 |---|---|---|---|---|
@@ -174,6 +174,85 @@ in the series are blank until the pull reaches them; see §6.**
 | 2025-05-23 | Ofgem | £1,720 (-7%) | 18 | 11.0 |
 | 2025-08-27 | Ofgem | £1,755 (+2%) | 30 | 18.1 |
 
+## 4a. The announcement week against the weeks before it (second reading, 21 Nov 2026, 13:30)
+
+**The quantity.** `week_vs_baseline` is the articles per counted day in the 7 days from the
+moment, divided by the articles per counted day in the 28 days that end a week before it
+(day −35 to day −8). 1.0 means the week was no louder than the month before it. It answers what
+the day count in §4 cannot: how far a moment rose **above** the coverage already running. The
+"effective" column is the same ratio from the effective date; a dash means the pull has not yet
+reached that window (every cap's effective window, and four supplier ones).
+
+| Announced | Who | Week articles | Baseline per day | Week vs baseline | Effective | Effective week vs baseline |
+|---|---|---|---|---|---|---|
+| 2016-01-28 | SSE | 22 | — | **—** | 2016-03-29 | 0.1 |
+| 2016-02-08 | npower | 29 | 2.29 | **1.8** | 2016-03-28 | 0.1 |
+| 2016-02-11 | British Gas | 21 | 2.64 | **1.1** | 2016-03-16 | 0.3 |
+| 2016-02-11 | EDF | 21 | 2.64 | **1.1** | 2016-03-24 | 0.3 |
+| 2017-02-03 | npower | 30 | 1.71 | **2.5** | 2017-03-16 | 1.0 |
+| 2017-02-10 | ScottishPower | 38 | 1.43 | **3.8** | 2017-03-31 | 0.7 |
+| 2017-03-07 | E.ON | 25 | 3.93 | **0.9** | 2017-04-26 | 1.5 |
+| 2017-03-13 | SSE | 35 | 3.36 | **1.5** | 2017-04-28 | 0.6 |
+| 2017-04-12 | EDF | 14 | 2.79 | **0.7** | 2017-06-21 | 1.6 |
+| 2017-08-01 | British Gas | 80 | 1.93 | **5.9** | 2017-09-15 | — |
+| 2018-03-02 | E.ON | 25 | 1.14 | **3.1** | 2018-04-19 | 1.3 |
+| 2018-04-10 | British Gas | 52 | 1.07 | **6.9** | 2018-05-29 | 1.1 |
+| 2018-04-12 | EDF | 27 | 0.79 | **4.9** | 2018-06-07 | 0.8 |
+| 2018-04-20 | ScottishPower | 23 | 1.86 | **1.8** | 2018-06-01 | 0.6 |
+| 2018-05-11 | npower | 29 | 3.21 | **1.3** | 2018-06-17 | 0.7 |
+| 2018-05-30 | SSE | 17 | 2.07 | **1.2** | 2018-07-11 | 1.5 |
+| 2018-06-19 | E.ON | 11 | 1.96 | **0.8** | 2018-08-16 | 0.6 |
+| 2018-07-05 | EDF | 19 | 1.57 | **1.7** | 2018-08-31 | — |
+| 2018-08-08 | British Gas | 25 | 2.32 | **1.5** | 2018-10-01 | — |
+| 2018-08-23 | ScottishPower | 16 | 3.32 | **0.7** | 2018-10-08 | — |
+| 2018-11-06 | Ofgem | 22 | 1.29 | **2.4** | 2019-01-01 | — |
+| 2019-02-07 | Ofgem | 35 | 2.0 | **2.5** | 2019-04-01 | — |
+| 2019-08-07 | Ofgem | 21 | 0.75 | **4.0** | 2019-10-01 | — |
+| 2020-02-07 | Ofgem | 22 | 1.18 | **2.7** | 2020-04-01 | — |
+| 2020-08-07 | Ofgem | 11 | 0.68 | **2.3** | 2020-10-01 | — |
+| 2021-02-05 | Ofgem | 28 | 1.04 | **3.9** | 2021-04-01 | — |
+| 2021-08-06 | Ofgem | 18 | 1.14 | **2.3** | 2021-10-01 | — |
+| 2022-02-03 | Ofgem | 72 | 5.04 | **2.0** | 2022-04-01 | — |
+| 2022-08-26 | Ofgem | 137 | 7.75 | **2.5** | 2022-10-01 | — |
+| 2022-09-08 | Government | 79 | 13.04 | **0.9** | 2022-10-01 | — |
+| 2022-11-24 | Ofgem | 18 | 3.89 | **0.7** | 2023-01-01 | — |
+| 2023-02-27 | Ofgem | 32 | 2.93 | **1.6** | 2023-04-01 | — |
+| 2023-05-25 | Ofgem | 84 | 2.29 | **5.2** | 2023-07-01 | — |
+| 2023-08-25 | Ofgem | 52 | 4.04 | **1.8** | 2023-10-01 | — |
+| 2023-11-23 | Ofgem | 43 | 2.96 | **2.1** | 2024-01-01 | — |
+| 2024-02-23 | Ofgem | 47 | 1.82 | **3.7** | 2024-04-01 | — |
+| 2024-05-24 | Ofgem | 32 | 1.64 | **2.8** | 2024-07-01 | — |
+| 2024-08-23 | Ofgem | 53 | 1.64 | **4.6** | 2024-10-01 | — |
+| 2024-11-22 | Ofgem | 45 | 2.07 | **3.1** | 2025-01-01 | — |
+| 2025-02-25 | Ofgem | 49 | 2.5 | **2.8** | 2025-04-01 | — |
+| 2025-05-23 | Ofgem | 27 | 2.32 | **1.7** | 2025-07-01 | — |
+| 2025-08-27 | Ofgem | 47 | 1.61 | **4.2** | 2025-10-01 | — |
+
+**What the second reading says.**
+
+- **The pre-registered prediction held.** §5 predicted the 7 Feb 2019 cap week would rise less
+  above its baseline than British Gas's 1 Aug 2017 week. It reads **2.5 against 5.9**.
+- **The announcement is the media moment; the effective date is not.** Over the 15 supplier
+  changes with both windows, the announcement week's median ratio is **1.5** and the effective
+  week's **0.7**; the announcement week is the louder of the two in 12 of 15. Only 4 of the 15
+  effective weeks exceed 1.2. Caution: a 2016–18 effective week's
+  baseline often holds another supplier's announcement in the same round, which pulls the ratio
+  down. The direction is still clear. Cap effective windows are not yet pulled.
+- **Against its own background, a cap week rises about as far as a loud supplier rise.** The 21
+  cap announcements have a median ratio of **2.5** (0.7 to 5.2). British Gas 2018 (6.9), British
+  Gas 2017 (5.9) and EDF April 2018 (4.9) rise further than any cap. The loudest cap weeks above
+  baseline are 25 May 2023 (5.2, the first cut that reached bills after the Guarantee), Aug 2024
+  (4.6) and Aug 2025 (4.2), not 2022. **Absolute loudness and rise above background are
+  different quantities.** 26 Aug 2022 is the loudest day of the decade (38.8 per 1,000) but its
+  week is only 2.5× the August that came before it, because that whole summer was already loud.
+  A world media term must say which of the two it uses.
+- **The Guarantee weeks did not rise above their background:** 8 Sep 2022 reads 0.9 and 24 Nov
+  2022 reads 0.7. This agrees with §5. Coverage tracked the price households would pay.
+- **Loudest complete weeks of the decade, on the per-1,000 share** (223 of 523 weeks complete):
+  w/c 22 Aug 2022 (18.2), 5 Sep 2022 (13.5), 29 Aug 2022 (10.2), 8 Aug 2022 (10.1), 31 Jan 2022
+  (8.4). Four of the top five are the 2022 summer and none is a single announcement's own week
+  alone.
+
 ## 5. What the first reading says, and what it cannot say yet
 
 These readings are from announcement days alone, without the baseline. They describe how loud
@@ -206,12 +285,16 @@ background coverage of energy bills was itself high.
 **lower for 7 Feb 2019 than for 1 Aug 2017**. If it is not, the day counts above have misled me,
 and that will be recorded here beside this line.
 
+**Graded 21 Nov 2026, 13:30: held.** 7 Feb 2019 reads 2.5 and 1 Aug 2017 reads 5.9 (§4a).
+
 ## 6. Status, limits and gaps
 
-**Status at landing.** Every announcement **day** is counted. The weeks around each
-announcement are being pulled, nearest first: 1,319 days for the full 35-days-before to
-6-days-after windows, about 4 hours at this machine's rate. The rest of the decade follows in
-date order. The weekly series carries `days_counted` and `complete` on every week. A week that
+**Status.** First landing: every announcement **day** counted. Second landing (21 Nov, 13:30,
+1,715 days cached): every announcement **window**, 35 days before to 6 days after, is counted,
+and 223 of 523 weeks are complete (§4a). The rest of the decade is being pulled in date order;
+the cap effective windows (1 Jan, 1 Apr, 1 Jul, 1 Oct) fill as it reaches them. When the pull
+writes its last day (`~/.cache/synthetic-enterprise/gdelt_energy_coverage/20251231.json`), rerun
+`--aggregate` and refill the effective column of §4a. The weekly series carries `days_counted` and `complete` on every week. A week that
 is not complete is not a zero. The pull launched 21 Nov runs as the transient user unit
 `poesys-gdelt-energy-coverage` (log: `~/.cache/synthetic-enterprise/gdelt_energy_coverage_runner/pull.log`),
 so it outlives the session that started it; `systemctl --user status poesys-gdelt-energy-coverage`
