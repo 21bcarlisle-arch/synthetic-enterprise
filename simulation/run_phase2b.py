@@ -2918,7 +2918,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             from company.interfaces.sim_interface import LiveSimInterface
             # The incoming occupants a home move supplies (B7 slice 3) are on the book too: with
             # moves on, the 2026-10-08 first run refused here on ACC-OCC-* before this line read them.
-            fuel = next((c["commodity"] for c in _known_customers() + ACQUIRED_CUSTOMERS
+            fuel = next((c["commodity"] for c in _known_customers()
                          if c["customer_id"] == cid), None)
             if fuel is None:
                 raise ValueError(
@@ -3126,8 +3126,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
     def _known_customers() -> list[dict]:
         """The run's accounts, the incoming occupants admitted so far included. With moves off it
-        is `_ALL_KNOWN_CUSTOMERS` exactly."""
-        return _ALL_KNOWN_CUSTOMERS + _incoming_occupant_book
+        is `_ALL_KNOWN_CUSTOMERS` plus the fresh-market wins put on supply (`_supply_won_switch`)."""
+        return _ALL_KNOWN_CUSTOMERS + _supplied_wins + _incoming_occupant_book
 
     def _admit_incoming_occupant(vacated_leg: dict, commodity: str, move) -> None:
         """Supply the vacated leg under the incoming occupant's account from the move date, on
@@ -3207,6 +3207,63 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             "void_owner_charge_gbp": 0.0,
         }
         home_move_ins.append(_move_in_entry[leg])
+
+    # The fresh-market wins on supply, and the ones refused with their reason (both published).
+    _supplied_wins: list[dict] = []
+    won_switches_not_supplied: list[dict] = []
+
+    def _supply_won_switch(record: dict, predecessor: dict) -> None:
+        """Put a fresh-market win on supply from its acquisition date, as `_admit_incoming_occupant`
+        does an incoming occupant: the adopted book, the domestic-leg set, every per-leg state
+        and its own term schedule in the heap. Until 21 Nov 2026 a win was registered, its funnel
+        cost booked and nothing billed: 16 wins, 0 bills on the 20 Nov run (SEAT_FINDING_A_WON_
+        SWITCH_IS_NEVER_PUT_ON_SUPPLY_SO_THE_SWITCHING_GSOP_HAS_NO_ACCOUNT_TO_CREDIT_2026-11-21).
+
+        THE WON HOUSEHOLD READS ITS PREDECESSOR'S PREMISE DATA (weather, fabric trace, property,
+        EAC), because `register_acquired_point` already clones that premise's record ("it IS the
+        same property"). That is a named stand-in, not a claim: the world draws no new household
+        for a win, and a twin at a premise like the one lost is the nearest thing it holds."""
+        leg, premise = record["customer_id"], predecessor["customer_id"]
+        if get_customer(leg) is None or leg in term_indices:
+            return
+        if predecessor.get("commodity", "electricity") != "electricity":
+            # `register_acquired_point` stamps every win electricity. Won from a gas-only household,
+            # there is no electricity premise to read and supplying it as gas is not built: 2 of the
+            # 16 wins on the 20 Nov run (SYN-2016-163_3, SYN-2016-585_3). Named, not filled in.
+            won_switches_not_supplied.append({
+                "customer_id": leg, "won_on": record["acquisition_date"], "predecessor": premise,
+                "reason": ("won from a gas-only household: the win is registered electricity and "
+                           "the premise holds no electricity data; supplying it as gas is not built"),
+            })
+            return
+        _supplied_wins.append(record)
+        if record.get("segment", "resi") == "resi":
+            _admitted_resi_ids.add(leg)
+        adopt_record(record)
+        for _by_point in (weather_by_customer, cloud_cover_by_customer, hh_consumption_by_customer,
+                          fabric_series_by_customer, properties):
+            if premise in _by_point:
+                _by_point[leg] = _by_point[premise]
+        if premise in _WORLD_BASE_EAC_KWH:
+            _WORLD_BASE_EAC_KWH[leg] = _WORLD_BASE_EAC_KWH[premise]
+        EFFECTIVE_EAC_KWH[leg] = EFFECTIVE_EAC_KWH.get(premise, record["eac_kwh"])
+        fabric_eligibility_verdicts.extend(
+            FabricEligibility(leg, _v.is_eligible, _v.reason)
+            for _v in list(fabric_eligibility_verdicts) if _v.customer_id == premise
+        )
+        next_hf[leg] = current_hf[leg] = RESET_HEDGE_FRACTION
+        term_indices[leg] = 0
+        evolution_logs[leg] = []
+        _accounts_with_an_electricity_leg.add(household_of(leg))
+        _fuels_of_household.setdefault(household_of(leg), set()).add("electricity")
+        for _term in build_renewal_schedule(
+                leg, record["acquisition_date"], effective_end, elec_records,
+                EFFECTIVE_EAC_KWH[leg], lookback_temps_fn=_lookback_temps_fn(leg),
+                segment=record.get("segment", "resi"),
+                # A win took the quote the gate priced, so its opening term is a fix.
+                tariff_type=resolved_tariff_type(record)):
+            _push_term(_term["acquisition_date"], leg, "electricity", _term)
+
     def _supply_at_new_home(cid: str, commodity: str, household: str, move_end: date,
                             carried_to: str) -> tuple[dict, str | None]:
         """Bind a mover who took the offer to its new home (home_moves.md s.8.6, choices 3-5).
@@ -5254,6 +5311,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             new_cid = f"{billing_account}_{suffix}"
                             new_customer = make_acquired_customer(new_cid, customer_data, term_start_str)
                             ACQUIRED_CUSTOMERS.append(new_customer)
+                            _supply_won_switch(new_customer, customer_data)
                             fresh_acquisitions.append({
                                 "customer_id": new_cid,
                                 "event_date": term_start_str,
@@ -6520,9 +6578,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # `saas.capital.solvency`, a new SIM->company crossing the wall ratchet refuses and should:
     # the rule for who owes £130 is the company's, and belongs on the company's side of the seam.
     #
-    # THE REGISTER IS THE LIVE ROSTER, not the import-time snapshot: `ACQUIRED_CUSTOMERS` is the
-    # object the supply book appends funnel wins to (supply_book.py, IDENTITY), so the accounts
-    # this campaign won carry their own segment here instead of falling through a default.
+    # THE REGISTER IS THE LIVE ROSTER, not the import-time snapshot: `_known_customers()` reads
+    # `ACQUIRED_CUSTOMERS`, the object the supply book appends funnel wins to (supply_book.py,
+    # IDENTITY), so the accounts this campaign won carry their own segment and fuel here.
     _collateral = build_counterparty_collateral(
         hedge_desk.book,
         commodity_by_customer_id={c["customer_id"]: c["commodity"] for c in _known_customers()},
@@ -6533,7 +6591,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         settled_records=all_records,
         segment_by_customer_id={
             c["customer_id"]: c.get("segment", "resi")
-            for c in _known_customers() + ACQUIRED_CUSTOMERS
+            for c in _known_customers()
         },
     )
     _wholesale_credit_summary = _collateral.credit_summary
@@ -6718,6 +6776,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "switching_gsop_payments": switching_payments_on_gains(gain_registration_log),
         "fixed_cost_events": fixed_cost_events,
         "acquired_customers": [c["customer_id"] for c in ACQUIRED_CUSTOMERS],
+        # Of those, the wins `_supply_won_switch` refused to put on supply, each with its reason.
+        "won_switches_not_supplied": won_switches_not_supplied,
         "growth_mandate": growth_mandate_label(),
         # Phase 11a: basis risk — company estimate vs sim ground truth per term
         "basis_risk_terms": basis_risk_terms,

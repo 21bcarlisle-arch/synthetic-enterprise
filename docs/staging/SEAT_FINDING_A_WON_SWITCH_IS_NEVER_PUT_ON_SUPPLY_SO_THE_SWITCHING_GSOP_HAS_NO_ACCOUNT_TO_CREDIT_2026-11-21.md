@@ -57,3 +57,13 @@ gain's supply. It is handed on behind this finding.
 **Corrected in the same landing.** `simulation/gain_registration.py`'s "Not built" note and the
 `run_phase2b.py` output comment both claimed the world "keeps the household on supply". Both now
 name this finding.
+
+**Progress, 21 Nov (later the same day).** `run_phase2b._supply_won_switch` now puts a win from an
+electricity household on supply from its win date, and `_known_customers()` reads those supplied
+wins. On a 2016-2017 probe, SYN-2016-144_3 settled its first term (19 Mar 2017 to 1 Jan 2018,
+actual net £100.19). A win from a gas-only household (2 of the 16 on the 20 Nov run:
+SYN-2016-163_3, SYN-2016-585_3) stays off supply. Its reason is published in
+`won_switches_not_supplied`, because `register_acquired_point` stamps every win electricity and
+supplying it as gas is not built. Predictions and P1's refutation:
+`records/SEAT_PREREG_A_WON_SWITCH_IS_SUPPLIED_FROM_ITS_WIN_2026-11-21.md`. Still open: the full-run grade,
+the gas-only wins, the GSOP credit posting and returning an erroneous gain (reg 6C).

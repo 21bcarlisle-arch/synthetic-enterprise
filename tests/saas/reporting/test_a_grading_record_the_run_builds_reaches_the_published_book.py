@@ -40,6 +40,11 @@ GRADING_RECORDS = {
     "riding_leg_answers": [
         {"customer_id": "C1g", "riding_leg": "gas", "answer": "renewed", "basis": "household"},
     ],
+    # 21 Nov: the wins the world refused to supply, which grading the supplied wins reads beside.
+    "won_switches_not_supplied": [
+        {"customer_id": "SYN-2016-163_3", "won_on": "2017-03-31", "predecessor": "SYN-2016-163",
+         "reason": "won from a gas-only household"},
+    ],
 }
 
 

@@ -1227,6 +1227,9 @@ def extract_report_data(run_output: dict) -> dict:
         # Each dual household's riding-leg answer at its anniversary, with its basis: the count of
         # two answers is the `pair_above_default_...` and unpriced rows (s.7.5c). No default.
         "riding_leg_answers": phase2b.get("riding_leg_answers"),
+        # The fresh-market wins the world refused to put on supply, each with its reason. No
+        # default: absent means a run built before wins were supplied, where none was.
+        "won_switches_not_supplied": phase2b.get("won_switches_not_supplied"),
         "churned_billing_accounts": phase2b.get("churned_billing_accounts", []),
         # The home movers, forwarded for the same reason as `svt_departures` above, with NO default:
         # absent means moves are off. Dropped here until 2026-10-10, so the ledger could not see a

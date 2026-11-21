@@ -341,6 +341,25 @@ def test_retention_log_includes_acq_cost_saved(_phase2b_result_2017):
     assert "acq_cost_saved_gbp" in rl[0], "retention_log entry should include acq_cost_saved_gbp"
 
 
+def test_a_won_switch_is_settled_from_its_win(_phase2b_result_2017):
+    """A fresh-market win was registered and costed but never supplied: 16 wins, 0 bills on the
+    20 Nov run (SEAT_FINDING_A_WON_SWITCH_IS_NEVER_PUT_ON_SUPPLY_..._2026-11-21). Defect named: a
+    win missing from the term heap and the settlement roster has no settled day."""
+    result = _phase2b_result_2017
+    won = result["acquired_customers"]
+    # The branch must be taken before what it does can be asserted: the 2016-2018 window holds
+    # six wins on the standing draws. An empty list reds rather than passing vacuously.
+    assert won, "expected at least one fresh-market win in the 2016-2018 window"
+    refused = {r["customer_id"] for r in result["won_switches_not_supplied"]}
+    assert all(r["reason"] for r in result["won_switches_not_supplied"])
+    supplied = [c for c in won if c not in refused]
+    # A refusal that takes every win passes the leg below vacuously; the window holds both kinds.
+    assert supplied, f"every win was refused supply: {result['won_switches_not_supplied']}"
+    settled = {r["customer_id"] for r in result["all_records"]}
+    unsettled = [c for c in supplied if c not in settled]
+    assert not unsettled, f"won switches with no settled day: {unsettled}"
+
+
 # --- price history as-of (2026-07-10 HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md fix;
 # 2026-07-11 M1 depth work retired the per-call-site _price_history_as_of() wrapper in
 # favour of PointInTimeView.get_price_history_as_of(), backed by a BitemporalEventLog
