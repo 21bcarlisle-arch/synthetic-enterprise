@@ -317,6 +317,10 @@ it should not code price-shock accounts until the forum/review sample has exerci
   `media_coverage_of_energy_price_announcements_gdelt_2016_2025.md` counts national news
   coverage of every dated announcement over GDELT's daily files. Its 28-day baselines and the
   full weekly series are still being pulled; that page carries the status.
+  **Filled for the whole decade and the effective moments, 21 Nov 2026:** 515 of 523 weeks are
+  complete. A cap's effective week rises 1.2× its baseline (median of 21), against 2.5× for its
+  announcement week. A supplier's effective week reads 0.8× (19 rows). The fifth-loudest week of the
+  decade, w/c 20 Sep 2021 (the supplier failures), holds no price announcement (§4a of that page).
 - **G2 — mid-term leaving by fixed customers.** No published rate. Routes: Ofgem CIM/CES microdata
   (a question on switching before the end of a fix, if one was asked); a practitioner figure from a
   retention desk. Carried as `None`; T4 is ordinal until then.

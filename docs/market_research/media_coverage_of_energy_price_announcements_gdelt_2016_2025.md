@@ -180,8 +180,9 @@ is in §4a.
 moment, divided by the articles per counted day in the 28 days that end a week before it
 (day −35 to day −8). 1.0 means the week was no louder than the month before it. It answers what
 the day count in §4 cannot: how far a moment rose **above** the coverage already running. The
-"effective" column is the same ratio from the effective date; a dash means the pull has not yet
-reached that window (every cap's effective window, and four supplier ones).
+"effective" column is the same ratio from the effective date. The effective column was filled on
+21 Nov 2026 from the complete decade (every day 2016–2025 cached); a dash now means only that the
+row has no baseline.
 
 | Announced | Who | Week articles | Baseline per day | Week vs baseline | Effective | Effective week vs baseline |
 |---|---|---|---|---|---|---|
@@ -194,7 +195,7 @@ reached that window (every cap's effective window, and four supplier ones).
 | 2017-03-07 | E.ON | 25 | 3.93 | **0.9** | 2017-04-26 | 1.5 |
 | 2017-03-13 | SSE | 35 | 3.36 | **1.5** | 2017-04-28 | 0.6 |
 | 2017-04-12 | EDF | 14 | 2.79 | **0.7** | 2017-06-21 | 1.6 |
-| 2017-08-01 | British Gas | 80 | 1.93 | **5.9** | 2017-09-15 | — |
+| 2017-08-01 | British Gas | 80 | 1.93 | **5.9** | 2017-09-15 | 0.9 |
 | 2018-03-02 | E.ON | 25 | 1.14 | **3.1** | 2018-04-19 | 1.3 |
 | 2018-04-10 | British Gas | 52 | 1.07 | **6.9** | 2018-05-29 | 1.1 |
 | 2018-04-12 | EDF | 27 | 0.79 | **4.9** | 2018-06-07 | 0.8 |
@@ -202,42 +203,57 @@ reached that window (every cap's effective window, and four supplier ones).
 | 2018-05-11 | npower | 29 | 3.21 | **1.3** | 2018-06-17 | 0.7 |
 | 2018-05-30 | SSE | 17 | 2.07 | **1.2** | 2018-07-11 | 1.5 |
 | 2018-06-19 | E.ON | 11 | 1.96 | **0.8** | 2018-08-16 | 0.6 |
-| 2018-07-05 | EDF | 19 | 1.57 | **1.7** | 2018-08-31 | — |
-| 2018-08-08 | British Gas | 25 | 2.32 | **1.5** | 2018-10-01 | — |
-| 2018-08-23 | ScottishPower | 16 | 3.32 | **0.7** | 2018-10-08 | — |
-| 2018-11-06 | Ofgem | 22 | 1.29 | **2.4** | 2019-01-01 | — |
-| 2019-02-07 | Ofgem | 35 | 2.0 | **2.5** | 2019-04-01 | — |
-| 2019-08-07 | Ofgem | 21 | 0.75 | **4.0** | 2019-10-01 | — |
-| 2020-02-07 | Ofgem | 22 | 1.18 | **2.7** | 2020-04-01 | — |
-| 2020-08-07 | Ofgem | 11 | 0.68 | **2.3** | 2020-10-01 | — |
-| 2021-02-05 | Ofgem | 28 | 1.04 | **3.9** | 2021-04-01 | — |
-| 2021-08-06 | Ofgem | 18 | 1.14 | **2.3** | 2021-10-01 | — |
-| 2022-02-03 | Ofgem | 72 | 5.04 | **2.0** | 2022-04-01 | — |
-| 2022-08-26 | Ofgem | 137 | 7.75 | **2.5** | 2022-10-01 | — |
-| 2022-09-08 | Government | 79 | 13.04 | **0.9** | 2022-10-01 | — |
-| 2022-11-24 | Ofgem | 18 | 3.89 | **0.7** | 2023-01-01 | — |
-| 2023-02-27 | Ofgem | 32 | 2.93 | **1.6** | 2023-04-01 | — |
-| 2023-05-25 | Ofgem | 84 | 2.29 | **5.2** | 2023-07-01 | — |
-| 2023-08-25 | Ofgem | 52 | 4.04 | **1.8** | 2023-10-01 | — |
-| 2023-11-23 | Ofgem | 43 | 2.96 | **2.1** | 2024-01-01 | — |
-| 2024-02-23 | Ofgem | 47 | 1.82 | **3.7** | 2024-04-01 | — |
-| 2024-05-24 | Ofgem | 32 | 1.64 | **2.8** | 2024-07-01 | — |
-| 2024-08-23 | Ofgem | 53 | 1.64 | **4.6** | 2024-10-01 | — |
-| 2024-11-22 | Ofgem | 45 | 2.07 | **3.1** | 2025-01-01 | — |
-| 2025-02-25 | Ofgem | 49 | 2.5 | **2.8** | 2025-04-01 | — |
-| 2025-05-23 | Ofgem | 27 | 2.32 | **1.7** | 2025-07-01 | — |
-| 2025-08-27 | Ofgem | 47 | 1.61 | **4.2** | 2025-10-01 | — |
+| 2018-07-05 | EDF | 19 | 1.57 | **1.7** | 2018-08-31 | 1.0 |
+| 2018-08-08 | British Gas | 25 | 2.32 | **1.5** | 2018-10-01 | 0.8 |
+| 2018-08-23 | ScottishPower | 16 | 3.32 | **0.7** | 2018-10-08 | 0.7 |
+| 2018-11-06 | Ofgem | 22 | 1.29 | **2.4** | 2019-01-01 | 1.7 |
+| 2019-02-07 | Ofgem | 35 | 2.0 | **2.5** | 2019-04-01 | 1.5 |
+| 2019-08-07 | Ofgem | 21 | 0.75 | **4.0** | 2019-10-01 | 1.0 |
+| 2020-02-07 | Ofgem | 22 | 1.18 | **2.7** | 2020-04-01 | 1.2 |
+| 2020-08-07 | Ofgem | 11 | 0.68 | **2.3** | 2020-10-01 | 0.8 |
+| 2021-02-05 | Ofgem | 28 | 1.04 | **3.9** | 2021-04-01 | 0.8 |
+| 2021-08-06 | Ofgem | 18 | 1.14 | **2.3** | 2021-10-01 | 1.6 |
+| 2022-02-03 | Ofgem | 72 | 5.04 | **2.0** | 2022-04-01 | 1.3 |
+| 2022-08-26 | Ofgem | 137 | 7.75 | **2.5** | 2022-10-01 | 0.5 |
+| 2022-09-08 | Government | 79 | 13.04 | **0.9** | 2022-10-01 | 0.5 |
+| 2022-11-24 | Ofgem | 18 | 3.89 | **0.7** | 2023-01-01 | 1.1 |
+| 2023-02-27 | Ofgem | 32 | 2.93 | **1.6** | 2023-04-01 | 1.5 |
+| 2023-05-25 | Ofgem | 84 | 2.29 | **5.2** | 2023-07-01 | 1.5 |
+| 2023-08-25 | Ofgem | 52 | 4.04 | **1.8** | 2023-10-01 | 2.2 |
+| 2023-11-23 | Ofgem | 43 | 2.96 | **2.1** | 2024-01-01 | 0.9 |
+| 2024-02-23 | Ofgem | 47 | 1.82 | **3.7** | 2024-04-01 | 1.6 |
+| 2024-05-24 | Ofgem | 32 | 1.64 | **2.8** | 2024-07-01 | 1.9 |
+| 2024-08-23 | Ofgem | 53 | 1.64 | **4.6** | 2024-10-01 | 2.1 |
+| 2024-11-22 | Ofgem | 45 | 2.07 | **3.1** | 2025-01-01 | 0.9 |
+| 2025-02-25 | Ofgem | 49 | 2.5 | **2.8** | 2025-04-01 | 0.8 |
+| 2025-05-23 | Ofgem | 27 | 2.32 | **1.7** | 2025-07-01 | 0.5 |
+| 2025-08-27 | Ofgem | 47 | 1.61 | **4.2** | 2025-10-01 | 1.1 |
 
 **What the second reading says.**
 
 - **The pre-registered prediction held.** §5 predicted the 7 Feb 2019 cap week would rise less
   above its baseline than British Gas's 1 Aug 2017 week. It reads **2.5 against 5.9**.
-- **The announcement is the media moment; the effective date is not.** Over the 15 supplier
-  changes with both windows, the announcement week's median ratio is **1.5** and the effective
-  week's **0.7**; the announcement week is the louder of the two in 12 of 15. Only 4 of the 15
-  effective weeks exceed 1.2. Caution: a 2016–18 effective week's
-  baseline often holds another supplier's announcement in the same round, which pulls the ratio
-  down. The direction is still clear. Cap effective windows are not yet pulled.
+- **For a supplier, the announcement is the media moment and the effective date is not.** Over
+  the 19 supplier changes with both windows, the announcement week's median ratio is **1.5** and
+  the effective week's **0.8**. The announcement week is the louder of the two in 15 of 19, with
+  one tie. Only 4 of the 19 effective weeks exceed 1.2. (Over the first 15 rows this read 1.5
+  against 0.7. The four rows added on 21 Nov read 0.9, 1.0, 0.8 and 0.7.) Caution: a 2016–18
+  effective week's baseline often holds another supplier's announcement in the same round, which
+  pulls the ratio down.
+- **For a cap, the effective date is a second, smaller media moment.** Over the 21 caps, the
+  announcement week's median is **2.5** and the effective week's **1.2** (0.5 to 2.2). The
+  announcement is louder in 19 of 21; the exceptions are 1 Jan 2023 (1.1 against 0.7, while the
+  Guarantee held prices) and 1 Oct 2023 (2.2 against 1.8). 10 of the 21 cap effective weeks
+  exceed 1.2, against 4 of 19 for suppliers. This is not caused by baseline overlap. From Aug
+  2022 the quarterly cap is announced 33–40 days before it takes effect, so the effective week's
+  baseline (day −35 to −8) holds part of the announcement week, which pulls the ratio *down*. The
+  8 earlier caps, announced 53–57 days ahead with clean baselines, read a median of 1.25; the 13
+  later ones read 1.1. Both medians are above 1.0. One reading, *not tested here*: a cap takes
+  effect on one national date that the press already knows ("bills rise today"). Supplier changes
+  take effect on staggered dates of their own. The lowest cap effective weeks, 1 Oct 2022 (0.5,
+  cap and Guarantee together) and 1 Jul 2025 (0.5), are measured against a loud month: the
+  record late summer of 2022, and a baseline that is missing 10 of its 28 days at source
+  (below).
 - **Against its own background, a cap week rises about as far as a loud supplier rise.** The 21
   cap announcements have a median ratio of **2.5** (0.7 to 5.2). British Gas 2018 (6.9), British
   Gas 2017 (5.9) and EDF April 2018 (4.9) rise further than any cap. The loudest cap weeks above
@@ -248,10 +264,18 @@ reached that window (every cap's effective window, and four supplier ones).
   A world media term must say which of the two it uses.
 - **The Guarantee weeks did not rise above their background:** 8 Sep 2022 reads 0.9 and 24 Nov
   2022 reads 0.7. This agrees with §5. Coverage tracked the price households would pay.
-- **Loudest complete weeks of the decade, on the per-1,000 share** (223 of 523 weeks complete):
-  w/c 22 Aug 2022 (18.2), 5 Sep 2022 (13.5), 29 Aug 2022 (10.2), 8 Aug 2022 (10.1), 31 Jan 2022
-  (8.4). Four of the top five are the 2022 summer and none is a single announcement's own week
-  alone.
+- **Loudest complete weeks of the decade, on the per-1,000 share** (515 of 523 weeks complete,
+  the whole decade): w/c 22 Aug 2022 (18.2), 5 Sep 2022 (13.5), 29 Aug 2022 (10.2), 8 Aug 2022
+  (10.1), **20 Sep 2021 (8.9)**, 31 Jan 2022 (8.4). Four of the top five are the 2022 summer. The
+  fifth is w/c 20 Sep 2021, the week of the autumn 2021 supplier failures and the wholesale gas
+  spike. **No price announcement falls in that week.** So a media term keyed only to price
+  announcements misses the fifth-loudest week of the decade. Supplier failure is its own media
+  moment, and the world build must name it as an event rather than infer it from tariffs.
+- **The 8 incomplete weeks** are the two partial calendar weeks at the ends of the decade
+  (w/c 28 Dec 2015 and 29 Dec 2025) and 20 days for which GDELT publishes no daily file (HTTP 404).
+  Those 20 days are single days in Nov 2022, Feb, Mar and May 2023, and a run from 14 to 29 Jun
+  2025, which empties w/c 16 and 23 Jun 2025. The rates are per counted day, so a missing day
+  thins a window but does not bias it.
 
 ## 5. What the first reading says, and what it cannot say yet
 
@@ -287,14 +311,25 @@ and that will be recorded here beside this line.
 
 **Graded 21 Nov 2026, 13:30: held.** 7 Feb 2019 reads 2.5 and 1 Aug 2017 reads 5.9 (§4a).
 
+**Second prediction, filed 21 Nov 2026 after the pull wrote its last day and before `--aggregate`
+was rerun on it.** The cap effective weeks will behave like the supplier ones: their median
+`week_vs_baseline` will be **below 1.0**, and the announcement week will be the louder of the
+two for **at least 17 of the 21** cap rows that have both. If the cap effective median is 1.0 or
+above, the effective moment is a media moment for caps where it was not for suppliers, and the
+world's media term needs a second pulse at the effective date.
+
+**Graded 21 Nov 2026: half refuted.** The cap effective median is **1.2**, not below 1.0, so the
+first half failed. The announcement week was the louder in **19 of 21**, so the second half held.
+For caps, the effective date is a second pulse about half the height of the announcement pulse
+(§4a). For suppliers it is not a pulse at all (median 0.8).
+
 ## 6. Status, limits and gaps
 
 **Status.** First landing: every announcement **day** counted. Second landing (21 Nov, 13:30,
-1,715 days cached): every announcement **window**, 35 days before to 6 days after, is counted,
-and 223 of 523 weeks are complete (§4a). The rest of the decade is being pulled in date order;
-the cap effective windows (1 Jan, 1 Apr, 1 Jul, 1 Oct) fill as it reaches them. When the pull
-writes its last day (`~/.cache/synthetic-enterprise/gdelt_energy_coverage/20251231.json`), rerun
-`--aggregate` and refill the effective column of §4a. The weekly series carries `days_counted` and `complete` on every week. A week that
+1,715 days cached): every announcement **window**, 35 days before to 6 days after, is counted.
+Third landing (21 Nov): **the whole decade is pulled**. 3,653 of 3,653 days are cached, and 20 of
+them are missing at source. 515 of 523 weeks are complete, and every cap effective window is
+filled (§4a). The pull has ended, and its unit is gone. The weekly series carries `days_counted` and `complete` on every week. A week that
 is not complete is not a zero. The pull launched 21 Nov runs as the transient user unit
 `poesys-gdelt-energy-coverage` (log: `~/.cache/synthetic-enterprise/gdelt_energy_coverage_runner/pull.log`),
 so it outlives the session that started it; `systemctl --user status poesys-gdelt-energy-coverage`
@@ -334,5 +369,9 @@ python3 -I tools/fetch_gdelt_energy_price_coverage.py --aggregate
 - **Code: no runtime code reads this.** The counter is harness-side. The world build that
   gives the announcement moment a media term (bill-shock page §7) cites this page and the series,
   and must take a coverage term at the announcement and effective moments from it, not invent one.
-- **The bill-shock page's G1 is filled for announcement days and pending for weeks.** Its G5 is
+- **The bill-shock page's G1 is filled for announcement days, for the effective weeks and for
+  a complete weekly series.** The media term has two cap pulses: the announcement (median 2.5×
+  baseline) and the effective date (1.2×). Supplier changes have one pulse, the announcement
+  (1.5×; the effective date reads 0.8×). The term also needs a supplier-failure event, which no
+  price row carries (§4a, w/c 20 Sep 2021). Its G5 is
   filled except for the rows named in G5a. That page's §6 now points here.
