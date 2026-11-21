@@ -8,6 +8,43 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-21 — orientation: Three hours: 13 commits, 10 carrying work, 8 substantive
+
+<!-- head: 93d1babc876d -->
+
+*Written by the orientation seat from its own record (2026-11-21T12:20:13.794792+00:00; 13 commits, 8 substantive, since 2026-11-21T09:22:20.266245+00:00).*
+
+Commit split (product code by path): 1 supplier, 1 world, 1 both, 10 other.
+
+## What the stretch meant
+
+Three hours: 13 commits, 10 carrying work, 8 substantive. The split reads 1 supplier, 1 world, 1 both and 10 other, and this time the classifier is roughly right: the stretch went mostly to knowledge pages and world mechanics (the GDELT coverage series, the 2021-22 SoLR failures, the switching GSOP, the phone queue on both sides of the wall). Those came off the continuation queue as director-steered items, not off the focus. Against the thesis the one move that matters landed: the out-of-sample test is now pre-registered (s.12g, eb41172a1) before pair 2 could shape it. It runs the 0.12 cut on book 61118, against A and the flat-rules twin, on households it was not fitted to, and it predicts the advantage below the refutation line (-GBP 0.40, -2.00 to +1.20). Its watcher is armed and alive. That is the first test design that can say whether inference beats flat rules rather than whether a tuned cut survives a redraw. It also means the honest standing answer is still 'not shown': the only twin comparison on file is -GBP 0.33, in-sample. Nothing went backwards, but nothing moved a level either. Of last stretch's five focus items, item 1 landed and is gone. Item 2 (the stayers control) is being worked right now in /var/tmp/se-seat-stayers-belief and stays in focus. Item 3 (B8's holdout switch) has not landed and moves up. Items 4 and 5 are still correctly embargoed: control_55555_66666.json does not exist, and the child's log is at December 2023 nine hours in, so it writes about 14:30-15:00Z. Of the three Lane 0 rows drawn with nothing landed, the-0-12-replication-is-read-out-of-sample is spent (300302799 graded it, eb41172a1 filed the real test), and the B8 and KNIFE3 grade rows were drawn before their book existed and are premise-not-ripe, not undone work. My own error this stretch: I put the media-coverage series in not_now as world work that blocked nothing, when the director's 21 Nov bill-shock steer asked for it. The machine built it anyway, which was the right call. The checkout is 57 behind origin, so every daemon runs code the branch has moved past. That is left alone because a fast-forward under a live pinned run is not this session's to make.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- unchanged; the replication's arm A carries the corrected ending-term belief, so it reads that belief only as the base the cut is measured from, not as a switch-on grade. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged. 06:20 21 Nov -- unchanged. 09:22 21 Nov -- unchanged. 12:20 21 Nov -- unchanged; the policy switch waits on a clean-book grade, and the next clean book is focus item 5.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:23 20 Nov -- the book is published (run_output_6a588a832f_20261120T134224Z.json); the 23 Nov recheck reads it. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged; the 23 Nov recheck stands. 06:20 21 Nov -- unchanged; the 23 Nov recheck stands. 09:22 21 Nov -- unchanged; the 23 Nov recheck stands. 12:20 21 Nov -- unchanged; the 23 Nov recheck stands.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 18:23 20 Nov -- unchanged. 21:24 20 Nov -- unchanged. 00:22 21 Nov -- unchanged. 03:24 21 Nov -- unchanged. 06:20 21 Nov -- unchanged. 09:22 21 Nov -- unchanged. 12:20 21 Nov -- unchanged.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. 18:23 20 Nov -- launched 15:49Z; pair 33333/44444 at September 2023; reads about 15:00Z 21 Nov (focus item 1). Its pre-registered grade is cut minus A, not the advantage over the twin. 21:24 20 Nov -- pair 33333/44444 at its 2025 prospect desk; 55555/66666 still to run; still focus item 1. 00:22 21 Nov -- seed 33333 done (5.7 h); seed 44444 at November 2023; the second pair writes about 14:00Z; still focus item 1. 03:24 21 Nov -- pair 33333/44444 written at 03:19Z (member and control files in /var/tmp/vtc-out-cut012); pair 55555/66666 started then, at December 2017 on the log, writes about 15:00Z; still focus item 1, now readable one pair early. 06:20 21 Nov -- unchanged. Pair 33333/44444 has been on disk since 03:19Z and is still ungraded, because the item that grades it was embargoed by its own Step B (see the seat's row below). It is re-filed as focus item 1 with no embargo text. 55555/66666 writes about 15:00Z. 09:22 21 Nov -- still open. Pair 33333/44444 graded (300302799), with cut minus A +GBP 1.10, HELD, and value minus flat book +GBP 7.27 (+0.95 to +13.33). But there is no twin at these seeds, and the pair reuses the fitted households, so this row cannot close on it. The test that can close it is focus item 1, the fresh population with the twin. 12:20 21 Nov -- still open. The fresh-population test is pre-registered on book 61118 (s.12g, eb41172a1, 09:40Z, before pair 55555/66666's file) with P1 at -GBP 0.40 (-2.00 to +1.20), refuted below zero, and its watcher vtc-cut012-new-book-watch is active, waiting for the replication child. About 34 h of runs, so it cannot close this stretch or the next; focus items 3 and 4 are the reads on the way.
+- corrected: THE SEAT'S, NEW. The 09:22 record's not_now rejected the dated media-coverage series as world input that blocked no supplier result. The director's 21 Nov bill-shock steer (item 3) asked for it, so the rejection overrode his steer on a thin reading. The machine built it anyway (26e4555df), which was right. A not_now row must not reject an item a standing steer names, and this record's not_now rejects only ordering, never a steered item.
+
+## Chosen against
+
+- Starting s.12g's fresh-population run by hand, or re-arming it.
+- Wiring simulation/contact_centre.py's phone queue into the standing run.
+- Drawing the world-side SoLR prospect-pool and registration-completion items ahead of the focus.
+- Fast-forwarding the shared checkout (57 behind) or reaping the ten worktrees with unlanded commits.
+- World work on N17 or the deemed and flex standing charge.
+
+## Focus for the next stretch
+
+- `the-stayers-control-names-the-july-2018-raise`
+- `b8-blind-retention-holdout-behind-a-default-off-switch`
+- `grade-the-0-12-replication-pair-55555-66666-and-the-two-pair-mean`
+- `one-book-carries-the-blend-the-debt-records-the-dual-answer-and-b12`
+
+---
+
 ## 2026-11-21 — orientation: Three hours: 14 commits, 12 carrying work, 6 substantive
 
 <!-- head: fc7976e4f8e0 -->
