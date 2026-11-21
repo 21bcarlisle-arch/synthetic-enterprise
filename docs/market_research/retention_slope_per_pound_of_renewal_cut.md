@@ -111,10 +111,15 @@ is why they fitted a quadratic. The world's slope per £ also falls as the cut g
    day: `discovered_price_sensitivity.holdout_arm`, `competitive_pressure.save_holdout_draws`).
    But both sit behind switches that are off in every standing policy (`retention_runs_holdout`,
    `retention_save_rate_learned_against_holdout`). Since 2026-11-21 the book says so per desk and
-   year (`retention_holdout_by_desk_year`). **Next step, not built:** draw the holdout assignment
-   blind, BEFORE any treatment is decided, at a share sized by `save_holdout_share`. Put it behind
-   one default-off switch, so that a standing run can carry a held-out twin for every retention
-   lever without the guard's own decision choosing who is in it. Unknown, and so not a value to
+   year (`retention_holdout_by_desk_year`). **Built 2026-11-21, default-off:** the holdout assignment
+   is drawn blind, BEFORE any treatment is decided, at the share `save_holdout_share` derives
+   (0.272 on its §9e inputs), behind one switch (`retention_holdout_drawn_blind_before_treatment`,
+   off on every standing policy). The coin (`growth_desk.retention_blind_holdout_draws`, salted
+   apart from the other two) is flipped over every renewal the desk considers, ahead of the cut,
+   the guard and either other coin. A held renewal loses the proactive approach only; its re-fix
+   tariff and end-of-fix notice are the same as the treated arm's. With the switch on, the book adds
+   `retention_holdout_by_desk_year["blind_approach"]`, both arms per year, as intention to treat.
+   With it off, the book is unchanged. No standing run has turned it on yet. Unknown, and so not a value to
    pick: the share a real GB retention desk holds out. No published source was found, so it is a
    practitioner question (K4).
 

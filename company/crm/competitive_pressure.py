@@ -138,13 +138,20 @@ SAVE_HOLDOUT_SHARE: float = save_holdout_share(
     _SAVE_HOLDOUT_OFFERS_A_YEAR, _SAVE_HOLDOUT_LOSS_RATE, _SAVE_HOLDOUT_BREAK_EVEN_SAVE_RATE)
 
 
-def save_holdout_draws(account_id: str, event_date: str, share: float = SAVE_HOLDOUT_SHARE) -> bool:
+#: The salt of the blind holdout's coin (B8, 2026-11-21), drawn BEFORE treatment over every renewal
+#: the retention desk considers, apart from the save-rate coin's and B8 L3's `holdout_arm`.
+BLIND_RETENTION_HOLDOUT_COIN: str = "blind_retention_holdout"
+
+
+def save_holdout_draws(account_id: str, event_date: str, share: float = SAVE_HOLDOUT_SHARE, *,
+                       coin: str = "save_rate_holdout") -> bool:
     """The company's own coin for a renewal the retention guard would offer on: True holds it out.
     Seeded on the account and the roll date, so a re-run flips the same coin, and salted apart from
-    B8's `holdout_arm` so the two coins are independent where both run."""
+    B8's `holdout_arm` so the two coins are independent where both run. `coin` salts a second,
+    independent draw at the same share (`BLIND_RETENTION_HOLDOUT_COIN`)."""
     import hashlib
 
-    digest = hashlib.sha256(f"save_rate_holdout::{account_id}::{event_date}".encode()).digest()
+    digest = hashlib.sha256(f"{coin}::{account_id}::{event_date}".encode()).digest()
     return int.from_bytes(digest[:8], "big") / 2 ** 64 < share
 
 

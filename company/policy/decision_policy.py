@@ -322,6 +322,15 @@ class DecisionPolicy:
     #: on without `retention_weighs_save_odds`, whose rate it feeds. Prereg §15.
     retention_save_rate_learned_against_holdout: bool = False
 
+    #: (2026-11-21, B8) Every renewal the retention desk considers is assigned by the company's own
+    #: blind coin (`growth_desk.retention_blind_holdout_draws`) BEFORE the cut, the guard or any
+    #: other coin is asked, at the power-derived `SAVE_HOLDOUT_SHARE`; a held renewal gets no
+    #: proactive approach and the same tariff. The book publishes both arms per year as
+    #: `retention_holdout_by_desk_year["blind_approach"]`. Off on every standing policy until the
+    #: director's practitioner row answers whether a GB desk does this:
+    #: `docs/market_research/retention_slope_per_pound_of_renewal_cut.md` §3.5.
+    retention_holdout_drawn_blind_before_treatment: bool = False
+
     #: (2026-10-22) The guard offers only where the belief x the LOWER bound of the holdout save
     #: rate's 95% interval x the value protected beats the offer's cost
     #: (`growth_desk.save_rate_lower_bound_decides`). No offer while the rate is unlearned or its

@@ -62,6 +62,7 @@ __all__ = [
     "mandate_permits_replacement",
     "new_retention_holdout",
     "replacement_cost_avoided_gbp",
+    "retention_blind_holdout_draws",
     "retention_cut_share_at_price_match",
     "retention_engagement",
     "retention_holdout_by_desk",
@@ -619,6 +620,19 @@ def retention_save_holdout_draws(account_id: str, event_date: str) -> bool:
     return save_holdout_draws(account_id, event_date)
 
 
+def retention_blind_holdout_draws(account_id: str, event_date: str) -> bool:
+    """(2026-11-21, B8) Whether the company's own blind coin withholds the proactive retention
+    approach from this renewal, drawn BEFORE any treatment is decided: over every renewal the desk
+    considers, ahead of the cut, the guard and either other coin, so no decision of the desk's
+    chooses who is in it. The share is the power-derived `competitive_pressure.SAVE_HOLDOUT_SHARE`,
+    not one picked from practice (none is published:
+    `docs/market_research/retention_slope_per_pound_of_renewal_cut.md` §3.5). It withholds the
+    approach only; the re-fix tariff and the end-of-fix notice are the same on both arms."""
+    from company.crm.competitive_pressure import BLIND_RETENTION_HOLDOUT_COIN, save_holdout_draws
+
+    return save_holdout_draws(account_id, event_date, coin=BLIND_RETENTION_HOLDOUT_COIN)
+
+
 def book_retention_holdout(*, renewal_year: int | None, ending_term_type: str | None,
                            account_id: str, belief: float) -> None:
     """Book a renewal the coin held out, so its loss reaches `retention_save_rate` beside the
@@ -637,14 +651,19 @@ RETENTION_DESKS = ("renewal_offer", "save_offer")
 
 
 def retention_holdout_by_desk(*, renewal_offer_holdout: bool, renewal_offer_outcomes=(),
-                              save_rate_holdout_on: bool, save_offer_sums=None) -> dict:
+                              save_rate_holdout_on: bool, save_offer_sums=None,
+                              blind_approach_rows=None) -> dict:
     """(2026-11-21, B8) Per retention desk: whether it held anyone out, and if it did, per renewal
     year, both arms, how many of each were retained and the interval on the difference.
 
     A desk with no holdout says so with its reason, never with an empty table: a treatment with no
     held-out twin cannot say it did anything, and the book must show which desks are in that state.
     `save_offer_sums` is `(offered_sums, holdout_sums)`, the ledger's per (ending-term type, year)
-    counts; retained there means not lost at that renewal."""
+    counts; retained there means not lost at that renewal.
+
+    `blind_approach_rows` (None unless `retention_holdout_drawn_blind_before_treatment` is on, so a
+    standing book is unchanged): the blind coin's rows over every considered renewal, read as
+    intention to treat. "treated" is approachable, whether or not the guard then offered."""
     from company.pricing.discovered_price_sensitivity import RetentionHoldout, holdout_table_row
 
     off = "{} is off on this policy, so the desk held no renewal out and its uplift is unmeasured"
@@ -667,6 +686,9 @@ def retention_holdout_by_desk(*, renewal_offer_holdout: bool, renewal_offer_outc
     else:
         out["save_offer"] = {"assigned": False, "reason": off.format(
             "retention_save_rate_learned_against_holdout")}
+    if blind_approach_rows is not None:
+        out["blind_approach"] = {"assigned": True, "by_year": RetentionHoldout.holdout_rows_by_year(
+            blind_approach_rows)}
     return out
 
 

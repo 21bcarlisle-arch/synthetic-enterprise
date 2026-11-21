@@ -74,6 +74,7 @@ from company.interfaces.growth_desk import (
     refuse_retention_offer_below_own_cost_floor,
     replacement_cost_avoided_gbp,
     retention_bad_debt_charge,
+    retention_blind_holdout_draws,
     retention_considers_the_renewal,
     retention_cut_share_at_price_match,
     retention_cut_share_at_risk_tiers,
@@ -3400,6 +3401,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # World-side: what each offer changed (harness only), and the save rate's own holdout.
     retention_offer_channel_log: list[dict] = []
     retention_save_holdout_log: list[dict] = []
+    # B8 (2026-11-21): the blind coin's assignment of every considered renewal; empty, and absent
+    # from the book, unless `retention_holdout_drawn_blind_before_treatment` is on.
+    retention_blind_holdout_log: list[dict] = []
     retention_save_rate_lower_bound_log: list[dict] = []
     # B8 L3: the company's own retention holdout, on a policy that runs one.
     _retention_holdout = new_retention_holdout() if policy.retention_runs_holdout else None
@@ -4183,6 +4187,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             _retention_offer = None
             _holdout_arm = None
             _holdout_would_offer = False
+            _blind_drawn = False
+            _blind_held = False
             _no_offer_reason = "below_threshold"
             _considered_on_save_odds = False
             _would_be_discount_pct = None
@@ -4409,6 +4415,18 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _considered_on_save_odds = _considered_why == CONSIDERED_ON_THE_SAVE_ODDS
                 if _considered:
                     eac_for_ret = company_eac  # Phase 23a: use company estimate
+                    # B8 BLIND HOLDOUT (2026-11-21): assigned here, before the cut, the guard or
+                    # either other coin is asked, so nothing the desk decides chooses who is in it.
+                    # A held renewal loses the proactive approach only, never the re-fix tariff.
+                    if policy.retention_holdout_drawn_blind_before_treatment:
+                        _blind_drawn = True
+                        _blind_held = retention_blind_holdout_draws(billing_account, term_start_str)
+                        retention_blind_holdout_log.append({
+                            "customer_id": billing_account, "event_date": term_start_str,
+                            "commodity": commodity,
+                            "arm": "holdout" if _blind_held else "treated",
+                            "company_churn_estimate": company_est_pre,
+                        })
                     # B8 Q5: sized against the best published deal on the day, as the save is, or
                     # by the churn-belief tiers; either way no deeper than the re-fix's own cost
                     # floor. None = no cut left to give (the match: our re-fix already meets it).
@@ -4490,7 +4508,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     # decided, replaces the guard below on the rest. `_cut_decision` None on the
                     # treated arm = still learning.
                     _cut_decision = None
-                    if _offer_can_buy and _retention_holdout is not None:
+                    if _offer_can_buy and _retention_holdout is not None and not _blind_held:
                         _holdout_arm, _cut_decision = _retention_holdout.decide(
                             account_id=billing_account, event_date=term_start_str,
                             payment_method=_company_payment_method,
@@ -4549,7 +4567,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     _holdout_would_offer = _holdout_arm is not None and _would_offer
                     if _holdout_arm is not None:
                         retention_holdout_log[-1]["would_offer"] = _would_offer
-                    if not _market_beats_the_fix:
+                    if _blind_drawn:
+                        # The guard's verdict on both arms, so the effect can also be read among
+                        # the renewals it would have offered on. It did not choose the arm.
+                        retention_blind_holdout_log[-1]["would_offer"] = _would_offer
+                    if _blind_held:
+                        _no_offer_reason = "held_out_blind_before_treatment"
+                    elif not _market_beats_the_fix:
                         _no_offer_reason = (
                             "the_fix_already_meets_the_best_published_deal"
                             if policy.retention_cut_sizing == "price_match"
@@ -5015,6 +5039,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 "account_id": billing_account, "term_start": term_start_str, "fuel": commodity,
                 "desk_churn_belief": company_est_pre, "desk_asked": _desk_asked,
                 "left": event is not None and event["event_type"] == "churned"})
+            if _blind_drawn:
+                retention_blind_holdout_log[-1]["stayed_at_decision"] = not (
+                    event is not None and event["event_type"] == "churned")
             # B8 L3: a row on either arm exactly where the company would have offered.
             if _holdout_would_offer:
                 _retention_holdout.record(
@@ -6696,7 +6723,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _change_of_supplier_register.losses_notified())
                 if _retention_holdout is not None else ()),
             save_rate_holdout_on=policy.retention_save_rate_learned_against_holdout,
-            save_offer_sums=_save_offer_sums_for_the_book()),
+            save_offer_sums=_save_offer_sums_for_the_book(),
+            blind_approach_rows=(retention_blind_holdout_log
+                                 if policy.retention_holdout_drawn_blind_before_treatment
+                                 else None)),
+        **({"retention_blind_holdout_log": retention_blind_holdout_log}
+           if policy.retention_holdout_drawn_blind_before_treatment else {}),
         "retention_save_rate_lower_bound_log": retention_save_rate_lower_bound_log,
         **({"retention_holdout_log": retention_holdout_log,
             # Q10: each row's days to its first later loss, so any window can be read off the run.
