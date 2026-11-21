@@ -1786,6 +1786,11 @@ _NOT_A_LEVEL_READING: dict[str, str] = {
         "a VARIANCE in log space -- the dispersion the published CIM survey shows ACROSS payment "
         "methods, used as the prior's precision when blending. It is a second moment of a set of "
         "ratios and there is no level in it to hold; the band is a first moment of a rate.",
+    # Classified 2026-11-21 by the delivery seat: landed with b70ca6797, red at HEAD since.
+    "company.regulatory.gsop:SWITCH_SPEED_AMENDED_FROM":
+        "a DATE, the day S.I. 2024/108 cut reg 6ZA's switch-speed deadline from 15 to 5 working "
+        "days (switching_mechanics_2026-10-25.md s.6). It is a legal in-force day keyed on "
+        "'switch', not a share of customers switching; there is no level in it to hold.",
 }
 
 #: HELD INDIRECTLY, and named here rather than in `_NOT_A_LEVEL_READING` because it IS

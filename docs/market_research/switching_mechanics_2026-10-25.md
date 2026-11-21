@@ -263,3 +263,13 @@ read. The code keys the regime to the day the clock starts and says so. (b) How 
 15 or 5 working days, 2016-2025: no published count was found (named gap 3 above is the same hole). (c)
 The erroneous-transfer rate after CSS (named gap 2). The world can therefore draw a 6ZA breach and a
 post-CSS erroneous transfer only once these are found; until then it carries `None` with this reason.
+
+**What the world and the company do with this, from 21 Nov 2026.** `simulation/gain_registration.py`
+draws, per won switch before CSS go-live (18 Jul 2022), an erroneous transfer at 0.5% (§4, Ofgem 2016;
+stated range 0.5-1%), agreed by the two suppliers on the last day reg 6A allows (20 working days from
+the switch, a stated belief: the customer notices at the switch). After go-live none is drawn (gap (c)).
+No registration delay is drawn (gap (b)): every switch completes on its supply start, so 6ZA is judged
+on every gain and cannot be failed. `company/interfaces/switching_gsop.py` applies `gsop.py` to those
+records and pays each payment by account credit on the 10th working day. Both gaps UNDERSTATE what the
+book pays; ETs before 1 May 2020 owe nothing (6ZB not in force). Not yet built: the credit posted to
+the account's ledger, and the erroneously transferred household returned to its old supplier.

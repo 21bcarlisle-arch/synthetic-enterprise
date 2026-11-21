@@ -126,6 +126,7 @@ from company.interfaces.supply_book import (
 from company.interfaces.supply_book import (
     registered_point as get_customer,
 )
+from company.interfaces.switching_gsop import switching_payments_on_gains
 from company.interfaces.tou_offer import ECONOMY_7, request_tou_offer
 from company.interfaces.tpi_commission import build_tpi_commission
 from company.interfaces.transfer_objection import (
@@ -242,6 +243,7 @@ from simulation.feedback_survey import (
     dispatch_dd_shock_complaint,
     dispatch_nps_survey,
 )
+from simulation.gain_registration import draw_gain_registration
 from simulation.gas_settlement import _GAS_BOILER_HEATING_FRACTION, run_gas_term
 from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
 from simulation.hh_consumption import (
@@ -3393,6 +3395,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     prev_gas_unit_rates: dict[str, float] = {}
     # Phase 12a: fresh acquisition wins for company_event_log
     fresh_acquisitions: list[dict] = []
+    # What the registration service and the losing supplier tell the gainer about each won switch
+    # (`simulation/gain_registration.py`): the company owes regs 6ZA and 6ZB on these facts.
+    gain_registration_log: list[dict] = []
     # Phase 12b: retention cost events and log
     retention_cost_events: list[dict] = []
     retention_log: list[dict] = []
@@ -5251,6 +5256,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                                 "event_date": term_start_str,
                                 "predecessor_id": billing_account,
                             })
+                            gain_registration_log.append(draw_gain_registration(
+                                new_cid, date.fromisoformat(term_start_str), acq_seed))
                             print(
                                 f"  [ACQUIRE] Fresh acquisition won: {new_cid} at {term_start_str} "
                                 f"(£{acq_cost:.0f}, {segment})"
@@ -6700,6 +6707,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # Phase 8a: growth mandate outputs
         "acquisition_spend_events": acquisition_spend_events,
         "acquisition_funnel_log": acquisition_funnel_log,
+        # Regs 6ZA/6ZB: the world's registration facts per won switch, and the company's answer --
+        # every standard payment it owes on them, each an account credit (posting to the ledger is
+        # not built yet: `world-posts-switching-gsop-credit-and-returns-erroneous-gain`).
+        "gain_registration_log": gain_registration_log,
+        "switching_gsop_payments": switching_payments_on_gains(gain_registration_log),
         "fixed_cost_events": fixed_cost_events,
         "acquired_customers": [c["customer_id"] for c in ACQUIRED_CUSTOMERS],
         "growth_mandate": growth_mandate_label(),

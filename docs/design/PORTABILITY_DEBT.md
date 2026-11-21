@@ -188,6 +188,9 @@ market_quantity   company/interfaces/recorded_sim_interface.py         gbp      
 market_quantity   company/interfaces/renewal_offer.py                  gbp         12
 market_quantity   company/interfaces/renewal_rate_chain.py             gbp          12
 market_quantity   company/interfaces/sim_interface.py                  gbp          12
+# 2026-11-21, the switching-GSOP door: each reg 6ZA/6ZB payment crosses back as `amount_gbp`, row #1's
+# shape and nothing else; the door takes no tariff, rate or price.
+market_quantity   company/interfaces/switching_gsop.py                 gbp          2
 market_quantity   company/interfaces/tou_offer.py                       gbp          3
 # EP6 WALL-PROTOCOL ROWS, recorded 2026-08-21 and recorded LATE -- read the note below the
 # block before treating this as an ordinary amendment. Three passes of the typed payment/flex
