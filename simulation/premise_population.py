@@ -973,6 +973,9 @@ def _draw_epc_lodgement(premise_id: str, *, base_seed: int, as_of: dt.date) -> d
 # noise (Crawley et al. 2019, rating-dependent, symmetric) is a separate channel and NOT modelled; the
 # EPC letter band is not moved (an unrecorded upgrade moves fabric; whether it crosses a band is GAP).
 EPC_UNRECORDED_UPGRADE_HAZARD_PER_YEAR = 0.009
+# The band the belief above states, wall alone .. both, from the EHS rates in
+# docs/market_research/epc_certificate_staleness_and_coverage_by_tenure_2026-11-18.md. No caller
+# sweeps it yet: the run draws at the upper end, 0.009.
 EPC_UNRECORDED_UPGRADE_HAZARD_RANGE = (0.006, 0.009)
 _ONE_STEP_WORSE = {InsulationLevel.FULL: InsulationLevel.PARTIAL,
                    InsulationLevel.PARTIAL: InsulationLevel.POOR}

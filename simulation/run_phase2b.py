@@ -1705,7 +1705,8 @@ def _company_provision_by_year_end(triad, effective_end: str, payment_method_of,
 
 #: The middle offer the debt-recovery record asks the sale rule about: a probe inside the published
 #: all-sector range (`debt_sale_price_range`), kept at the point the s.7.7 tables were printed at so
-#: the run reads beside them. Not an estimate of any price.
+#: the run reads beside them. Not an estimate of any price. The range it sits inside is the
+#: q3_debt_sale_price_share_of_face row of docs/market_research/assumption_toggles.yaml.
 _SALE_PROBE_INTERIOR = 0.070
 
 
