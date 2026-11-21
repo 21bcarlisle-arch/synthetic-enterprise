@@ -186,8 +186,11 @@ exceptions:
       SYN-2016-215 (2021, 2023), -221, -565 (2019), -582, PROS-2017-0351 and -0364 (2022). Five of them are on
       two-rate meters, so (a) is no longer only the single-rate case: a heated year spread by the profile
       class's average shape over-estimates summer three to five times. The eighth is (c), PROS-2016-0263g.
+      Sourced 2026-11-21 (how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 11): neither published
+      electricity practice found (OVO bills the settlement EAC on the class shape; British Gas the previous period)
+      shapes an electricity estimate by the home's own year, so (a) is a real supplier's misestimate too, a lawful tail.
     filed: 2026-10-29
-    retired_by: (a) an electrically heated home's estimate following its own seasonal shape from its reads, not the class average (whether a GB supplier does so is a GAP; knowledge page first). (b) and (c) are the row's lawful tail and stay excepted
+    retired_by: none. All eight on the 5200cd6239 book are (a) or (c), the row's lawful tail under a published practice (section 11). A gas run like (b) would leave under British Gas's same-period-last-year rule, which is not built (section 11)
     max_breached: 8
   # 2026-10-30: two rows that read UNCHECKABLE on the raw export are graded (leg one reads the five uncheckable
   # rows), on the 9553d403b7 book. Each breach count below is that book's, to be re-based on the next fresh run's

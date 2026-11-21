@@ -396,6 +396,39 @@ against the estimation policy the supplier declares for that account, plus the d
 have their own rows (`INV_READ_DUTY_ANNUAL`, `INV_BACK_BILLING_12M`). It does not grade against one
 method chosen in advance.
 
+## 11. Does a supplier's estimate follow the home's own seasonal shape? (2026-11-21, E2 (a))
+
+**Read first-hand, 2026-11-21.** British Gas, *If you think your energy bill isn't correct*, under
+"Estimated billing": "To estimate your gas usage we will normally use information on how much energy
+you used in the same period the previous year, or for electricity we will use the previous
+month/billing period." "If we don't hold this information we will use an industry estimation based
+on your previous meter readings." [M]: one supplier's customer help page, no date shown.
+
+**What this settles, with OVO's §5 statement beside it.** Two suppliers' published practice is now
+on record, and they differ:
+- **Gas (British Gas):** the home's own consumption over the same period a year earlier. That is the
+  home's own seasonal shape, and it is not the EUC01B average this estimator uses.
+- **Electricity:** British Gas uses the previous month or billing period, which is the home's own
+  recent rate with no seasonal shape. OVO uses the settlement EAC, which is spread on the class
+  profile. **Neither shapes an electricity estimate by the home's own year.** The GAP the E2 (a)
+  exception named ("whether a GB supplier does so") is answered for electricity: in the two
+  practices found, it does not.
+
+**Design consequence for E2 (a).** The seven electrically heated homes estimated at three to five
+times their summer meter are billed the class shape on an annualised advance. That is OVO's
+practice, and settlement's. A supplier using British Gas's electricity rule would estimate a June
+from May's period. That would be nearer for a heated home in summer, but further off at the turn of
+the heating season, which is the flat-window bias slice 3 measured and removed (+10% of billed kWh at
+December for electricity). So (a) is the row's lawful tail under a published practice, not a defect
+of the method. Keeping it errs against our own thesis: an over-estimate is cash the customer
+advances until the next read corrects it (F11). The exception now says so.
+
+**Not built, named for the next reader.** British Gas's gas rule (same period last year, where the
+account holds an actual-read window over it) is a sourced alternative to the EUC01B shape. It would
+estimate SYN-2016-396g, E2 (b), from its own year. It is a route for the D48 estimate-route
+comparison, behind a switch, and graded on a fresh run before it is chosen. Whether British Gas's
+rule is industry practice or one supplier's is still a GAP.
+
 ## Sources
 
 - DESNZ, *Energy Trends Table 4.2*: https://www.gov.uk/government/statistics/gas-section-4-energy-trends (retrieved 2026-10-06, "Domestic" column, 2023–2025)
@@ -412,4 +445,5 @@ method chosen in advance.
 - Elexon, *EAC/AA URS* v13.0 (P367 redline): https://www.elexon.co.uk/bsc/documents/change/releases/2019-releases/june-release/eac_aa_urs_v13-1_redlined_p367/; *EAC/AA Logical Data Design* v16.0: https://www.elexon.co.uk/bsc/documents/bsc-codes/eac-aa-logical-data-design/; *EAC/AA Technical Specification* v18.3: https://assets.elexon.co.uk/wp-content/uploads/sites/11/2015/04/28163005/EACAA_TechnicalSpec-v18.3.pdf; *EAC/AA System Management Guide* v17.3: https://assets.elexon.co.uk/wp-content/uploads/sites/11/2015/04/28163123/EACAA_SystemManagement-v17.3.pdf; *Market Domain Data*: https://www.elexon.co.uk/bsc/data/market-domain-data/ (all read 2026-11-19, §8 SPAR search)
 - OVO Energy help library, *Estimated Annual Consumption (EAC)*: https://forum.ovoenergy.com/charges-payments-refunds-142/estimated-annual-consumption-eac-diy-tutorial-series-8615, and *I give meter readings each month, why is my bill still based on estimates?* (staff answer): https://forum.ovoenergy.com/my-account-140/i-give-meter-readings-each-month-why-is-my-bill-still-based-on-estimates-190/index3.html, read 2026-11-19 (§5)
 - Energy Bill Toolkit, *Estimated Annual Consumption (EAC) on an energy bill*: https://energybilltoolkit.co.uk/guides/estimated-annual-consumption-eac-uk/, read 2026-11-19 (§5, secondary, not relied on)
+- British Gas, *If you think your energy bill isn't correct* (Estimated billing): https://www.britishgas.co.uk/help-and-support/bills-and-payments/if-your-bills-wrong, read 2026-11-21 (§11)
 - Not read, named for the next reader: the Smoothing Parameter's MDD value (licensed access only); Elexon's live BMRS/SVAA profile coefficient data; the EUC01B Annual Load Profile table (UK Link secure area, UNC-party access only).
