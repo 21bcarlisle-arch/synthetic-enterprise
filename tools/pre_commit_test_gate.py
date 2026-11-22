@@ -409,6 +409,9 @@ CENSUSED_WHOLE_DIRECTORY_SUBJECTS = [
     # a run-loop commit that drops the bad-debt belief selects this file by no stem.
     "tests/company/test_the_retention_guard_nets_the_companys_own_bad_debt_belief.py",  # simulation|6|0.1
     "tests/company/test_a_retention_offer_at_a_default_anniversary_is_made_only_where_the_discount_wins_the_fix.py",  # simulation|6|0.1
+    # 2026-11-21: reads the AST of run_phase2b's result, run_phase4c's lift and run_annual_report's
+    # world-truth keys, so a commit adding a run key selects this file by no stem.
+    "tests/saas/reporting/test_every_key_the_run_returns_is_forwarded_or_dropped_by_name.py",  # saas,simulation,tools|5|1.15
 ]
 
 CONTROL_TESTS += CENSUSED_WHOLE_DIRECTORY_SUBJECTS
