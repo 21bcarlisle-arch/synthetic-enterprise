@@ -81,7 +81,14 @@ the typical customer, so a differential of exactly zero for them is right, not a
 the reference down would have charged the era's savings twice and raised churn across the whole
 book -- and it would have looked like a fidelity improvement while being a calibration error.
 
-So the anchor is NOT the reference. `anchor_rate_gbp_per_mwh` and `historical_discount_pct`
+(2026-11-22: the anchor's discount is now Ofgem's published best-deal gap
+(`gb_best_deal_gap_to_default.json`), not a conversion of `MARKET_SAVINGS_BY_YEAR`. The
+double-count argument stands, because the multiplier's level and that gap describe the same market.)
+
+So the anchor is NOT the reference on the LOSS side. It is the right parity point on the WIN side.
+A prospect quoted a fix compares it with the fixes on offer, and `QUOTE_TO_APPLICATION` carries no
+level by year, so nothing there would count the era twice
+(`docs/staging/done/SEAT_FINDING_THE_FIRST_TERM_QUOTE_NEEDS_THE_MARKETS_PRICE_NOT_THE_CAP_AND_THE_CAMPAIGN_NOW_ASKS_IT_BEFORE_THE_WIN_2026-10-02.md`). `anchor_rate_gbp_per_mwh` and `historical_discount_pct`
 remain here as published diagnostics -- they are genuine, externally-sourced and cheap to test,
 and they are what a later pass will need if the multiplier is ever decomposed into engagement and
 elasticity (the director's P4). They are not in the reference path and there is a control below
@@ -136,25 +143,31 @@ mechanism is not inert while it waits, and a director value overrides either
 """
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from datetime import date
+from functools import lru_cache
 
-from simulation.market_switching_propensity import MARKET_SAVINGS_BY_YEAR
 from simulation.price_cap_enforcement import household_price_inc_vat
 from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
 
-#: Ofgem's Typical Domestic Consumption Values, dual fuel, used ONLY to turn
-#: `MARKET_SAVINGS_BY_YEAR`'s GBP-per-YEAR figures into a fraction of the unit rate. 2,700 kWh
-#: electricity + 11,500 kWh gas is Ofgem's published TDCV (single-rate electricity, medium gas,
-#: the basis the cap headline itself is quoted at), so the denominator is the same one the
-#: numerator's source used.
+#: Ofgem's own published gap between the default tariff and the market's cheapest deal, as a share
+#: of the typical dual-fuel default bill, by quarter. It is the published record, held in the
+#: commons. The company reads the same file through `company/crm/save_offer.py`, and this is the
+#: world's reading of it, not a second series. Derivation and confidence:
+#: `docs/market_research/cheapest_fix_against_the_default_tariff_gb_2016_2025.md`.
 #:
-#: THE CONVERSION IS CHECKED, NOT ASSERTED. 2016: 300 GBP / 14.2 MWh = 21.1 GBP/MWh against an
-#: SVT of 140 GBP/MWh -> a 15.1% discount, where `market_switching_propensity`'s own docstring
-#: says "cheapest fix ~18% below SVT". A TYPICAL saving landing slightly under a CHEAPEST deal is
-#: the right relationship and the right order of magnitude; had it come out at 3% or 40% the
-#: conversion would be wrong and this comment would say so.
-TDCV_DUAL_FUEL_MWH = 14.2
+#: 2026-11-22: this replaced a conversion that divided `MARKET_SAVINGS_BY_YEAR`'s dual-fuel GBP
+#: by 14.2 MWh of blended consumption and then by the ELECTRICITY unit rate. Most of a dual-fuel
+#: bill's MWh are gas, so the blended GBP/MWh sat far below the electricity rate, and every year
+#: read 2-6x under the published gap. 2016 read 15.1% where Ofgem publishes 30.4%; 2020 read 4.9%
+#: where it publishes 28.7%. The "~18%" that conversion was "checked" against was a recalled
+#: comment, not a source. A share of the bill needs no consumption basis, because Ofgem computes it
+#: at the TDCV in force on each date.
+BEST_DEAL_GAP_COMMONS = (
+    __import__("pathlib").Path(__file__).resolve().parent.parent
+    / "docs" / "domain_artefact_library" / "regulatory" / "gb_best_deal_gap_to_default.json"
+)
 
 #: How much of the way a rival re-references onto THIS company's price within one quarter.
 #: CURRICULUM (R13) -- the director's, defaulted so the mechanism is not inert.
@@ -209,21 +222,38 @@ def aggression() -> dict:
     return values
 
 
-def historical_discount_pct(year: int) -> float | None:
-    """The fraction below the cap the market actually offered in `year`, or None if unknown.
+@lru_cache(maxsize=1)
+def _published_gap_by_quarter() -> dict[str, float]:
+    """`{"YYYY-Qn": gap share}` from the commons. Raises on a malformed artefact rather than
+    returning an empty table, because an empty table would read as "unknown" in every year and
+    quietly switch the diagnostic off."""
+    raw = json.loads(BEST_DEAL_GAP_COMMONS.read_text(encoding="utf-8"))
+    out = {row["quarter"]: float(row["gap_share"]) for row in raw["quarters"]}
+    if not out or not all(0.0 <= g < 1.0 for g in out.values()):
+        raise ValueError(f"{BEST_DEAL_GAP_COMMONS}: no quarters, or a gap that is not a share")
+    return out
 
-    NEGATIVE in 2022 and that is the point: fixed deals were more expensive than the SVT, there
-    was nowhere cheaper to go, and switching collapsed to 3-4% despite the highest bills on
-    record. A discount series that could not go negative would model a world in which a crisis
-    makes rivals cheaper.
+
+def best_deal_gap_share(date_str: str) -> float | None:
+    """How far below the default the market's cheapest deal sat in this date's quarter, as a share
+    of the default bill. None for a quarter the record does not cover."""
+    year, month = int(date_str[:4]), int(date_str[5:7])
+    return _published_gap_by_quarter().get(f"{year}-Q{(month - 1) // 3 + 1}")
+
+
+def historical_discount_pct(year: int) -> float | None:
+    """The fraction below the default the market's cheapest deal sat in `year` (the mean of its
+    published quarters), or None if the record does not cover the year.
+
+    NEVER NEGATIVE, and 2021 Q4 to 2023 Q2 read 0.0. That is the published record (an
+    established absence of any deal below the default), not a missing value. The negative
+    reading in `MARKET_SAVINGS_BY_YEAR` (2022: -200 GBP) is a different quantity: the AVERAGE new
+    fix on sale, which cost more than the default. A household does not take the dearer fix as
+    its alternative. It stays on the default. So the most anyone could save is zero, and a
+    discount floored at zero does not model a crisis in which rivals got cheaper.
     """
-    savings = MARKET_SAVINGS_BY_YEAR.get(year)
-    if savings is None:
-        return None
-    svt = get_svt_elec_rate_gbp_per_mwh(f"{year}-01-01")
-    if not svt or svt <= 0:
-        return None
-    return (savings / TDCV_DUAL_FUEL_MWH) / svt
+    shares = [g for q, g in _published_gap_by_quarter().items() if q.startswith(f"{year}-Q")]
+    return sum(shares) / len(shares) if shares else None
 
 
 def anchor_rate_gbp_per_mwh(date_str: str) -> float | None:
@@ -236,7 +266,7 @@ def anchor_rate_gbp_per_mwh(date_str: str) -> float | None:
     svt = get_svt_elec_rate_gbp_per_mwh(date_str)
     if not svt or svt <= 0:
         return None
-    discount = historical_discount_pct(_year_of(date_str))
+    discount = best_deal_gap_share(date_str)
     if discount is None:
         return None
     return svt * (1.0 - discount)
@@ -316,10 +346,6 @@ def competitor_reference_rate_gbp_per_mwh(
         # inc-VAT. Compared raw, the rival could follow 4.8% further below its own costs.
         reference = max(reference, household_price_inc_vat(floor))
     return reference
-
-
-def _year_of(date_str: str) -> int:
-    return date.fromisoformat(date_str[:10]).year
 
 
 # ---------------------------------------------------------------------------

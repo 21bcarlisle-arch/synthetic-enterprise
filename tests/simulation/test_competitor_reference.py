@@ -155,21 +155,25 @@ def test_MUTATION_without_a_wholesale_price_there_is_NO_floor_and_that_is_report
 # THE DIAGNOSTICS ARE NOT IN THE REFERENCE PATH
 # ---------------------------------------------------------------------------
 
-def test_the_historical_discount_is_derived_from_the_real_series_and_can_go_NEGATIVE():
-    """2022 is the year the source series exists to record: fixed deals cost MORE than the
-    default, there was nowhere cheaper to go, and switching collapsed to 3-4% on the highest
-    bills ever seen. A discount that could not go negative would model a world in which a crisis
-    makes rivals cheaper."""
-    assert cr.historical_discount_pct(2016) > 0.10
-    assert cr.historical_discount_pct(2022) < 0
+def test_the_historical_discount_is_the_published_gap_and_reads_zero_when_nothing_beat_the_default():
+    """The defect this replaced: a dual-fuel GBP saving spread over blended MWh and divided by the
+    ELECTRICITY rate read 15.1% for 2016 against Ofgem's published 30.4%. Each bound below is
+    one the old conversion fails: 2016 and 2020 sat at 15% and 5%, and 2022 went negative where the
+    record is an established absence (0.0) of any deal below the default."""
+    assert 0.28 < cr.historical_discount_pct(2016) < 0.33
+    assert 0.25 < cr.historical_discount_pct(2020) < 0.32
+    assert cr.historical_discount_pct(2022) == 0.0
     assert cr.historical_discount_pct(1999) is None
 
 
-def test_the_conversion_lands_where_the_source_modules_own_prose_says_it_should():
-    """The TDCV conversion is CHECKED rather than asserted. `market_switching_propensity`'s
-    docstring says 2016's cheapest fix was ~18% below SVT; a TYPICAL saving should land a little
-    under that. Had it come out at 3% or 40% the conversion would be wrong."""
-    assert 0.12 < cr.historical_discount_pct(2016) < 0.18
+def test_the_anchor_reads_the_quarter_not_the_year():
+    """2021 is the year the gap collapsed inside it: Q3 published 24.6% below the default and Q4
+    0.0. A year-mean anchor would put a Q4 prospect 17% below a default nobody was undercutting."""
+    q3 = cr.anchor_rate_gbp_per_mwh("2021-08-01")
+    q4 = cr.anchor_rate_gbp_per_mwh("2021-11-01")
+    from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
+    assert q4 == pytest.approx(get_svt_elec_rate_gbp_per_mwh("2021-11-01"))
+    assert q3 == pytest.approx(get_svt_elec_rate_gbp_per_mwh("2021-08-01") * (1 - 0.246))
 
 
 def test_MUTATION_the_anchor_is_a_DIAGNOSTIC_and_never_the_reference():

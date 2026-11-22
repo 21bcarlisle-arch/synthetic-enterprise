@@ -110,3 +110,42 @@ HEAD. Neither cause was this item's, but both had to be fixed before anything he
   to 1,050, and the book-growth page's sentence was corrected in the same commit. **This rescales
   every book from that commit on** (the settlement sample shrinks by about 16%), so a comparison
   made across it is not one variable. The curve was not re-measured.
+
+## 2026-11-22: the win-side reference is settled from the record, and the defect it rested on is fixed
+
+The "question for research" above has been answered since 2026-10-10. The answer was never wired
+on the world side. `docs/market_research/cheapest_fix_against_the_default_tariff_gb_2016_2025.md`
+holds Ofgem's own RMI series ("market cheapest tariff" against the default, typical dual-fuel, at
+the TDCV in force on each date). It sits in the commons as
+`docs/domain_artefact_library/regulatory/gb_best_deal_gap_to_default.json`, and the company's save
+desk already reads it. **A share of the default bill needs no single-fuel mapping:** Ofgem computes
+it on the whole typical bill. Applying that share to each fuel's unit rate is a stated belief, not
+a published split (the same GAP that `save_offer.published_default_rate_ex_vat` records for
+pre-2019 per-fuel defaults).
+
+**The defect, now fixed.** `competitor_reference.historical_discount_pct` divided a dual-fuel £
+saving by 14.2 MWh and then by the electricity rate. Printed at real inputs against the published
+mean:
+
+| year | old | published | year | old | published |
+|---|---|---|---|---|---|
+| 2016 | 0.151 | 0.304 | 2021 | 0.000 | 0.167 (Q4 0.0) |
+| 2017 | 0.091 | 0.244 | 2022 | −0.068 | 0.000 |
+| 2018 | 0.086 | 0.286 | 2023 | 0.010 | 0.022 |
+| 2019 | 0.075 | 0.266 | 2024 | 0.037 | 0.076 |
+| 2020 | 0.049 | 0.287 | 2025 | 0.050 | 0.116 |
+
+It now reads the commons. `best_deal_gap_share(date)` is quarterly, and `anchor_rate_gbp_per_mwh`
+uses the quarter: 2021 collapses inside the year, from 24.6% in Q3 to 0.0 in Q4. 2022 reads 0.0
+rather than negative, because the household's alternative to a dear fix is the default it already
+has. No production path read either function, so no book moves.
+
+**This changes the measurement table above.** At the published gap, the 2016–20 first terms (a
+median of about −24% to −36% against the cap, on mixed VAT bases) sit near the market's going rate,
+not far below it. That agrees with what the table's own prose concluded.
+
+**Still owed, in order:** (1) wire `first_term_offer_fn` in `live_population._resolve_campaign`.
+Strike via `request_fixed_unit_rate`, decline via `decide_acquisition(quoted_unit_rate_per_mwh=)`,
+and set the prospect's `price_differential_pct` against `anchor_rate_gbp_per_mwh` on a common VAT
+basis. The SSP-cache load must be priced in memory first. (2) Pre-register, delete
+`ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world.
