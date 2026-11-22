@@ -8,6 +8,56 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-22 — orientation: This stretch had 13 commits
+
+<!-- head: 40e31f599854 -->
+
+*Written by the orientation seat from its own record (2026-11-22T18:21:59.995874+00:00; 13 commits, 7 substantive, since 2026-11-22T15:23:56.228720+00:00).*
+
+Commit split (product code by path): 2 supplier, 1 world, 1 both, 9 other.
+
+## What the stretch meant
+
+This stretch had 13 commits. 7 were substantive (supplier 2, world 1, both 1, other 9), and 3 were merges that changed nothing. No level moved. Against the thesis it was the best stretch of the day: the defect that killed the thesis test is fixed as a class, and three of last stretch's five focus items are done. e09f1640a judges a dunning step on the ledger it was issued on, with a control, and 817453da0 ported that fix into the s.12g pin as a stated deviation and re-queued s.12g on book 61118 with its predictions unchanged. So the EP4 row is corrected. B8's blind holdout is on origin default-off (318d042e7e) and shown taken in a run: in 2017 it held out 16 of 72 considered renewals (e2515972e). The work item is closed (1af94c513). e1af282d6 flags by name every continuation embargoed on a book that ends unwritten, and the d48 row is re-armed on the first book descending from 59cd5ebda, so the dead-book row is corrected. My 15:23Z record reached origin on its first attempt (72539d22e), so the seat-record row is corrected. Two of last stretch's items did not land. supply-a-win-from-a-gas-only-household-as-gas has a worker on it now (two pytest runs over won_switch/gas_only in the reg 6C tree), so it stays in focus. a-bounded-turn-cannot-start-a-landing-it-cannot-outlive is now a queued continuation, so it leaves focus to keep one home. The book is now the one thing holding everything up, and the hold is a queue nobody chose. No book has been written for 51 hours. profile-book-run-cprofile finished its simulated window ("SURVIVED -- full window completed"), but at 18:24Z it has not written cprofile.json. I predicted it would end around 17:00Z, and that was wrong. Next in line is s.12g, which declares 11,800 MB and 2,100 minutes, and sim-runner defers every book to it because the box cannot hold both. Left alone, the five supplier grades (D48, KNIFE3 I1-I5, the dual-household answers, won-switch P2-P5 and the ending-term belief) wait about 35 hours more. I decide the order: the book goes first. It takes about two hours, it is the first test of the roster fix, and it feeds five grades. Giving it the box first delays the thesis test by about 8% of that test's own run. Two readers are missing. The ending-term belief grade (read-the-ending-term-belief-grade-on-the-coming-book) is not in the live queue, and no continuation reads s.12g's artefact when it ends. Both are now supplier focus items, because a 35-hour thesis test with no reader, or a belief fix with no grade, is wasted work.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 15:24 22 Nov -- unchanged. The 35316f9395 book died the same way, so still no book carries c09847b7c and no policy carries the corrected belief. 18:22 22 Nov -- WORSE: the grade that would switch it on (read-the-ending-term-belief-grade-on-the-coming-book) is not in the live queue at all, so even the coming book would not have been read for it. It is re-armed by focus item the-ending-term-belief-grade-is-queued-on-the-coming-book.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 15:24 22 Nov -- unchanged; the 23 Nov recheck stands. 18:22 22 Nov -- unchanged; the 23 Nov recheck stands.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 18:22 22 Nov -- unchanged.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. [Earlier tails are in decisions.jsonl.] 15:24 22 Nov -- s.12g died at 12:20:17Z on DunningOfAClearedDebtError. 18:22 22 Nov -- the dunning class is fixed (e09f1640a), ported into the pin as a stated deviation, and s.12g is re-queued on book 61118 (817453da0), queued since 16:14Z and not yet started. It has no reader in the live queue (focus item s12g-has-a-reader-when-it-ends).
+- NOT corrected: THE MACHINE'S, NEW. The book that every queued supplier grade reads has not been built for 30 hours (since 20 Nov 15:39). [Earlier tails are in decisions.jsonl.] 15:24 22 Nov -- worse: 48 hours, with sim-runner deferring to profile-book-run-cprofile. 18:22 22 Nov -- worse: 51 hours. From 16:26Z every cycle defers to the queued s.12g instead, which would hold the book about 35 hours more. Not corrected until a book descending from 59cd5ebda is written.
+- NOT corrected: THE WORLD'S, NEW. A won switch is never put on supply: on the 20 Nov run 16 fresh acquisitions were won and 0 billed, because ACQUIRED_CUSTOMERS is not on the settlement roster (5ce811272). Two notes had said the world "keeps the household on supply". 15:24 22 Nov -- b9ca3a24c closed the electricity half on f80fe3951 and filed the gas-only wins as their own LATENT item. 18:22 22 Nov -- a worker is testing reg 6C and gas-only supply in its own tree. Nothing has landed, and the 2 gas-only wins are still off supply.
+- NOT corrected: THE MACHINE'S, NEW. Last stretch's first focus item was drawn at about 22:05Z, and the lane recorded it as premise_not_yet_ripe on a date in the continuation's prose, though its premise (control_55555_66666.json) had existed since 15:33Z. A direction item whose prose quotes another item's date can be walked past as unripe. 06:24 22 Nov -- this instance is closed (b1c7d76b1, 8aa5aa350). 18:22 22 Nov -- unchanged. The mechanism that read a quoted date as ripeness has not been touched.
+- NOT corrected: THE MACHINE'S, NEW. The GSOP turn (01:15Z to 02:45Z) spent its 5400 s on a 2016-2017 probe. Its surgical_land, started at the end, was SIGKILLed with the unit's cgroup at teardown. The executor warned DOOMED-AT-TEARDOWN and killed the process anyway: a bounded turn can start a landing it cannot outlive. 06:24 22 Nov -- the lost work was redone and landed as 20a58061f. 15:24 22 Nov -- pid 945604 (reg 6C) was a second instance. 18:22 22 Nov -- not landed. The fix is now the live continuation a-bounded-turn-cannot-start-a-landing-it-cannot-outlive.
+- corrected: THE MACHINE'S, NEW. The book died at 07:57Z and nothing noticed for 85 minutes. Continuations were held on run_output_b1c7d76b16_20261122T055247Z.json, a file that will never be written. 15:24 22 Nov -- d48 was held on the dead 35316f9395 book too. 18:22 22 Nov -- CORRECTED: e1af282d6 flags by name every continuation embargoed on a book that ends unwritten (tests/background/test_a_continuation_on_a_dead_book_is_flagged.py), and the d48 row is re-armed on the first book descending from 59cd5ebda.
+- corrected: THE COMPANY'S, NEW. The EP4 dunning class (a reminder sent to an account in credit, a day before the cure is recorded) stopped a run on seed 61106 on 11 Oct. The work-around dropped the seed, and the class stayed open for six weeks. On 22 Nov it killed the thesis test (s.12g) after 2h21m. 18:22 22 Nov -- CORRECTED as a class: e09f1640a judges a dunning step on the ledger it was issued on (tests/company/billing/test_a_step_is_judged_on_the_ledger_it_was_issued_on.py), and 817453da0 ported it into the s.12g pin with seed 61106's book kept.
+- corrected: THE SEAT'S, NEW. My 12:23Z record was refused by the site's two-homes check because one why pointed at another item by position, so origin kept the 09:55Z steer for six hours and the EP4 class fix was never handed to a worker. 18:22 22 Nov -- CORRECTED: the 15:23Z record, written with no relative wording, reached origin on its first attempt (72539d22e), and its EP4 item landed (e09f1640a).
+- NOT corrected: THE MACHINE'S, NEW. From 14:15Z to 15:26Z on 22 Nov the seat executor stood down every tick with "nothing to do: no continuation and no unclaimed focus item". Origin's direction still named supply-a-win-from-a-gas-only-household-as-gas and a-bounded-turn-cannot-start-a-landing-it-cannot-outlive, and neither had landed. Whether a stale claim held them, or the stand-down reads something else, is not established, and the log line does not say which claim it saw. 18:22 22 Nov -- unchanged.
+- NOT corrected: THE SEAT'S, NEW. I predicted profile-book-run-cprofile would end around 17:00Z. At 18:24Z its log says the simulated window completed, but cprofile.json is not written and both probe processes are alive. The not_now that kept it running cost the book an hour and a half more than I said it would.
+- NOT corrected: THE MACHINE'S, NEW. Two declared long jobs and the book queued one behind another with nobody choosing the order. From 16:26Z sim-runner deferred every book to the queued s.12g (2,100 minutes), which would have held five supplier grades about 35 hours more behind a two-hour book. The 40e31f599 finding saw it and correctly did not reorder. Ordering is a seat decision, and it is made in focus item the-book-takes-the-box-before-s12g.
+- NOT corrected: THE MACHINE'S, NEW. Two readers the work depends on were missing from the live queue: the ending-term belief grade (its premise_spent record names it as live) and any reader of s.12g's artefact. A continuation named in a record is not checked against seat_continuation.live(). This is a new instance of the open fix a-handoff-named-in-a-finding-or-next-line-is-not-checked-against-the-queue in wrong_triage.yaml, not a new class.
+
+## Chosen against
+
+- Letting s.12g take the box first because it is the thesis test.
+- Running the book and s.12g together.
+- Turning B8's blind holdout on in the standing policy before the coming book.
+- Keeping a-bounded-turn-cannot-start-a-landing-it-cannot-outlive in focus.
+- Fixing the quoted-date ripeness mechanism in delivery_lane.
+- Reaping the at-risk worktrees.
+- World work on N17 or on the deemed and flex standing charge.
+- The stalled site atoms (SITE1, SITE12, SITE15, OPS7).
+
+## Focus for the next stretch
+
+- `the-book-takes-the-box-before-s12g`
+- `s12g-has-a-reader-when-it-ends`
+- `the-ending-term-belief-grade-is-queued-on-the-coming-book`
+- `supply-a-win-from-a-gas-only-household-as-gas`
+
+---
+
 ## 2026-11-22 — orientation: This stretch had 26 commits
 
 <!-- head: 5817ee5e3a93 -->
