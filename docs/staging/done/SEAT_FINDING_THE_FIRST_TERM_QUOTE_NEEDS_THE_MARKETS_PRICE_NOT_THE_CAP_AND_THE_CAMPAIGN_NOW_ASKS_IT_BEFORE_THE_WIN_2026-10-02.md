@@ -182,3 +182,22 @@ feed. Do not load the 129 MB file at import. Wiring the quote moves the book on 
 becomes price-aware while the hold is still in place), so it lands as its own baseline. The
 pre-registered single variable stays the deletion of `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`
 against that baseline.
+
+## 2026-11-22 (later still): the daily-aggregate feed is built and strikes the same forward
+
+`company.pricing.tariff_engine.DailyPriceFeed` holds one `(date, count, mean)` row per day and is
+accepted wherever `get_forward_price` takes `price_records`. Its index carries the count (the
+refusal floor) and the `statistics.mean` daily mean (every estimator) exactly, so the result is the
+same float, not a close one. It refuses out-of-order, non-canonical or empty rows rather than
+pricing them approximately.
+
+At real inputs, weekly from 2016-01-01 to 2025-06-01, 12- and 24-month terms: **984 of 984 quotes
+are bit-identical on each fuel**. Electricity uses 3,501 rows in place of 168,026 records; gas uses
+3,538 rows from NBP's 3,538. The control (`test_a_daily_feed_prices_exactly_as_the_half_hourly_history_it_was_built_from`)
+covers both the priced leg and the refusal leg, plus a JSON round-trip. Two mutations each turn it
+red: a count off by one, and a mean scaled by 1.000001.
+
+**Still owed:** (1) persist the feed beside the cache, built once from it, so the campaign never
+loads the half-hourly file. Then wire `first_term_offer_fn` in `live_population._resolve_campaign`
+as described above, landed as its own baseline. (2) Pre-register, delete
+`ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world.

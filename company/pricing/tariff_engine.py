@@ -168,6 +168,58 @@ class _NotIndexable(Exception):
     pass
 
 
+class _AggregateIndex(_DailyIndex):
+    """A `_DailyIndex` rebuilt from per-day `(date, count, mean)` rows instead of half-hourly records.
+
+    The forward reads only two things per day: the record count (the `MIN_RECORDS_FOR_ESTIMATE`
+    floor, through `cum`) and the daily mean (EWMA, adaptive lookback, regime and slope, through
+    `means`). Both are carried exactly, so the price is the same float as the half-hourly path's.
+    """
+
+    def __init__(self, rows: list[tuple[str, int, float]]):
+        self.records, self.n, self.first, self.last = None, len(rows), None, None
+        self.dates, self.keys, self.prices = [], [], []
+        self.cum = [0]
+        means = []
+        for key, count, mean in rows:
+            d = date.fromisoformat(key)
+            if d.isoformat() != key or (self.dates and d <= self.dates[-1]) or count < 1:
+                raise ValueError(f"daily feed row out of order, non-canonical or empty: {key!r}")
+            self.dates.append(d)
+            self.keys.append(key)
+            self.cum.append(self.cum[-1] + count)
+            means.append(mean)
+        self._means = dict(enumerate(means))
+
+
+class DailyPriceFeed:
+    """A spot-price history held as one `(date, count, mean)` row per day, not one dict per period.
+
+    WHY (2026-11-22): the campaign-time first-term quote needs the company's forward before the
+    run has loaded its prices, and the half-hourly SSP history costs +238 MB resident (376 MB peak)
+    to hold. About 3,500 rows strike the same forward. Accepted wherever `get_forward_price` takes
+    `price_records`; the per-day mean is the same `statistics.mean` the index would compute.
+    Holds only what the published history holds -- every read is still bounded by its window.
+    """
+
+    __slots__ = ("rows", "index")
+
+    def __init__(self, rows: list[tuple[str, int, float]]):
+        self.rows = [(str(k), int(c), float(m)) for k, c, m in rows]
+        self.index = _AggregateIndex(self.rows)
+
+    @classmethod
+    def from_records(cls, price_records: list[dict]) -> "DailyPriceFeed":
+        try:
+            index = _DailyIndex(price_records)
+        except _NotIndexable:
+            raise ValueError("a daily feed needs canonical YYYY-MM-DD keys in date order") from None
+        return cls([(k, len(v), statistics.mean(v)) for k, v in zip(index.keys, index.prices)])
+
+    def __len__(self) -> int:
+        return self.index.cum[-1]
+
+
 #: Keyed on the list's identity; the entry holds the list, so the id cannot be reused while it is
 #: cached. Bounded because tests build many short-lived lists.
 _INDEXES: dict[int, _DailyIndex | None] = {}
@@ -175,6 +227,8 @@ _INDEX_CAP = 8
 
 
 def _daily_index(price_records: list[dict]) -> _DailyIndex | None:
+    if isinstance(price_records, DailyPriceFeed):
+        return price_records.index
     if not price_records:
         return None
     entry = _INDEXES.get(id(price_records))

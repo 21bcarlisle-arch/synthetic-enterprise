@@ -85,3 +85,32 @@ def test_a_record_inserted_inside_an_indexed_list_is_seen():
     records[at:at] = [{"settlementDate": "2020-06-20", "systemSellPrice": 5000.0}]
     after = _price(records, "2020-06-25")
     assert after != before and after == _price(list(records), "2020-06-25")
+
+
+def test_a_daily_feed_prices_exactly_as_the_half_hourly_history_it_was_built_from():
+    # The campaign-time quote reads the feed so it need not hold 238 MB of half-hourly SSP. Any
+    # drift in the count (the refusal floor) or the mean (every estimator) reds this, and the
+    # refusal leg must be taken as well as the priced one.
+    records = _records()
+    feed = te.DailyPriceFeed.from_records(records)
+    assert len(feed.rows) == 700 and len(feed) == len(records)
+    keys = [(d, f, t) for d in _deliveries(records) for f in ("electricity", "gas") for t in (12, 24)]
+    from_history = {k: _price(records, *k) for k in keys}
+    from_feed = {k: _price(feed, *k) for k in keys}
+    assert any(isinstance(v, float) for v in from_feed.values())
+    assert any(isinstance(v, tuple) for v in from_feed.values())
+    assert from_feed == from_history
+    # Persisted as plain rows (JSON round-trips a float exactly) and rebuilt, still equal.
+    import json
+    rebuilt = te.DailyPriceFeed(json.loads(json.dumps(feed.rows)))
+    assert {k: _price(rebuilt, *k) for k in keys} == from_history
+
+
+@pytest.mark.parametrize("rows", [
+    [("2020-01-02", 48, 40.0), ("2020-01-01", 48, 41.0)],
+    [("20200101", 48, 40.0)],
+    [("2020-01-01", 0, 40.0)],
+])
+def test_a_daily_feed_refuses_rows_it_cannot_price_exactly(rows):
+    with pytest.raises(ValueError, match="daily feed row"):
+        te.DailyPriceFeed(rows)
