@@ -38,3 +38,36 @@ runs is a selection, and the read-out says so.
     python3 -m tools.seed_family member --shape founders_only --seed 61106 --out /tmp/x
 
 About 45 minutes. Log: `/var/tmp/longjob-seed-family-fo4-61106.log`.
+
+## Resolution (2026-11-22, delivery seat): the cause was a re-judged step, not an un-netted view
+
+Second occurrence: `ACC-SYN-2016-239 reminder_2 on 2020-12-15 with the ledger at GBP -22.53 (cured
+2020-12-16)`, book 61118 at the s.12g pin, 2h21m in (`/var/tmp/longjob-value-test-cut012-new-book.log`).
+
+**The diagnosis above was wrong for this shape.** A residential account is balance-based, and every
+view `collections_snapshot` can take for one (`age_balance`, `level_shortfall`, `age_left_level`)
+already nets the ledger balance: none returns an item when the balance is a penny or less. The
+evidence is in the error itself. `CollectionsJourneyDesk._step` runs the refusal straight after
+every step, so the reminder_2 on 12-15 was refused-or-passed on 12-15, and it passed: the ledger then
+owed. The message names a cure (12-16), so it was raised at the cure step, a day later. Between the
+two refusals a credit value-dated on or before 12-15 was posted after the walk had passed 12-15,
+and the cure handed the WHOLE journey to the refusal again, which re-read 12-15 on the revised
+ledger. Seed 61106's message has the same shape (reminder_2 on 02-11, raised at the cure on 02-25).
+
+**Fix (company/billing/collections_journey.py, `_refuse_issued`).** Each step is judged once, on
+the ledger the desk held when it issued it: the refusal reads the stages issued at this step (and
+any cure). A step issued on a ledger that already reads cleared still raises. What the re-read
+would have refused is not dropped: it is recorded in `steps_cleared_after_issue` when the journey
+cures. A supplier's ledger takes back-valued cash routinely (a bank's value date precedes the day
+the file arrives), so a reminder sent before the credit was known is lawful on what was held.
+
+**Controls** (`tests/company/billing/test_a_step_is_judged_on_the_ledger_it_was_issued_on.py`):
+the late-credit control reproduces the production error verbatim with the guard removed (mutation
+run 22 Nov: 1 failed, 2 passed); an account still in arrears still climbs to reminder_2 and the plan
+offer; a step issued on an already-cleared ledger still raises.
+
+**Not established (named gap).** Which posting crossed late on ACC-SYN-2016-239 was not traced: the
+triad's `_walk_bound` promises the ledger complete to each walk's `through`, and this shows that
+promise broken somewhere (a held lump settlement, a second leg, or a desk-posted instalment are the
+candidates). It no longer stops a run; how often it happens is now countable in
+`steps_cleared_after_issue`, which no run summary publishes yet.

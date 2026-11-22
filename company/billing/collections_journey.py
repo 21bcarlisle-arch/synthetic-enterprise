@@ -644,6 +644,35 @@ class CollectionsJourneyDesk:
         #: invoice refs this company asked the bank to collect by direct debit
         #: (`note_bill_collected_by_direct_debit`).
         self._by_dd: set = set()
+        #: Every dunning step that was lawful when issued and that a credit posted LATER, value-dated
+        #: on or before it, has since cleared on the ledger: `{account_id, stage, on,
+        #: ledger_balance_gbp, found_on}`, read when the journey cures. A step is judged once, on the
+        #: ledger the desk held when it issued it (`_refuse_issued`); this is what the re-read would
+        #: have refused, kept so the late credits stay countable rather than silently forgiven.
+        self.steps_cleared_after_issue: List[dict] = []
+
+    def _refuse_issued(self, journey: "_Journey", judged: int, account_id: str,
+                       ledger: Optional[AccountLedger]) -> None:
+        """Run the R10 refusal over the stages issued at this step, `journey.stages[judged:]`, with
+        any cure the journey holds. The stages before `judged` were refused or passed when they were
+        issued; re-reading them here would judge a letter already sent on a ledger a later,
+        back-valued credit has rewritten (ACC-SYN-2016-239 on book 61118: reminder_2 on 2020-12-15
+        passed, a credit dated by 12-15 crossed after the walk passed it, and the cure the next day
+        re-read 12-15 at GBP -22.53 and stopped the run). What that re-read finds is recorded in
+        `steps_cleared_after_issue` when the journey cures."""
+        record = journey.as_record()
+        earlier = record["stages"][:judged]
+        record["stages"] = ([s for s in earlier if s["stage"] == CURED]
+                            + record["stages"][judged:])
+        self._refuse(record, account_id)
+        if journey.exit == CURED and ledger is not None:
+            from company.compliance.domain_invariants import dunning_of_a_cleared_debt
+            found_on = record["stages"][-1]["on"]
+            before = {**journey.as_record(), "stages": [s for s in earlier if s["stage"] != CURED]}
+            for f in dunning_of_a_cleared_debt(before, lambda _a, on: ledger.balance(on)):
+                self.steps_cleared_after_issue.append({
+                    "account_id": f["account_id"], "stage": f["stage"], "on": f["on"],
+                    "ledger_balance_gbp": f["ledger_balance_gbp"], "found_on": found_on})
 
     def dunning_at_leaving(self, account_id: str) -> Callable[[dt.date], bool]:
         """`dunned_at(left)` for `arrears_engine.left_level_asks`: whether this account's open journey
@@ -771,6 +800,8 @@ class CollectionsJourneyDesk:
         overdue = (view.get("max_days_overdue") or 0) > 0 and (
             view.get("undisputed_overdue_gbp") or 0.0) > 0
         journey = self._open.get(account_id)
+        # What this step issues is judged; what earlier steps issued already was (`_refuse_issued`).
+        judged = 0 if journey is None else len(journey.stages)
         if journey is None:
             if not overdue or held_by_plan:
                 return
@@ -791,7 +822,7 @@ class CollectionsJourneyDesk:
                                                                        left_level)))):
             journey.enter(CURED, on, "overdue balance cleared on the ledger", view)
             journey.exit = CURED
-            self._refuse(journey.as_record(), account_id)
+            self._refuse_issued(journey, judged, account_id, ledger)
             self._closed.append(self._open.pop(account_id))
             return
         if ledger is not None and self._write_off_if_barred(journey, ledger, on, view,
@@ -818,7 +849,7 @@ class CollectionsJourneyDesk:
                           "a further bill missed once the plan was offered: the SLC 27.6 offer again",
                           view)
             self._offer_arrangement(journey, on, view)
-        self._refuse(journey.as_record(), account_id)
+        self._refuse_issued(journey, judged, account_id, ledger)
         if journey.exit in (ARRANGEMENT, PREPAYMENT):
             self._closed.append(self._open.pop(account_id))
 
