@@ -1101,6 +1101,108 @@ def _pre_growth_book(seed: int) -> List[dict]:
 CAMPAIGN_QUOTE_CUTOFF = "2025-06-07"
 
 
+def market_cheapest_ex_vat(commodity: str, date_str: str) -> Optional[float]:
+    """What the market's cheapest deal cost per MWh on this date, ex-VAT: the default the household
+    was charged (net of the EPG) less Ofgem's published best-deal gap for the quarter.
+
+    THE WIN SIDE'S PARITY POINT, and not the cap (finding 2026-10-02): a household shopping for a
+    fix compares the fixes on offer, which in 2016 sat about 30% below the default. Against the cap
+    a typical 2016-20 first term saturates the funnel. The gap is a share of the whole typical
+    dual-fuel bill; applying it to each fuel's unit rate is a stated belief, not a published split.
+    None when the default or the quarter's gap is unknown: an unknown market is not parity.
+    """
+    from simulation.competitor_reference import best_deal_gap_share
+    from simulation.price_cap_enforcement import DOMESTIC_VAT_RATE
+    from simulation.svt_rates import (
+        get_svt_elec_rate_charged_to_household_gbp_per_mwh,
+        get_svt_gas_rate_charged_to_household_gbp_per_mwh,
+    )
+
+    default = (get_svt_gas_rate_charged_to_household_gbp_per_mwh(date_str) if commodity == "gas"
+               else get_svt_elec_rate_charged_to_household_gbp_per_mwh(date_str))
+    gap = best_deal_gap_share(date_str)
+    if not default or gap is None:
+        return None
+    return default * (1.0 - gap) / (1.0 + DOMESTIC_VAT_RATE)
+
+
+def first_term_offer_fn(*, elec_daily, gas_daily):
+    """The campaign's quote, asked before the win (`plan_growth_campaign(first_term_offer_fn=)`).
+
+    The company strikes and gates the first term through `growth_desk.quote_first_term`, from the
+    published daily spot histories it is handed. The world then reads this prospect's position as
+    the strike against the market's cheapest deal, both ex-VAT, and that is what the funnel's
+    quote-to-application stage responds to.
+
+    Returns None, which leaves the funnel at the run-level position as before, where no position can
+    be read: a default-tariff quote (no strike), no company forward, no history for the fuel, or an
+    unknown market.
+    """
+    import datetime as _dt
+
+    from company.interfaces.growth_desk import quote_first_term
+    from simulation.policy_costs import (
+        get_electricity_network_cost_per_mwh,
+        get_gas_ccl_per_mwh,
+        get_gas_network_cost_per_mwh,
+        get_ggl_per_mwh,
+        published_electricity_policy_cost_over_term,
+    )
+
+    def offer(prospect, in_market: _dt.date):
+        day = in_market.isoformat()
+        gas = prospect.commodity == "gas"
+        if not (gas_daily if gas else elec_daily):
+            return None
+        if gas:
+            policy = (get_gas_ccl_per_mwh(day, prospect.segment)
+                      + get_ggl_per_mwh(day, prospect.eac_kwh))
+            network = get_gas_network_cost_per_mwh(day)
+        else:
+            try:
+                year_on = in_market.replace(year=in_market.year + 1)
+            except ValueError:  # 29 February
+                year_on = in_market + _dt.timedelta(days=365)
+            policy = published_electricity_policy_cost_over_term(
+                in_market, (year_on - in_market).days, in_market)
+            network = get_electricity_network_cost_per_mwh(day, prospect.segment)
+        quote = quote_first_term(
+            segment=prospect.segment, commodity="gas" if gas else "electricity",
+            tariff_type=prospect.tariff_type or "fixed", eac_kwh=int(prospect.eac_kwh),
+            term_start=day, observable_daily_prices=gas_daily if gas else elec_daily,
+            published_policy_cost_per_mwh=policy, published_network_cost_per_mwh=network,
+        )
+        if not quote.quoted:
+            return {"quoted": False, "reason": quote.reason}
+        market = market_cheapest_ex_vat("gas" if gas else "electricity", day)
+        if quote.unit_rate_per_mwh is None or not market:
+            return None
+        return {"quoted": True,
+                "price_differential_pct": quote.unit_rate_per_mwh / market - 1.0}
+
+    return offer
+
+
+#: Whether the campaign was quoted before the win, and if not why: read by the record of the run.
+FIRST_TERM_QUOTE_STATE: dict = {"state": None}
+
+
+def _campaign_offer_fn():
+    from sim.cache_store import daily_ssp_rows, get_cached_daily_ssp
+    from sim.gas_prices_history import load_nbp_history
+
+    elec = get_cached_daily_ssp()
+    if not elec:
+        FIRST_TERM_QUOTE_STATE["state"] = "absent: no SSP cache, so the win was decided price-blind"
+        return None
+    FIRST_TERM_QUOTE_STATE["state"] = "quoted before the win"
+    try:
+        gas = daily_ssp_rows(load_nbp_history())
+    except OSError:
+        gas = None
+    return first_term_offer_fn(elec_daily=elec, gas_daily=gas)
+
+
 def _resolve_campaign(book: List[dict], seed: int, *, persist: bool = True,
                       customer_year_budget: Optional[float] = None) -> dict:
     """Run the campaign. Callers want `_campaign`; this is the uncached body.
@@ -1172,7 +1274,8 @@ def _resolve_campaign(book: List[dict], seed: int, *, persist: bool = True,
         # parameter to `plan_growth_campaign` keeps the campaign a pure resolver -- the
         # caller decides what the company's offer is, and the campaign only resolves it --
         # and it makes the shared input visible at the one place both legs are configured.
-        # At the shipped 0.0 the multiplier is exactly 1.0 and the book is unchanged.
+        # At the shipped 0.0 the multiplier is exactly 1.0. Since 2026-11-22 this run-level position
+        # is only what a prospect the quote cannot price falls back to (`first_term_offer_fn`).
         run_funnel=functools.partial(
             run_acquisition_funnel, price_differential_pct=PRICE_DIFFERENTIAL_PCT
         ),
@@ -1190,6 +1293,12 @@ def _resolve_campaign(book: List[dict], seed: int, *, persist: bool = True,
         # pre-ruling campaign byte for byte.
         select_on_own_responsiveness=acquisition_selects_on_own_responsiveness(),
         customer_year_budget=customer_year_budget,
+        # THE QUOTE BEFORE THE WIN (finding 2026-10-02, increment 2). The company strikes and gates
+        # each prospect's first term from the published daily spot histories, and the funnel reads
+        # that prospect's position against the market's cheapest deal. Daily rows, never the
+        # half-hourly file: 2 MB rather than 376 MB at import. No SSP cache means no quote, said
+        # in the record below rather than priced off a stand-in.
+        first_term_offer_fn=_campaign_offer_fn(),
     )
     # The seed the won homes' fuel coin is drawn on (`_won_customer_dicts`).
     outcome["base_seed"] = seed
@@ -1228,6 +1337,8 @@ def _resolve_campaign(book: List[dict], seed: int, *, persist: bool = True,
                 "customer_years_all_wins_would_cost"],
             "wins": len(outcome["winners"]),
             "quotes": len(outcome["spend"]),
+            "quotes_withheld": len(outcome.get("quotes_withheld", [])),
+            "first_term_quote": FIRST_TERM_QUOTE_STATE["state"],
             "spend_gbp": round(sum(r["amount_gbp"] for r in outcome["spend"]), 2),
         }
         # A TEST'S CAMPAIGN IS NOT THE CAMPAIGN OF RECORD (2026-08-31). This is written on every
