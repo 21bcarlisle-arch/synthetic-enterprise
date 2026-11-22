@@ -2440,3 +2440,14 @@ chained after it into `/var/tmp/vtn-driver/grade_new_book.out`. The watcher's de
 
 **Reverse:** `systemctl --user stop vtc-cut012-new-book-watch`. If the job has started, also
 `systemctl --user stop longjob-value-test-cut012-new-book`.
+
+**Launched into the queue (22 Nov 07:58:34Z).** The watcher found the replication done (15:38Z on 21 Nov),
+waited out the owed books, then logged "box free, tree at the pin; launching" and exited with rc 0. The
+launch went to `longjob-value-test-cut012-new-book-queued` (pid 1825614), not straight to the job. It was
+held first behind a landing (`surgical_land` pid 1783822, gone by 08:07Z). It is now held for memory: 16,984 MB
+resident plus the 11,800 MB declared peak exceeds the 23,010 MB budget until the nightly
+`head-green-census` (pid 3581019, running since 03:31Z) exits. The queued unit retries every 60 s and
+starts the job on its own. No cause needed fixing, and the pin check was neither touched nor weakened.
+The census has taken anywhere from 4 s to 20 h this week, so the job's own start time and pid go here
+when it becomes active. The watcher is spent, so to reverse this, stop
+`longjob-value-test-cut012-new-book-queued`.
