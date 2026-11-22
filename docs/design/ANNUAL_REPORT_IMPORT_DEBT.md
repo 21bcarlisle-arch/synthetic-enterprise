@@ -15,9 +15,14 @@ deliberately later rather than drifting into it."*
 |---|---|
 | Production importers reading a COMPUTATION | **0** (was 1, moved out) |
 | Production importers frozen with a stated reason | **2** (the renderer's own runner; a publisher importing two path constants) |
-| Test files importing the report | **95** |
+| Test files importing the report | **96** |
 | ...of which reach into private `_section_*` functions | **83** |
 | `saas/reporting/annual_report.py` | **11079 lines** |
+
+Importer count re-measured 2026-11-22 (`--write`'s count, the file restored by hand so this history
+survives): **96**. One is new, `tests/saas/test_every_supplied_customer_reaches_the_report.py`. It calls
+only the public `extract_report_data`, with one settled account from every supply book, so a roster
+union that misses a book raises the KeyError that killed book b1c7d76b16.
 
 Importer count re-measured 2026-11-21: **95**. One is new here,
 `tests/saas/reporting/test_a_grading_record_the_run_builds_reaches_the_published_book.py`. It calls only

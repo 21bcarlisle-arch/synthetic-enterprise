@@ -541,6 +541,22 @@ def make_acquired_customer(
     }
 
 
+def every_supplied_customer() -> list[dict]:
+    """Every account this run supplies, from every registration book: the founders, the
+    successors, the fresh-market wins, the drawn points and the incoming occupants.
+
+    THE ONE ROSTER UNION. Each book was added to `get_customer` when it was made and then copied
+    by hand into the readers that reduce a settled book by customer, and each copy that missed a
+    book raised KeyError in `build_cost_to_serve` on the first record from it: OCC-* on
+    8 Oct 2026, SYN-2016-144_3 (a won switch) on 22 Nov, killing book b1c7d76b16. A new book is
+    added HERE, and every reader follows. A function, not a constant, because four of the five
+    lists are filled by the run after import.
+    Control: tests/saas/test_every_supplied_customer_reaches_the_report.py
+    """
+    return (CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS + DRAWN_CUSTOMERS
+            + INCOMING_OCCUPANT_CUSTOMERS)
+
+
 def get_customer(customer_id: str) -> dict | None:
     """
     Retrieve a customer record by customer ID.
@@ -554,9 +570,7 @@ def get_customer(customer_id: str) -> dict | None:
     # points (via `live_population()`) and then looks them back up by id -- a
     # book you can iterate but not resolve is what made a home-move win hand
     # `None` to `make_acquired_customer()`.
-    all_customers = (CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS + DRAWN_CUSTOMERS
-                     + INCOMING_OCCUPANT_CUSTOMERS)
-    return next((customer for customer in all_customers if customer["customer_id"] == customer_id), None)
+    return next((customer for customer in every_supplied_customer() if customer["customer_id"] == customer_id), None)
 
 
 def get_customers_for_segment(segment: str) -> list[dict]:
