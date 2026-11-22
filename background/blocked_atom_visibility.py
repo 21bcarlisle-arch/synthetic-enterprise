@@ -503,9 +503,8 @@ def _render_dial(report: VisibilityReport) -> list[str]:
         "Harness share of the whole map: **%.1f%%** (%d of %d)."
         % (report.harness_share, report.lane_weights_all.get(HARNESS_LANE, 0), report.total_atoms),
         "This is a DIAGNOSTIC (R12). `--check` never fails on it.",
-        "The same lane counts split by `loop_stage` are on the WIP-flow door "
-        "(`tools/generate_wip_flow_data.py`); what is here and not there is the with/without-parked "
-        "comparison and the two probes below it.",
+        "The map split by `loop_stage` is the `wip` question of `tools/lab_query.py`; what is "
+        "here and not there is the with/without-parked comparison and the two probes below it.",
     ]
     return lines
 

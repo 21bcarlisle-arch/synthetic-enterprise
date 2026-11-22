@@ -34,7 +34,7 @@ At mint (2026-08-08) the ruling measured **82 harness vs 7 commercial across 206
 
 Harness share of the whole map: **33.6%** (126 of 375).
 This is a DIAGNOSTIC (R12). `--check` never fails on it.
-The same lane counts split by `loop_stage` are on the WIP-flow door (`tools/generate_wip_flow_data.py`); what is here and not there is the with/without-parked comparison and the two probes below it.
+The map split by `loop_stage` is the `wip` question of `tools/lab_query.py`; what is here and not there is the with/without-parked comparison and the two probes below it.
 
 ## Subject coverage — the ruling's own zero-coverage list
 
