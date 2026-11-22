@@ -82,3 +82,13 @@ walk. A payment owed to a gas-only win or a leg with no issued bill is refused b
 term boundary in `run_phase2b` today (`_notify_registration_loss` closes a whole household), and a won
 leg shares its predecessor's household id, so ending it needs a per-leg, mid-term supply end. Until
 then an erroneous gain stays on supply and OVERSTATES revenue (expected count 0.065 on today's volume).
+
+**Disposition, 22 Nov.** The BLOCKING defect is fixed: f80fe39511 supplies electricity wins,
+20a58061f4 posts the GSOP credit. Reg 6C (returning an erroneous gain) is uncommitted in the shared
+tree under another lane at the time of writing (simulation/gain_registration.py, run_phase2b.py), so
+it is that lane's to land. Correcting the line above:
+the gas-only wins were NOT handed off; they are now
+`SEAT_FINDING_A_WON_SWITCH_FROM_A_GAS_ONLY_HOUSEHOLD_IS_NEVER_SUPPLIED_2026-11-22.md` (LATENT). The
+full-run grade is `grade-the-supplied-won-switches-on-the-first-book-after-f80fe3951`. Supplying
+SYN-2016-144_3 is what the roster KeyError at `saas/cost_to_serve.py:246` trips on; that fix is in
+flight under `the-book-reports-every-customer-it-supplies`. Closed done on f80fe39511.
