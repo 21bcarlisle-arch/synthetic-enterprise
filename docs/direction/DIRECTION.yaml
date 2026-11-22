@@ -224,4 +224,21 @@ wrong:
       a record is not checked against seat_continuation.live(). This is a new instance of the open fix
       a-handoff-named-in-a-finding-or-next-line-is-not-checked-against-the-queue in wrong_triage.yaml, not a new class.
     corrected: false
-for_the_director: []
+for_the_director:
+- id: s-12g-was-admitted-at-19-32
+  raised: '2026-11-22'
+  kind: strategy
+  decision_kind: harness
+  what: s.12g was admitted at 19:32:32Z, before the book-first decision could act, so the next book now
+    waits ~35h behind it (~86h since the last book) unless it shares the box.
+  proposal: 'One-off: let sim-runner''s next book (descending from 59cd5ebda) skip the resident-long-job
+    yield for s.12g only, since the declared arithmetic fits (11.8+~6+2.6 < 23.0 GB). Otherwise leave
+    s.12g alone and the book runs after it.'
+  recommendation: 'I recommend we wait: leave s.12g running and let the book follow it. You said not to
+    kill s.12g, and co-residence risks exactly that, because the resident-yield rule exists after an undeclared
+    worker OOM-killed a long job. Say ''go'' and I will land a one-unit exemption instead.'
+  based_on: d48ffb3893
+  status: open
+  resolution: ''
+  evidence: docs/staging/SEAT_FINDING_THE_BOOK_THE_FIVE_GRADES_WAIT_ON_WOULD_HAVE_DROPPED_THREE_OF_THEIR_RECORDS_AND_IS_STARVED_2026-11-21.md,
+    section 'Re-read 22 Nov 19:37Z'

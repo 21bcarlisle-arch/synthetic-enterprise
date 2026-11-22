@@ -166,3 +166,30 @@ Read from `docs/reports/`, `journalctl --user -u sim-runner` and `systemctl --us
   reordering or killing either job.
 - The 07:58Z attempt of the same long job died on `DunningOfAClearedDebtError`. That class is fixed
   on origin (e09f1640a9), so the next book is not expected to die on it.
+
+## Re-read 22 Nov 19:37Z (item `the-book-takes-the-box-before-s12g`): the ordering was settled before the item was drawn
+
+Read from `systemctl --user`, `/var/tmp/longjob-value-test-cut012-new-book-queued.log` and `journalctl --user -u sim-runner`. No measurement was taken.
+
+- **s.12g was admitted at 19:32:32Z**, four minutes before this item was drawn. The queue log ends:
+  `admitted: 2632 MB resident across 56 process(es) + 11800 MB declared peak = 14432 MB, against 23010 MB`.
+  Unit `longjob-value-test-cut012-new-book` is active as pid 65649, using 2.0 GB at 19:37Z, and it is
+  settling 2017. Its queued unit is gone. Its pin, driver and grader were not touched.
+- **The yield the item asks for cannot be built for this run.** It would make a queued s.12g wait
+  for the book, and s.12g is no longer queued. A control keyed to it would guard an ordering that
+  events have already decided. Also, the running queued launcher had imported
+  `launch_long_job.py` long before 19:32Z, so an edit to that file could not have reached this
+  instance in any case. Only on-disk state it re-reads could have reached it: the landing
+  register, `declared_peaks`. Nothing was built, and nothing was killed.
+- **What now holds the book:** at 19:36Z, `book_admission` defers to two OTHER queued long jobs
+  (`land-reg-6c-erroneous-gains`, `promote-bounded-landing-20261122`). Once those clear,
+  `cycle_admission` yields to any resident long job by its stated rule, and s.12g declares 2,100
+  minutes. **With no change, the next book waits about 35 hours more, roughly 86 hours after the
+  last one.** The declared arithmetic would admit the book beside it (11,800 + ~6,000 + 2,632 <
+  23,010 MB). The resident-yield rule exists because an undeclared 5.2 GiB worker killed a long
+  job at 19:07Z on an earlier day.
+- **The profile probe's question is spent:** `/var/tmp/profile-book-run/out/cprofile.json` was
+  written at 19:04Z.
+- The duplicate-work check named `supply-a-win-from-a-gas-only-household-as-gas`. That is a
+  different subject that happens to share a path, so it was not taken as this item.
+- Raised to the director: let the book run beside s.12g, or wait for s.12g to finish.
