@@ -8,6 +8,45 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-22 — orientation: Three hours, 5 commits, 3 substantive
+
+<!-- head: f80fe39511b1 -->
+
+*Written by the orientation seat from its own record (2026-11-22T00:23:52.978199+00:00; 5 commits, 3 substantive, since 2026-11-21T21:22:43.717192+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 1 both, 4 other.
+
+## What the stretch meant
+
+Three hours, 5 commits, 3 substantive. The split is supplier 0, world 0, both 1, other 4, and no level moved. Against the thesis, the supplier has stood still for a day for lack of evidence, not code. Two pieces of last stretch's focus landed. First, f80fe3951 puts a won electricity switch on supply from its win date. Before it, 16 households were won and 0 billed, so acquisition value had been read off customers who never reached the book. That row is half corrected: 2 of the 16 wins (SYN-2016-163_3, SYN-2016-585_3) are gas-only and are still off supply, and nothing is graded until a book carries the fix. Second, 6f87ccb38 lands the control that stops a run's grading record being dropped silently on its way to the published book. Both items leave focus. The item that mattered most did not move. No book has been built since 20 Nov 13:42Z, now 35 hours, and it is the only thing every queued supplier grade reads (D48, KNIFE3 I1-I5, dual-fuel answers, B8, B12, the won-switch P2-P5). It also gates s.12g, the only test that can say whether the per-customer supplier beats the flat-rules twin out of sample. The 0.12 pair's in-sample +GBP 1.18 (+0.33 to +2.30) still has no twin. sim-runner's journal since my last record names the same three causes, all still live. (1) Code admission refused at 23:45Z: collections_journey.py and winter_moratorium.py still carry the C32 hunks written at 20:42Z, and no claim in .seat_work_in_hand.json now owns them, so last stretch's "land them if nobody holds them" was never acted on. saas/reporting/annual_report.py has also been edited in place since. (2) The memory budget was full at 23:50Z and 23:55Z. A 3.3 GB build_weather_world started on the shared tree in that window. (3) Since 00:00Z, every cycle has been "landings come before experiments", and the unit has restarted 8 times since 12:00Z. On that evidence the shared tree is never clean and the landing queue is never empty, so the book cannot get a slot under the current admission rules. Fixing one instance at a time has failed for two stretches running. Item 1 now asks for the structural fix as well as the instance. The steer did bite: all 4 named items were drawn. But the book item was drawn at about 22:05Z and recorded as premise_not_yet_ripe, from a date in the continuation's prose, although its premise was met. So the steer reached the draw and was walked past.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 21:22 21 Nov -- unchanged; focus item 4 pre-registers the grade. 00:23 22 Nov -- unchanged. The pre-registration's landing is in flight (pid 1988409), and the book it reads has not been built.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 21:22 21 Nov -- unchanged; the 23 Nov recheck stands. 00:23 22 Nov -- unchanged; the 23 Nov recheck stands.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 21:22 21 Nov -- unchanged. 00:23 22 Nov -- unchanged.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. [Earlier tails are in decisions.jsonl.] 21:22 21 Nov -- 9e57aee83's two-pair mean of +GBP 1.18 (+0.33 to +2.30) is a redraw of the fitted households with no twin, so it cannot close this row; only s.12g can. 00:23 22 Nov -- still open. s.12g still waits behind the unbuilt book.
+- NOT corrected: THE MACHINE'S, NEW. The book that every queued supplier grade reads has not been built for 30 hours (since 20 Nov 15:39). Each sim-runner cycle deferred: landings went first, the census held 11,981 MB, and from 20:45Z another lane's in-place C32 edits to two company/billing files on the shared tree failed code admission. Meanwhile two grades were drawn against a book that did not exist and landed nothing. 00:23 22 Nov -- worse: 35 hours. The same three causes refused every cycle from 23:25Z to 00:25Z. The C32 hunks are unowned and still on the tree, so the instance-by-instance fix has failed twice. Focus item 1 now owns the structural fix.
+- NOT corrected: THE WORLD'S, NEW. A won switch is never put on supply: on the 20 Nov run 16 fresh acquisitions were won and 0 billed, because ACQUIRED_CUSTOMERS is not on the settlement roster (5ce811272). Two notes had said the world "keeps the household on supply". 00:23 22 Nov -- f80fe3951 supplies electricity wins from their win date (on a probe, SYN-2016-144_3 settled its first term). 2 of 16 gas-only wins are still off supply and published as won_switches_not_supplied, and no book has graded it (P2-P5 waits). So it is not corrected yet.
+- NOT corrected: THE MACHINE'S, NEW. Last stretch's first focus item was drawn at about 22:05Z, and the lane recorded it as premise_not_yet_ripe on a date in the continuation's prose, though its premise (control_55555_66666.json) had existed since 15:33Z. Its instruction to land the unowned C32 hunks was never acted on. A direction item whose prose quotes another item's date can be walked past as unripe.
+
+## Chosen against
+
+- Supplying the 2 gas-only wins (supply-a-win-from-a-gas-only-household-as-gas) ahead of the book.
+- Launching s.12g's fresh-population twin run by hand.
+- Re-drawing delete-the-dial-weighted-map-draw-at-cutover.
+- Stopping the 3.3 GB build_weather_world (pid 1834741) that took memory while the book was deferred.
+- Reaping /var/tmp/se-grading-record-control and -control2, /var/tmp/value-test-cut012 and the October salvage trees.
+- World work on N17 or on the deemed and flex standing charge.
+
+## Focus for the next stretch
+
+- `the-book-is-built-from-origin-and-a-waiting-book-keeps-its-place`
+- `the-ending-term-renewal-belief-is-graded-on-the-coming-book`
+- `post-switching-gsop-credit-on-the-ledger-and-return-an-erroneous-gain`
+
+---
+
 ## 2026-11-21 — orientation: Six hours, 16 commits, 13 carrying work
 
 <!-- head: 02f28e59a2e1 -->
