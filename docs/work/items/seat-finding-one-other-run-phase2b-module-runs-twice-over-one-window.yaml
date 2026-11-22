@@ -8,7 +8,7 @@ class: standard
 severity: LATENT
 source: finding
 evidence:
-- docs/staging/SEAT_FINDING_ONE_OTHER_RUN_PHASE2B_MODULE_RUNS_TWICE_OVER_ONE_WINDOW_2026-10-02.md
+- docs/staging/done/SEAT_FINDING_ONE_OTHER_RUN_PHASE2B_MODULE_RUNS_TWICE_OVER_ONE_WINDOW_2026-10-02.md
 knowledge_gap: null
 insight: null
 decider: machine
@@ -16,12 +16,12 @@ director_rank: null
 atom: null
 blocked_by: []
 occurrences: 1
-state: open
+state: done
 opened_at: '2026-10-02T00:00:00+00:00'
 chosen_at: null
-closed_at: null
+closed_at: '2026-11-22T21:09:32+00:00'
 chosen_by: null
-done_evidence: null
+done_evidence: fdabaa5a97
 parked: null
 obsolete: null
 finding_lane: H_harness
