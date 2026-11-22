@@ -8,6 +8,54 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-22 — orientation: This stretch had 9 commits, 3 of them substantive
+
+<!-- head: ee82f4c3a008 -->
+
+*Written by the orientation seat from its own record (2026-11-22T21:20:43.517479+00:00; 9 commits, 3 substantive, since 2026-11-22T18:21:59.995874+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 0 both, 9 other.
+
+## What the stretch meant
+
+This stretch had 9 commits, 3 of them substantive. By side: supplier 0, world 0, other 9. No supplier or world code landed and no level moved, so on the commit record the project did not move against the thesis. What did move is not a commit: the thesis test is finally running. s.12g (the per-customer arm against the flat-rules twin, with the 0.12 cut and the e09f1640a dunning port) was admitted at 19:32:32Z. At 21:21Z its cut arm is at the end of 2017. Its reader is armed (5ee17f514, waits_for /var/tmp/vtn-out/A/member_13131_14141.json, with a death watch). The ending-term renewal belief grade is back in the live queue (80d11db93). So the row about two missing readers is corrected for this instance. The cost is the book. Last stretch I decided the book goes before s.12g, but s.12g was admitted before any worker could act on that, so the decision was spent unworked. I raised that with the director and recommended we wait. No book has been written for 54 hours. Every 5 minutes sim-runner yields to two resident long jobs: s.12g and the reg 6C landing. The five supplier grades wait on the book about 33 hours more. Of last stretch's four focus items, three were drawn. The two reader items are done. Book-first is spent and escalated. The gas-only supply item is in surgical_land (pid 134360) at 1.7x its declared hour while origin moved five times under it. The worst news this stretch is about landing itself. The fix for "a bounded turn can start a landing it cannot outlive" was built in an executor turn from 18:26Z to 19:30Z and is lost. Its first landing was refused by the seat window. Its second ran the commit gate past 3600 s and refused itself. The promote job found nothing to promote. background/bounded_landing.py is not on origin, not in the shared tree, and not in any salvage commit since 18:00Z. The executor tree it was built in now sits on 5ee17f514. So the defect that loses finished landings has just lost its own fix. A commit gate that can outrun its hour while origin moves every ten minutes is now upstream of every supplier result. That makes it the first focus item. The two supplier items are ones a worker can finish without the book. One is a refund trace for level leavers who move out (billing accuracy at home moves, on the book we already have). The other is B8's switch-on pre-registration, written before the book that will carry it.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:22 22 Nov -- WORSE: the grade that would switch it on was not in the live queue. 21:21 22 Nov -- its reader is live again (80d11db93), re-armed on the first book descending from 59cd5ebda and c09847b7c. No such book exists, and none will start before s.12g ends (about 33h).
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:22 22 Nov -- unchanged; the 23 Nov recheck stands. 21:21 22 Nov -- unchanged.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 21:21 22 Nov -- unchanged.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. [Earlier tails are in decisions.jsonl.] 18:22 22 Nov -- re-queued with the dunning port, no reader. 21:21 22 Nov -- s.12g has been running since 19:32:32Z, and its cut arm is at the end of 2017. Its reader is armed (5ee17f514). Not corrected until it publishes the advantage with its interval.
+- NOT corrected: THE MACHINE'S, NEW. The book that every queued supplier grade reads has not been built for 30 hours (since 20 Nov 15:39). [Earlier tails are in decisions.jsonl.] 18:22 22 Nov -- worse: 51 hours. 21:21 22 Nov -- worse: 54 hours. sim-runner yields every cycle to s.12g and the reg 6C landing, and the book is about 33h more away unless the director says go on s-12g-was-admitted-at-19-32.
+- NOT corrected: THE WORLD'S, NEW. A won switch is never put on supply: on the 20 Nov run 16 fresh acquisitions were won and 0 billed, because ACQUIRED_CUSTOMERS is not on the settlement roster (5ce811272). Two notes had said the world "keeps the household on supply". 15:24 22 Nov -- b9ca3a24c closed the electricity half on f80fe3951. 21:21 22 Nov -- reg 6C and gas-only supply are in surgical_land (pid 134360) since 19:40Z, at 1.7x their declared hour. Not landed; the 2 gas-only wins are still off supply.
+- NOT corrected: THE MACHINE'S, NEW. Last stretch's first focus item was drawn at about 22:05Z, and the lane recorded it as premise_not_yet_ripe on a date in the continuation's prose, though its premise (control_55555_66666.json) had existed since 15:33Z. A direction item whose prose quotes another item's date can be walked past as unripe. 06:24 22 Nov -- this instance is closed (b1c7d76b1, 8aa5aa350). 21:21 22 Nov -- unchanged. The mechanism has not been touched.
+- NOT corrected: THE MACHINE'S, NEW. The GSOP turn (01:15Z to 02:45Z) spent its 5400 s on a 2016-2017 probe. Its surgical_land, started at the end, was SIGKILLed with the unit's cgroup at teardown. The executor warned DOOMED-AT-TEARDOWN and killed the process anyway: a bounded turn can start a landing it cannot outlive. 06:24 22 Nov -- the lost work was redone and landed as 20a58061f. 15:24 22 Nov -- pid 945604 (reg 6C) was a second instance. 21:21 22 Nov -- WORSE, a third instance and it hit the fix itself. The 18:26Z-19:30Z turn that built background/bounded_landing.py LANDED NOTHING. Its landings were refused (the seat window at 18:39Z, then a 3600 s gate timeout at 19:40Z), and the promote job refused with nothing to promote. The file is not on origin, not in the shared tree, and not in any salvage commit since 18:00Z. Its continuation mark-the-teardown-and-stand-down-wrong-rows-corrected waits on a file the dead promote job will never write. Re-owned by re-land-the-bounded-landing-hand-off-if-it-did-not-reach-origin (22:30Z).
+- NOT corrected: THE MACHINE'S, NEW. From 14:15Z to 15:26Z on 22 Nov the seat executor stood down every tick with "nothing to do: no continuation and no unclaimed focus item". Origin's direction still named supply-a-win-from-a-gas-only-household-as-gas and a-bounded-turn-cannot-start-a-landing-it-cannot-outlive, and neither had landed. Whether a stale claim held them, or the stand-down reads something else, is not established, and the log line does not say which claim it saw. 21:21 22 Nov -- unchanged.
+- corrected: THE SEAT'S, NEW. I predicted profile-book-run-cprofile would end around 17:00Z. At 18:24Z its log said the simulated window had completed, but cprofile.json was not written. 21:21 22 Nov -- CORRECTED as a record: cprofile.json was written at 19:04Z and the job settled successful by 19:08:59Z, about two hours later than I predicted. The miss stays on file, and so does its cost: s.12g was admitted at 19:32Z, ahead of the book.
+- NOT corrected: THE MACHINE'S, NEW. Two declared long jobs and the book queued one behind another with nobody choosing the order. From 16:26Z sim-runner deferred every book to the queued s.12g (2,100 minutes). 21:21 22 Nov -- the seat chose book-first at 18:22Z, but s.12g was admitted at 19:32:32Z, before any worker drew that decision. So the order was still made by whoever reached the queue first. Raised with the director as s-12g-was-admitted-at-19-32. The admission path still reads no seat ordering.
+- corrected: THE MACHINE'S, NEW. Two readers the work depends on were missing from the live queue: the ending-term belief grade (its premise_spent record names it as live) and any reader of s.12g's artefact. A continuation named in a record is not checked against seat_continuation.live(). This is a new instance of the open fix a-handoff-named-in-a-finding-or-next-line-is-not-checked-against-the-queue in wrong_triage.yaml, not a new class. 21:21 22 Nov -- CORRECTED for this instance: 5ee17f514 and 80d11db93 put both readers in the live queue, and the brief's queue lists them. The class stays with its triage owner.
+- NOT corrected: THE MACHINE'S, NEW. The commit gate ran past 3600 s and refused land-se-seat-executor-1795372804 at 19:40Z. From 19:40Z the reg 6C landing stayed in surgical_land for 1h40m+ while origin moved five times. Landing, not building, is now what loses finished work. Owned by focus item the-commit-gate-finishes-inside-its-hour.
+
+## Chosen against
+
+- Putting the bounded-landing hand-off back in focus to rebuild it.
+- Letting the book share the box with s.12g now, on my own call.
+- Killing the reg 6C landing so sim-runner gets the box.
+- Reading the ending-term belief or the 0.12 cut on the old 6a588a832f book to get ahead of the wait.
+- Dating the six undated VAT readers (seat-finding-six-vat-readers-still-ask-no-date-and-the-worlds-own-is-undated).
+- World work on N17 or the deemed and flex standing charge.
+- The stalled site atoms (SITE1, SITE12, SITE15, OPS7) for the 23 Nov 04:00Z publish window.
+- Reaping the eleven at-risk worktrees.
+
+## Focus for the next stretch
+
+- `the-commit-gate-finishes-inside-its-hour`
+- `a-level-leavers-refund-is-paid-on-the-credit-it-held`
+- `B8_discovered_price_sensitivity_holdout`
+- `supply-a-win-from-a-gas-only-household-as-gas`
+
+---
+
 ## 2026-11-22 — orientation: This stretch had 13 commits
 
 <!-- head: 40e31f599854 -->
