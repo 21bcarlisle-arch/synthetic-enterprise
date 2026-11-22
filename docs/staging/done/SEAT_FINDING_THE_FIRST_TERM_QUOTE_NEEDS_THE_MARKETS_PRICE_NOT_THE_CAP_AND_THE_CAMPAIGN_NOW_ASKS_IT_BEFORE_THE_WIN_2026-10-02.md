@@ -149,3 +149,36 @@ Strike via `request_fixed_unit_rate`, decline via `decide_acquisition(quoted_uni
 and set the prospect's `price_differential_pct` against `anchor_rate_gbp_per_mwh` on a common VAT
 basis. The SSP-cache load must be priced in memory first. (2) Pre-register, delete
 `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world.
+
+## 2026-11-22 (later): the SSP-cache load at campaign time, priced
+
+The precondition named above, measured in a fresh process (`sim.cache_store.get_cached_prices`
+over the cache's whole span, 2015-11-07 to 2025-06-07, 168,026 half-hourly records):
+
+| load | resident after | peak during the parse | wall time |
+|---|---|---|---|
+| electricity SSP | +238 MB | 376 MB | 0.6 s |
+| gas NBP (`load_nbp_history`, 3,538 days) | +1 MB | — | — |
+
+**Where the cost would land.** The campaign resolves when `run_phase2b` is imported
+(`CUSTOMERS = live_population(...)`, line 367). That is before `main()` loads its own price feeds
+(line 1946), so in the run the campaign cannot borrow the run's list. It would make a second,
+earlier load. Run sequentially and released, the run's own peak does not rise. It also falls on
+every process that draws a population with the campaign live: 55 test files reach
+`live_population` or `_campaign`, and under xdist each worker pays 376 MB at peak.
+
+**What the company's forward actually reads.** `CompanyTariffEngine.get_forward_price` reads only
+per-day aggregates, through `_DailyIndex`: the half-hourly count per day (the
+`MIN_RECORDS_FOR_ESTIMATE` floor), and the daily mean that the EWMA, the adaptive lookback and the
+regime premium each read through `_daily_means_for_window`. So a daily feed of `(date, count,
+mean)` built once from the cache (about 3,500 rows) and handed to a `_DailyIndex` built from
+aggregates would strike exactly the same forward without the 238 MB. That is a company-side
+constructor, and its control is equality with the half-hourly path at every campaign quote date.
+It is not built yet.
+
+**Recommendation for increment 2.** Build the daily-aggregate feed first and assert it is equal to
+the half-hourly forward across the real campaign dates. Then wire `first_term_offer_fn` reading that
+feed. Do not load the 129 MB file at import. Wiring the quote moves the book on its own (the win
+becomes price-aware while the hold is still in place), so it lands as its own baseline. The
+pre-registered single variable stays the deletion of `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`
+against that baseline.
