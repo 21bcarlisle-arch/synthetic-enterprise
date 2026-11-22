@@ -260,10 +260,14 @@ class BaseMoved(LandingRefused):
     Nothing else inherits from this: a red gate, a missing hook, a full disk and a no-op pathspec
     are all terminal, because retrying any of them is retrying until the world agrees with you."""
 
-    def __init__(self, message: str, parent: str, observed: str):
+    def __init__(self, message: str, parent: str, observed: str, green: str = ""):
         super().__init__(message)
         self.parent = parent
         self.observed = observed
+        #: The unreferenced commit of the tree the gate passed GREEN, on `parent`, or "" when the
+        #: race was lost before any verdict existed. Handed to the next attempt as the other
+        #: side of a combined diff -- see `land`, REGATING ONLY WHAT THE MOVE BROUGHT.
+        self.green = green
 
 
 #: Default attempts for a landing. NOT 1: a terminating move that must be opted into with a flag
@@ -876,7 +880,8 @@ GATE_TIMEOUT_SECONDS = 3600
 
 def run_gate(checkout: Path, hook_rel: str = HOOK_REL,
              gated_tree: str | None = None,
-             merge_parent: str | None = None) -> tuple[int, str, str]:
+             merge_parent: str | None = None,
+             prior_green: str | None = None) -> tuple[int, str, str]:
     """Run the repo's own pre-commit hook inside the extract. Returns (rc, stdout, stderr).
 
     `gated_tree` IS THE TREE THIS TOOL HAS ALREADY JUDGED with `stale_copy_refusal.violations`,
@@ -885,6 +890,12 @@ def run_gate(checkout: Path, hook_rel: str = HOOK_REL,
     being a bypass: the hook re-derives the tree from the index it is about to commit and ignores a
     token naming anything else. Omitting it is safe and merely costs the duplicate ask -- but a
     landing that legitimately declared `--drops` would then be refused at the only legal door.
+
+    `prior_green` is the commit of the tree an EARLIER attempt of this same landing gated green
+    on a base that has since moved. It travels through the same variable as `merge_parent` and
+    is read the same way -- the attempt's tree is the merge of that green tree with the new
+    base, so selection keys on what differs from BOTH. It is never a parent of the commit; see
+    `land`, REGATING ONLY WHAT THE MOVE BROUGHT. A real merge keeps its own token and full say.
 
     `merge_parent` is handed over for the same kind of reason: the extract has no `MERGE_HEAD`, so
     without it `pre_commit_test_gate` cannot tell a merge from a commit that authored everything
@@ -914,6 +925,8 @@ def run_gate(checkout: Path, hook_rel: str = HOOK_REL,
         env[stale_copy_refusal.ALREADY_GATED_ENV] = gated_tree
     if merge_parent:
         env[pre_commit_test_gate.MERGE_PARENT_ENV] = merge_parent
+    elif prior_green:
+        env[pre_commit_test_gate.MERGE_PARENT_ENV] = prior_green
     try:
         r = _run_killing_the_tree(["sh", hook_rel], checkout, env, GATE_TIMEOUT_SECONDS)
     except (OSError, subprocess.SubprocessError) as exc:
@@ -1157,7 +1170,8 @@ def build_receipt(parent: str, result_tree: str, files: list[str], gate_rc: int,
                   merge_parent: str | None = None,
                   resolved: list[str] | None = None,
                   rederived: list[str] | None = None,
-                  msg_hook_rel: str | None = None, msg_gate_rc: int | None = None) -> str:
+                  msg_hook_rel: str | None = None, msg_gate_rc: int | None = None,
+                  prior_green: str | None = None) -> str:
     lines = [
         RECEIPT_HEADER,
         "tool: tools/surgical_land.py",
@@ -1180,6 +1194,12 @@ def build_receipt(parent: str, result_tree: str, files: list[str], gate_rc: int,
         # wrong answer this wiring was filed over -- that `commit-msg` never ran here. Descriptive,
         # like `gate:`: `parse_receipt` keys nothing on it, so a landing cannot be refused by it.
         lines.append("message-gate: sh {} (rc {})".format(msg_hook_rel, msg_gate_rc))
+    if prior_green:
+        # THE NARROWED RE-GATE SAYS SO. `tests:` above describes only this attempt's selection,
+        # which keys on what differs from both this base and the tree an earlier attempt gated
+        # green -- this is that tree's commit, so a reader can re-run the full selection on it.
+        lines.append("prior-green: {} (tests selected on the combined diff with it)".format(
+            prior_green))
     if content_sourced:
         # Named because these are exactly the paths whose committed bytes are NOT the working
         # tree's, so a later reader diffing the tree against disk must not read the difference
@@ -1453,10 +1473,16 @@ def _commit_and_swap(root: Path, result_tree: str, parent: str, message: str,
     with _write_lock(root):
         now = _git_text(root, "rev-parse", "HEAD")
         if now != parent:
+            # The verdict is GREEN and about the wrong tree. Its commit object is written anyway,
+            # unreferenced (left for gc like the one `_swap_head` strands), so the next attempt
+            # can name the tree that passed -- see `land`, REGATING ONLY WHAT THE MOVE BROUGHT.
+            extra = ["-p", merge_parent] if merge_parent else []
+            green = _git_text(root, "commit-tree", result_tree, "-p", parent, *extra,
+                              "-m", message)
             raise BaseMoved(
                 "HEAD moved from {} to {} while the gate ran, so the gated tree is no longer the "
                 "tree this commit would create. Nothing was committed; re-run and it will gate "
-                "the new base.".format(parent[:9], now[:9]), parent, now)
+                "the new base.".format(parent[:9], now[:9]), parent, now, green=green)
         # READ THE DISPOSITIONS BEFORE THE REF MOVES, and that ordering is the whole correctness
         # of it. `git status` answers against HEAD; once HEAD is the merge commit every path the
         # merge changed reports as a STAGED difference (the index still holds the parent's), so
@@ -1466,7 +1492,11 @@ def _commit_and_swap(root: Path, result_tree: str, parent: str, message: str,
         dispositions = merge_dispositions(root, files) if merge_parent else None
         extra = ["-p", merge_parent] if merge_parent else []
         new = _git_text(root, "commit-tree", result_tree, "-p", parent, *extra, "-m", message)
-        _swap_head(root, new, parent)
+        try:
+            _swap_head(root, new, parent)
+        except BaseMoved as exc:
+            exc.green = new
+            raise
         if dispositions is not None:
             # A merge moves paths this caller never named, so unlike a pathspec landing it has to
             # ask the shared tree what it is holding before touching anything. See
@@ -1537,7 +1567,20 @@ def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
 
     Each pass through `_land_once` re-reads HEAD, so the new attempt's parent IS the mover's
     commit and its resulting tree is built by overlaying only `paths` onto that new parent --
-    the mover's work is preserved, not reverted, and the gate runs again in full.
+    the mover's work is preserved, not reverted, and every gate in the chain runs again.
+
+    REGATING ONLY WHAT THE MOVE BROUGHT (2026-11-22, SEAT_FINDING_THE_COMMIT_GATE_LOSES_ITS_HOUR).
+    The re-run used to repeat the whole PYTEST SELECTION too, and that made the race unwinnable
+    for a large change: reg 6C's gate took ~50 minutes, the trunk moved every 15-30, and each
+    lost race bought another 50 minutes on a tree differing from the green one only in paths the
+    mover had brought -- each of them gated when the mover landed. The new attempt's tree IS
+    the merge of the green tree with the new base, so it is gated the way the hook already gates
+    a merge (`pre_commit_test_gate.selection_paths`): every structural check reads the full staged
+    set, and the test selection keys on the paths that differ from BOTH sides. Disjoint moves
+    select no tests; a path both sides touched selects its tests again. What this gives up is
+    the merge rule's own stated cost -- a union of two green sides can be red -- and nothing more.
+    The green tree is named on the receipt (`prior-green:`). A `--merge` landing keeps its own
+    token and is re-gated as before.
 
     `content` (see `build_resulting_tree`) is passed to every attempt unchanged, which is what
     makes the retry safe for a two-lane file: a worktree-sourced retry re-reads whatever the
@@ -1552,14 +1595,20 @@ def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
             "tool replaces.".format(attempts))
     _say_which_hook_chain_the_other_door_runs(root)
     lost: list[BaseMoved] = []
+    prior_green: str | None = None
     for attempt in range(1, attempts + 1):
         try:
-            sha = _land_once(root, paths, message, hook_rel, content, merge, resolutions, drops)
+            sha = _land_once(root, paths, message, hook_rel, content, merge, resolutions, drops,
+                             prior_green=prior_green)
             _refuse_a_landing_no_ref_holds(root, sha)
             announce_landing(sha, message, paths, merge=merge)
             return sha
         except BaseMoved as exc:
             lost.append(exc)
+            # Only a GREEN verdict is carried forward, and only as a selection key: a race lost
+            # before the gate ran (git's own CAS with no commit written) leaves the last one.
+            if exc.green and merge is None:
+                prior_green = exc.green
             if on_lost is not None:
                 on_lost(attempt, exc)
     raise LandingRefused(
@@ -1722,8 +1771,11 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
                content: Mapping[str, bytes | None] | None = None,
                merge: str | None = None,
                resolutions: Mapping[str, bytes] | None = None,
-               drops: frozenset[str] = frozenset()) -> str:
-    """ONE attempt: read HEAD, build the resulting tree, gate it, compare-and-swap."""
+               drops: frozenset[str] = frozenset(),
+               prior_green: str | None = None) -> str:
+    """ONE attempt: read HEAD, build the resulting tree, gate it, compare-and-swap.
+
+    `prior_green` is an earlier attempt's green commit -- see `land`."""
     if merge is None and not paths:
         raise LandingRefused("no paths given -- a surgical landing names its paths explicitly.")
     parent = _git_text(root, "rev-parse", "HEAD")
@@ -1843,8 +1895,13 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
         # landing -- every error inside it is swallowed and the body's exceptions pass through.
         with staging_root_resurrection_watch.bracket(
                 root, "surgical-land gate: " + message.splitlines()[0][:80]):
+            if prior_green and merge_parent is None:
+                print("[surgical-land] re-gating on {}: tests select on what differs from both "
+                      "it and the tree gated green as {}; every other check reads the whole "
+                      "change.".format(parent[:9], prior_green[:9]), flush=True)
             rc, gate_out, gate_err = run_gate(checkout, hook_rel, gated_tree=gated_tree,
-                                              merge_parent=merge_parent)
+                                              merge_parent=merge_parent,
+                                              prior_green=prior_green)
         tests = _test_summary(gate_out + gate_err)
         if rc != 0:
             raise LandingRefused(
@@ -1858,7 +1915,8 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
     receipt = build_receipt(parent, result_tree, files, rc, tests, hook_rel,
                             content_sourced=sorted(content or ()), merge_parent=merge_parent,
                             resolved=sorted(resolutions or ()), rederived=rederived,
-                            msg_hook_rel=MSG_HOOK_REL, msg_gate_rc=mrc)
+                            msg_hook_rel=MSG_HOOK_REL, msg_gate_rc=mrc,
+                            prior_green=prior_green if merge_parent is None else None)
     return _commit_and_swap(root, result_tree, parent, message + "\n\n" + receipt, files,
                             merge_parent=merge_parent)
 
