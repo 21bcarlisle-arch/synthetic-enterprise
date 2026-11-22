@@ -16,12 +16,15 @@ director_rank: null
 atom: null
 blocked_by: []
 occurrences: 1
-state: open
+state: parked
 opened_at: '2026-11-16T00:00:00+00:00'
 chosen_at: null
 closed_at: null
 chosen_by: null
 done_evidence: null
-parked: null
+parked:
+  reason: plugin fix 89f5e98d3 proven on 21+22 Nov (s.13, 56567ff36); what is left
+    is suite duration vs the 17,400 s bound, owned by EFFICIENCY_BACKLOG E-p4/E-p5
+  revisit: '2026-12-06'
 obsolete: null
 finding_lane: H_harness
