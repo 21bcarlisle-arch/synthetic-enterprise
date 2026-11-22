@@ -347,6 +347,65 @@ def _treasury_path_from_book(book: list) -> list:
     ]
 
 
+_NO_READER = ("no reader outside run_phase2b's own tests: built and checked at the producer, and "
+              "read by no grade, tool or page. Forward it here before a grade needs it")
+_OWN_RUN = "read by {} from the result of a run it makes itself, never from the published book"
+
+#: EVERY TOP-LEVEL KEY `run_phase2b` RETURNS that `extract_report_data` does not forward, with why.
+#: The reducer is a whitelist, and three grading records (KNIFE3's debt recovery, B8's holdout, the
+#: dual answer) were built, tested and silently dropped by it for days in Nov 2026. A key must now
+#: be forwarded below, lifted by `run_phase4c_on_phase2b` and read from `run_output`, written to
+#: the world-truth file (`tools/run_annual_report.WORLD_WALK_TRUTH_KEYS`), or named here.
+#: Control: tests/saas/reporting/test_every_key_the_run_returns_is_forwarded_or_dropped_by_name.py
+PHASE2B_KEYS_NOT_PUBLISHED: dict[str, str] = {
+    # On a superseded clock: the book re-derives each from the settled rows its totals sum.
+    "final_treasury": "re-derived from the settled book's last row (figures_on_a_superseded_clock)",
+    "total_net": "re-derived as the sum of the settled rows' net_margin_gbp",
+    "total_bad_debt": "re-derived as the sum of the settled rows' bad_debt_gbp",
+    "total_flexibility_revenue": "published as flexibility_revenue_summary's own total",
+    "level_dd_collected_in_loop": "consumed by run_phase4c_on_phase2b's level-DD book",
+    # Read by an experiment tool from its own run.
+    "value_arm_log": _OWN_RUN.format("tools/run_value_cycle_ab.py and run_price_ladder.py"),
+    "value_arm_funnel_log": _OWN_RUN.format("tools/run_value_cycle_ab.py"),
+    "move_out_notices_filed": _OWN_RUN.format("tools/move_with_us_arms.py"),
+    "move_with_us_log": _OWN_RUN.format("tools/move_with_us_arms.py"),
+    "next_best_action_legs_without_contribution": _OWN_RUN.format(
+        "tools/per_customer_switch_arms.py"),
+    "next_best_action_renewal_log": _OWN_RUN.format("tools/per_customer_switch_arms.py"),
+    "retention_offer_channel_log": _OWN_RUN.format("tools/per_customer_switch_arms.py"),
+    "retention_save_holdout_log": _OWN_RUN.format("tools/per_customer_switch_arms.py"),
+    "retention_save_rate_lower_bound_log": _OWN_RUN.format("tools/per_customer_switch_arms.py"),
+    "save_on_loss_notice_log": _OWN_RUN.format(
+        "tools/per_customer_switch_arms.py and save_on_loss_notice_arms.py"),
+    "retention_cost_events": _OWN_RUN.format("tools/run_frozen_baseline.py"),
+    "psr_registrations": _OWN_RUN.format("tools/seed_family.py"),
+    # Built and read by nobody past the producer's tests, as of 21 Nov 2026.
+    "beyond_the_record": _NO_READER + (". Its own comment says it exists so a forward result "
+                                       "never reads as historical, and the book drops it"),
+    "consent_offers_to_concealing_households": _NO_READER,
+    "dd_review_told_in_loop": _NO_READER,
+    "dd_shock_response_summary": _NO_READER,
+    "declined_on_the_riding_leg": _NO_READER,
+    "demand_response_log": _NO_READER,
+    "fabric_untextured_premises": _NO_READER,
+    "gain_registration_log": _NO_READER,
+    "household_method_acts_summary": _NO_READER,
+    "leg_departures": _NO_READER,
+    "move_out_notice_exceptions": _NO_READER,
+    "registration_loss_exceptions": _NO_READER,
+    "registration_losses_notified": _NO_READER,
+    "renewal_decisions_log": _NO_READER,
+    "retention_blind_holdout_log": _NO_READER,
+    "retention_holdout_log": _NO_READER,
+    "retention_holdout_outcomes": _NO_READER,
+    "shared_rise_log": _NO_READER,
+    "short_first_term_lookbacks": _NO_READER,
+    "total_occupier_debt": _NO_READER,
+    "total_void_owner_charge": _NO_READER,
+    "weather_refusal_by_customer": _NO_READER,
+}
+
+
 def extract_report_data(run_output: dict) -> dict:
     """Reduce `run_phase4c_on_phase2b.main()`'s output to a small,
     JSON-serialisable dict of everything `generate_annual_report()` needs --
@@ -1235,6 +1294,9 @@ def extract_report_data(run_output: dict) -> dict:
         # The fresh-market wins the world refused to put on supply, each with its reason. No
         # default: absent means a run built before wins were supplied, where none was.
         "won_switches_not_supplied": phase2b.get("won_switches_not_supplied"),
+        # The reg 6ZA switching payments, which the billing ledger credits on the won leg's own
+        # ledger (tools/generate_billing_ledger.py). Default empty: a run without switching pays none.
+        "switching_gsop_payments": phase2b.get("switching_gsop_payments", []),
         "churned_billing_accounts": phase2b.get("churned_billing_accounts", []),
         # The home movers, forwarded for the same reason as `svt_departures` above, with NO default:
         # absent means moves are off. Dropped here until 2026-10-10, so the ledger could not see a

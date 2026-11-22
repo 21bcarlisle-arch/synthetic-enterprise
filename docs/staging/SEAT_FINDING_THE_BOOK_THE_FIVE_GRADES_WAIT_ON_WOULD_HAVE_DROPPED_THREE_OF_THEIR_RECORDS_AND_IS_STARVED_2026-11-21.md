@@ -27,8 +27,24 @@ Mutation-proven: deleting any line fails 2 tests, and defaulting any line to `[]
 The `riding_leg_answers` lines are byte-identical to the shared tree's hunk, so that copy is
 subsumed rather than conflicting.
 
-**The class stays open.** A producer test that calls `run_phase2b` cannot tell a published
-record from a dropped one. Today no control says that a `phase2b` key built for a grade reaches the reducer.
+~~**The class stays open.** A producer test that calls `run_phase2b` cannot tell a published
+record from a dropped one. Today no control says that a `phase2b` key built for a grade reaches the reducer.~~
+
+**The class is CLOSED (21 Nov, the commit that adds the control below).**
+`tests/saas/reporting/test_every_key_the_run_returns_is_forwarded_or_dropped_by_name.py` reads the
+key set from the dict `run_phase2b._main` returns (114 keys, static AST, no run). Each key must be
+forwarded by `extract_report_data`, lifted by `run_phase4c_on_phase2b` and read from `run_output`,
+written by `WORLD_WALK_TRUTH_KEYS`, or named in `annual_report.PHASE2B_KEYS_NOT_PUBLISHED` with its
+reason. Mutation-proven on disk: deleting the `retention_holdout_by_desk_year` forward goes red, and
+so does deleting one dropped-key entry. In-test, a new producer key goes red, and so does a deleted
+`company_debt_recovery` forward.
+
+The register lists 41 dropped keys. Writing it found these: **23 have no reader outside the
+producer's tests.** One of them is `switching_gsop_payments`, the record the won-switch BLOCKING
+finding is building towards. Another is `beyond_the_record`, whose own comment says it exists so
+that a forward run never reads as historical, but the book drops it. They are listed as dropped,
+not forwarded, because a forward adds a key and a cost to every book. The first grade that needs
+one should move it into the forwards.
 
 ## 2. sim-runner owes a book and has built none since 20 Nov 15:39 (OPEN)
 
