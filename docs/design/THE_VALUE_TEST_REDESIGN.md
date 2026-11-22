@@ -2451,3 +2451,37 @@ starts the job on its own. No cause needed fixing, and the pin check was neither
 The census has taken anywhere from 4 s to 20 h this week, so the job's own start time and pid go here
 when it becomes active. The watcher is spent, so to reverse this, stop
 `longjob-value-test-cut012-new-book-queued`.
+
+**The order was settled by events, not by a choice (recorded 22 Nov 12:30Z).** The 22 Nov direction
+(`the-book-runs-before-a-still-waiting-s12g`) said to stop the queued unit if it had not started, so the
+book could run first. By the time it was read, the queued unit had already started the job:
+`longjob-value-test-cut012-new-book` became active at **09:59:06Z** (pid 2947045). It then **died at
+12:20:17Z** after 2 h 21 min, during the `cut` configuration's second phase-2b pass. It exited 1 before
+any member or sidecar was written, so `/var/tmp/vtn-out/{cut,A}/` are empty, `twin` never started, and
+the chained grader never ran. Nothing from book 61118 has been seen, so the predictions above are
+still unread. The cause, from `/var/tmp/longjob-value-test-cut012-new-book.log`:
+
+    DunningOfAClearedDebtError: ACC-SYN-2016-239 reminder_2 on 2020-12-15
+    with the ledger at GBP -22.53 (cured 2020-12-16)
+
+This is the open class `seat-finding-a-credited-account-is-dunned-and-the-run-stops-on-ep17-seed-61106`
+(atom `EP4_collections_journey`). The journey reads "overdue" from the gross open-item view, but the
+invariant reads the net ledger. On 11 Oct it was worked around by dropping seed 61106 and was never
+fixed. No commit from `870201d1e7` to origin touches that reading. This run is its second occurrence.
+
+**What this means for s.12g.** The same tree, book and churn seeds are deterministic, so they will die
+on the same account. The direction's "re-launch with identical arguments" therefore cannot succeed and
+was not done. Choosing another book because this one crashes would be a selection, the same mistake
+the 61106 note warns against. **Recommendation:** fix the class on origin (net the collections view,
+as SLC 27.16 reads it). Then port that one fix into `/var/tmp/value-test-cut012`, re-pin the diff, and
+re-launch with the driver, grader and predictions unchanged. The pin moves before any configuration
+has produced output, so the pre-registration still holds. The port and re-pin are recorded here when
+they happen.
+
+**The book.** sim-runner had been deferring to s.12g. It started the next book at **12:20:55Z** from
+`35316f9395` (`run_output_35316f9395_20261122T122055Z.json`). That commit does NOT carry the roster fix
+`the-book-reports-every-customer-it-supplies`: `saas/reporting/annual_report.py` lines 197 and 781 at
+`35316f9395` still leave out `ACQUIRED_CUSTOMERS`. This book can therefore die at report time with the
+same `KeyError` that killed `b1c7d76b16`. It was left running for two reasons. A dead book costs only
+its own wall-clock time, and the box has no other claimant: s.12g cannot run until the dunning fix is
+in. The first book that descends from the roster fix is the one the five supplier grades wait for.

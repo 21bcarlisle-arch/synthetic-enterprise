@@ -8,13 +8,14 @@ severity: LATENT
 source: finding
 evidence:
 - docs/staging/SEAT_FINDING_A_CREDITED_ACCOUNT_IS_DUNNED_AND_THE_RUN_STOPS_ON_EP17_SEED_61106_2026-10-11.md
+- 'docs/design/THE_VALUE_TEST_REDESIGN.md s.12g, 22 Nov: second occurrence. ACC-SYN-2016-239 reminder_2 on 2020-12-15, ledger GBP -22.53, cured 2020-12-16, book 61118 at the 870201d1e7 pin. It killed the s.12g cut configuration after 2h21m, and s.12g cannot re-run until this is fixed'
 knowledge_gap: null
 insight: null
 decider: machine
 director_rank: null
 atom: EP4_collections_journey
 blocked_by: []
-occurrences: 1
+occurrences: 2
 state: open
 opened_at: '2026-10-11T00:00:00+00:00'
 chosen_at: null

@@ -109,3 +109,26 @@ anyway: each is forwarded in origin's `annual_report.py`, and so is `won_switche
 `tests/saas/reporting/test_every_key_the_run_returns_is_forwarded_or_dropped_by_name.py`, and the
 `PHASE2B_KEYS_NOT_PUBLISHED` register. Both still sit uncommitted on the shared tree, and so does an
 edit to §1 that marks the class closed. Until they land, the class stays open.
+
+### 22 Nov 12:45Z: §2 is closed; the book is running and may die at report time
+
+Read from `journalctl --user -u sim-runner` and git, 22 Nov 12:42Z. No measurement was taken.
+
+- **§2 does not hold the book back any more.** The 05:52Z book (b1c7d76b16) started and died at
+  07:57Z on `KeyError 'SYN-2016-144_3'` at `saas/cost_to_serve.py:246`, the roster defect. From
+  08:02Z to 12:15Z every deferral named memory: the queued long job
+  `longjob-value-test-cut012-new-book` first, then its 11,800 MB residency. No cycle deferred for code
+  admission or for a landing overtake. When s.12g died at 12:20Z (0eb416a0ac), sim-runner started the
+  next book within a minute.
+- **The book in flight:** `run_output_35316f9395_20261122T122055Z.json`, pid 156398. 35316f9395
+  descends from 25f0ea40b. Its `saas/reporting/annual_report.py` forwards all three of
+  `company_debt_recovery`, `retention_holdout_by_desk_year` and `riding_leg_answers` (static read of
+  the blob, so whether each is non-None waits on the published file).
+- **The risk:** 35316f9395 does not carry the roster fix (no commit to `saas/cost_to_serve.py` or
+  `annual_report.py` since 0efa633c1b), so this book can die the way b1c7d76b16 did. The fix is in
+  flight under claim `the-book-reports-every-customer-it-supplies`: pid 24098 in
+  `/var/tmp/se-seat-executor` has `saas/customers.py` and `annual_report.py` modified. I left it alone.
+  If the book dies, the next book after that fix lands is the one the grades open.
+- The non-None check on the three records, and the grading, go to the queued continuations
+  (`d48-grade-...`, `grade-the-supplied-won-switches-...`), which open the published book anyway.
+  `one-book-carries-the-blend-the-debt-records-the-dual-answer-and-b12` is released with this record.
