@@ -77,3 +77,23 @@ Probable failure modes:
 Proportionality: harness measurement, then reversible fixes. Implement directly.
 
 — Director steer, 22 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+Actioned by a worker tick, 22 Nov 2026, as direction ("Yes, stage it"). The track spans many
+sessions, so this tick placed it and checked the advisor's finding. It did not profile anything yet.
+
+- **Placed** in the harness share of the 23 Nov weekly review
+  (`docs/operations/WEEKLY_BALANCE_REVIEW_2026-11-23.md` §8), first in that share. Profile first,
+  then one fix at a time under the steer's rules.
+- **The advisor's finding was checked: confirmed, with one correction.** A gate-by-gate series
+  exists: `docs/observability/commit_hook_step_timings.jsonl`. It holds two rows (17–18 Sep), and one
+  of them is partial, so there is no standing profile. py-spy and memray are not installed.
+  `cProfile` and `tracemalloc` (standard library) need no install and no code change, and are the
+  first tools.
+- **Order is set by memory.** s.12g holds 11.8 GB for about 34 h from when it starts, so the gate
+  chain and the suite are profiled first and the book run after s.12g.
+- **The reading-log rows** the steer lists are owed to `docs/institutional/reading_log.md`. They are
+  not appended by this tick.
+
+Decision: harness yes

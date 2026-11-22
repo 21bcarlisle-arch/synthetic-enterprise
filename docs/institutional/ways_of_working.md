@@ -196,3 +196,45 @@ them, and the 1 h leg is what kept the 3.8 h gap after the file loud. Control:
 **The measure.** Re-asks of a priority-zero rung whose cure waits on a named file behind a live
 watcher. Prediction: zero once the change lands, with the refill still firing in its control while a
 watcher is armed. One silent stall past 72 hours refutes the legs.
+
+## W5. The nonsense was found by the director, or late, not by the machine asking "does this make sense?" (22 Nov 2026)
+
+**Status:** hypothesis, measure started. **Review by:** 22 Dec 2026.
+
+**The claim.** The machine gathers a good first layer of knowledge. It does not go on to ask how the
+thing works, or whether an answer is plausible, before using it. In his words (22 Nov 07:51 GMT): "we
+lack a little curiosity and desire to learn. To figure out more deeply how stuff works and if
+answers make sense." The case that prompted it: on 21 Nov a practitioner question about call handle
+time reached him before Citizens Advice's supplier data had been searched for it, and before anyone
+had asked which decision needed the answer. None did.
+
+**What it rests on.** `docs/staging/advisor/done/DIRECTOR_RULING_HOLDOUTS_YES_AND_CALL_TIMES_ARE_PUBLISHED_SO_ASK_WHY_THEY_ARE_NEEDED_2026-11-22.md`
+and `docs/staging/advisor/done/DIRECTOR_STEER_BE_CURIOUS_FIND_OUT_HOW_THINGS_REALLY_WORK_AND_WHETHER_ANSWERS_MAKE_SENSE_2026-11-22.md`.
+
+**The change, first leg (landed with this entry).** A knowledge GAP about contact, service or
+complaints must clear a standard search list before it becomes a question for the director. The
+question must also name the current decision that needs the answer. A question with no decision
+behind it is closed as "not needed yet", with its reopen condition. The list and the rule are in
+`docs/market_research/contact_centre_staffing_cost_and_call_wait_gb_energy_2026-11-21.md` §5a. The
+other legs the steer offers are weighed in the 23 Nov weekly review, with their cost: a second view
+before a number is used, mechanism on every rate, surprise as a work item, and a practitioner's
+cold read of knowledge pages.
+
+**The measure.** It counts **nonsense found by the director or the advisor before the machine found
+it**: an implausible number, a missed obvious source, or a question he could have answered from
+public data. Each case is one row below, dated when he or the advisor caught it. The baseline is the
+cases the steer names. They are not all dated, so they set no rate. Prediction: no more than 2 new
+rows in the four weeks to 22 Dec. More than 2 refutes the first leg as enough.
+
+| Caught | By | What | Class |
+|---|---|---|---|
+| 2026-11-22 | director | Call handle time put to him before Citizens Advice's data was searched, with no decision needing it | missed obvious source |
+| before 2026-11-22 | director | Value test "+£5k" published for weeks as a book total, never restated as about £5 per household-year | not restated per unit |
+| before 2026-11-22 | check, late | 72% of homes drawn as POOR insulation, against about 15% true | implausible number |
+| 2026-11-21 | director | Bill shock framed as one number; he supplied the structure (two families, three SVT moments, payment method) | no mechanism |
+| before 2026-11-22 | director | Renewal belief with AUC 0.52 produced a margin gain the site led with | implausible number |
+| 2026-11-14 | director | "Nothing is waiting on you" from a stale read (W3) | missed obvious source |
+
+*The rows marked "before 2026-11-22" carry the steer's account. Their exact dates are not yet traced
+to the commits, so they are the baseline and not graded rows. The prediction counts only rows dated
+after 22 Nov.*

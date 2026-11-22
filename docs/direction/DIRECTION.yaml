@@ -174,42 +174,73 @@ wrong:
       walked past as unripe.
     corrected: false
 for_the_director:
-  - id: b8-s-retention-holdout-needs-two-practitioner
-    raised: '2026-11-21'
-    kind: strategy
-    decision_kind: outside_source
-    what: 'B8''s retention holdout needs two practitioner answers nothing published gives. Do GB suppliers hold some renewals
-      out of their retention offers (a no-contact twin), and does Ofgem''s Fixed Retention Tariff derogation from SLC 22B let
-      a supplier withhold the proactive retention approach from a random few, if the tariff is still open to any existing customer
-      who asks? Searched 21 Nov: Ofgem''s own trials (CMOL, 137,876 customers) and the one published retention field experiment
-      (Ascarza et al. 2016: 10% churn among those offered, 6% among the held out) use held-out controls, but neither gives a
-      share as a rule.'
-    proposal: Build the blind holdout drawn before treatment behind one default-off switch, at the share the company already
-      derives from its own power calculation (competitive_pressure.save_holdout_share), not a share picked from practice. It
-      withholds only the proactive approach, never the tariff. It stays off in every standing run until you say whether a real
-      desk does this.
-    recommendation: 'I recommend yes: build it default-off at the derived share. A retention offer with no held-out twin cannot
-      sign its own effect (Ascarza 2016''s offer raised churn). The derived share needs no outside figure. If you have seen
-      a GB desk run holdouts, or know the derogation forbids it, that settles the one open question.'
-    based_on: afa983b9be
-    status: open
-    resolution: ''
-    evidence: docs/market_research/retention_slope_per_pound_of_renewal_cut.md §3.5
-  - id: practitioner-number-needed-how-long-is-a
-    raised: '2026-11-21'
-    kind: strategy
-    decision_kind: outside_source
-    what: 'Practitioner number needed: how long is a GB energy phone call once answered (average handle time), and roughly how
-      many calls a year per customer? Nothing published gives either (searched Ofgem guidance and data portal, NI Utility Regulator,
-      supplier reports), and handle time sets the staffing a supplier needs almost one for one.'
-    proposal: Give a range from the trade (e.g. 'about 6 to 10 minutes; billing calls longer'), or say you don't know. I will
-      carry it as a stated belief with your range, labelled as yours, and wire the world's queue (simulation/contact_centre.py
-      phone_queue, landed today, which refuses without it) into the run, so the supplier's staffing choice moves the wait its
-      customers get.
-    recommendation: I recommend you give a handle-time range from the trade if you have one. Absent an answer by the due date
-      I recommend keeping the queue unwired, with the 6-minute provisional draw unchanged, rather than inventing a handle time.
-    based_on: 5cb7b61c9a
-    status: open
-    resolution: ''
-    evidence: docs/market_research/contact_centre_staffing_cost_and_call_wait_gb_energy_2026-11-21.md s.5 (GAP table) and s.4
-      (agents scale with handle time almost one for one)
+- id: b8-s-retention-holdout-needs-two-practitioner
+  raised: '2026-11-21'
+  kind: strategy
+  decision_kind: outside_source
+  what: 'B8''s retention holdout needs two practitioner answers nothing published gives. Do GB suppliers
+    hold some renewals out of their retention offers (a no-contact twin), and does Ofgem''s Fixed Retention
+    Tariff derogation from SLC 22B let a supplier withhold the proactive retention approach from a random
+    few, if the tariff is still open to any existing customer who asks? Searched 21 Nov: Ofgem''s own
+    trials (CMOL, 137,876 customers) and the one published retention field experiment (Ascarza et al.
+    2016: 10% churn among those offered, 6% among the held out) use held-out controls, but neither gives
+    a share as a rule.'
+  proposal: Build the blind holdout drawn before treatment behind one default-off switch, at the share
+    the company already derives from its own power calculation (competitive_pressure.save_holdout_share),
+    not a share picked from practice. It withholds only the proactive approach, never the tariff. It stays
+    off in every standing run until you say whether a real desk does this.
+  recommendation: 'I recommend yes: build it default-off at the derived share. A retention offer with
+    no held-out twin cannot sign its own effect (Ascarza 2016''s offer raised churn). The derived share
+    needs no outside figure. If you have seen a GB desk run holdouts, or know the derogation forbids it,
+    that settles the one open question.'
+  based_on: afa983b9be
+  status: answered
+  resolution: 'Director 22 Nov 07:48 GMT: ''Yes to holdbacks.'' Build B8''s retention holdout default-off
+    at the share the company derives from its own power calculation (competitive_pressure.save_holdout_share),
+    withholding only the proactive approach, never the tariff. Ruling: docs/staging/advisor/done/DIRECTOR_RULING_HOLDOUTS_YES_AND_CALL_TIMES_ARE_PUBLISHED_SO_ASK_WHY_THEY_ARE_NEEDED_2026-11-22.md'
+  evidence: docs/market_research/retention_slope_per_pound_of_renewal_cut.md §3.5
+  resolved: '2026-11-22'
+  answer_code: 'yes'
+  commitment:
+    work_id: seat-finding-b8-no-retention-desk-holds-anyone-out-in-the-standing-run-and-the-book-now-says-so-per-desk-and-year
+    done_means: B8's blind retention holdout, drawn before treatment, lands behind one default-off switch
+      at competitive_pressure.save_holdout_share; it withholds the proactive approach only, and a test
+      shows the switch can be taken
+    due: '2026-12-04'
+- id: practitioner-number-needed-how-long-is-a
+  raised: '2026-11-21'
+  kind: strategy
+  decision_kind: outside_source
+  what: 'Practitioner number needed: how long is a GB energy phone call once answered (average handle
+    time), and roughly how many calls a year per customer? Nothing published gives either (searched Ofgem
+    guidance and data portal, NI Utility Regulator, supplier reports), and handle time sets the staffing
+    a supplier needs almost one for one.'
+  proposal: Give a range from the trade (e.g. 'about 6 to 10 minutes; billing calls longer'), or say you
+    don't know. I will carry it as a stated belief with your range, labelled as yours, and wire the world's
+    queue (simulation/contact_centre.py phone_queue, landed today, which refuses without it) into the
+    run, so the supplier's staffing choice moves the wait its customers get.
+  recommendation: I recommend you give a handle-time range from the trade if you have one. Absent an answer
+    by the due date I recommend keeping the queue unwired, with the 6-minute provisional draw unchanged,
+    rather than inventing a handle time.
+  based_on: 5cb7b61c9a
+  status: answered
+  resolution: 'Director 22 Nov 07:48 GMT sent it back: ''On average call waits, has it properly researched
+    this? This is published by [Ofgem] and Citizens Advice etc. also why does it need to know it?'' Re-researched
+    22 Nov (contact_centre page s.5a): Citizens Advice publishes call wait per supplier from Q4 2017 (already
+    used in s.2) and complaints per 10,000; Ofgem publishes complaints per 100,000 and a survey; neither
+    publishes call volumes, contacts per customer or handle time. No current decision needs a call-level
+    figure: the staffing desk and phone_queue have no caller in any run. GAP closed ''not needed yet'';
+    it reopens when a decision under test varies agent hours or contact-centre spend. Household time uses
+    the published waits; cost to serve uses the cap''s operating-cost allowance. 07:49 addendum: household
+    call time is held per problem type, tricky problems costing most, as stated ranges grounded in the
+    customer-voice coding.'
+  evidence: docs/market_research/contact_centre_staffing_cost_and_call_wait_gb_energy_2026-11-21.md s.5
+    (GAP table) and s.4 (agents scale with handle time almost one for one)
+  resolved: '2026-11-22'
+  answer_code: returned
+  commitment:
+    work_id: household-time-per-problem-type-ranges
+    done_means: A K8 knowledge page lands giving, per problem type (tricky against simple), stated ranges
+      for contacts per problem, published wait, talk time and days to resolve, each range checked against
+      the customer-voice coding's time-and-effort field or Ombudsman cases, with no invented point value
+    due: '2026-12-04'

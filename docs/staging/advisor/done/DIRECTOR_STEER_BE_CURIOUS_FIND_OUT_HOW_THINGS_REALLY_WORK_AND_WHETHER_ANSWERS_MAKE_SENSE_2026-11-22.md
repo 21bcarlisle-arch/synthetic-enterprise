@@ -47,3 +47,21 @@ The advisor holds itself to the same standard. It sense-checks before relaying, 
 ## Ask
 
 Put the design, and what it removes or folds into existing practice, in the weekly review of 23 Nov with its cost. Start with the learning-loop measure, because it is cheap and makes the gap visible. Apply the rest first to the bill-shock and customer-voice work now under way.
+
+## Done
+
+Actioned by a worker tick, 22 Nov 2026, as the steer orders: the measure first, then the design
+into the weekly review.
+
+- **The measure has started:** `docs/institutional/ways_of_working.md` W5. It tallies nonsense
+  found by the director or the advisor before the machine found it, seeded with the six cases from
+  the steer and the record. The prediction is no more than 2 new rows in the four weeks to 22 Dec;
+  more than 2 refutes the first leg as enough.
+- **First leg landed:** the standard search list and the "which decision needs it" rule for a GAP
+  question (the contact-centre page §5a). It answers the call-time case that prompted the steer.
+- **The design, with what it folds into and its cost,** is in
+  `docs/operations/WEEKLY_BALANCE_REVIEW_2026-11-23.md` §6. It adds no new gate. Each leg is a line
+  in the K8 template, an item in the one work system, or the existing cold-eyes skill, and the
+  bill-shock work is where it applies first (§5).
+
+Decision: none -- his words are a steer and answer no recommendation

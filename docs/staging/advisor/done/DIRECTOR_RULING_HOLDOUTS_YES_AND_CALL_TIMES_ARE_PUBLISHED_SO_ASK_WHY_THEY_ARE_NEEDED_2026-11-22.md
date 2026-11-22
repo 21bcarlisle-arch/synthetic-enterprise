@@ -43,3 +43,37 @@ So the household's time is not one average call. It depends on the problem.
 - **Ground it in the customer-voice coding.** Its "time and effort spent" field records what customers say a problem cost them. Ombudsman cases often state how many contacts preceded escalation. Use those to set and check the ranges.
 - **It feeds M3's time need directly,** as household minutes by kind of activity. That makes a supplier that fixes things first time create real value in time, even when no money moves. It is also the evidence behind "how the issue is handled then affects the likelihood to churn".
 - **Still no staffing model** unless a current decision needs one. Cost to serve stays on the cap allowance.
+
+## Done
+
+Actioned by a worker tick, 22 Nov 2026.
+
+**1. Holdouts: closed `yes`** in `docs/direction/DIRECTION.yaml`. The commitment is the B8 item
+`seat-finding-b8-no-retention-desk-holds-anyone-out-in-the-standing-run-and-the-book-now-says-so-per-desk-and-year`,
+due 4 Dec. Done means the blind holdout, drawn before treatment, lands default-off at
+`competitive_pressure.save_holdout_share`, withholds the proactive approach only, and a test shows
+the switch can be taken.
+
+**2. Call times: closed `returned`, then resolved.** The work is in
+`docs/market_research/contact_centre_staffing_cost_and_call_wait_gb_energy_2026-11-21.md` §5a.
+- **Why it is needed: nothing needs it now.** The staffing desk and the world's `phone_queue` have
+  no caller in any run. The GAP is closed as "not needed yet". It reopens when a decision under
+  test varies agent hours or contact-centre spend. Household time uses the published waits, and
+  cost to serve uses the cap's operating-cost allowance.
+- **The re-search.** Citizens Advice's historic data (charts 1–5 and 8–13) and the methodology
+  page, plus Ofgem's customer-service data page, give the wait and complaints but no call volumes,
+  contacts per customer or handle time.
+- **A correction beside the ruling's premise.** The page had already used Citizens Advice's
+  per-supplier call wait since 21 Nov (§2). What it had not done was search Citizens Advice for the
+  two figures it asked him for, or say which decision needed them. That second omission was the
+  real defect.
+- **Learning-loop entry: `docs/institutional/ways_of_working.md` W5.** The standard search list a
+  GAP must clear (§5a) adds Citizens Advice's supplier data and the customer-voice sources. The
+  question must also name the decision that needs it.
+- **The 07:49 addendum: household time per problem type**, tricky problems costing most, held as
+  stated ranges. It is placed as commitment `household-time-per-problem-type-ranges`, due 4 Dec.
+  It is in the knowledge share of the 23 Nov review, with no staffing model.
+
+The second row is coded `returned` in `DIRECTION.yaml`.
+
+Decision: outside_source yes

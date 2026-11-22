@@ -140,6 +140,71 @@ What the table settles:
 | **Abandonment as a function of wait, for GB energy** | NI 12.5% line, Ofgem "minimise" only | The world's bound on the queue |
 | **The dose from wait to complaint, rating or departure** | `communications_sentiment_and_nps.md` §7 gap 1 (no published per-unit dose) | What a long wait costs the company beyond the rating |
 
+### 5a. Why the supplier needs a call figure at all, and the re-search (22 Nov)
+
+*Added 2026-11-22 under the director's ruling of 07:48 GMT ("has it properly researched this? ...
+why does it need to know it?"). On 21 Nov handle time and calls per customer were put to him as a
+practitioner question. Two things were wrong with that: the "where looked" column above did not
+name Citizens Advice, and the question never said what decision needed the answer.*
+
+**What needs it now: nothing.** Handle time and contacts per customer feed one thing only, the
+number of agents a supplier staffs, through §4's arithmetic. The supplier's staffing desk
+(`company/crm/contact_centre_staffing.py`) and the world's `phone_queue` both landed on 21 Nov.
+Neither is called by any run: a grep finds no caller outside the two modules and their test. No
+supplier decision being tested today, in the value test, B8 or the bill-shock work, turns on call
+staffing. So this page does not build a staffing model, and the call queue stays unwired. Each
+need is met from what is published:
+- **The household's time (M3).** This is waiting time plus talk time, in household minutes.
+  Waiting time is published by supplier and quarter (§2, Citizens Advice chart 5) and is the
+  figure to use. Talk time is carried as a stated range per problem type. It is set by the
+  practitioner range below, not by a staffing model.
+- **The supplier's cost to serve.** This is the cap's operating-cost allowance per customer
+  (`the_caps_operating_debt_and_industry_allowance_per_cap_period.md`). It is published and
+  sourced, and it already bundles the call centre.
+
+**The GAP closes as "not needed yet".** *It reopens when* a supplier decision under test varies
+agent hours or contact-centre spend, or when a grade reads the world's wait as an outcome of the
+supplier's staffing rather than as the published series. The row is then re-asked with this
+section's search list already cleared.
+
+**The re-search, 22 Nov.** Each source was read for call volumes, contacts per customer and
+handle time:
+
+| Source | What it gives | Call volume, contacts per customer, handle time? |
+|---|---|---|
+| Citizens Advice, *Historic star rating data* (charts 1–5 and 8–13, CSV each) | Overall and contact-ease stars; **average call wait in seconds per supplier, from Q4 2017** (chart 5, already used in §2); billing accuracy (traditional and smart); smart meter operation; complaints per 10,000 | **None.** The contact-ease method counts other channels only once they pass "at least 2.5% of all contacts received". That is a threshold, not a count |
+| Citizens Advice, *How the scores are worked out* | The method: suppliers report "their average call centre wait time" | **None** |
+| Ofgem, *Customer service data* (data portal) | BMG survey (67% find contact easy); complaints per 100,000 accounts by supplier size; resolution rates; disconnections; repayment plans | **None.** The portal's "all charts" index and its release schedule were not read |
+| Already on this page | Ofgem's 2025 guidance, NI Utility Regulator, supplier reports | None (§5) |
+
+**What the research leaves.** Per supplier, the published contact figures are the **wait** and
+**complaints** (per 10,000 from Citizens Advice, per 100,000 from Ofgem). Call volume and handle
+time stay unpublished for GB energy. The NI regulator collects both but publishes them only as
+charts. A stated range from the trade is still the only route to handle time. It is no longer a
+question for the director, because nothing needs it until the reopen condition holds.
+
+**A GAP must clear this list before its question reaches the director.** It covers anything about
+contact, service or complaints:
+1. Citizens Advice historic star rating data, all charts, and its methodology page.
+2. Ofgem's customer service data portal and its "all available charts" index.
+3. The Energy Ombudsman's annual and sector reports (case counts by theme).
+4. The customer-voice sources in the 21 Nov steer's standing list (`customer_voice_theme_map_gb_energy_2026-11-21.md` §1).
+5. Then the regulator's licence conditions and decisions (K4).
+
+The question must also say which current decision needs the answer. A question with no decision
+behind it is closed here, not raised.
+
+**Household time per problem type (the 07:49 addendum).** The household's time is not one average
+call. It is a stated belief with a range for each problem type: contacts per problem, the
+published wait (above), talk time, and days to resolve. Tricky problems cost the most: billing
+errors, catch-up bills, disputed reads, debt and payment plans, smart meter faults, home-move and
+final-bill mix-ups, and refunds. Simple ones cost the least: a read, a tariff question, a change of
+details. The ranges are set and checked against the customer-voice coding's "time and effort
+spent" field and against Ombudsman cases that state how many contacts came before escalation.
+Where nothing is published, the range is the belief, never a point value. It feeds M3's time need
+as household minutes by kind of activity. This is placed as its own knowledge item, not written
+here (see the ruling's Done section).
+
 ## 6. Design choices this page makes, and why
 
 1. **The wait is the world's, the staffing is the company's.** The world gets the arrivals (its own

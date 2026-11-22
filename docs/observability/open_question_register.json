@@ -1424,6 +1424,41 @@
       "status": "answered",
       "disposition": "ANSWERED (2026-11-21): yes. The customer voice becomes a standing knowledge source with one coding scheme, proven first on the bill-shock page (commitment bill-shock-responses-knowledge-page-with-the-customer-voice-coding-scheme, due 4 Dec on row your-12-oct-ruling-build-the-world), then applied across themes (handed on as customer-voice-theme-map-after-the-bill-shock-scheme-is-proven). Placed first in the knowledge share for the 23 Nov weekly review.",
       "recorded": "2026-11-21"
+    },
+    "1ac1e7e4f001": {
+      "ruling": "DIRECTOR_RULING_HOLDOUTS_YES_AND_CALL_TIMES_ARE_PUBLISHED_SO_ASK_WHY_THEY_ARE_NEEDED_2026-11-22.md",
+      "question": "On average call waits, has it properly researched this?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-22): not fully. Citizens Advice's per-supplier call wait was already used (contact_centre page s.2), but Citizens Advice was not searched for the two figures put to him (handle time, calls per customer). Re-searched 22 Nov: Citizens Advice charts 1-5 and 8-13 plus its methodology page, and Ofgem's customer-service data page, publish waits and complaints but no call volumes, contacts per customer or handle time (page s.5a). The search list a contact GAP must clear is now on that page.",
+      "recorded": "2026-11-22"
+    },
+    "bde29d6b8093": {
+      "ruling": "DIRECTOR_RULING_HOLDOUTS_YES_AND_CALL_TIMES_ARE_PUBLISHED_SO_ASK_WHY_THEY_ARE_NEEDED_2026-11-22.md",
+      "question": "also why does it need to know it?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-22): nothing needs it now. Handle time and calls per customer only size agent staffing, and the staffing desk and phone_queue have no caller in any run. The GAP is closed 'not needed yet' and reopens when a decision under test varies agent hours or contact-centre spend. Household time uses the published waits, plus per-problem-type ranges (commitment household-time-per-problem-type-ranges, due 4 Dec). Cost to serve uses the cap's operating-cost allowance (contact_centre page s.5a).",
+      "recorded": "2026-11-22"
+    },
+    "4b9fa6f626df": {
+      "ruling": "DIRECTOR_STEER_BE_CURIOUS_FIND_OUT_HOW_THINGS_REALLY_WORK_AND_WHETHER_ANSWERS_MAKE_SENSE_2026-11-22.md",
+      "question": "does this make sense, and why does it work like that?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-22): the steer's own quotation of the question the machine should ask, not a question to the machine. It is acted on as a practice: the W5 measure in ways_of_working.md and the design in WEEKLY_BALANCE_REVIEW_2026-11-23.md s.6.",
+      "recorded": "2026-11-22"
+    },
+    "4b8e2b2d0f97": {
+      "ruling": "DIRECTOR_STEER_BE_CURIOUS_FIND_OUT_HOW_THINGS_REALLY_WORK_AND_WHETHER_ANSWERS_MAKE_SENSE_2026-11-22.md",
+      "question": "Does this make sense?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-22): the steer's own quotation of the check it wants (shape 1), not a question to the machine. It is placed as a 'checked by' line in the K8 template, applied first to bill shock (WEEKLY_BALANCE_REVIEW_2026-11-23.md s.6).",
+      "recorded": "2026-11-22"
+    },
+    "7c9c245bcdc5": {
+      "ruling": "DIRECTOR_STEER_PROFILE_FIRST_SPEED_TRACK_FOR_RUNS_GATES_AND_TESTS_2026-11-22.md",
+      "question": "This article inspired me to ask you if a similar logic could be used to target the slowest or most memory consuming part sof our code and process?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-22): yes, and he approved staging it ('Yes, stage it'). It is placed as the speed track in WEEKLY_BALANCE_REVIEW_2026-11-23.md s.8: profile three workloads first (cProfile and tracemalloc; py-spy and memray are not installed), then one fix at a time, proven identical on recorded calls and timed on the whole workload.",
+      "recorded": "2026-11-22"
     }
   }
 }
