@@ -4,8 +4,9 @@ Uses tmp_path fixture to avoid touching the real sim/cache directory.
 """
 
 import json
-import pytest
 from pathlib import Path
+
+import pytest
 
 import sim.cache_store as cache_store
 
@@ -153,3 +154,48 @@ def test_a_linked_worktree_reads_the_MAIN_checkouts_cache_and_the_main_checkout_
 
     assert shared_cache_dir(linked / "sim" / "cache_store.py") == main / "sim" / "cache"
     assert shared_cache_dir(main / "sim" / "cache_store.py") == main / "sim" / "cache"
+
+
+# The daily SSP feed persisted beside the cache (2026-11-22)
+
+def test_the_persisted_daily_feed_equals_the_companys_reduction_and_is_rebuilt_when_its_source_moves(tmp_path):
+    """The defect: a derived file that outlives the cache it was built from, or a reduction that
+    differs from the one the company's forward reads. Both legs: a hit (no rebuild), and a rebuild
+    after the source changes."""
+    import os
+    import statistics
+
+    from company.pricing.tariff_engine import DailyPriceFeed
+
+    records = [
+        {"settlementDate": d, "systemSellPrice": p}
+        for d, p in [("2024-01-01", 10.1), ("2024-01-01", 20.3), ("2024-01-01", 0.7),
+                     ("2024-01-02", 55.5), ("2024-01-03", -3.25), ("2024-01-03", 1e-3)]
+    ]
+    _write_records(tmp_path, records)
+    rows = cache_store.get_cached_daily_ssp()
+    assert rows == DailyPriceFeed.from_records(records).rows
+    assert rows[0] == ("2024-01-01", 3, statistics.mean([10.1, 20.3, 0.7]))
+
+    derived = tmp_path / cache_store.SSP_DAILY_FILE
+    held = json.loads(derived.read_text())
+    held["rows"][0][2] = 999.0  # a tampered derived row is served while the source is unchanged
+    derived.write_text(json.dumps(held))
+    assert cache_store.get_cached_daily_ssp()[0][2] == 999.0
+
+    records.append({"settlementDate": "2024-01-04", "systemSellPrice": 7.0})
+    _write_records(tmp_path, records)
+    st = (tmp_path / cache_store.SSP_FULL_FILE).stat()
+    os.utime(tmp_path / cache_store.SSP_FULL_FILE, ns=(st.st_atime_ns, st.st_mtime_ns + 1))
+    rebuilt = cache_store.get_cached_daily_ssp()
+    assert rebuilt == DailyPriceFeed.from_records(records).rows
+    assert rebuilt[0][2] != 999.0 and len(rebuilt) == 4
+
+
+def test_the_daily_feed_is_absent_without_a_cache_and_refuses_records_out_of_order(tmp_path):
+    assert cache_store.get_cached_daily_ssp() is None
+    with pytest.raises(ValueError, match="out of date order"):
+        cache_store.daily_ssp_rows([
+            {"settlementDate": "2024-01-02", "systemSellPrice": 1.0},
+            {"settlementDate": "2024-01-01", "systemSellPrice": 2.0},
+        ])

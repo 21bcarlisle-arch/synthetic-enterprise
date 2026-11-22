@@ -9,6 +9,7 @@ Cache entries are plain JSON files — no binary format dependencies.
 """
 
 import json
+import os
 from pathlib import Path
 
 
@@ -62,6 +63,68 @@ def get_cached_prices(start_date: str, end_date: str) -> list[dict] | None:
     if min(dates) > start_date or max(dates) < end_date:
         return None
     return [r for r in records if start_date <= r["settlementDate"] <= end_date]
+
+
+SSP_FULL_FILE = "elexon_ssp_full.json"
+SSP_DAILY_FILE = "elexon_ssp_daily.json"
+
+
+def daily_ssp_rows(records: list[dict]) -> list[tuple[str, int, float]]:
+    """One `(settlementDate, count, statistics.mean)` row per day, over the floats in record order.
+
+    The same reduction `company.pricing.tariff_engine.DailyPriceFeed.from_records` makes; the sim
+    computes it here rather than importing the company. Refuses records whose dates go backwards,
+    because a repeated day split in two would yield two rows and a different mean.
+    """
+    import statistics
+
+    keys: list[str] = []
+    prices: list[list[float]] = []
+    for r in records:
+        key = r["settlementDate"]
+        if keys and key == keys[-1]:
+            prices[-1].append(r["systemSellPrice"])
+            continue
+        if keys and key < keys[-1]:
+            raise ValueError(f"SSP records out of date order at {key!r} after {keys[-1]!r}")
+        keys.append(key)
+        prices.append([r["systemSellPrice"]])
+    return [(k, len(v), statistics.mean(v)) for k, v in zip(keys, prices)]
+
+
+def get_cached_daily_ssp() -> list[tuple[str, int, float]] | None:
+    """The whole SSP cache as daily rows, read from a derived file built once beside it.
+
+    WHY (2026-11-22): the campaign-time first-term quote needs the company's forward when the
+    population is drawn, before the run loads its prices. Parsing `elexon_ssp_full.json` costs
+    +238 MB resident (376 MB peak); the ~3,500 daily rows strike the same forward bit-for-bit.
+
+    The derived file records the source's size and mtime and is rebuilt when either differs, so
+    it cannot outlive the half-hourly cache it was built from. None when there is no source.
+    Written via a temp file and rename: concurrent processes may build it at once.
+    """
+    source = CACHE_DIR / SSP_FULL_FILE
+    if not source.exists():
+        return None
+    st = source.stat()
+    signature = {"source": SSP_FULL_FILE, "size": st.st_size, "mtime_ns": st.st_mtime_ns}
+    derived = CACHE_DIR / SSP_DAILY_FILE
+    if derived.exists():
+        try:
+            held = json.loads(derived.read_text())
+            if held.get("built_from") == signature:
+                return [(k, int(c), float(m)) for k, c, m in held["rows"]]
+        except (ValueError, KeyError, TypeError):
+            pass
+    records = json.loads(source.read_text())
+    if not records:
+        return None
+    rows = daily_ssp_rows(records)
+    del records
+    tmp = derived.with_name(f"{derived.name}.{os.getpid()}.tmp")
+    tmp.write_text(json.dumps({"built_from": signature, "rows": rows}))
+    os.replace(tmp, derived)
+    return rows
 
 
 def write_cached_prices(records: list[dict], cache_file_name: str = "elexon_ssp_full.json") -> None:
