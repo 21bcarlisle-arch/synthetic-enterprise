@@ -79,3 +79,17 @@ tests. All four on-disk mutations go red: launching from the shared tree, droppi
 **Still open.** The deployed daemon runs the old code until its next restart. The book itself:
 a `run_output_<sha>_<ts>.json` whose sha descends from 6f87ccb38. Restart overtakes, from (a), are
 not addressed.
+
+**The book started, 22 Nov 05:52:47Z.** sim-runner was restarted at 05:52 to load b1c7d76b16. Seven
+seconds later it began `run_output_b1c7d76b16_20261122T055247Z.json` from `/var/tmp/se-sim-runner-book`
+at b1c7d76b16. The shared tree still carried uncommitted hunks.
+
+**Correction to the item's done-criterion.** The item asked for a book "whose sha descends from
+6f87ccb38". 6f87ccb38 is on no branch. Its parent is a7bb4b28cd, `SALVAGE(auto): preserve this fork's
+uncommitted work`, so it never reached origin. What it was meant to guarantee, that the book carries
+`company_debt_recovery`, `retention_holdout_by_desk_year` and `riding_leg_answers`, is met at origin
+anyway: each is forwarded in origin's `annual_report.py`, and so is `won_switches_not_supplied`. What
+6f87ccb38 alone carries is the key-register control,
+`tests/saas/reporting/test_every_key_the_run_returns_is_forwarded_or_dropped_by_name.py`, and the
+`PHASE2B_KEYS_NOT_PUBLISHED` register. Both still sit uncommitted on the shared tree, and so does an
+edit to §1 that marks the class closed. Until they land, the class stays open.
