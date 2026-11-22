@@ -8,7 +8,7 @@ class: standard
 severity: LATENT
 source: finding
 evidence:
-- docs/staging/ADVISOR_FINDINGS_REGISTER_ERROR_CHANNELS_ARE_INERT_2026-08-09.md
+- docs/staging/done/ADVISOR_FINDINGS_REGISTER_ERROR_CHANNELS_ARE_INERT_2026-08-09.md
 knowledge_gap: null
 insight: null
 decider: machine
@@ -16,12 +16,20 @@ director_rank: null
 atom: null
 blocked_by: []
 occurrences: 1
-state: open
+state: parked
 opened_at: '2026-08-09T00:00:00+00:00'
 chosen_at: null
 closed_at: null
 chosen_by: null
 done_evidence: null
-parked: null
+parked:
+  reason: 'Both builds landed 18 Nov (one clock for absence+age; pessimistic old-certificate
+    offset, mutation-proven). Remaining §2b (absence correlated with fabric) needs
+    coverage by tenure/time-since-transaction, unpublished (GAP-4/5); the only measurement
+    route is the EPC bulk open data, which requires a login -- an account/credential
+    the machine may not create (G5). No published figure or control verdict turns
+    on it: the no-certificate group is reported as its own population. Revisit if
+    a source publishes coverage by tenure or the director provides bulk-data access.'
+  revisit: '2027-02-22'
 obsolete: null
 finding_lane: W2_customer_generator
