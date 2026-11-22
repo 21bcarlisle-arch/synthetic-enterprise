@@ -185,3 +185,25 @@ reds it. The commons §5 S&RP paragraph is amended (K8).
 | 4 | open (D lane) |
 | 6 | open (C32) |
 | 7 | closed, 2026-11-18 |
+
+## Class 1, the 2021 window relaunched as a declared job (worker, 2026-11-22)
+
+The pre-registration above (2021-12-31 column) stands unchanged; this run reads it. The 16 Nov
+attempt died untracked at simulated 2018-08-13. It is now a declared long job:
+`longjob-c32-class1-window-2021`, launched 13:04:19Z 22 Nov (pid 629219), admitted at 18,844 of
+23,010 MB with a declared peak of 6,200 MB (`background/sim_runner.py`: "a cycle peaks at ~6 GiB").
+It runs the same probe (now kept at `/var/tmp/c32c1/probe.py`, not `/tmp`) on origin/main
+`b9ca3a24c9` in a detached worktree `/var/tmp/c32c1-wt`, which the job removes when it ends.
+Expected about five hours (42 min for 2016 alone). Artefact `/var/tmp/c32c1/r2021.json`; log
+`/var/tmp/c32c1/r2021.log`. Re-ask with `python3 -m background.launch_liveness --check`.
+Since the 2016 window, class 6 landed (8aa5aa350a, `already_on_prepayment` on the PPM actions), so
+a second Consent offer on an account the desk already moved is now refused by name. The 2021
+predictions did not rule that out, and it may add refusals on `consent_ppm_offer`.
+
+| class | state |
+|---|---|
+| 1 | running: 2021 window, `longjob-c32-class1-window-2021` |
+| 3 | open (W2 meter book, with C32's check (e)) |
+| 4 | open (D lane) |
+| 6 | closed, 8aa5aa350a |
+| 7 | closed, 2026-11-18 |
