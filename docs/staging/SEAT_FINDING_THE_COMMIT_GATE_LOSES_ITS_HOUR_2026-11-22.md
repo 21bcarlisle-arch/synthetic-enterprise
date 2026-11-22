@@ -32,7 +32,7 @@ the shared tree's reflog, systemd's per-unit accounting and the cgroup's pressur
 |---|---|---|---|---|---|
 | 1 | d48ffb389 | 19:40:55 | lost, seeing 80d11db93 (20:24:43 - 20:47:17) | 44-66 min | 3 (19:53, 20:10, 20:24) |
 | 2 | 80d11db93 | ~20:25-20:47 | lost, seeing ee82f4c3a (21:18:14 - 21:34:11) | 31-69 min | 5 (20:47, 21:09, 21:10, 21:17, 21:18) |
-| 3 | ee82f4c3a | hook 21:34:11 | still running at 22:03 | see below | -- |
+| 3 | ee82f4c3a | hook 21:34:11 | **killed at 3600 s, 22:34:11** (the hook timed out; no race) | 60 min | -- |
 
 Legs of attempt 3, from process starts:
 
@@ -40,7 +40,9 @@ Legs of attempt 3, from process starts:
 |---|---|---|---|
 | extract, message chain, hook chain up to the test gate | (attempt start) | 21:34:24 | 13 s from hook start |
 | test gate's structural checks + selection | 21:34:24 | 21:35:19 | 55 s |
-| main pytest, 173 files | 21:35:19 | still running at 22:03:00 | >27 min 40 s, **24 min 11 s of it on CPU (87%)** |
+| main pytest, 173 files | 21:35:19 | ~22:30:30 | **~55 min** (48 min 56 s on CPU at 54 min: 90%) |
+| import-derived extras (3 min budget; 2 over the per-file cap, the rest past budget) | ~22:30:35 | ~22:33:28 | ~3 min |
+| hook legs after the test gate (size ratchet, orphan ratchet, file-scope, ...) | 22:33:35 | 22:34:11 (killed) | 36 s, unfinished |
 
 Count of re-gates after origin moved: **2** so far (attempt 1 -> 2 and attempt 2 -> 3), each of
 them a full re-run. The 9 paths the trunk moved between d48ffb389 and ee82f4c3a are **all
@@ -80,6 +82,11 @@ of it is the next reading.
 
 The same-sized selection ran no slower after s.12g was admitted.
 
+**Attempt 3 settles part of the pre-registration's last clause.** The pytest leg alone took ~55
+minutes, so (1) is a contributor: for THIS change the gate costs about an hour **with no race at
+all**. Attempt 1 passed its gate inside the hour (it was refused only by the race), and attempt 3
+went over by less than a minute. The two runs differed by a few minutes, at 90% CPU each.
+
 ## The named cause
 
 **Full re-gating after trunk commits that touch disjoint paths.** One reg 6C attempt (~45-60 min,
@@ -88,10 +95,13 @@ minutes, so every attempt lost the compare-and-swap. Every retry then paid the w
 again, on a tree that differed from the one already gated green only in paths the movers brought.
 No number of attempts could win that race.
 
-Test-selection size is a contributor, not the cause: 173 files is what this change touches (the
-billing suite is selected as a whole by design), and it fits in an hour. Contention is not the
-cause: there were no stalls, and the pytest legs ran no slower after s.12g. **The 3600 s timeout is
-not raised.**
+**And for the largest changes, selection size.** reg 6C's 173-file selection (it includes the
+whole billing suite, by design, because it touches `simulation/run_phase2b.py`) runs ~55 minutes on
+its own. That leaves the rest of the chain about five minutes. Whether that selection is RIGHT,
+meaning which files take the 55 minutes and whether each is selected for a reason that holds, is not
+measured here; it is handed on. Contention is not the cause: there were no stalls, and the pytest
+legs ran no slower after s.12g. So, by this item's own rule, **the 3600 s timeout is not raised**:
+the numbers do not show contention as the whole cause.
 
 ## The fix (tools/surgical_land.py)
 
@@ -111,5 +121,15 @@ Applied to reg 6C, attempt 2 would have selected no tests and taken minutes.
 
 - The gate records no per-leg timing, which is why this table had to be rebuilt by hand.
 - The 19:40Z hour at 16% CPU has no cause yet (see above).
-- reg 6C's own pid 134360 is still running the OLD code (it imported it at 19:40) and keeps
-  re-gating in full. It was not touched.
+- reg 6C's pid 134360 ran the OLD code (it had imported it at 19:40) and was refused at 22:34:11
+  by the timeout on attempt 3. It was not touched. Its work is the reg 6C lane's to re-land, and
+  on this measure that re-landing needs either a selection under ~55 minutes or a split.
+- Which of reg 6C's 173 files take the 55 minutes (`--durations`), and whether each is selected
+  for a reason that holds: handed on as `the-largest-gate-selection-is-measured-per-file`.
+
+## Done-proof
+
+The fix reached origin at 22:20Z as 229618239 (the code commit is 5a354ebcb). It was gated through
+the fixed `surgical_land` in 14 minutes (22:03:53 to ~22:18). The landing that carries this
+section was started after the fix was on origin, while s.12g (`longjob-value-test-cut012-new-book`)
+was still running; its receipt is that proof.
