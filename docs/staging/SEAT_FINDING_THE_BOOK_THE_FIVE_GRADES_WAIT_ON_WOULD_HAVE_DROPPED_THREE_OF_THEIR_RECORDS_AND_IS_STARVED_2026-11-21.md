@@ -132,3 +132,20 @@ Read from `journalctl --user -u sim-runner` and git, 22 Nov 12:42Z. No measureme
 - The non-None check on the three records, and the grading, go to the queued continuations
   (`d48-grade-...`, `grade-the-supplied-won-switches-...`), which open the published book anyway.
   `one-book-carries-the-blend-the-debt-records-the-dual-answer-and-b12` is released with this record.
+
+### 22 Nov 14:35Z: closed; nothing in this finding still blocks a book
+
+Read from git and `journalctl --user -u sim-runner`, 22 Nov 14:35Z. No measurement was taken.
+
+- **§1's class landed on origin** as 0efa633c1b: the key-register control and
+  `PHASE2B_KEYS_NOT_PUBLISHED`. The class is closed on origin, not only on the shared tree.
+- **§2 landed** as b1c7d76b16. Since then no deferral has named code admission or a landing overtake.
+- **The risk named at 12:45Z happened.** Book 35316f9395 died at 14:15:32Z on `KeyError 'SYN-2016-144_3'`,
+  the same as b1c7d76b16. The roster fix 59cd5ebda4 (13:03Z) is on origin, and the book checkout is
+  at origin/main, so the next book carries it. `next_book_requires.yaml` does not need a row for it.
+- **What holds the next book now is not this finding.** It is the declared long job
+  `longjob-profile-book-run-cprofile` (Speed step 1(a), 714251db38, 11,200 MB), which is resident
+  from 14:30Z. `book_admission` defers to it by design. Restart overtakes (§2 (a)) remain unaddressed.
+  Nothing has shown them costing a book since b1c7d76b16.
+- The non-None check on the three records, and the grades, stay with the queued continuations
+  that open the published book.
