@@ -5103,7 +5103,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             desk_belief_log.append({
                 "account_id": billing_account, "term_start": term_start_str, "fuel": commodity,
                 "desk_churn_belief": company_est_pre, "desk_asked": _desk_asked,
-                "left": event is not None and event["event_type"] == "churned"})
+                "left": event is not None and event["event_type"] == "churned",
+                # The term this renewal ends, read off our own book with the switch on or off,
+                # so the published book can grade the ending-term belief without an arm run.
+                "ending_term_type": ending_term_type(
+                    _previous_tariff_type, previous_term_spliced=_previous_term_spliced,
+                    default_tariff_type=SVT_TARIFF_TYPE)})
             if _blind_drawn:
                 retention_blind_holdout_log[-1]["stayed_at_decision"] = not (
                     event is not None and event["event_type"] == "churned")

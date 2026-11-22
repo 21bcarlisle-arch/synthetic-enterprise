@@ -1019,6 +1019,11 @@ def extract_report_data(run_output: dict) -> dict:
         # why the desk held nobody out. Built by the run from 775a3c46c on and dropped here the same
         # way. `None` for a run that did not record one, never an empty table.
         "retention_holdout_by_desk_year": phase2b.get("retention_holdout_by_desk_year"),
+        # Every renewal the churn desk priced: the belief it held, the term it ended and whether
+        # the account left at the roll. The ending-term belief's grade on a standing book reads it
+        # (SEAT_PREREG_THE_ENDING_TERM_BELIEF_ON_THE_COMING_BOOK_2026-11-22.md). `None` for a run
+        # that did not record one.
+        "desk_belief_log": phase2b.get("desk_belief_log"),
         "provisioned_net_gbp": phase2b.get("provisioned_total_net"),
         "provisioned_final_treasury_gbp": phase2b.get("provisioned_final_treasury"),
         "administration_event": phase2b["administration_event"],
