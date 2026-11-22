@@ -743,12 +743,82 @@
     "label": "Delivery and CI",
     "anchor": null
    }
+  },
+  {
+   "read": "22 Nov",
+   "source": "EL4CTEO/fast-anything (MIT, 13 stars); shared by the director",
+   "claim": "Profile the real app, port only the hot 5%, replay up to 500 recorded calls until every case matches, time the whole app interleaved, keep it switchable. Porting the outer loop beat porting an inner function (35× against 1.9×)",
+   "evidence": "The author's own measurements, one app",
+   "verdict": "ADOPT (speed track)",
+   "done": "The method, not the Rust: profile first, prove identical results, time the whole workload. Step 1 profile: `docs/operations/PROFILE_THREE_WORKLOADS_2026-11-22.md`; rows E-p* in `docs/operations/EFFICIENCY_BACKLOG.md`",
+   "concept": "Delivery and CI",
+   "placed": {
+    "kind": "step",
+    "label": "Delivery and CI",
+    "anchor": null
+   }
+  },
+  {
+   "read": "21 Nov",
+   "source": "Google, NeuralGCM docs (hybrid physics and ML global weather and climate model, arXiv 2311.07222); shared by the director",
+   "claim": "A learned global circulation model at ~75–300 km",
+   "evidence": "Peer-reviewed model paper",
+   "verdict": "LATER",
+   "done": "Too coarse for GB. The real record (ERA5, HadUK, extension to ~1980) beats it for fidelity, and UKCP18 for drift. Later only, behind the Met Office's UNSEEN method, for extremes beyond the record",
+   "concept": "Forecast skill",
+   "placed": {
+    "kind": "unplaced",
+    "label": null,
+    "anchor": null
+   }
+  },
+  {
+   "read": "21 Nov",
+   "source": "Huang et al., AtlasKV (arXiv 2510.17934v2); shared by the director",
+   "claim": "Billion-fact knowledge graphs injected into an open LLM's attention in under 20 GB",
+   "evidence": "Preprint",
+   "verdict": "NOT FOR US",
+   "done": "Needs model weights we don't have, at a scale we don't need, on a GPU we lack (12 GB)",
+   "concept": "Agents and models",
+   "placed": {
+    "kind": "step",
+    "label": "Agents and models",
+    "anchor": null
+   }
+  },
+  {
+   "read": "21 Nov",
+   "source": "Summary of Tom Blomfield's 2026 YC and Startup School talks on AI-native companies; shared by the director",
+   "claim": "How an AI-native company is organised",
+   "evidence": "Unverified summary",
+   "verdict": "NOTED",
+   "done": "We already embody most of it. The most valuable unrecorded knowledge is the director's own practitioner knowledge (K4). Whether a public repo gives away the moat is his call",
+   "concept": "Agents and models",
+   "placed": {
+    "kind": "step",
+    "label": "Agents and models",
+    "anchor": null
+   }
+  },
+  {
+   "read": "18 Nov",
+   "source": "google/abfs (Apache); shared by the director",
+   "claim": "Content-addressed sources and per-action read tracking for cached builds",
+   "evidence": "Open-source tool",
+   "verdict": "BACKLOG",
+   "done": "Reuse a gate's verdict when none of the files it read changed. Feeds the re-gating cost and item 5 of the 22 Nov speed steer, which needs the gate profile first",
+   "concept": "Delivery and CI",
+   "placed": {
+    "kind": "step",
+    "label": "Delivery and CI",
+    "anchor": null
+   }
   }
  ],
  "placed": {
   "concept": 17,
-  "step": 24,
-  "unplaced": 4,
+  "step": 28,
+  "unplaced": 5,
   "none": 8
  },
  "rejected": 4
