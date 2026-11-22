@@ -113,3 +113,46 @@ def test_a_held_renewal_withholds_the_approach_and_never_the_tariff():
     assigned = {t.id for n in ast.walk(ast.Module(body=branch.body, type_ignores=[]))
                 if isinstance(n, ast.Assign) for t in n.targets if isinstance(t, ast.Name)}
     assert assigned == {"_no_offer_reason"}, f"the held branch writes {assigned}"
+
+
+#: One year of renewals is the smallest window that has any: through 2016 the run holds one.
+#: Measured 22 Nov (switch on, CURRENT_POLICY, to 2017-12-31): 72 considered, 16 held, 9 of them
+#: stayed on the re-fix with no approach, none in the retention log. About 9 minutes.
+RUN_WINDOW_END = "2017-12-31"
+
+
+def test_a_run_with_the_switch_on_holds_households_out_and_they_keep_the_re_fix():
+    """Defect: the switch is on and the run never takes the held branch (the coin sits on a path no
+    renewal reaches), or a held renewal is still approached, or the held arm cannot stay on the
+    re-fix. The director's 22 Nov ruling: a test shows the switch can be taken. The partition
+    first: both arms must be populated before either is checked."""
+    from company.policy.decision_policy import CURRENT_POLICY, policy_scope
+    from simulation.run_phase2b import main as run_phase2b
+
+    policy = dataclasses.replace(CURRENT_POLICY, **{SWITCH: True})
+    with policy_scope(policy):
+        run = run_phase2b(report_end=RUN_WINDOW_END, policy=policy)
+    log = run["retention_blind_holdout_log"]
+    held = {(r["customer_id"], r["event_date"]) for r in log if r["arm"] == "holdout"}
+    treated = {(r["customer_id"], r["event_date"]) for r in log if r["arm"] == "treated"}
+    assert held and treated, f"{len(held)} held, {len(treated)} treated: the switch was not taken"
+    approached = {(e["customer_id"], e["event_date"]) for e in run["retention_log"]}
+    assert not held & approached, "a renewal the blind coin held out was still approached"
+    reasons = {(e["customer_id"], e["event_date"]): e.get("no_offer_reason")
+               for e in run["no_offer_churn_log"]}
+    assert {reasons[k] for k in held if k in reasons} <= {"held_out_blind_before_treatment"}
+    assert any(r["stayed_at_decision"] for r in log if r["arm"] == "holdout"), (
+        "no held household stayed, so the run cannot show the re-fix is still theirs")
+    assert "blind_approach" in run["retention_holdout_by_desk_year"]
+
+
+def test_a_held_household_that_asks_to_leave_can_still_be_saved():
+    """Defect: the blind coin reaches the reactive save on the loss notice, so a held household
+    that asks (by leaving) is refused the retention tariff. Only the proactive approach is held."""
+    tree = _run_loop_tree()
+    saves = [n for n in ast.walk(tree) if isinstance(n, ast.If)
+             and "_save_offers_on" in {getattr(x, "id", None) for x in ast.walk(n.test)}]
+    assert saves, "the reactive save's branch is not where this test looks for it"
+    for n in saves:
+        names = {getattr(x, "id", None) or getattr(x, "attr", None) for x in ast.walk(n.test)}
+        assert not names & {"_blind_held", "_blind_drawn", SWITCH}, names
