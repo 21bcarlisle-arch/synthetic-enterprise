@@ -327,6 +327,31 @@ def test_the_seat_REFUSES_and_RESTORES_a_record_that_drops_an_open_concern(monke
     assert row["outcome"] == "oriented" and pages == [], "a carried concern re-paged him"
 
 
+def test_a_record_the_READER_refuses_is_restored_so_the_previous_direction_keeps_steering(
+        monkeypatch, record_file):
+    """Defect (22 Nov): the 12:23Z record failed `direction.validate` (a two-homes phrase), was
+    left on disk, and `read_direction` read NO direction -- the executor stood down "no unclaimed
+    focus item" for two hours over four unclaimed items. Both branches: the refused record is
+    restored and the previous focus still reads; an accepted record is not touched.
+
+    MUTATION (must fire): drop `unreadable` from the restore condition in `orient`."""
+    before = record_file.read_bytes()
+    refused = _record(focus=[{"id": "atom-a", "why": "because", "side": "supplier"},
+                             {"id": "atom-c", "why": "the item above names it",
+                              "side": "supplier"}])
+    # Exactly the 12:23Z shape: the reader's problem and nothing write-only, which was restored.
+    assert d.validate(refused) and set(seat.write_time_problems(None, refused)) == set(
+        d.validate(refused))
+
+    row = _drive_orient(monkeypatch, record_file, refused, [])
+    assert row["outcome"] == "refused" and row.get("restored_previous_record") is True
+    assert record_file.read_bytes() == before
+    assert d.read_direction().focus_keys() == ("atom-a", "atom-b")
+
+    row = _drive_orient(monkeypatch, record_file, _record(), [])
+    assert row["outcome"] == "oriented" and not row.get("restored_previous_record")
+
+
 def test_a_record_that_did_not_reach_origin_ends_the_orientation_REFUSED_and_PAGED(
         monkeypatch, record_file):
     """Through `orient()`: when `commit_direction` refuses, the last decisions row reads `refused`

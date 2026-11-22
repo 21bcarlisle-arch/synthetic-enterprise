@@ -1063,11 +1063,61 @@ def choose_model(item: dict, bell: str) -> "tuple[str, object | None]":
         return MODEL, None
 
 
+def turn_env(work_id: str, started: float, base=None) -> dict:
+    """The bounded turn's environment. `bounded_landing.hand_off` reads all three: the marker that
+    this is a turn, when the turn is killed, and the claim a handed-off landing promotes under."""
+    from background import bounded_landing as bl
+
+    return dict(os.environ if base is None else base, DISABLE_AUTOUPDATER="1",
+                **{bl.TURN_ENV: "1", bl.DEADLINE_ENV: str(started + SESSION_TIMEOUT_SECONDS),
+                   bl.WORK_ID_ENV: work_id})
+
+
+#: The unit's own outer bound (`TimeoutStartSec=` in seat-executor.service). A teardown wait for an
+#: in-cgroup landing must end before it, or systemd kills the wait and the landing together.
+UNIT_TIMEOUT_SECONDS = 6600
+
+
+def wait_for_landings_in_cgroup(unit_started: float, *, log=None, doomed=None, sleep=time.sleep,
+                                clock=time.time, margin: float = 60.0) -> list[dict]:
+    """Before the oneshot returns, wait for any `surgical_land` still in this cgroup, up to the
+    unit's own bound. Returns the landings still present when the wait ended (empty: none left).
+
+    `bounded_landing` routes every landing a turn starts into its own unit, so this finds nothing
+    on the ordinary path. It is here for the one that slipped through (a hand-off that fell back
+    to landing in place) so the executor never again logs DOOMED-AT-TEARDOWN over a landing and
+    then returns into the kill without trying to let it finish."""
+    doomed = doomed or (lambda: doomed_at_teardown.doomed()[0])
+    told = False
+    while True:
+        landing = [d for d in doomed() if "surgical_land" in (d.get("cmdline") or "")
+                   or "promote_worktree_landing" in (d.get("cmdline") or "")]
+        left = unit_started + UNIT_TIMEOUT_SECONDS - margin - clock()
+        if not landing or left <= 0:
+            if landing and log:
+                log("TEARDOWN WAIT EXHAUSTED: the unit's own bound is reached with a landing "
+                    "still in its cgroup: " + "; ".join(f"{d['pid']} ({d['cmdline'][:200]})"
+                                                       for d in landing))
+            return landing
+        if log and not told:  # one line, not one per poll
+            log(f"TEARDOWN WAIT: {len(landing)} landing process(es) still in this cgroup; waiting "
+                f"up to {int(left)} s for them rather than returning into the kill")
+            told = True
+        sleep(min(15.0, left))
+
+
 def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, str]:
     """One bounded turn. Returns `(ran, detail)`; a stand-down is `(False, reason)`, never a raise."""
     try:
         if _another_executor_is_running():
             raise StoodDown("another executor is already running")
+        # A LANDING HANDED OFF BY THE LAST TURN MAY STILL BE GATING IN THIS WORKTREE
+        # (`background/bounded_landing`): its unit outlives the turn by design, and
+        # `ensure_worktree` below would salvage and reset the tree under it.
+        if _held_by_a_live_long_job(WORKTREE.resolve()):
+            raise StoodDown(f"a landing handed off by an earlier turn is still running in "
+                            f"{WORKTREE} (a live `longjob-land-*` unit holds it); this turn "
+                            "waits rather than resetting the tree under it")
 
         # THE DIRECTOR'S TICK MODE (background/tick_mode.py) is asked before anything is drawn: it
         # can hold this route outright (off), space it (slow), or narrow what it may take
@@ -1089,7 +1139,8 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
         item = delivery_lane.next_item(now=now, admit=admit)
         if item is None:
             raise StoodDown("nothing to do: no continuation and no unclaimed focus item"
-                            + (f" that tick mode {mode} admits" if admit else ""))
+                            + (f" that tick mode {mode} admits" if admit else "")
+                            + delivery_lane.why_no_focus_item(now))
 
         work_id = item["id"]
 
@@ -1227,7 +1278,7 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
                  prompt],
                 cwd=str(worktree), capture_output=True, text=True,
                 timeout=SESSION_TIMEOUT_SECONDS,
-                env=dict(os.environ, DISABLE_AUTOUPDATER="1", SE_SEAT_EXECUTOR="1"),
+                env=turn_env(work_id, started),
             )
             how = f"rc={proc.returncode}"
         except subprocess.TimeoutExpired:
@@ -1339,8 +1390,10 @@ def main(argv=None) -> int:  # pragma: no cover - operator surface
                           "another_executor": _another_executor_is_running()}, indent=1))
         return 0
     if args.once:
+        unit_started = time.time()
         ran, detail = run_once()
         print(detail)
+        wait_for_landings_in_cgroup(unit_started, log=log)
         # LAST ACT OF THE ONESHOT. This unit is Type=oneshot with the default
         # KillMode=control-group, so systemd SIGKILLs whatever is still in the cgroup the instant
         # this returns -- and `run_once` has already waited on the bounded turn, so anything left

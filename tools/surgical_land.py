@@ -2060,6 +2060,12 @@ def main(argv: list[str] | None = None) -> int:
         return rc
     if not args.message:
         ap.error("-m/--message is required when landing")
+    # A LANDING STARTED INSIDE A BOUNDED EXECUTOR TURN RUNS IN A UNIT OF ITS OWN, or the turn's
+    # teardown SIGKILLs it mid-gate (22 Nov, twice). None outside a turn: nothing changes.
+    from background import bounded_landing
+    handed = bounded_landing.hand_off(sys.argv[1:] if argv is None else list(argv))
+    if handed is not None:
+        return handed
 
     content: dict[str, bytes | None] = {}
     for spec in args.content:

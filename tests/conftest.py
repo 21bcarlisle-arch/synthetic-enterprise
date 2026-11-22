@@ -323,6 +323,22 @@ def fast_mode():
     os.environ.pop("SIM_FAST_MODE", None)
 
 
+@pytest.fixture(autouse=True, scope="session")
+def _not_inside_a_bounded_turn():
+    """A suite run FROM an executor turn inherits the turn's marker, and every in-process
+    `surgical_land.main` then hands off to a real systemd unit (`background/bounded_landing`): on
+    22 Nov one did, from `tests/tools/test_surgical_land.py`. The turn is the process's, not the
+    test's, so it is removed for the session and tests that need it set it themselves."""
+    import os
+
+    from background import bounded_landing as bl
+
+    keys = (bl.TURN_ENV, bl.DEADLINE_ENV, bl.WORK_ID_ENV, bl.IN_UNIT_ENV)
+    saved = {k: os.environ.pop(k) for k in keys if k in os.environ}
+    yield
+    os.environ.update(saved)
+
+
 @pytest.fixture(autouse=True)
 def _phase2b_book_is_put_back():
     """Every test after an in-process `run_phase2b.main` reads the book import drew (H50 L2).

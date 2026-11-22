@@ -6161,6 +6161,70 @@ def next_item(now: float | None = None, path: Path | None = None, *,
     return None
 
 
+def why_no_focus_item(now: float | None = None, *, direction_path: Path | None = None,
+                      stores: list[tuple[Path, float]] | None = None) -> str:
+    """Why `next_item` returned no focus item, item by item, naming each claim and its holder.
+    Read straight after a `None` from `next_item`, whose skip lists it reuses.
+
+    WHY (22 Nov): the executor stood down every tick from 13:25Z to 15:26Z with "no unclaimed focus
+    item" while origin's focus held four unclaimed items. The cause was not a claim: the seat's
+    12:23Z record was refused by `direction.validate` and left on disk, so `read_direction` read
+    NO direction at all -- and the stand-down line said the same words either way.
+    """
+    try:
+        record_path = direction_path or direction_mod.DIRECTION_PATH
+        direction = direction_mod.read_direction(direction_path)
+        if direction is None:
+            try:
+                import yaml
+                problems = direction_mod.validate(
+                    yaml.safe_load(Path(record_path).read_text(encoding="utf-8")))
+            except Exception as exc:  # noqa: BLE001 - named, never swallowed
+                problems = [f"unreadable: {exc!r}"]
+            return (f" -- there is NO DIRECTION: {record_path} is read as no record, so no focus "
+                    f"item exists to draw ({'; '.join(problems[:2]) or 'no oriented_at'})")
+        if not direction.is_live(None if now is None else datetime.datetime.fromtimestamp(
+                now, datetime.timezone.utc)):
+            return (f" -- the direction record oriented at {direction.oriented_at.isoformat()} has "
+                    f"EXPIRED ({direction_mod.FOCUS_MAX_AGE_HOURS:g} h), so its focus is not drawn")
+        atoms = _atom_ids()
+        rows: dict[str, tuple[str, dict]] = {}
+        for store, _deadline in (stores if stores is not None else claim_stores()):
+            try:
+                for wid, rec in (claims_mod._load(store) or {}).items():
+                    if isinstance(rec, dict):
+                        rows.setdefault(wid, (store.name, rec))
+            except Exception:  # noqa: BLE001 - an unreadable store names nothing
+                continue
+        skips = {it.get("id"): why for lst in (LAST_FINISHED_SKIPS, LAST_STRETCH_SKIPS,
+                                               LAST_AREA_STOP_SKIPS, LAST_EMPTY_TURN_SKIPS)
+                 for it, why in lst}
+        skips.update({it.get("id"): f"held by {holder}: {why}"
+                      for it, holder, why in LAST_HELD_SKIPS})
+        clock = time.time() if now is None else now
+        out = []
+        for item in direction.focus:
+            fid = item.get("id")
+            if not fid:
+                continue
+            if fid in rows:
+                store_name, rec = rows[fid]
+                age = (clock - float(rec.get("claimed_at") or clock)) / 60
+                why = (f"CLAIMED in {store_name} {age:.0f} min ago by "
+                       f"{str(rec.get('note') or 'a holder that left no note')[:120]!r}")
+            elif fid in atoms:
+                why = "an atom id, which the atom draw reaches and this lane does not"
+            elif fid in skips:
+                why = f"skipped: {str(skips[fid])[:160]}"
+            else:
+                why = ("skipped by an embargo, a retirement, tick mode or a landed result "
+                       "(none of which is recorded by name)")
+            out.append(f"{fid}: {why}")
+        return (" -- " + " | ".join(out)) if out else " -- the live direction has an empty focus"
+    except Exception as exc:  # noqa: BLE001 - a reason that cannot be built must not cost the tick
+        return f" -- (why could not be read: {exc!r})"
+
+
 def draw(now: float | None = None, path: Path | None = None, *, claim: bool = True) -> str | None:
     """Return the next delivery item's doorbell, or None. Claims it only if `claim`.
 

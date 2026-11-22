@@ -3219,7 +3219,12 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         # REFUSED FOR SOMETHING THE READER CANNOT SEE: a dropped concern, a triage refusal or an
         # unbalanced focus -- everything `write_time_problems` adds beyond `validate`.
         write_only = after_raw is not None and set(problems) - set(direction_mod.validate(after_raw))
-        if write_only and before_bytes is not None:
+        # AND A RECORD THE READER ITSELF REFUSES IS RESTORED TOO (22 Nov). Left on disk, it reads
+        # as NO direction, not as the previous one: the 12:23Z refusal (a two-homes phrase) left
+        # the executor standing down "no unclaimed focus item" from 13:25Z to 15:26Z over four
+        # unclaimed focus items. The previous record is the one that keeps steering.
+        unreadable = after_raw is None or bool(direction_mod.validate(after_raw))
+        if (write_only or unreadable) and before_bytes is not None:
             # RESTORED, because the file IS the list: leave the session's overwrite on disk and
             # the next orientation reads a record with the concern already gone, carries nothing,
             # and passes. This file is inside the seat's own write scope. A triage or balance
@@ -3229,8 +3234,7 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
             row["restored_previous_record"] = True
         # FAIL-CLOSED ON THE ARTEFACT, and this is the one place the seat does not fail soft: a
         # malformed direction record is not direction. The PREVIOUS record keeps steering (it is
-        # untouched on disk unless the session overwrote it, and if it did the reader's own
-        # validation drops it to no-focus), and the refusal is recorded with its reasons.
+        # untouched on disk, or restored above), and the refusal is recorded with its reasons.
         row.update({"outcome": "refused", "why": why, "session": detail, "problems": problems,
                     "focus": list(before.focus_keys()) if before else []})
         _log(f"REFUSED the session's direction record: {problems}")
