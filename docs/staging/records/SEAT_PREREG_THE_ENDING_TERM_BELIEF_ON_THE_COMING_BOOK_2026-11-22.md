@@ -105,3 +105,9 @@ is queued as the seat continuation `read-the-ending-term-belief-grade-on-the-com
 real rows. The source control proves that the key is written. The grader refuses a book whose rows
 lack the key. If every row came out `None`, the grader would see zero typed states, and the floors
 would void the grade rather than pass it.
+
+**Read attempt, 22 Nov 10:36 UTC: not graded, re-embargoed.** The newest book is still `6a588a832f`
+(20 Nov), which does not descend from `c09847b7c`. sim-runner has stopped deferring on the dirty
+shared-tree files. It now yields to `longjob-value-test-cut012-new-book.service`, started 09:58 UTC
+with 2,100 minutes declared. That job writes `/var/tmp/vtn-driver/grade_new_book.out` when it ends.
+The read is handed on, gated on that file.
