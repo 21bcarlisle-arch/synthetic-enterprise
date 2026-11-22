@@ -31,3 +31,15 @@ Under K4, a question to the director comes only after the page shows the answer 
 3. **Learning-loop entry:** "a practitioner question raised before the obvious public source was searched". Add Citizens Advice's supplier performance data, and the customer-voice sources in the 21 Nov steer, to the standard search list a GAP must clear before a question reaches the director.
 
 Close the row with this resolution.
+
+## Addendum, Sun 22 Nov 07:49 GMT: assume call time for tricky problems
+
+The director's words: "Ok. I like the idea of assuming call time for tricky problems."
+
+So the household's time is not one average call. It depends on the problem.
+
+- **Tricky problems take much more household time.** Examples: billing errors, catch-up bills, disputed reads, debt and payment plans, smart meter faults, home-move and final-bill mix-ups, refunds. They cost repeat contacts, long waits and long calls, often over weeks. Simple ones cost little: a read, a tariff question, a change of details.
+- **Hold it as a stated belief with a range, per problem type:** contacts per problem, wait time from Citizens Advice (published), talk time, and days to resolve. Where nothing is published, the range is the belief. Do not invent a point value.
+- **Ground it in the customer-voice coding.** Its "time and effort spent" field records what customers say a problem cost them. Ombudsman cases often state how many contacts preceded escalation. Use those to set and check the ranges.
+- **It feeds M3's time need directly,** as household minutes by kind of activity. That makes a supplier that fixes things first time create real value in time, even when no money moves. It is also the evidence behind "how the issue is handled then affects the likelihood to churn".
+- **Still no staffing model** unless a current decision needs one. Cost to serve stays on the cap allowance.
