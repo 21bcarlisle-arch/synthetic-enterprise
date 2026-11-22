@@ -48,3 +48,34 @@ Two things appear to defeat it here. Both are inferred from the journal and not 
 
 This landing removes the 6 code-admission refusals: after the shared tree rejoins origin,
 `annual_report.py` matches origin. It does not address (a) or (b).
+
+### §2 read from the journal, 22 Nov 05:10Z: (b) CONFIRMED, (a) CONFIRMED but secondary
+
+`journalctl --user -u sim-runner`, 21 Nov 00:00Z to 22 Nov 05:05Z. The waiter row works: while
+landings were ahead of it the runner waited, one gate at a time, and no landing overtook it while
+it held its place. Each time the queue cleared, the next check was `code_admission`, and it refused
+on the shared tree's uncommitted C32 hunks: 00:55, 01:25, 02:15, 03:05, 04:00, 04:10, 04:50, 04:55,
+05:00, 05:05. The row had already been dropped when the queue cleared, so the next cycle found a new
+landing ahead of it (01:30, pid 2493617, 45 minutes; 02:20, two gates, 25 minutes). That is (b).
+Strictly, the row was not withdrawn by the refusal. It was deleted when the hold cleared, and the
+refusal came after. Either way, a refusal taken after the hold clears gives the slot away.
+
+(a) is real but does not explain the night. sim-runner started 11 times between 21 Nov 00:00Z and
+22 Nov 05:05Z, but only once (04:15Z) in the five hours after 00:15Z, while the book kept failing to
+start. That restart put the new pid behind two pending gates, which is an overtake.
+
+**Fixed (22 Nov, the commit that lands this paragraph).** `sim_runner.book_checkout` puts a detached
+worktree at origin/main (`/var/tmp/se-sim-runner-book`, sim-runner's own), and the run is launched
+from it (`cwd` and `PYTHONPATH`). `code_admission` reads the import closure there. An in-place edit
+on the shared tree cannot refuse a book any more. On a live check at origin 20a58061f4, with the
+C32 hunks still dirty on the shared tree, the book was admitted. The loop now asks the landing hold
+LAST: checkout, code and book admission first, and a refusal there withdraws the waiter row. When
+the queue clears, the run starts. The run's one cwd-relative output, `ledger_latest.json`, is moved
+back to the shared `docs/reports`. Controls are in
+`tests/background/test_a_run_whose_imported_bytes_are_off_its_commit_is_not_published.py`, 3 new
+tests. All four on-disk mutations go red: launching from the shared tree, dropping `root=` from
+`code_admission`, asking the hold first, and skipping the checkout's refresh.
+
+**Still open.** The deployed daemon runs the old code until its next restart. The book itself:
+a `run_output_<sha>_<ts>.json` whose sha descends from 6f87ccb38. Restart overtakes, from (a), are
+not addressed.

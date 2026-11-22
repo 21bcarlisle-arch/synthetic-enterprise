@@ -156,7 +156,7 @@ def test_the_launchers_reading_reaches_the_publisher_through_the_runs_argv(tmp_p
     monkeypatch.setattr(sim_runner, "notify", lambda *a, **k: None)
     monkeypatch.setattr(sim_runner, "record_run_outcome", lambda *a, **k: None)
     monkeypatch.setattr(sim_runner, "run_budget_seconds", lambda: 1)
-    monkeypatch.setattr(sim_runner, "imports_off_commit_at_launch", lambda head: {
+    monkeypatch.setattr(sim_runner, "imports_off_commit_at_launch", lambda head, root=None: {
         "commit": head, "paths": ["saas/x.py"], "unavailable_because": None})
 
     def _run(argv, **_kw):
@@ -239,3 +239,90 @@ def test_the_runner_loop_consults_the_code_gate_before_it_runs():
     calls = {n.func.id for n in ast.walk(ast.parse(inspect.getsource(sim_runner.main)))
              if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
     assert "code_admission" in calls and "run_simulation" in calls
+
+
+# ---- the book is built from origin, not from the shared tree (2026-11-22) -----------------------
+# From 21 Nov 00:55Z every cycle whose landing queue had just cleared was refused because the
+# shared tree carried another lane's uncommitted hunks, and the next landing took the slot.
+
+def _repo_with_origin(tmp_path):
+    import subprocess
+
+    def git(*a, cwd=tmp_path):
+        return subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t", *a], cwd=cwd,
+                              capture_output=True, text=True, check=True).stdout.strip()
+    git("init", "-q")
+    (tmp_path / "tools").mkdir()
+    (tmp_path / "tools" / "__init__.py").write_text("")
+    (tmp_path / "tools" / "run_annual_report.py").write_text("from tools import m\n")
+    (tmp_path / "tools" / "m.py").write_text("X = 1\n")
+    git("add", "tools")
+    git("commit", "-q", "-m", "a")
+    git("update-ref", "refs/remotes/origin/main", git("rev-parse", "HEAD"))
+    return git
+
+
+def test_the_book_is_checked_out_at_origin_whatever_the_shared_tree_holds(tmp_path):
+    """Fires on: the book built from the shared tree's bytes, a worktree left at a stale origin, or
+    a directory that is not a worktree overwritten."""
+    from background import sim_runner as sr
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git = _repo_with_origin(repo)
+    (repo / "tools" / "m.py").write_text("X = 2  # another lane's uncommitted edit\n")
+    wt = tmp_path / "book"
+    b = sr.book_checkout(path=wt, root=repo)
+    assert b["root"] == wt and (wt / "tools" / "m.py").read_text() == "X = 1\n"
+    assert sr.code_admission(b["commit"], root=b["root"], on_origin=True)["admitted"] is True
+    assert sr.code_admission(b["commit"], root=repo, on_origin=True)["admitted"] is False
+    (wt / "tools" / "m.py").write_text("debris\n")
+    git("commit", "-q", "-am", "b")
+    git("update-ref", "refs/remotes/origin/main", git("rev-parse", "HEAD"))
+    b2 = sr.book_checkout(path=wt, root=repo)
+    assert b2["commit"] == git("rev-parse", "--short", "HEAD") != b["commit"]
+    assert (wt / "tools" / "m.py").read_text() == "X = 2  # another lane's uncommitted edit\n"
+    plain = tmp_path / "plain"
+    plain.mkdir()
+    (plain / "keep").write_text("k")
+    r = sr.book_checkout(path=plain, root=repo)
+    assert r["root"] is None and "not a linked worktree" in r["reason"]
+    assert (plain / "keep").read_text() == "k"
+
+
+def test_the_run_launches_in_the_books_checkout(monkeypatch, tmp_path):
+    """Fires on: the child launched with the shared tree as its working folder or import path."""
+    from background import sim_runner as sr
+    seen = {}
+
+    class Done:
+        returncode, stderr = 1, ""
+
+    def fake_run(argv, **kw):
+        seen.update(cwd=kw.get("cwd"), pythonpath=(kw.get("env") or {}).get("PYTHONPATH"))
+        return Done()
+    for name in ("log", "notify", "update_agent_status", "record_run_outcome"):
+        monkeypatch.setattr(sr, name, lambda *a, **k: None)
+    monkeypatch.setattr(sr, "REPORTS_DIR", tmp_path / "reports")
+    monkeypatch.setattr(sr, "imports_off_commit_at_launch",
+                        lambda h, r=None: {"commit": h, "paths": [], "unavailable_because": None})
+    monkeypatch.setattr(sr.subprocess, "run", fake_run)
+    assert sr.run_simulation("abc1234", root=tmp_path / "book") is False
+    assert seen == {"cwd": str(tmp_path / "book"), "pythonpath": str(tmp_path / "book")}
+
+
+def test_the_loop_builds_from_the_checkout_and_asks_the_landing_hold_last():
+    """Fires on: the loop reverted to admitting the shared tree, or the landing hold asked before a
+    refusal that would hand its cleared slot to the next landing."""
+    import ast
+    import inspect
+
+    from background import sim_runner
+    tree = ast.parse(inspect.getsource(sim_runner.main))
+    order = sorted((n.lineno, n.func.id) for n in ast.walk(tree)
+                   if isinstance(n, ast.Call) and isinstance(n.func, ast.Name))
+    first = {name: line for line, name in reversed(order)}
+    assert first["book_checkout"] < first["code_admission"] < first["cycle_admission"]
+    assert first["book_admission"] < first["cycle_admission"] < first["run_simulation"]
+    kw = {n.func.id: {k.arg for k in n.keywords} for n in ast.walk(tree)
+          if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
+    assert "root" in kw["code_admission"] and "root" in kw["run_simulation"]

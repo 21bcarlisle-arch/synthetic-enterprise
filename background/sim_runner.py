@@ -17,6 +17,7 @@ Runs continuously 24/7 — token budget takes priority over electricity cost.
 import json
 import os
 import resource
+import shutil
 import subprocess
 import sys
 import time
@@ -364,12 +365,12 @@ def _git_head() -> str:
 RUN_ENTRY = "tools/run_annual_report.py"
 
 
-def imports_off_commit_at_launch(head: str) -> dict:
-    """Which files the run imports are not `head`'s bytes, read just before launch. Never raises:
-    a reading that cannot be taken says why, with `paths` None, and the publisher refuses it."""
+def imports_off_commit_at_launch(head: str, root: Path | None = None) -> dict:
+    """Which files the run imports are not `head`'s bytes in `root`, read just before launch. Never
+    raises: a reading that cannot be taken says why, with `paths` None, and the publisher refuses it."""
     try:
         from background import code_closure
-        return code_closure.imports_off_commit(RUN_ENTRY, head, PROJECT_DIR)
+        return code_closure.imports_off_commit(RUN_ENTRY, head, root or PROJECT_DIR)
     except Exception as exc:  # noqa: BLE001 -- the run must still launch; the publisher refuses
         return {"commit": head, "paths": None,
                 "unavailable_because": f"the reading raised {type(exc).__name__}: {exc}"}
@@ -386,7 +387,65 @@ def commit_on_origin(commit: str, root: Path | None = None) -> bool | None:
     return True if rc == 0 else False if rc == 1 else None
 
 
-def code_admission(head: str | None = None, *, off_commit: dict | None = None,
+#: The book's own checkout: a detached linked worktree at the origin commit the cycle admits, owned
+#: by this daemon alone. From 21 Nov 00:55Z to 22 Nov 05:05Z every cycle whose landing queue had
+#: just cleared was refused here, because the SHARED tree carried another lane's uncommitted hunks
+#: in an imported file, and the next landing took the slot (the journal shows it at 00:55, 01:25,
+#: 02:15, 03:05, 04:00, 04:50). The shared tree is almost never clean, so a run built there waited
+#: on every other writer at once. Built here, the code is origin's by construction. The machine's
+#: untracked data is still found: `sim.cache_store.shared_cache_dir` resolves a linked worktree to
+#: the main one.
+BOOK_WORKTREE = Path("/var/tmp/se-sim-runner-book")
+
+
+def origin_commit(root: Path | None = None) -> str | None:
+    """origin/main's short sha as the ref stands (the reconciler fetches), or None."""
+    try:
+        out = subprocess.run(["git", "rev-parse", "--short", "origin/main"], cwd=str(root or PROJECT_DIR),
+                             capture_output=True, text=True, timeout=30)
+    except Exception:  # noqa: BLE001 -- cannot tell is its own answer
+        return None
+    return (out.stdout.strip() or None) if out.returncode == 0 else None
+
+
+def book_checkout(commit: str | None = None, *, path: Path | None = None, root: Path | None = None,
+                  runner=subprocess.run) -> dict:
+    """Put the book's worktree at `commit` (default origin/main), creating it on first use.
+
+    Returns {"commit", "root", "reason"}; `root` is None, with the reason, when it cannot be made.
+    A directory at `path` that is not a linked worktree of this repository is never touched. The
+    worktree is this daemon's own, so a forced checkout and `clean -fd` there move nobody's work;
+    `clean` without `-x` keeps the ignored `__pycache__`.
+    """
+    path = Path(path or BOOK_WORKTREE)
+    root = root or PROJECT_DIR
+    commit = commit or origin_commit(root)
+    if not commit:
+        return {"commit": None, "root": None, "reason": "origin/main does not resolve"}
+
+    def git(*args, cwd):
+        r = runner(["git", *args], cwd=str(cwd), capture_output=True, text=True, timeout=600)
+        if r.returncode != 0:
+            raise RuntimeError(f"git {' '.join(args)}: {(r.stderr or '').strip()[-300:]}")
+        return (r.stdout or "").strip()
+
+    try:
+        if path.exists() and not (path / ".git").is_file():
+            return {"commit": commit, "root": None, "reason": (
+                f"{path} exists and is not a linked worktree, so the book will not build in it")}
+        if path.exists():
+            git("checkout", "-q", "--detach", "--force", commit, cwd=path)
+            git("clean", "-qfd", cwd=path)
+        else:
+            git("worktree", "prune", cwd=root)
+            git("worktree", "add", "-q", "--detach", str(path), commit, cwd=root)
+        at = git("rev-parse", "--short", "HEAD", cwd=path)
+    except Exception as exc:  # noqa: BLE001 -- a refusal with its reason, never a dead loop
+        return {"commit": commit, "root": None, "reason": f"the book's worktree could not be made: {exc}"}
+    return {"commit": at, "root": path, "reason": None}
+
+
+def code_admission(head: str | None = None, *, root: Path | None = None, off_commit: dict | None = None,
                    on_origin: bool | None = ...) -> dict:
     """May a run start on the code this tree would import? Only if that code is origin's.
 
@@ -398,7 +457,7 @@ def code_admission(head: str | None = None, *, off_commit: dict | None = None,
     `cycle_admission`, never a failed run. Prose-only differences (unchanged AST) still pass.
     """
     head = head or _git_head()
-    off = off_commit if off_commit is not None else imports_off_commit_at_launch(head)
+    off = off_commit if off_commit is not None else imports_off_commit_at_launch(head, root)
     verdict = commit_on_origin(head) if on_origin is ... else on_origin
     reasons = []
     if off.get("paths"):
@@ -480,10 +539,12 @@ def book_admission(head: str | None = None, *, spec_path: Path | None = None, to
     return {"admitted": True, "reason": None}
 
 
-def run_simulation() -> bool:
-    """Run one full simulation. Returns True on success."""
+def run_simulation(head: str | None = None, root: Path | None = None) -> bool:
+    """Run one full simulation of the code at `root` (the book's worktree; default this tree).
+    Returns True on success. Outputs are written to this tree's `docs/reports` either way."""
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    head = _git_head()
+    root = Path(root or PROJECT_DIR)
+    head = head or _git_head()
     out_json = REPORTS_DIR / f"run_output_{head}_{ts}.json"
     out_md = REPORTS_DIR / f"ANNUAL_REPORT_{ts}.md"
 
@@ -496,7 +557,7 @@ def run_simulation() -> bool:
         produces="docs/reports/run_output_*.json, docs/staging/run_complete_*.md",
     )
 
-    off_commit = imports_off_commit_at_launch(head)
+    off_commit = imports_off_commit_at_launch(head, root)
     if off_commit["paths"]:
         log(f"Run launches with {len(off_commit['paths'])} imported file(s) that are not "
             f"{head}'s bytes, so the publisher will refuse it: {', '.join(off_commit['paths'])}")
@@ -523,7 +584,8 @@ def run_simulation() -> bool:
                 "--output", str(out_md),
                 "--imports-off-commit", json.dumps(off_commit),
             ],
-            cwd=str(PROJECT_DIR),
+            cwd=str(root),
+            env={**os.environ, "PYTHONPATH": str(root)},
             timeout=budget,
             stderr=subprocess.PIPE,
             text=True,
@@ -561,6 +623,10 @@ def run_simulation() -> bool:
 
     size_kb = out_json.stat().st_size / 1024
     log(f"Run complete — {elapsed:.0f}s, {size_kb:.0f} KB ({out_json.name})")
+    # The one output the run writes relative to its working folder (`annual_report.LEDGER_LATEST_PATH`).
+    stray = root / "docs" / "reports" / "ledger_latest.json"
+    if root != PROJECT_DIR and stray.exists():
+        shutil.move(str(stray), str(REPORTS_DIR / stray.name))
     # THE RUN'S OWN PEAK, which the unit's cgroup `memory peak` stopped being on 2026-10-10
     # (38f3a565f): the trace build's forked workers now fill whatever memory is free above the
     # floor, so the cgroup peak measures the box, not the run. The settlement ceiling's memory
@@ -996,13 +1062,20 @@ def main() -> None:
         if should_skip:
             time.sleep(120)
             continue
+        # The landing hold is asked LAST. A refusal after the queue clears hands the slot to the
+        # next landing, so every other refusal is taken while the runner is still waiting.
+        # A refusal here is not a wait on landings, so the runner gives up its place rather than
+        # hold every landing behind a book that could not start anyway.
+        book = book_checkout()
+        if book["root"] is None:
+            log(f"DEFERRED this cycle -- {book['reason']}")
+        if (book["root"] is None
+                or not code_admission(book["commit"], root=book["root"])["admitted"]
+                or not book_admission(book["commit"])["admitted"]):
+            resource_headroom.withdraw_waiter()
+            time.sleep(DEFERRAL_RETRY_SECONDS)
+            continue
         if not cycle_admission()["admitted"]:
-            time.sleep(DEFERRAL_RETRY_SECONDS)
-            continue
-        if not code_admission()["admitted"]:
-            time.sleep(DEFERRAL_RETRY_SECONDS)
-            continue
-        if not book_admission()["admitted"]:
             time.sleep(DEFERRAL_RETRY_SECONDS)
             continue
         try:
@@ -1011,7 +1084,7 @@ def main() -> None:
             with resource_headroom.reservation("sim_run"):
                 os.environ[resource_headroom.ADMITTED_ENV] = "sim_run"
                 try:
-                    success = run_simulation()
+                    success = run_simulation(book["commit"], root=book["root"])
                 finally:
                     os.environ.pop(resource_headroom.ADMITTED_ENV, None)
         except Exception as exc:
