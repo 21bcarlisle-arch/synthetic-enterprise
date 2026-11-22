@@ -2485,3 +2485,31 @@ they happen.
 same `KeyError` that killed `b1c7d76b16`. It was left running for two reasons. A dead book costs only
 its own wall-clock time, and the box has no other claimant: s.12g cannot run until the dunning fix is
 in. The first book that descends from the roster fix is the one the five supplier grades wait for.
+
+**Stated deviation: the dunning fix is ported into the pin (22 Nov, before any configuration produced
+output).** `/var/tmp/vtn-out/{cut,A}/` were empty and `twin` had never started, so no s.12g number
+had been seen. The cause was not the gross open-item view that the 11 Oct note named. A residential
+account is balance-based, and every view of one nets the balance. The desk ran its refusal straight
+after the 12-15 reminder_2, and it passed then. A credit value-dated on or before 12-15 crossed after
+the walk had passed that day. The cure on 12-16 then re-ran the refusal over the whole journey on the
+revised ledger. The fix landed on origin as `e09f1640a`. Each step is judged once, on the ledger it
+was issued on, and what a re-read would refuse is recorded in `steps_cleared_after_issue`. Its controls
+are in `tests/company/billing/test_a_step_is_judged_on_the_ledger_it_was_issued_on.py`. Only that
+hunk set was applied to `/var/tmp/value-test-cut012`: `company/billing/collections_journey.py`, patch
+`/var/tmp/vtc-driver/dunning_fix_e09f1640a.patch` (sha256 `4822fe24b899…`). No test was applied, and
+nothing else moved. The three controls pass on the pin.
+
+- **Re-pinned.** The tree's diff from `870201d1e7` moved from `2b312c4d457d…` to `030f8d16c8fc…`.
+  `/var/tmp/vtc-driver/cut012.patch.sha256` now holds the new hash, and the old one is kept beside it
+  in `cut012.patch.sha256.before_dunning_port`.
+- **Unchanged.** The driver (sha256 `a4dc95e6ff75…`), the grader (`3cb5f92d5f10…`), the launch script
+  (`dfcb62dd070d6799…`, as armed), the book (61118), the churn pair (13131/14141) and every prediction
+  above.
+- **The behaviour change.** It can move a number only on an account whose step a later credit
+  cleared. Before the fix, such an account stopped the run. It is the same for every configuration,
+  so cut minus twin is not tilted by construction.
+- **Relaunched (22 Nov) through the same `launch_cut012_new_book.sh`.** The launcher queued it as
+  `longjob-value-test-cut012-new-book-queued`, held behind a landing, and it starts on its own. The
+  crash log is kept at `/var/tmp/longjob-value-test-cut012-new-book.dunning-crash-20261122.log`.
+
+**Reverse:** `systemctl --user stop longjob-value-test-cut012-new-book-queued longjob-value-test-cut012-new-book`.
