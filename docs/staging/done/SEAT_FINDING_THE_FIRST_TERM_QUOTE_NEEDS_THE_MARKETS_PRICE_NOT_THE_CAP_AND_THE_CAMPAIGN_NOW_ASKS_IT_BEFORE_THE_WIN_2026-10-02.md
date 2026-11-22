@@ -201,3 +201,25 @@ red: a count off by one, and a mean scaled by 1.000001.
 loads the half-hourly file. Then wire `first_term_offer_fn` in `live_population._resolve_campaign`
 as described above, landed as its own baseline. (2) Pre-register, delete
 `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world.
+
+## 2026-11-22 (fourth increment): the daily feed is persisted beside the cache
+
+`sim.cache_store.get_cached_daily_ssp()` returns the whole SSP cache as `(date, count, mean)` rows,
+read from `sim/cache/elexon_ssp_daily.json` (gitignored with the rest of the cache). That file is
+built once from `elexon_ssp_full.json` and rebuilt whenever the source's size or mtime differs. The
+reduction is `sim.cache_store.daily_ssp_rows`, computed on the world side so `sim/` never imports
+the company. Its control checks equality with `DailyPriceFeed.from_records` and checks both the
+served leg and the rebuild leg (`tests/sim/test_cache_store.py`).
+
+Measured at real inputs on this machine:
+
+- The first build takes 0.85 s and produces 3,501 rows (132 KB).
+- A warm read takes 2 ms and adds **2.0 MB** at peak, including wrapping it in a `DailyPriceFeed`.
+  The half-hourly load added 376 MB.
+- After the JSON round-trip, **984 of 984** electricity forwards (weekly from 2016-01-01 to
+  2025-06-01, 12- and 24-month terms) are identical to the half-hourly path's.
+
+**Still owed:** (1) wire `first_term_offer_fn` in `live_population._resolve_campaign`. Build it
+through the growth-desk seam from `DailyPriceFeed(get_cached_daily_ssp())` and the NBP history
+(about 1 MB), and land it as its own baseline. (2) Pre-register, delete
+`ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world.
