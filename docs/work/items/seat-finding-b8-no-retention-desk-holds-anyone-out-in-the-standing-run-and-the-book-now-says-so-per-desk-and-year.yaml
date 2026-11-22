@@ -16,12 +16,14 @@ director_rank: null
 atom: B8_discovered_price_sensitivity_holdout
 blocked_by: []
 occurrences: 1
-state: open
+state: done
 opened_at: '2026-11-21T00:00:00+00:00'
 chosen_at: null
-closed_at: null
+closed_at: '2026-11-22T16:43:51+00:00'
 chosen_by: null
-done_evidence: null
+done_evidence: '318d042e7e (blind holdout built default-off at save_holdout_share)
+  + e2515972ea (run leg: switch on, 2017 holds 16 of 72, none approached; reactive
+  save never reads the coin)'
 parked: null
 obsolete: null
 finding_lane: B_commercial
