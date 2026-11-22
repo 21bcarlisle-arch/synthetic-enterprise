@@ -149,3 +149,20 @@ Read from git and `journalctl --user -u sim-runner`, 22 Nov 14:35Z. No measureme
   Nothing has shown them costing a book since b1c7d76b16.
 - The non-None check on the three records, and the grades, stay with the queued continuations
   that open the published book.
+
+## Re-read 22 Nov 18:07Z (item `confirm-the-b1c7d76b16-book-carries-its-four-records`)
+
+Read from `docs/reports/`, `journalctl --user -u sim-runner` and `systemctl --user`. No measurement was taken.
+
+- **No book descending from 59cd5ebda4 has started or published.** The newest `run_output_*` is
+  still 6a588a832f (20 Nov 13:42Z). The last two `Starting run` lines are b1c7d76b16 and 35316f9395
+  (12:17Z, before the fix). Both died on `KeyError 'SYN-2016-144_3'`, so neither tests the fix.
+- **What holds the next book has changed.** From 16:26Z every five-minute cycle reads `DEFERRED ... a long job is
+  queued for room (longjob-value-test-cut012-new-book-queued.service)`. This is the s.12g
+  out-of-sample test on book 61118. It declares 11,800 MB peak and 2,100 minutes, and it has
+  been queued since 16:14Z. Available memory is 16.5 GB. If book admission keeps deferring to it while
+  it waits and then while it runs, the four-record book waits about 35 hours or more behind it.
+  Which of the two gets the box first is a priority call. Nothing in this item licenses launching,
+  reordering or killing either job.
+- The 07:58Z attempt of the same long job died on `DunningOfAClearedDebtError`. That class is fixed
+  on origin (e09f1640a9), so the next book is not expected to die on it.
