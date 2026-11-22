@@ -8,7 +8,7 @@ class: standard
 severity: LATENT
 source: finding
 evidence:
-- docs/staging/PLANNER_MINTED_reversibility_action_and_act_2026-07-29.md
+- docs/staging/done/PLANNER_MINTED_reversibility_action_and_act_2026-07-29.md
 knowledge_gap: null
 insight: null
 decider: machine
@@ -16,12 +16,19 @@ director_rank: null
 atom: null
 blocked_by: []
 occurrences: 1
-state: open
+state: obsolete
 opened_at: '2026-07-29T00:00:00+00:00'
 chosen_at: null
-closed_at: null
+closed_at: '2026-11-22T20:47:11+00:00'
 chosen_by: null
 done_evidence: null
 parked: null
-obsolete: null
+obsolete: 'Re-measured 2026-11-22 off the live map: of the 11 below-target atoms named
+  on 08-03, B10, SPINE_1, W1_10 and W1_7 are now at target, and B6/B7/DD/E5/SITE1/SPINE_3/W1_5
+  are ordinary below-target map rows, each on its own loop_stage and drawn by map
+  self-refill. That makes this item a duplicate queue for them. 0 atoms carry a live
+  director_level_up block. The surviving HELD-per-R16 text is dated simplifications
+  history whose later entries record the 07-29 abolition, so it is not stale state.
+  ACT 2 (SE_DRAW_POPULATION curriculum) is outside this item''s scope and belongs
+  to the director''s curriculum file.'
 finding_lane: A_strategy_governance
