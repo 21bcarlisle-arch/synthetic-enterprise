@@ -126,20 +126,45 @@ instrument, not a run. The census's progress stream (`tools/head_census_progress
 per test and could carry `report.duration`. Every night's census, partial or not, would then rank the
 suite by file at no extra cost. That is a code change, so it is a backlog row (E-p5), not done here.
 
-## (a) A standard book run: not yet profiled
+## (a) A standard book run: queued, pre-registered, not yet measured
 
-**Deferred, on memory.** The value-test cut (`/var/tmp/vtn-driver`) holds 3.8 GB and s.12g holds
-about 11.8 GB while it runs. A profiled book run, with tracemalloc on top of the run's own peak, risks
-the 11th OOM kill on a guest that already has 10. The book run enters through `tools/run_value_cycle_ab`
-→ `simulation.run_phase4c` / `run_phase2b`, as the vtn driver uses it.
+**Deferred on 22 Nov for memory. Queued at 13:30Z the same day.** By then the value-test cut
+(`/var/tmp/vtn-driver`) and s.12g were gone (the cut died at 09:59Z on a dunning invariant). But an
+annual report (4.2 GB) and the C32 2021 probe (2.7 GB) were running, and `available_mb` read 12,124 with
+10 OOM kills on the guest. So the run was not started inline. It is the declared long job
+`profile-book-run-cprofile` (queued in unit `longjob-profile-book-run-cprofile-queued`). It declares
+`--peak-mb 11200`, which is `FLOOR_RUN_PEAK_MB` in `tools/run_value_cycle_ab.py`, the measured peak of
+a full run. The launcher therefore holds it until the box has that room. At 9,000 MB it would have been
+admitted with 371 MB to spare, and 9,000 was a guess.
 
-**Plan, for the first quiet window:**
-1. Run one standard book (today's founder book) under `cProfile`, one variable at a time.
-2. Run it again under `tracemalloc` with 25-frame snapshots at the month boundaries, so the timing is
-   not distorted.
-3. Record the peak RSS by `wait4` and `resource_headroom.sample()` before and after.
+**What runs.** The probe is `/var/tmp/profile-book-run/probe.py`, run in a detached worktree of
+origin/main `c617e07d4b` at `/var/tmp/profile-book-run/tree`. It runs one
+`run_phase4c(report_end=None, policy=CURRENT_POLICY)` inside `policy_scope(CURRENT_POLICY)`. That is
+the control arm exactly as `tools.run_value_cycle_ab.run_value_cycle_ab` enters it: the full window
+and the default book, so today's account count is recorded from `run_phase2b.CUSTOMERS` at import.
+- The child runs under `cProfile`.
+- The parent records the peak RSS by `os.wait4`, user and system CPU, wall time, and
+  `resource_headroom.sample()` before and after.
+- Output goes to `/var/tmp/profile-book-run/out/`: `cprofile.pstats`, then `cprofile_top.txt` (top 60
+  by tottime and by cumulative time), and LAST `cprofile.json`.
 
-Until then, any fix to the run is ranked by guess.
+**The tracemalloc leg is separate, and sized from this one.** No code was changed, and the run has no
+month loop to hook from outside. It is ordered by term and segment (`simulation/run_phase2b.py`
+builds its day list once, at line ~2330). So "snapshots at month boundaries" becomes snapshots on a
+wall-clock timer, with the simulated date read from the log. Its `--peak-mb` must be this leg's
+measured peak times tracemalloc's overhead. Declaring that peak before the measurement exists would be
+the guess the launcher is there to refuse. It is handed on behind `cprofile.json`.
+
+**Pre-registration (written 22 Nov 13:35Z, before any number exists):**
+- P1. The peak RSS by wait4 is between 7,000 and 11,200 MB. It is one pass, against 8,400 for a
+  paired floor leg and 11,200 for a three-arm floor.
+- P2. The wall time under cProfile is between 150 and 500 minutes.
+- P3. The top function by tottime lives in `simulation/` or `sim/` (the world's settlement and demand),
+  not in `company/`. Those two trees hold at least half of all tottime.
+- P4. The import (the book build at `run_phase2b` import) is under 10% of the wall time.
+- P5. No single function holds more than 25% of tottime. A larger share would make it the first fix,
+  ahead of E-p1 if the run is weighted by runs per week.
+A refutation is recorded here as a refutation, not re-worded.
 
 ## Ranking across the three workloads (what to fix first)
 
@@ -151,7 +176,7 @@ Ranked by share of a whole workload, not cost per call:
 3. **Serial suite on 16 cores:** the suite cannot finish inside its night. Parallelising needs an
    install (pytest-xdist) and a memory budget per worker against the 12 GB serial peak. That is a
    proposal, not a step-1 action.
-4. **Book run:** unranked until (a) is measured.
+4. **Book run:** unranked until (a) is measured. The cProfile leg is queued (see (a)).
 
 Item 5 of the steer (reuse a gate's verdict when the files it read are unchanged) has its numbers here:
 the control set and the site gate are 93% and 45% of the chain, so they are the only gates where reuse pays.
