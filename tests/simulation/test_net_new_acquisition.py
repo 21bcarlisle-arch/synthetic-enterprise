@@ -1620,20 +1620,7 @@ def shipped_supply_book():
         rp.ACQUIRED_CUSTOMERS[:] = acquired_before
 
 
-@pytest.fixture(scope="module")
-def shared_fabric_traces():
-    """The two runs below settle the same book over the same window and neither touches the
-    physics, so the second reuses the first's traces -- `fdp.sharing_traces`. The mutation leg's
-    patched `campaign_acquisition_spend_events` feeds spend, not households or weather."""
-    from simulation import fabric_demand_path as fdp
-
-    with fdp.sharing_traces():
-        yield
-
-
-
-
-def test_MUTATION_c_the_PRE_BUILD_run_books_none_of_it(shipped_supply_book, shared_fabric_traces):
+def test_MUTATION_c_the_PRE_BUILD_run_books_none_of_it(shipped_supply_book):
     """R15 for the wiring test: the mutation IS `run_phase2b` as it stood before today.
 
     Before this build the run seeded `acquisition_spend_events` with an empty list and
