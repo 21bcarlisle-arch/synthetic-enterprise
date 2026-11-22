@@ -914,7 +914,32 @@ def ensure_worktree(base: str) -> Path:
                        cwd=str(WORKTREE), check=True, capture_output=True, timeout=300)
         subprocess.run(["git", "clean", "-qfd"],
                        cwd=str(WORKTREE), capture_output=True, timeout=300)
+        drop_a_shadowing_ledger(WORKTREE)
     return WORKTREE
+
+
+def drop_a_shadowing_ledger(tree: Path) -> str | None:
+    """Delete `tree`'s plain billing ledger when it is a different book from the committed gz.
+
+    `git clean -qfd` keeps ignored files, and the plain ledger is ignored. On 2026-11-22 this
+    worktree's plain copy (source_json /var/tmp/w14/run.json, a scratch book) still shadowed the
+    18 Nov gz at origin/main, so `ledger_store.resolve_ledger` refused and three
+    tests/saas/reporting tests went red on unchanged code -- an environmental red a real one
+    can hide among. Not `clean -x`: that also takes ignored stores a turn relies on. Not "the
+    reader prefers the gz": on the shared tree the plain file is the generator's newer output
+    until the publish. A plain ledger that AGREES with its gz is left alone; one that disagrees is
+    regenerable from its own `source_json`. Returns the reason when it deleted, else None.
+    """
+    from company.billing.ledger_store import LEDGER_REL, LedgerFormsDisagree, resolve_ledger
+    plain = tree / LEDGER_REL
+    try:
+        resolve_ledger(plain)
+    except LedgerFormsDisagree as e:
+        plain.unlink(missing_ok=True)
+        return f"deleted a shadowing ignored ledger: {e}"
+    except Exception:  # noqa: BLE001 - a reset must not fail on a read of scratch
+        return None
+    return None
 
 
 def _resolve_claude() -> str | None:
