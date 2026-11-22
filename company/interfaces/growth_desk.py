@@ -58,6 +58,8 @@ __all__ = [
     "book_retention_offer",
     "broker_commission_schedule",
     "decide_acquisition",
+    "FirstTermQuote",
+    "quote_first_term",
     "growth_mandate_label",
     "mandate_permits_replacement",
     "new_retention_holdout",
@@ -155,6 +157,50 @@ def decide_acquisition(
         gate_reason=gate_reason,
         budget_gbp=budget_gbp,
     )
+
+
+@dataclass(frozen=True)
+class FirstTermQuote:
+    """The supplier's quote to one prospect, asked before the world decides the win.
+
+    `quoted` False is a decline: no quote is issued and `reason` names why. `unit_rate_per_mwh` is
+    the ex-VAT strike, or None where there is none: a default-tariff quote (its rate is the cap), or
+    no company forward to strike from (`reason` "no_forward"). Neither of those is a decline.
+    """
+
+    quoted: bool
+    reason: str | None
+    unit_rate_per_mwh: float | None
+
+
+def quote_first_term(
+    *,
+    segment: str,
+    commodity: str,
+    tariff_type: str,
+    eac_kwh: int,
+    term_start: str,
+    observable_daily_prices: list[tuple[str, int, float]],
+    published_policy_cost_per_mwh: float,
+    published_network_cost_per_mwh: float,
+) -> FirstTermQuote:
+    """Strike a prospect's first-term rate and decide whether to quote it at all.
+
+    The world hands over what any market participant holds: the prospect, the day, the published
+    daily spot history as `(date, count, mean)` rows, and the published levy and network costs.
+    The forward, the strike and the no-offer rule are the company's, and they run behind the door
+    (`company.pricing.renewal_desk.quote_first_term`). The no-offer rule is the same
+    `should_attempt_acquisition` the replacement path asks through `decide_acquisition`.
+    """
+    from company.pricing.renewal_desk import quote_first_term as _quote
+
+    quoted, reason, rate = _quote(
+        segment=segment, commodity=commodity, tariff_type=tariff_type, eac_kwh=eac_kwh,
+        term_start=term_start, observable_daily_prices=observable_daily_prices,
+        published_policy_cost_per_mwh=published_policy_cost_per_mwh,
+        published_network_cost_per_mwh=published_network_cost_per_mwh,
+    )
+    return FirstTermQuote(quoted, reason, rate)
 
 
 def broker_commission_schedule(

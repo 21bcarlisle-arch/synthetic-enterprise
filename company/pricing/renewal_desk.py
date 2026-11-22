@@ -83,7 +83,7 @@ from company.governance.decision_rights import (
     get_decision_log,
     log_decision_event,
 )
-from company.pricing.tariff_engine import CompanyTariffEngine
+from company.pricing.tariff_engine import CompanyTariffEngine, DailyPriceFeed
 from company.risk.hedge_policy import COMPANY_MIN_HEDGE_FLOOR
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH, price_fixed_tariff
 
@@ -338,6 +338,57 @@ def estimate_forward_price(
         )
     except ValueError:
         return fallback_gbp_per_mwh
+
+
+#: One daily feed per rows list, keyed on its identity and holding the list so the id cannot be
+#: reused. The growth campaign quotes thousands of prospects off the same history.
+_DAILY_FEEDS: dict[int, tuple[list, DailyPriceFeed]] = {}
+
+
+def _daily_feed(rows: list[tuple[str, int, float]]) -> DailyPriceFeed:
+    held = _DAILY_FEEDS.get(id(rows))
+    if held is None or held[0] is not rows:
+        if len(_DAILY_FEEDS) >= 4:
+            _DAILY_FEEDS.clear()
+        held = _DAILY_FEEDS[id(rows)] = (rows, DailyPriceFeed(rows))
+    return held[1]
+
+
+def quote_first_term(
+    *,
+    segment: str,
+    commodity: str,
+    tariff_type: str,
+    eac_kwh: int,
+    term_start: str,
+    observable_daily_prices: list[tuple[str, int, float]],
+    published_policy_cost_per_mwh: float,
+    published_network_cost_per_mwh: float,
+) -> tuple[bool, str | None, float | None]:
+    """`(quoted, reason, ex-VAT strike or None)` for one prospect's first term, asked before the win.
+
+    The forward is this desk's own engine over the published daily history. The strike is
+    `strike_fixed_unit_rate`, the one every fixed term uses. The gate is
+    `should_attempt_acquisition` on the strike, or on the forward for a default tariff, which has no
+    strike. With no forward there is no quote to price or refuse: `(True, "no_forward", None)`.
+    """
+    from saas.growth_mandate import should_attempt_acquisition
+
+    try:
+        fwd = _COMPANY_ENGINE.get_forward_price(
+            commodity, term_start, _daily_feed(observable_daily_prices))
+    except ValueError:
+        return True, "no_forward", None
+    rate = None
+    if tariff_type == "fixed":
+        rate = strike_fixed_unit_rate(
+            tariff_type=tariff_type, company_forward_price_gbp_per_mwh=fwd, eac_kwh=eac_kwh,
+            term_start=term_start, published_policy_cost_per_mwh=published_policy_cost_per_mwh,
+            published_network_cost_per_mwh=published_network_cost_per_mwh,
+        ).unit_rate_gbp_per_mwh
+    attempt, reason = should_attempt_acquisition(
+        segment, commodity, fwd, term_start, quoted_unit_rate_per_mwh=rate)
+    return attempt, reason, rate
 
 
 def quote_renewal(

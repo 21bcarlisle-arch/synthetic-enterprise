@@ -1374,8 +1374,12 @@ def test_b2_the_two_flags_are_INDEPENDENT_and_the_default_path_is_untouched(monk
 # 17:40): 3373 -> 3250 quotes, £74,990.15 -> £72,262.76, all still inside the window. FEWER quotes
 # from a larger book, the opposite of the 10-09 move; which leg of the quote budget binds is not
 # yet attributed.
-CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 3250
-CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 72262.76
+# RE-MEASURED 2026-11-22, one variable: the campaign asks the company's quote before the win
+# (`live_population.first_term_offer_fn`). 3250 -> 3066 quotes, £72,262.76 -> £68,642.98: 235 quotes
+# withheld (150 in 2021, 70 in 2022, where the strike sat above the default), and the planner's
+# budget then reads a different quote book.
+CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 3066
+CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 68642.98
 
 #: The subset the ACCOUNTS can carry: quotes dated inside [REPORT_START, REPORT_END].
 #:
@@ -1387,8 +1391,8 @@ CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 72262.76
 #:
 #: The filter is still real and still tested: `test_c_MUTATION_the_window_filter_can_actually_
 #: EXCLUDE` hands it a mid-decade `report_end` and requires it to drop the rest.
-CAMPAIGN_QUOTES_INSIDE_WINDOW = 3250
-CAMPAIGN_SPEND_INSIDE_WINDOW = 72262.76
+CAMPAIGN_QUOTES_INSIDE_WINDOW = 3066
+CAMPAIGN_SPEND_INSIDE_WINDOW = 68642.98
 
 
 def test_c_every_quote_the_campaign_paid_for_is_BOOKED_as_acquisition_spend():

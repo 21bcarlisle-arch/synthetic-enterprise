@@ -223,3 +223,27 @@ Measured at real inputs on this machine:
 through the growth-desk seam from `DailyPriceFeed(get_cached_daily_ssp())` and the NBP history
 (about 1 MB), and land it as its own baseline. (2) Pre-register, delete
 `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world.
+
+## 2026-11-22 (fifth increment): the campaign quotes before the win, landed as its own baseline
+
+`live_population._resolve_campaign` now passes `first_term_offer_fn`, built from
+`get_cached_daily_ssp()` and the NBP history reduced to daily rows. The company's act sits behind one
+door, `growth_desk.quote_first_term` → `renewal_desk.quote_first_term`: the forward over the daily
+feed, the base strike (`strike_fixed_unit_rate`), and the one no-offer rule
+(`should_attempt_acquisition`). The world reads the prospect's position as the strike against
+`market_cheapest_ex_vat`: the default charged (net of the EPG) × (1 − the quarter's published gap)
+÷ 1.05. The design choices are on the knowledge page,
+`docs/market_research/cheapest_fix_against_the_default_tariff_gb_2016_2025.md` §7.
+
+At the run's seed the campaign goes from 3,250 quotes and 210 wins to 3,066 quotes and 230 wins,
+with 235 quotes withheld (150 in 2021, 70 in 2022). Of 3,301 offers asked, 951 are default-tariff
+prospects and read no position: GAP, the funnel stays at the run level for them. With no SSP cache
+there is no quote, and the campaign record says so (`first_term_quote`).
+
+**Surprise, not attributed.** 2023–24 strikes sit 20–28% below Ofgem's cheapest deal, which is
+implausible for a real market. Either the company's spot-EWMA forward underprices, or the per-fuel
+gap is wrong for electricity in those years. I cannot yet say which. That has to be settled before
+the hold comes off, because removing the hold would let those strikes through.
+
+**Still owed:** (1) attribute the 2023–24 position (above). (2) Pre-register, delete
+`ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world against this baseline.

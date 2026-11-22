@@ -226,3 +226,50 @@ itself — only `ASSUMPTIONS.md` and this document are in scope here.
 - Same page, TDCV methodology text attached to the above charts, read 2026-10-10.
 - `docs/market_research/svt_rates_active_passive_2016_2025.md` — cross-checked cap levels, §4.
 - `docs/market_research/churn_price_elasticity.md` — compared in §5.
+
+## 7. How the growth campaign reads this (2026-11-22)
+
+The net-new campaign asks for the company's first-term quote **before** the world decides the win
+(`simulation.live_population.first_term_offer_fn`, through `company.interfaces.growth_desk.quote_first_term`).
+The prospect's price position, which the funnel's quote-to-application stage responds to, is the
+company's fixed strike against **the market's cheapest deal on the day**:
+
+`market = default charged to the household (net of the EPG) × (1 − this quarter's gap) ÷ (1 + 5% VAT)`
+
+Design choices, and why:
+
+- **The parity point is the cheapest fix, not the cap.** A household shopping for a fix compares
+  fixes. Measured against the cap, a typical 2016–20 first term saturates the funnel.
+- **The default is the one charged, net of the EPG** (§4). The gate the company asks also reads the
+  default net of the EPG, so both sides read the same default.
+- **The dual-fuel gap share is applied to each fuel's unit rate.** That is a stated belief: §6 says
+  single-fuel gaps are NOT ESTABLISHED.
+- **2021 Q4 – 2023 Q2 read a gap of 0.0** (§3: floored, not negative). The household's alternative
+  to a dearer fix is the default it already has.
+- **The strike is the desk's base strike** (`strike_fixed_unit_rate`), not the full renewal chain.
+  So the quote can differ from the rate the account is later contracted at, while
+  `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES` still holds first terms at the cap.
+- **GAP, so no position is read for default-tariff prospects.** Their rate is the cap and there is
+  no strike to price. The funnel stays at the run-level position for them, as before.
+
+Measured at real inputs (seed `run_base_seed()`, 3,301 offers asked, all electricity; 951 of them
+default-tariff and so unpriced):
+
+| year | priced | median position vs cheapest | declined (strike above default) |
+|---|---|---|---|
+| 2016 | 296 | +10.8% | 0 |
+| 2017 | 311 | +3.2% | 0 |
+| 2018 | 310 | +26.5% | 0 |
+| 2019 | 315 | +0.8% | 5 |
+| 2020 | 317 | +0.6% | 0 |
+| 2021 | 154 | +13.3% | 150 |
+| 2022 | 17 | −17.7% | 70 |
+| 2023 | 146 | −27.5% | 2 |
+| 2024 | 254 | −20.3% | 0 |
+| 2025 | 39 | −12.5% | 8 |
+
+The campaign went from 210 wins on 3,250 quotes to 230 wins on 3,066 quotes, with 235 quotes withheld.
+
+**Open, and not settled by this page.** The 2023–24 strikes sit 20–28% below Ofgem's cheapest deal.
+Either the company's spot-EWMA forward underprices a market that was pricing off forward curves, or
+the per-fuel application of the gap is wrong for electricity in those years. I cannot yet say which.
