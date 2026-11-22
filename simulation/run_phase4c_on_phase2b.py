@@ -109,6 +109,7 @@ from simulation.dd_level_collection_book import (
     supply_starts,
 )
 from simulation.dd_review_in_loop import level_dd_schedule_from_the_loop
+from simulation.gain_registration import account_credits_from_switching_payments
 from simulation.household import households_whose_account_closed, supply_points_that_left
 from simulation.household_segments import pays_a_level_direct_debit
 from simulation.meter_reads import (
@@ -721,6 +722,14 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
     money_in: dict = {}
     # Each leaver's collected bills, so the set-off reads a bill collected after the refund as owed.
     later_cash: dict = {}
+    # Each switching standard payment the company paid by account credit (reg 8(2)) is netted on
+    # the won leg's ledger by the same walk; one with no ledger is refused and published with its
+    # reason, never booked as a bare cost (switching_mechanics_2026-10-25.md s.6).
+    switching_credits, switching_refused = account_credits_from_switching_payments(
+        phase2b_result.get("switching_gsop_payments", []),
+        {b["customer_id"] for b in bills},
+        phase2b_result.get("won_switches_not_supplied", []))
+    phase2b_result["switching_gsop_credits_refused"] = switching_refused
     emergent_bad_debt_by_line = emergent_bad_debt_lines(
         bills,
         phase2b_result.get("per_customer_behavioral", {}),
@@ -730,6 +739,7 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
         last_collection_out=last_level_collection,
         money_in_out=money_in,
         later_cash_out=later_cash,
+        account_credits=switching_credits,
     )
     # A closed account the ledger holds in credit is refunded from that balance (reg 6D), so the
     # refund log and the debt the P&L writes off are one book (home_moves.md s.8.8a).
@@ -748,6 +758,7 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
             churned_ids,
             level_dd_collections=level_dd_schedule,
             set_offs=closing_set_offs,
+            account_credits=switching_credits,
         )
 
     # Phase [debt-branch, docs/design/PROCESS_MODEL.md Section 4]: real
@@ -761,6 +772,7 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
         churned_ids,
         level_dd_collections=level_dd_schedule,
         set_offs=closing_set_offs,
+        account_credits=switching_credits,
     )
     # Both applied here, by one call that also returns each customer's lines -- write-off at
     # close, statute-barred, leg 4b provision, placeholder released, DCA recovery -- so a

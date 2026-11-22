@@ -18,11 +18,12 @@ WHAT IS DRAWN AND WHAT IS NOT
   and the supplier's information day is that same day, so reg 6ZA is judged on every gain and can
   never be failed. That UNDERSTATES 6ZA payments; ``registration_delay_working_days`` carries
   ``None`` with this reason rather than a zero that would read as measured.
+* **Posted:** each payment the company owes on a gain is credited to the won leg's ledger
+  (`account_credits_from_switching_payments`, netted by `arrears_engine`'s walk). A payment to a
+  win with no ledger is refused with its reason (switching_mechanics_2026-10-25.md s.6).
 * **Not built:** an erroneously transferred customer is returned to its old supplier (reg 6C, the
-  OLD supplier's duty) within about 21 working days, and the payment is credited to its account.
-  Neither can be built yet: no won switch is ever put on supply (`ACQUIRED_CUSTOMERS` is not in the
-  settlement roster), so there is no supply to end and no ledger to credit.
-  `docs/staging/SEAT_FINDING_A_WON_SWITCH_IS_NEVER_PUT_ON_SUPPLY_SO_THE_SWITCHING_GSOP_HAS_NO_ACCOUNT_TO_CREDIT_2026-11-21.md`.
+  OLD supplier's duty) within 21 working days of the agreement. Until it is, an erroneous gain stays
+  on supply and the book OVERSTATES its revenue; expected count under one on today's volume.
 """
 from __future__ import annotations
 
@@ -99,3 +100,32 @@ def draw_gain_registration(customer_id: str, supply_start: date, seed: str) -> d
         # A drawn event, not a record of one: the real switch dates are not in our data.
         "data_regime": "synthetic",
     }
+
+
+def account_credits_from_switching_payments(
+        payments: list[dict], legs_with_bills: set[str], not_supplied: list[dict]
+) -> tuple[dict[str, list[dict]], list[dict]]:
+    """``(credits, refused)``: each switching standard payment (`switching_payments_on_gains`) as a
+    credit on the won leg's ledger, in the shape `arrears_engine.balance_settlement_from_outcomes`
+    takes as ``account_credits``, and every payment that has no ledger to post to, with its reason.
+
+    The company pays by account credit on ``paid_on`` (reg 8(2)). A credit is netted per contract
+    (SLC 27.16), so it posts on the won leg, never on its predecessor. A win `_supply_won_switch`
+    refused (``not_supplied``) has no supply and so no account; a leg with no issued bill has no
+    ledger the walk can open. Neither is booked as a bare cost (switching_mechanics s.6, choice 3).
+    """
+    refused_why = {w["customer_id"]: f"win not on supply: {w['reason']}" for w in not_supplied}
+    credits: dict[str, list[dict]] = {}
+    refused: list[dict] = []
+    for p in payments:
+        leg = p["customer_id"]
+        reason = refused_why.get(leg) or (
+            None if leg in legs_with_bills else "the won leg has no issued bill, so no ledger to credit")
+        if reason is not None:
+            refused.append({**p, "refused_reason": reason})
+            continue
+        credits.setdefault(leg, []).append({
+            "date": date.fromisoformat(p["paid_on"]), "amount_gbp": p["amount_gbp"],
+            "reason": f"switching standard payment {p['standard']} ({p['regulation']})",
+        })
+    return credits, refused

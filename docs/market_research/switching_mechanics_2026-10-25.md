@@ -271,5 +271,21 @@ the switch, a stated belief: the customer notices at the switch). After go-live 
 No registration delay is drawn (gap (b)): every switch completes on its supply start, so 6ZA is judged
 on every gain and cannot be failed. `company/interfaces/switching_gsop.py` applies `gsop.py` to those
 records and pays each payment by account credit on the 10th working day. Both gaps UNDERSTATE what the
-book pays; ETs before 1 May 2020 owe nothing (6ZB not in force). Not yet built: the credit posted to
-the account's ledger, and the erroneously transferred household returned to its old supplier.
+book pays; ETs before 1 May 2020 owe nothing (6ZB not in force).
+
+**Posting the payment, from 22 Nov 2026.** Reg 8(2) lets a supplier pay a standard payment by credit to
+the customer's account; the company does (above). That credit is credit on the account in the sense of
+SLC 27.16 ("payments in excess of the charges due under that Domestic Supply Contract"), so it is
+netted per contract, which is per fuel: the won leg's own ledger. Choices the design makes: (1) it posts
+on its paid day as a credit bill does, discharging the oldest outstanding bill first (the running-account
+default, as every other credit in `simulation/arrears_engine.py`); with nothing outstanding it waits and
+comes off the next bill collected (SLC 31H.12), and what is left at close is refunded with the rest of the
+closing credit (reg 6D). (2) It is not a payment by the debtor, so it does not restart the limitation
+clock. (3) A payment owed to a win that is not on supply (won from a gas-only household, so registered
+electricity with no premise to supply) or to a leg with no issued bill has no ledger to net against: it is
+REFUSED with its reason and published, never booked as a bare P&L line, because a cost with no account
+behind it cannot be reconciled to any customer. Not yet built: the erroneously transferred household
+returned to its old supplier within 21 working days of the agreement (reg 6C, the OLD supplier's duty;
+the gaining supplier's supply ends on that re-registration). Until it is, an erroneous gain stays on
+supply and the book OVERSTATES its revenue by its remaining months; the expected count is under one
+erroneous transfer on today's acquisition volume.

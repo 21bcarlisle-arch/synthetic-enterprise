@@ -67,3 +67,18 @@ SYN-2016-163_3, SYN-2016-585_3) stays off supply. Its reason is published in
 supplying it as gas is not built. Predictions and P1's refutation:
 `records/SEAT_PREREG_A_WON_SWITCH_IS_SUPPLIED_FROM_ITS_WIN_2026-11-21.md`. Still open: the full-run grade,
 the gas-only wins, the GSOP credit posting and returning an erroneous gain (reg 6C).
+
+**Progress, 22 Nov.** The credit is posted. `gain_registration.account_credits_from_switching_payments`
+turns each `switching_gsop_payments` row into a credit on the won leg's ledger, and
+`arrears_engine.balance_settlement_from_outcomes(account_credits=)` nets it on its paid day, oldest
+bill first (SLC 27.16); a credit with nothing outstanding comes off the next paid bill, and one dated
+after the leg's last event posts at close and is refunded with the closing credit. Phase 4c and
+`tools/generate_billing_ledger.py` pass the same credits, so the P&L write-off and the page are one
+walk. A payment owed to a gas-only win or a leg with no issued bill is refused by name in
+`switching_gsop_credits_refused`, never booked bare. Rules and choices:
+`docs/market_research/switching_mechanics_2026-10-25.md` s.6, "Posting the payment". On today's book
+(6a588a832f) nothing moves: its `gain_registration_log` is empty and it pays nothing. Still open: reg
+6C, ending an erroneous gain's supply within 21 working days of the agreement. Supply ends only at a
+term boundary in `run_phase2b` today (`_notify_registration_loss` closes a whole household), and a won
+leg shares its predecessor's household id, so ending it needs a per-leg, mid-term supply end. Until
+then an erroneous gain stays on supply and OVERSTATES revenue (expected count 0.065 on today's volume).

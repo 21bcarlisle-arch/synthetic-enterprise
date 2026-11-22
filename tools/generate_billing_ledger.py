@@ -87,6 +87,7 @@ from simulation.arrears_engine import (
     with_credits_applied as _with_credits_applied,
 )
 from simulation.credit_refund_events import set_offs_from_refund_log
+from simulation.gain_registration import account_credits_from_switching_payments
 from simulation.household import households_whose_account_closed, supply_points_that_left
 from tools.generate_payment_ledger_data import build_account_ledger, desk_write_off_postings
 from tools.grade_svt_invoices_over_ceiling import bill_excess, term_of_bill, terms_by_customer
@@ -481,7 +482,11 @@ def generate(run_json_path=None, out_path=None):
         bills, behavioral, churned, seed=42,
         level_dd_collections=data.get("level_dd_collections"), repayments_out=truth_repayments,
         # The close refund's set-offs (home_moves.md s.8.8e) net the debt leg's case in the walk.
-        set_offs=set_offs_from_refund_log(data.get("credit_refund_log", [])))
+        set_offs=set_offs_from_refund_log(data.get("credit_refund_log", [])),
+        # A switching standard payment paid by account credit nets the won leg's bills, as in 4c.
+        account_credits=account_credits_from_switching_payments(
+            data.get("switching_gsop_payments", []), {b["customer_id"] for b in bills},
+            data.get("won_switches_not_supplied", []))[0])
     # (leg, day received) -> what the page already posts of that repayment, from cases and returns.
     repaid_posted: dict[tuple[str, str], float] = {}
     repayments_of: dict[str, list[dict]] = {}
