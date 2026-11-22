@@ -1,246 +1,266 @@
 version: 1
-oriented_at: "2026-11-22T00:23:52.978199+00:00"
-thesis_read: >-
-  Three hours, 5 commits, 3 substantive. The split is supplier 0, world 0, both 1, other 4, and no
-  level moved. Against the thesis, the supplier has stood still for a day for lack of evidence, not
-  code. Two pieces of last stretch's focus landed. First, f80fe3951 puts a won electricity switch on
-  supply from its win date. Before it, 16 households were won and 0 billed, so acquisition value had
-  been read off customers who never reached the book. That row is half corrected: 2 of the 16 wins
-  (SYN-2016-163_3, SYN-2016-585_3) are gas-only and are still off supply, and nothing is graded until
-  a book carries the fix. Second, 6f87ccb38 lands the control that stops a run's grading record being
-  dropped silently on its way to the published book. Both items leave focus. The item that mattered
-  most did not move. No book has been built since 20 Nov 13:42Z, now 35 hours, and it is the only
-  thing every queued supplier grade reads (D48, KNIFE3 I1-I5, dual-fuel answers, B8, B12, the won-switch
-  P2-P5). It also gates s.12g, the only test that can say whether the per-customer supplier beats the
-  flat-rules twin out of sample. The 0.12 pair's in-sample +GBP 1.18 (+0.33 to +2.30) still has no
-  twin. sim-runner's journal since my last record names the same three causes, all still live.
-  (1) Code admission refused at 23:45Z: collections_journey.py and winter_moratorium.py still carry
-  the C32 hunks written at 20:42Z, and no claim in .seat_work_in_hand.json now owns them, so last
-  stretch's "land them if nobody holds them" was never acted on. saas/reporting/annual_report.py has
-  also been edited in place since. (2) The memory budget was full at 23:50Z and 23:55Z. A
-  3.3 GB build_weather_world started on the shared tree in that window. (3) Since 00:00Z, every cycle
-  has been "landings come before experiments", and the unit has restarted 8 times since 12:00Z. On
-  that evidence the shared tree is never clean and the landing queue is never empty, so the book
-  cannot get a slot under the current admission rules. Fixing one instance at a time has failed for
-  two stretches running. Item 1 now asks for the structural fix as well as the instance. The steer
-  did bite: all 4 named items were drawn. But the book item was drawn at about 22:05Z and recorded as
-  premise_not_yet_ripe, from a date in the continuation's prose, although its premise was met. So the
-  steer reached the draw and was walked past.
+oriented_at: '2026-11-22T09:21:55.742684+00:00'
+thesis_read: 'This stretch: 7 commits, 2 substantive. The split was supplier 0, world 0, both 0, other 7. No level
+  moved. Against the thesis the project went BACKWARDS this stretch, and the previous orientation did not see it
+  coming. The owed book (b1c7d76b16), which every queued supplier grade reads, ran for two hours. It then died at
+  07:57:16Z in report extraction, with KeyError ''SYN-2016-144_3'' in saas/cost_to_serve.py. The cause is an interconnection
+  failure, not new physics. f80fe3951 put won switches on supply, but the report''s cost-to-serve and lifetime rosters
+  still omit ACQUIRED_CUSTOMERS. The same KeyError killed a book on 8 Oct for incoming occupants, and it was fixed
+  for that list only. So the ending-term belief grade, D48, KNIFE3 I1-I5, the dual-household answers and the won-switch
+  P2-P5 have no book. Two continuations are held on a file that will never exist. The thesis test, s.12g, was launched
+  into the queue at 07:58Z (bdf38eaba) but has not started. It needs 11800 MB and is waiting for room, probably
+  behind the 3.8 GB head-green census. Meanwhile sim-runner defers every book behind it, so the box is now ordered
+  to run neither. Inference against the flat-rules baseline still reads -GBP 0.33 (-1.77 to +0.96), in sample. The
+  live renewal belief still ranks leavers backwards (AUC 0.333). Of the previous four focus items, one was drawn
+  and spent: s.12g''s launch, now retired. The belief grade had no book to read. The gas-only item was never drawn,
+  and the reg 6C landing it waited on (pid 945604) ended with nothing on origin. The teardown item was never drawn
+  either. I am treating that as drift in the steer: two of its four items rested on a book I assumed would finish.
+  This focus therefore puts the class fix that lets a book finish first. Second is a recorded decision on the box''s
+  order: the book goes ahead of a still-waiting s.12g, because that delays the thesis test by about 2-3 hours, whereas
+  the reverse delays five supplier grades by about 35 hours. Then come reg 6C and the gas-only wins, then the teardown
+  fix. No row is corrected this stretch. Two new rows are added: the roster omission, and the 85 minutes in which
+  nothing noticed the dead book. The corrected date-gate row is no longer carried.'
 stretch_reviewed:
-  since: "2026-11-21T21:22:43.717192+00:00"
-  commits: 5
-  substantive: 3
+  since: '2026-11-22T06:24:28.878785+00:00'
+  commits: 7
+  substantive: 2
 focus:
-- id: the-book-is-built-from-origin-and-a-waiting-book-keeps-its-place
-  what: Get one book built, then remove the reason none has been built for 35 hours. Its premise is met
-    now; nothing in this item waits on a date. (1) The instance. No claim in docs/observability/.seat_work_in_hand.json
-    owns the uncommitted C32 hunks in company/billing/collections_journey.py and company/billing/winter_moratorium.py
-    (mtime 20:42Z 21 Nov). Run their tests (tests/company/billing/test_a_household_already_on_prepayment_is_not_offered_one.py,
-    tests/company/billing/test_the_enforcement_table.py). If they pass, land those hunks only, with tools/isolate_hunks.py
-    and surgical_land --content. If they fail, finish them and then land. Never checkout or stash. Leave
-    saas/reporting/annual_report.py alone if a live claude pid's /proc/<pid>/cwd is the shared tree and
-    its surgical_land names that file. (2) The cause. Code admission in background/sim_runner.py (code_admission,
-    about line 389) refuses whenever any imported file on the shared tree differs from origin, and the
-    shared tree is almost never clean. The landings-first deferral (background/resource_headroom.py, about
-    line 963) yields to every pending commit gate, and gates run continuously. Change sim_runner so the
-    book is built from a detached worktree at the origin commit it admits, by sim-runner itself and not
-    by a second builder, so shared-tree edits cannot refuse it. Also stop a new landing from overtaking
-    a book that is owed (none in 24h) once the book has queued. Whether the restarts re-queue it is the
-    hypothesis in §2 of SEAT_FINDING_THE_BOOK_THE_FIVE_GRADES_WAIT_ON_WOULD_HAVE_DROPPED_THREE_OF_THEIR_RECORDS_AND_IS_STARVED_2026-11-21.md.
-    Record it as confirmed or refuted from the journal. (3) When the book publishes, confirm that company_debt_recovery,
-    retention_holdout_by_desk_year, riding_leg_answers and won_switches_not_supplied are non-None in its
-    run_output, and name any that are missing. Do not grade here; the queued continuations do that.
-  why: One artefact holds up six supplier grades and the thesis test. It has failed to appear for two
-    stretches because each fix took one refusal and the next refusal took its place. Done means three
-    things. A run_output_<sha>_<ts>.json exists under docs/reports/, its sha descends from 6f87ccb38.
-    sim-runner builds from an origin worktree, so an in-place edit on the shared tree can no longer defer
-    it, and a mutation that reverts this goes red. And the starved-book BLOCKING finding is closed through
-    work_items --done against that commit.
-  lane: D_billing_metering
-  side: supplier
-  written_at: 1795307272.483
-- id: the-ending-term-renewal-belief-is-graded-on-the-coming-book
-  what: A surgical_land of this pre-registration was in flight at 00:20Z (pid 1988409, message beginning
-    "Pre-register the ending-term renewal belief's grade on the coming book"). Do not start a second copy.
-    If it lands, bind it with seat_work_in_hand --landed against this id. Then check that its read continuation
-    appears in seat_continuation.live() and waits on the book's file. If it was refused, read the refusal,
-    fix the named cause and re-land from the same bytes. The pre-registration must be on origin before
-    any run_output descending from 6f87ccb38 exists.
-  why: The live renewal belief has ranked leavers backwards (AUC 0.333) since 21 Oct, and its switch waits
-    on a clean-book grade that only a pre-registration filed before the book can give. If the book arrives
-    first, the grade is post hoc. Done means the pre-registration is on origin, dated before the book,
-    and its continuation is live.
+- id: the-book-reports-every-customer-it-supplies
+  what: Book b1c7d76b16 died at 07:57:16Z 22 Nov (journalctl --user -u sim-runner) with KeyError 'SYN-2016-144_3'
+    at saas/cost_to_serve.py:246, because saas/reporting/annual_report.py builds cost-to-serve (~line
+    197) and per_customer_lifetime (~line 782) from CUSTOMERS + SUCCESSOR_CUSTOMERS + DRAWN_CUSTOMERS
+    + INCOMING_OCCUPANT_CUSTOMERS and omits ACQUIRED_CUSTOMERS, which f80fe3951 now supplies. Fix it as
+    a class. Add one function in saas.customers that returns every supplied-customer list, and make every
+    roster union in annual_report.py read it (lines ~197, ~462, ~782, ~5147 differ today). Add a control
+    that puts one record per list through extract_report_data. A mutation dropping ACQUIRED from the function
+    must go red. Then probe the report path on a short run that includes acquisitions, and land the change.
+    Then re-point the continuations confirm-the-b1c7d76b16-book-carries-its-four-records and grade-dual-household-answers-apart-on-the-first-book-carrying-c41e70832
+    from run_output_b1c7d76b16_20261122T055247Z.json (it will never exist) to the first book descending
+    from the fix.
+  why: 'Every queued supplier grade reads this book: the ending-term belief, D48, KNIFE3 I1-I5, the dual-household
+    answers and the won-switch P2-P5. This KeyError has now killed a book twice (OCC-* on 8 Oct, fixed
+    for that list only). Done means the fix and its control are on origin, the two continuations wait
+    on a file that can exist, and sim-runner''s next book starts from a commit carrying the fix.'
   lane: B_commercial
   side: supplier
-  written_at: 1795307272.483
-- id: post-switching-gsop-credit-on-the-ledger-and-return-an-erroneous-gain
-  what: 'This is running now in /var/tmp/se-seat-executor (started 23:40Z on f80fe3951, claim held), so
-    do not start a second copy. If that turn ends without a landing, finish from its worktree diff, not
-    from scratch. The work: in simulation/run_phase4c_on_phase2b.py, post each phase2b switching_gsop_payments
-    row as a credit to the won leg''s own account, and return an erroneous transfer''s gain. Before landing,
-    print on the /tmp/se_gsop_probe run how many GSOP rows were posted, against how many were owed. When
-    it lands, release run_phase2b''s hold, so that supply-a-win-from-a-gas-only-household-as-gas (refused
-    17 draws on that hold) can be drawn.'
-  why: A supplier that owes a standard payment and never credits it understates its cost-to-serve per
-    won customer, and that is the figure CLV against acquisition cost reads. Done means the credits are
-    on the ledger on a commit, posted equals owed in the printed count or each gap is named, and the executor's
-    worktree no longer holds run_phase2b.
-  lane: C_customer_ops
+  written_at: 1795339608.157
+- id: the-book-runs-before-a-still-waiting-s12g
+  what: Once the-book-reports-every-customer-it-supplies is on origin, settle the box's order. s.12g (longjob-value-test-cut012-new-book-queued,
+    pid 1825614, peak 11800 MB, about 2100 min) has been queued for room since 07:58Z, and sim-runner
+    defers every book while it waits. If s.12g has NOT started, stop the queued unit (it holds a wait,
+    not work, and /var/tmp/value-test-cut012 stays untouched at its pin). Let sim-runner build the book.
+    When that book's run_output exists, re-launch s.12g with the identical launch_long_job arguments (read
+    them from the unit before you stop it). If s.12g HAS started, do not stop it, and the book waits.
+    Either way, record which order was taken and why in docs/design/THE_VALUE_TEST_REDESIGN.md s.12g.
+  why: 'Book first costs the thesis test about 2-3 hours. s.12g first costs five supplier grades about
+    35 hours, and the renewal belief grade is one of them. Done means one of two things is on origin in
+    s.12g: the book is running from a fixed commit with s.12g re-queued behind it, or s.12g is running
+    and the record says the book waits for it.'
+  lane: B_commercial
   side: supplier
-  written_at: 1795307272.483
+  written_at: 1795339608.157
+- id: supply-a-win-from-a-gas-only-household-as-gas
+  what: First, the reg 6C landing (surgical_land pid 945604) has ended and nothing reached origin. Read
+    its log or journal and record whether it was refused (name the cause) or killed. Its diff is still
+    uncommitted in the shared tree (simulation/run_phase2b.py, simulation/gain_registration.py), so land
+    it with tools/isolate_hunks.py and surgical_land --content. Then put the 2 gas-only wins on supply
+    from their win date in simulation/run_phase2b.py, the way f80fe3951 did for electricity, and route
+    their switching payments through the 20a58061f credit path. Probe one year and print won against supplied
+    per fuel, and confirm the report path still completes with them on the roster. Land through background/launch_long_job.py.
+  why: A won customer the supplier never bills makes CLV against acquisition cost unreadable for that
+    customer, and the BLOCKING won-switch finding stays open until both pieces land. Done means reg 6C
+    and the gas-only supply are on origin, supplied equals won per fuel (or each gap is named), and the
+    finding is closed with work_items --done.
+  lane: C_customer_ops
+  side: world
+  unblocks: the P2-P5 grade of SEAT_PREREG_A_WON_SWITCH_IS_SUPPLIED_FROM_ITS_WIN_2026-11-21 and CLV against
+    acquisition cost per won customer
+  written_at: 1795339608.157
+- id: a-bounded-turn-cannot-start-a-landing-it-cannot-outlive
+  what: 'In background/seat_executor.py, handle a turn that is within its landing time of teardown, using
+    the gate duration the executor already measures. Hand any surgical_land started then to background/launch_long_job.py
+    so it outlives the unit''s cgroup. Otherwise, refuse it by name and save the diff to a salvage ref.
+    Never warn DOOMED-AT-TEARDOWN and then kill it. Add one control: a mutation that removes the hand-off
+    goes red. If pid 945604 turns out to have been killed at a teardown, cite it as the second instance.'
+  why: This item was named last stretch and never drawn. The defect SIGKILLed 90 minutes of finished GSOP
+    work at 02:45Z, and every supplier item in this focus lands from a bounded turn. Done means the hand-off
+    and its control are on origin, and the GSOP wrong-row is marked corrected.
+  lane: H_harness
+  side: other
+  written_at: 1795339608.157
 not_now:
-  - what: Supplying the 2 gas-only wins (supply-a-win-from-a-gas-only-household-as-gas) ahead of the book.
-    why: >-
-      It is 2 of 16 wins and already queued. It cannot be drawn until the GSOP item releases
-      run_phase2b. Holding the book for it would delay six grades to correct about one eighth of one
-      grade's sample. The book records won_switches_not_supplied, so the gap is published, not
-      hidden.
-  - what: Launching s.12g's fresh-population twin run by hand.
-    why: >-
-      It is the thesis test, but it needs the same memory and the same admission the book cannot
-      get. Launching it would add a fourth refusal cause without removing any. It follows the book.
-  - what: Re-drawing delete-the-dial-weighted-map-draw-at-cutover.
-    why: >-
-      It is a director commitment due 4 Dec, harness-side, and still loses to the book, which has
-      now starved the supplier for two stretches. It comes back once a book has published.
-  - what: Stopping the 3.3 GB build_weather_world (pid 1834741) that took memory while the book was deferred.
-    why: >-
-      It is another lane's live job, and killing it destroys its work. The structural fix in item 1
-      makes the book independent of who holds memory at a given moment. A kill would win one cycle
-      and teach nothing.
-  - what: Reaping /var/tmp/se-grading-record-control and -control2, /var/tmp/value-test-cut012 and the October salvage trees.
-    why: >-
-      6f87ccb38 is on origin, so the control trees' salvage commits are probably disposable, but
-      nobody has diffed them yet. s.12g may still read the cut012 pin. A reap cannot be undone, and
-      keeping them costs nothing tonight. Decide when s.12g launches.
-  - what: World work on N17 or on the deemed and flex standing charge.
-    why: >-
-      Neither blocks a supplier result in focus. N17 has its 23 Nov recheck. The settlement gap
-      measured GBP 0.00 per domestic account-day.
+- what: Keeping s12g-launches-on-the-book-it-was-not-fitted-on in focus.
+  why: 'It is spent: the watcher launched it into the queue and bdf38eaba recorded that. The only open question
+    about it is the box order, which focus item 2 decides.'
+- what: Keeping read-the-ending-term-belief-grade-on-the-coming-book in focus.
+  why: It is a live continuation that draws itself once a book descending from c09847b7c exists. Until focus item
+    1 lands, it has nothing to read.
+- what: Letting s.12g run first and the book wait.
+  why: s.12g first holds five supplier grades for about 35 hours to save the thesis test 2-3 hours. If s.12g has
+    already started, item 2 leaves it alone, because stopping a running 35-hour job wastes real work.
+- what: Putting the director's profile-first speed track (profile-three-workloads-before-any-speed-fix) in focus.
+  why: It is already being landed (surgical_land pid 2268653), and its continuation draws itself. A focus item would
+    only put a second worker on it.
+- what: Putting the curiosity count and the call-time-per-problem-type continuations in focus.
+  why: Both are queued and draw themselves. A dead book outranks both.
+- what: Wiring decision_policy.py to carry the ending-term belief.
+  why: Its pre-registered switch-on rule needs the clean-book grade, and no book exists to grade.
+- what: Fixing the quoted-date ripeness mechanism in delivery_lane.
+  why: It delays work, while the teardown defect loses work, so the teardown defect goes first.
+- what: Reaping the at-risk worktrees.
+  why: s.12g launches from /var/tmp/value-test-cut012 at its pin, and the other trees are undiffed. A reap cannot
+    be undone.
+- what: World work on N17 or on the deemed and flex standing charge.
+  why: Neither blocks a supplier result in focus. N17 has its 23 Nov recheck, and the settlement gap measured GBP
+    0.00 per domestic account-day.
 wrong:
-  - what: >-
-      THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find
-      backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.]
-      21:22 21 Nov -- unchanged; focus item 4 pre-registers the grade. 00:23 22 Nov -- unchanged.
-      The pre-registration's landing is in flight (pid 1988409), and the book it reads has not been
-      built.
-    corrected: false
-  - what: >-
-      THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to
-      the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in
-      decisions.jsonl.] 21:22 21 Nov -- unchanged; the 23 Nov recheck stands. 00:23 22 Nov --
-      unchanged; the 23 Nov recheck stands.
-    corrected: false
-  - what: >-
-      THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the
-      bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day
-      per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails
-      are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day;
-      voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 21:22 21 Nov --
-      unchanged. 00:23 22 Nov -- unchanged.
-    corrected: false
-  - what: >-
-      THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the
-      flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785
-      households, and the cut was fitted on the same pair. [Earlier tails are in decisions.jsonl.]
-      21:22 21 Nov -- 9e57aee83's two-pair mean of +GBP 1.18 (+0.33 to +2.30) is a redraw of the
-      fitted households with no twin, so it cannot close this row; only s.12g can. 00:23 22 Nov --
-      still open. s.12g still waits behind the unbuilt book.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, NEW. The book that every queued supplier grade reads has not been built for
-      30 hours (since 20 Nov 15:39). Each sim-runner cycle deferred: landings went first, the
-      census held 11,981 MB, and from 20:45Z another lane's in-place C32 edits to two
-      company/billing files on the shared tree failed code admission. Meanwhile two grades were
-      drawn against a book that did not exist and landed nothing. 00:23 22 Nov -- worse: 35 hours.
-      The same three causes refused every cycle from 23:25Z to 00:25Z. The C32 hunks are unowned
-      and still on the tree, so the instance-by-instance fix has failed twice. Focus item 1 now
-      owns the structural fix.
-    corrected: false
-  - what: >-
-      THE WORLD'S, NEW. A won switch is never put on supply: on the 20 Nov run 16 fresh
-      acquisitions were won and 0 billed, because ACQUIRED_CUSTOMERS is not on the settlement
-      roster (5ce811272). Two notes had said the world "keeps the household on supply". 00:23 22
-      Nov -- f80fe3951 supplies electricity wins from their win date (on a probe, SYN-2016-144_3
-      settled its first term). 2 of 16 gas-only wins are still off supply and published as
-      won_switches_not_supplied, and no book has graded it (P2-P5 waits). So it is not corrected
-      yet.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, NEW. Last stretch's first focus item was drawn at about 22:05Z, and the lane
-      recorded it as premise_not_yet_ripe on a date in the continuation's prose, though its premise
-      (control_55555_66666.json) had existed since 15:33Z. Its instruction to land the unowned C32
-      hunks was never acted on. A direction item whose prose quotes another item's date can be
-      walked past as unripe.
-    corrected: false
+- what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC
+    0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 00:23 22 Nov -- unchanged. 03:20
+    22 Nov -- unchanged. The pre-registration''s first landing was refused by the overdue-date gate. Its re-land
+    is in flight (pid 3322643), and no book has been built. 06:24 22 Nov -- the pre-registration landed on origin
+    as c09847b7c (03:56Z), before any book carrying it. The first such book (b1c7d76b16) is running. Still uncorrected:
+    no policy carries the corrected belief. 09:22 22 Nov -- worse in time: the book carrying c09847b7c died at report
+    extraction (07:57:16Z), so nothing was graded and no policy carries the corrected belief.'
+  corrected: false
+- what: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median
+    same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 00:23 22 Nov -- unchanged;
+    the 23 Nov recheck stands. 03:20 22 Nov -- unchanged. 06:24 22 Nov -- unchanged; the 23 Nov recheck stands.
+    09:22 22 Nov -- unchanged; the 23 Nov recheck stands.
+  corrected: false
+- what: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges
+    one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account.
+    Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c
+    -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 03:20
+    22 Nov -- unchanged. 06:24 22 Nov -- unchanged. 09:22 22 Nov -- unchanged.
+  corrected: false
+- what: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules
+    twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted
+    on the same pair. [Earlier tails are in decisions.jsonl.] 00:23 22 Nov -- still open. 03:20 22 Nov -- unchanged;
+    s.12g still waits behind the unbuilt book. 06:24 22 Nov -- unchanged. s.12g is armed (vtc-cut012-new-book-watch
+    active since 21 Nov 09:38Z) and waits for the box to be free of the owed book. 09:22 22 Nov -- s.12g was launched
+    into the queue at 07:58:34Z (bdf38eaba, pid 1825614, peak 11800 MB). It is still waiting for room and has not
+    started.
+  corrected: false
+- what: 'THE MACHINE''S, NEW. The book that every queued supplier grade reads has not been built for 30 hours (since
+    20 Nov 15:39). [Earlier tails are in decisions.jsonl.] 00:23 22 Nov -- worse: 35 hours. 03:20 22 Nov -- worse:
+    38 hours. From 01:20Z to 03:20Z, every cycle was deferred, either by landings-first or by four non-origin files.
+    The structural fix is RUNNING in the executor worktree since 02:45Z. Nothing is corrected until a book exists.
+    06:24 22 Nov -- the structural fix landed (b1c7d76b1), and the book has been RUNNING since 05:52:47Z from sim-runner''s
+    origin worktree (pid 670302, in mid-2020 at 06:27Z). Not corrected until run_output_b1c7d76b16_20261122T055247Z.json
+    exists. 09:22 22 Nov -- WORSE: the book ran from 05:52:47Z and then died at 07:57:16Z in extract_report_data
+    (KeyError ''SYN-2016-144_3'', saas/cost_to_serve.py:246). No run_output was written. No book has been built
+    for 42 hours, and sim-runner now defers every cycle behind the queued s.12g.'
+  corrected: false
+- what: 'THE WORLD''S, NEW. A won switch is never put on supply: on the 20 Nov run 16 fresh acquisitions were won
+    and 0 billed, because ACQUIRED_CUSTOMERS is not on the settlement roster (5ce811272). Two notes had said the
+    world "keeps the household on supply". 00:23 22 Nov -- f80fe3951 supplies electricity wins from their win date.
+    2 of 16 gas-only wins are still off supply, and no book has graded it. 03:20 22 Nov -- unchanged. 06:24 22 Nov
+    -- 20a58061f credits each switching payment on the won leg''s ledger and refuses payments owed to gas-only wins
+    by name. The reg 6C return is landing (surgical_land pid 945604). The 2 gas-only wins are still off supply.
+    09:22 22 Nov -- f80fe3951''s supplied wins are what the report roster omits; that omission is what killed the
+    book (see the new row). The reg 6C landing (pid 945604) is gone, nothing reached origin, and its diff is still
+    uncommitted in the shared tree (simulation/run_phase2b.py, simulation/gain_registration.py). The 2 gas-only
+    wins are still off supply.'
+  corrected: false
+- what: 'THE MACHINE''S, NEW. Last stretch''s first focus item was drawn at about 22:05Z, and the lane recorded
+    it as premise_not_yet_ripe on a date in the continuation''s prose, though its premise (control_55555_66666.json)
+    had existed since 15:33Z. Its instruction to land the unowned C32 hunks was never acted on. A direction item
+    whose prose quotes another item''s date can be walked past as unripe. 03:20 22 Nov -- the instance moved: the
+    item was promoted at 01:10Z and has been RUNNING since 02:45Z, with the C32 hunks in its worktree. The mechanism
+    that read a quoted date as ripeness is unchanged. 06:24 22 Nov -- this instance is closed: b1c7d76b1 and 8aa5aa350
+    landed the book fix and the C32 hunks. The mechanism that read a quoted date as ripeness is unchanged. A ripeness
+    date was quoted again this stretch (one-book-carries-... recorded premise_not_yet_ripe at 12:00). 09:22 22 Nov
+    -- unchanged. The mechanism that read a quoted date as ripeness has not been touched.'
+  corrected: false
+- what: 'THE MACHINE''S, NEW. The GSOP turn (01:15Z to 02:45Z) spent its 5400 s on a 2016-2017 probe. Its surgical_land,
+    started at the end, was SIGKILLed with the unit''s cgroup at teardown. The finished change to simulation/gain_registration.py
+    is no longer in the executor''s worktree, and no salvage ref after 01:15Z holds it. The executor warned DOOMED-AT-TEARDOWN
+    and killed the process anyway: a bounded turn can start a landing it cannot outlive. 06:24 22 Nov -- the lost
+    work was redone and landed as 20a58061f. The mechanism is unchanged: nothing stops a bounded turn from starting
+    a landing it cannot outlive. 09:22 22 Nov -- unchanged. Whether pid 945604 (reg 6C) was a second instance or
+    a refusal is not yet established.'
+  corrected: false
+- what: THE MACHINE'S, NEW. An item cited 6f87ccb38 as a landed commit to descend from, but it sat on a7bb4b28cd,
+    a SALVAGE(auto) commit that never reached origin (found by 12fb8d29f). So a grading-record control the book
+    was meant to carry was never on origin. Its re-land is in flight (surgical_land pid 896638). 09:22 22 Nov --
+    pid 896638 ended without a landing. A second re-land has been running since about 08:57Z (surgical_land pid
+    2340853).
+  corrected: false
+- what: THE COMPANY'S, NEW. f80fe3951 put won customers on supply, and nothing asked which downstream readers assumed
+    they were not supplied. saas/reporting/annual_report.py builds cost-to-serve (line ~197) and per-customer lifetime
+    (line ~782) from CUSTOMERS + SUCCESSOR + DRAWN + INCOMING_OCCUPANT without ACQUIRED_CUSTOMERS, so a two-hour
+    book died at its last step. The same KeyError killed a book on 8 Oct for OCC-*, and that fix covered that one
+    list only, so the class was never closed.
+  corrected: false
+- what: THE MACHINE'S, NEW. The book died at 07:57Z and nothing noticed for 85 minutes. The last direction, continuation
+    confirm-the-b1c7d76b16-book-carries-its-four-records and continuation grade-dual-household-answers-apart-...
+    are all held on run_output_b1c7d76b16_20261122T055247Z.json, a file that will now never be written. sim-runner's
+    deferral line names the queued s.12g, not the crash.
+  corrected: false
 for_the_director:
 - id: b8-s-retention-holdout-needs-two-practitioner
   raised: '2026-11-21'
   kind: strategy
   decision_kind: outside_source
-  what: 'B8''s retention holdout needs two practitioner answers nothing published gives. Do GB suppliers
-    hold some renewals out of their retention offers (a no-contact twin), and does Ofgem''s Fixed Retention
-    Tariff derogation from SLC 22B let a supplier withhold the proactive retention approach from a random
-    few, if the tariff is still open to any existing customer who asks? Searched 21 Nov: Ofgem''s own
-    trials (CMOL, 137,876 customers) and the one published retention field experiment (Ascarza et al.
-    2016: 10% churn among those offered, 6% among the held out) use held-out controls, but neither gives
-    a share as a rule.'
-  proposal: Build the blind holdout drawn before treatment behind one default-off switch, at the share
-    the company already derives from its own power calculation (competitive_pressure.save_holdout_share),
-    not a share picked from practice. It withholds only the proactive approach, never the tariff. It stays
-    off in every standing run until you say whether a real desk does this.
-  recommendation: 'I recommend yes: build it default-off at the derived share. A retention offer with
-    no held-out twin cannot sign its own effect (Ascarza 2016''s offer raised churn). The derived share
-    needs no outside figure. If you have seen a GB desk run holdouts, or know the derogation forbids it,
-    that settles the one open question.'
+  what: 'B8''s retention holdout needs two practitioner answers nothing published gives. Do GB suppliers hold some
+    renewals out of their retention offers (a no-contact twin), and does Ofgem''s Fixed Retention Tariff derogation
+    from SLC 22B let a supplier withhold the proactive retention approach from a random few, if the tariff is still
+    open to any existing customer who asks? Searched 21 Nov: Ofgem''s own trials (CMOL, 137,876 customers) and the
+    one published retention field experiment (Ascarza et al. 2016: 10% churn among those offered, 6% among the held
+    out) use held-out controls, but neither gives a share as a rule.'
+  proposal: Build the blind holdout drawn before treatment behind one default-off switch, at the share the company
+    already derives from its own power calculation (competitive_pressure.save_holdout_share), not a share picked
+    from practice. It withholds only the proactive approach, never the tariff. It stays off in every standing run
+    until you say whether a real desk does this.
+  recommendation: 'I recommend yes: build it default-off at the derived share. A retention offer with no held-out
+    twin cannot sign its own effect (Ascarza 2016''s offer raised churn). The derived share needs no outside figure.
+    If you have seen a GB desk run holdouts, or know the derogation forbids it, that settles the one open question.'
   based_on: afa983b9be
   status: answered
-  resolution: 'Director 22 Nov 07:48 GMT: ''Yes to holdbacks.'' Build B8''s retention holdout default-off
-    at the share the company derives from its own power calculation (competitive_pressure.save_holdout_share),
-    withholding only the proactive approach, never the tariff. Ruling: docs/staging/advisor/done/DIRECTOR_RULING_HOLDOUTS_YES_AND_CALL_TIMES_ARE_PUBLISHED_SO_ASK_WHY_THEY_ARE_NEEDED_2026-11-22.md'
+  resolution: 'Director 22 Nov 07:48 GMT: ''Yes to holdbacks.'' Build B8''s retention holdout default-off at the
+    share the company derives from its own power calculation (competitive_pressure.save_holdout_share), withholding
+    only the proactive approach, never the tariff. Ruling: docs/staging/advisor/done/DIRECTOR_RULING_HOLDOUTS_YES_AND_CALL_TIMES_ARE_PUBLISHED_SO_ASK_WHY_THEY_ARE_NEEDED_2026-11-22.md'
   evidence: docs/market_research/retention_slope_per_pound_of_renewal_cut.md §3.5
   resolved: '2026-11-22'
   answer_code: 'yes'
   commitment:
     work_id: seat-finding-b8-no-retention-desk-holds-anyone-out-in-the-standing-run-and-the-book-now-says-so-per-desk-and-year
-    done_means: B8's blind retention holdout, drawn before treatment, lands behind one default-off switch
-      at competitive_pressure.save_holdout_share; it withholds the proactive approach only, and a test
-      shows the switch can be taken
+    done_means: B8's blind retention holdout, drawn before treatment, lands behind one default-off switch at competitive_pressure.save_holdout_share;
+      it withholds the proactive approach only, and a test shows the switch can be taken
     due: '2026-12-04'
 - id: practitioner-number-needed-how-long-is-a
   raised: '2026-11-21'
   kind: strategy
   decision_kind: outside_source
-  what: 'Practitioner number needed: how long is a GB energy phone call once answered (average handle
-    time), and roughly how many calls a year per customer? Nothing published gives either (searched Ofgem
-    guidance and data portal, NI Utility Regulator, supplier reports), and handle time sets the staffing
-    a supplier needs almost one for one.'
-  proposal: Give a range from the trade (e.g. 'about 6 to 10 minutes; billing calls longer'), or say you
-    don't know. I will carry it as a stated belief with your range, labelled as yours, and wire the world's
-    queue (simulation/contact_centre.py phone_queue, landed today, which refuses without it) into the
-    run, so the supplier's staffing choice moves the wait its customers get.
-  recommendation: I recommend you give a handle-time range from the trade if you have one. Absent an answer
-    by the due date I recommend keeping the queue unwired, with the 6-minute provisional draw unchanged,
-    rather than inventing a handle time.
+  what: 'Practitioner number needed: how long is a GB energy phone call once answered (average handle time), and
+    roughly how many calls a year per customer? Nothing published gives either (searched Ofgem guidance and data
+    portal, NI Utility Regulator, supplier reports), and handle time sets the staffing a supplier needs almost one
+    for one.'
+  proposal: Give a range from the trade (e.g. 'about 6 to 10 minutes; billing calls longer'), or say you don't know.
+    I will carry it as a stated belief with your range, labelled as yours, and wire the world's queue (simulation/contact_centre.py
+    phone_queue, landed today, which refuses without it) into the run, so the supplier's staffing choice moves the
+    wait its customers get.
+  recommendation: I recommend you give a handle-time range from the trade if you have one. Absent an answer by the
+    due date I recommend keeping the queue unwired, with the 6-minute provisional draw unchanged, rather than inventing
+    a handle time.
   based_on: 5cb7b61c9a
   status: answered
-  resolution: 'Director 22 Nov 07:48 GMT sent it back: ''On average call waits, has it properly researched
-    this? This is published by [Ofgem] and Citizens Advice etc. also why does it need to know it?'' Re-researched
-    22 Nov (contact_centre page s.5a): Citizens Advice publishes call wait per supplier from Q4 2017 (already
-    used in s.2) and complaints per 10,000; Ofgem publishes complaints per 100,000 and a survey; neither
-    publishes call volumes, contacts per customer or handle time. No current decision needs a call-level
-    figure: the staffing desk and phone_queue have no caller in any run. GAP closed ''not needed yet'';
-    it reopens when a decision under test varies agent hours or contact-centre spend. Household time uses
-    the published waits; cost to serve uses the cap''s operating-cost allowance. 07:49 addendum: household
-    call time is held per problem type, tricky problems costing most, as stated ranges grounded in the
-    customer-voice coding.'
-  evidence: docs/market_research/contact_centre_staffing_cost_and_call_wait_gb_energy_2026-11-21.md s.5
-    (GAP table) and s.4 (agents scale with handle time almost one for one)
+  resolution: 'Director 22 Nov 07:48 GMT sent it back: ''On average call waits, has it properly researched this?
+    This is published by [Ofgem] and Citizens Advice etc. also why does it need to know it?'' Re-researched 22 Nov
+    (contact_centre page s.5a): Citizens Advice publishes call wait per supplier from Q4 2017 (already used in s.2)
+    and complaints per 10,000; Ofgem publishes complaints per 100,000 and a survey; neither publishes call volumes,
+    contacts per customer or handle time. No current decision needs a call-level figure: the staffing desk and phone_queue
+    have no caller in any run. GAP closed ''not needed yet''; it reopens when a decision under test varies agent
+    hours or contact-centre spend. Household time uses the published waits; cost to serve uses the cap''s operating-cost
+    allowance. 07:49 addendum: household call time is held per problem type, tricky problems costing most, as stated
+    ranges grounded in the customer-voice coding.'
+  evidence: docs/market_research/contact_centre_staffing_cost_and_call_wait_gb_energy_2026-11-21.md s.5 (GAP table)
+    and s.4 (agents scale with handle time almost one for one)
   resolved: '2026-11-22'
   answer_code: returned
   commitment:
     work_id: household-time-per-problem-type-ranges
-    done_means: A K8 knowledge page lands giving, per problem type (tricky against simple), stated ranges
-      for contacts per problem, published wait, talk time and days to resolve, each range checked against
-      the customer-voice coding's time-and-effort field or Ombudsman cases, with no invented point value
+    done_means: A K8 knowledge page lands giving, per problem type (tricky against simple), stated ranges for contacts
+      per problem, published wait, talk time and days to resolve, each range checked against the customer-voice
+      coding's time-and-effort field or Ombudsman cases, with no invented point value
     due: '2026-12-04'
