@@ -2513,3 +2513,46 @@ nothing else moved. The three controls pass on the pin.
   crash log is kept at `/var/tmp/longjob-value-test-cut012-new-book.dunning-crash-20261122.log`.
 
 **Reverse:** `systemctl --user stop longjob-value-test-cut012-new-book-queued longjob-value-test-cut012-new-book`.
+
+**Started, the pin re-checked against its stated deviations, and a reader armed (22 Nov 20:08Z).**
+`longjob-value-test-cut012-new-book` became active at **19:32:32Z**, MainPID 65649, and the driver is
+pid 65653. At 20:05Z it was in the `cut` configuration, `/var/tmp/vtn-out/{cut,A}/` were still empty,
+and no number from book 61118 had been seen. (The pid 2510968 named in the drawing item was not
+alive. This run is the one the item meant.)
+
+- **The pin carries the e09f1640a port and nothing else unstated.** All three readings were taken on the
+  running tree with the arm script's own hash function (`diff --binary 870201d1e7 -- company saas sim
+  simulation tools tests`):
+  - The hash is `030f8d16c8fc…`, which equals `cut012.patch.sha256`.
+  - The diff touches four files. Three of them, `growth_desk.py`, `decision_policy.py` and
+    `run_phase2b.py`, equal the original pin's `cut012.patch` (`2b312c4d…`) line for line, with only
+    the index lines excluded.
+  - The fourth, `company/billing/collections_journey.py`, equals `dunning_fix_e09f1640a.patch`. Its
+    changed lines are identical to `e09f1640a`'s own changes to that file.
+  - No other path in those directories is modified or untracked, apart from the `sim/cache` symlink,
+    which was already there under the first pin.
+  - Outside the scope of the hash, the dirty files are ledgers and logs.
+    `docs/observability/book_growth_campaign.json` and `book_subset_verdict.json` are read by
+    `simulation/live_population.py`. They are written at 19:32:39–40Z, seven seconds into the run, so
+    they are this run's own outputs and not inputs that were carried in.
+  - The driver (`a4dc95e6ff75…`), the grader (`3cb5f92d5f10…`) and the launcher (`dfcb62dd070d…`) match
+    the hashes recorded above.
+- **The reader.** The seat continuation `s12g-has-a-reader-when-it-ends` is live with
+  `DO NOT DRAW BEFORE /var/tmp/vtn-out/A/member_13131_14141.json EXISTS`. A, the last configuration, writes
+  that file. The row also carries a dated stamp of 04:00Z on 24 Nov, because the store expires a row 6 h
+  after its window opens and a path embargo does not move the window. The row names the grader and its
+  `.out`, and the pin hash to re-check at read time. It names the publication: P1, the per-customer arm
+  against the flat-rules twin out of sample, published with its interval and its verdict by P1's own
+  rule whatever its sign, followed by P2–P4 and the founder/win split.
+- **Re-armed when the job ends, on success or death.** User unit `s12g-reader-deathwatch` runs
+  `/var/tmp/box-plan/s12g-reader/watch.sh` (sha256 `d2ded3e46be5…`), logging to `watch.log` beside it.
+  - It waits on the job's MainPID through `tools/wait_for.py`, in 6 h legs, until a 5 Dec deadline.
+  - When the job ends, it re-hands the row off with a fresh window.
+  - If the A member is absent, it then calls `seat_continuation.flag_waiters_on_unwritten_run`. That is
+    the same flag `e1af282d6` gives a dead book: the path embargo lifts and the row's text leads with
+    the death and the unit's result, so the next draw re-arms it instead of waiting on a file that will
+    never exist.
+  - The flag was dry-run on a copy of the store. It flagged this row, and `awaited_paths` went from the A
+    member to empty.
+  - Reverse: `systemctl --user stop s12g-reader-deathwatch` and
+    `python3 -m background.seat_continuation --drop s12g-has-a-reader-when-it-ends`.
