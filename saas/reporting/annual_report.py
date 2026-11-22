@@ -397,6 +397,18 @@ PHASE2B_KEYS_NOT_PUBLISHED: dict[str, str] = {
 }
 
 
+def _without_rows(record: "dict | None") -> "dict | None":
+    """`credits_behind_the_walk` for the run output: its counts, with twenty example rows in place
+    of every row at both levels."""
+    if record is None:
+        return None
+    steps = record.get("dunning_steps") or {}
+    return {**{k: v for k, v in record.items() if k != "rows"},
+            "examples": record.get("rows", [])[:20],
+            "dunning_steps": {**{k: v for k, v in steps.items() if k != "rows"},
+                              "examples": steps.get("rows", [])[:20]}}
+
+
 def extract_report_data(run_output: dict) -> dict:
     """Reduce `run_phase4c_on_phase2b.main()`'s output to a small,
     JSON-serialisable dict of everything `generate_annual_report()` needs --
@@ -1059,6 +1071,11 @@ def extract_report_data(run_output: dict) -> dict:
         # so the published per-household record could show only the ledger's per-bill notices and
         # never the desk's rungs, re-offers or statute-bar write-off. `None` for a run without one.
         "collections_journeys": phase2b.get("collections_journeys"),
+        # Every credit that posted valued on or before a day the desk had already walked, by route,
+        # over all credits posted, and the dunning steps such credits cleared after issue over the
+        # dunning steps issued. Counts and twenty examples here; every row is in the world-truth
+        # sidecar. `None` for a run that did not record one.
+        "credits_behind_the_walk": _without_rows(phase2b.get("credits_behind_the_walk")),
         # KNIFE3: the company's own debt-recovery records at the run's end (write-offs with their
         # invoice_ref, the agency remittances that crossed, the per-debt learner's cells, the sale
         # rule at three offers). The run built them from 1624411d2 on and this reducer dropped

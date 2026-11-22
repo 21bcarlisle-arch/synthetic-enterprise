@@ -951,6 +951,13 @@ class PaymentObservationConsumer:
         self._moratorium_notices_seen: set = set()
         # register_entry_ref -> this register's record ids, so an end notice finds what it ends.
         self._moratorium_records_by_ref: dict = {}
+        #: Every received credit valued on or before the day this company's collections desk had
+        #: already walked its account through when the credit posted: `{account_id, value_date,
+        #: walked_through, amount_gbp, correlation_id}`, once per ledger event. The desk is promised
+        #: a ledger complete to each walk's end; each row is that promise broken, by the company's
+        #: own clock (its walk) and its own cash. `CollectionsJourneyDesk.late_credit_record`.
+        self.credits_behind_the_walk: List[dict] = []
+        self._behind_the_walk_ids: set = set()
         # THE COLLECTIONS JOURNEY (atom EP4). It reads the SAME collections view the arrears state
         # reads, so the step a journey records is the step this company would have selected, and it
         # refuses any step the ledger says is taken against a cleared debt.
@@ -1755,6 +1762,16 @@ class PaymentObservationConsumer:
             transaction_time=observed_at,
             remittance=(remittance_ref,) if remittance_ref else (),
         )
+        walked = self.collections_journeys.walked_through(account_id)
+        if (walked is not None and value_date <= walked
+                and event.event_id not in self._behind_the_walk_ids):
+            # Cash valued on a day this desk has already walked past: a step that day read the
+            # balance without it. Counted, never refused -- the step was lawful on the ledger it read.
+            self._behind_the_walk_ids.add(event.event_id)
+            self.credits_behind_the_walk.append({
+                "account_id": account_id, "value_date": value_date.isoformat(),
+                "walked_through": walked.isoformat(), "amount_gbp": event.amount_gbp,
+                "correlation_id": correlation_id})
         self.ledger_book.post(event)
         if remittance_ref:
             self._recognised_cash_refs.add(remittance_ref)

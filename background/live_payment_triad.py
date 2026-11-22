@@ -810,6 +810,9 @@ class LivePaymentTriad:
         # lump that crossed on or before that day: the desk had already decided that day without
         # the cash (`settlements_behind_the_walk`).
         self._walked: dict = {}
+        #: correlation ids of the lumps `_cross_settlement` handed to the company, so a credit the
+        #: company found behind its walk can be traced to the route that crossed it.
+        self._lump_correlation_ids: set = set()
         self._behind_the_walk: list = []
         self._outcomes_by_customer: dict = {}
         self._moratoria = MoratoriumDrawer()
@@ -1196,6 +1199,29 @@ class LivePaymentTriad:
         return {"count": len(rows), "by_walk": by, "examples": rows[:20],
                 "rows": [dict(r) for r in rows]}
 
+    def credits_behind_the_walk(self) -> dict:
+        """Every credit the company posted valued on or before a day its collections desk had already
+        walked the account through, by the route that crossed it, beside how many dunning steps
+        such a credit has since cleared and how many dunning steps were issued at all.
+
+        Routes: `held_lump` (a later settlement, `_cross_settlement`), `plan_instalment` (the desk's
+        own read of a plan, `plan:` references), `with_its_bill` (anything else: cash that crossed
+        with a period's bill). A credit behind the walk is the ledger-complete-to-`through` promise
+        `advance` relies on, broken; ACC-SYN-2016-239 on book 61118 stopped a run on one."""
+        rows = []
+        by_route: dict = {}
+        for r in self._consumer.credits_behind_the_walk:
+            cid = r["correlation_id"]
+            route = ("plan_instalment" if cid.startswith("plan:")
+                     else "held_lump" if cid in self._lump_correlation_ids else "with_its_bill")
+            by_route[route] = by_route.get(route, 0) + 1
+            rows.append({**r, "route": route})
+        book = self._consumer.ledger_book
+        posted = sum(1 for a in book.accounts() for e in book.ledger(a).events()
+                     if e.event_type == LedgerEventType.PAYMENT_CREDIT)
+        return {"count": len(rows), "credits_posted": posted, "by_route": by_route, "rows": rows,
+                "dunning_steps": self._consumer.collections_journeys.late_credit_record()}
+
     def _cross_settlement(self, item) -> None:
         """Withdraw one lump the household's plan replaced, or cross it to both companies."""
         settled_on, seq, event, account_id, invoice_ref, correlation_id = item
@@ -1241,6 +1267,7 @@ class LivePaymentTriad:
         # The leg is the event's: a billing account holds both fuels, and a settled gas bill is gas.
         self._crossed_settlements.append((account_id, bill_due, settled_on, bill_month,
                                           event.customer_id, event.amount_gbp))
+        self._lump_correlation_ids.add(correlation_id)
         hand_over = self._consumer.observe_hand_over(
             emit_wire_responses(
                 event, SeamAdapterInput(account_id=account_id, correlation_id=correlation_id)),

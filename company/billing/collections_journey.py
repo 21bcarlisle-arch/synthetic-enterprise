@@ -1120,6 +1120,21 @@ class CollectionsJourneyDesk:
             journey.enter(PREPAYMENT, on, answer["reason"], view)
             journey.exit = PREPAYMENT
 
+    def walked_through(self, account_id: str) -> Optional[dt.date]:
+        """The last day this account's journey has been walked through, or None before any walk."""
+        return self._through.get(account_id)
+
+    def late_credit_record(self) -> dict:
+        """How often a dunning step was lawful when issued and a credit posted later, value-dated on
+        or before it, has since cleared it: `steps_cleared_after_issue` over every dunning step this
+        desk issued (the stages `dunning_of_a_cleared_debt` judges). Read after the last walk."""
+        from company.compliance.domain_invariants import _NON_DUNNING_JOURNEY_STAGES
+        issued = sum(1 for j in self.journeys() for s in j["stages"]
+                     if s["stage"] not in _NON_DUNNING_JOURNEY_STAGES)
+        cleared = self.steps_cleared_after_issue
+        return {"steps_cleared_after_issue": len(cleared), "dunning_steps_issued": issued,
+                "accounts": len({r["account_id"] for r in cleared}), "rows": list(cleared)}
+
     def journeys(self) -> List[dict]:
         """Every journey this desk has recorded, closed first then open, as plain records."""
         return [j.as_record() for j in self._closed] + [

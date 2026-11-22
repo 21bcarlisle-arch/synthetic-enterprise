@@ -106,7 +106,7 @@ def dump_run_output(data: dict) -> str:
 #: `prepayment_supply_events` (19 Nov): every prepayment meter's supply losses, over 3 hours
 #: separately -- the floor test's first world input (energy_vulnerability_observables s.7a).
 WORLD_WALK_TRUTH_KEYS = ("settlements_behind_the_walk", "later_settlements", "final_month_nets",
-                         "prepayment_supply_events")
+                         "prepayment_supply_events", "credits_behind_the_walk")
 
 
 def world_walk_truth_path(run_output_path: Path) -> Path:

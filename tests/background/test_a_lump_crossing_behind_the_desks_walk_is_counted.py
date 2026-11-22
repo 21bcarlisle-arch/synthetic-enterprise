@@ -100,3 +100,17 @@ def test_a_delivery_does_not_walk_past_a_lump_still_queued_for_its_own_day():
     # Both lumps crossed after a walk, so "none behind" is about them, not about their absence.
     assert [d for d, _ in crossed] == [dt.date(2023, 8, 15), dt.date(2023, 8, 16)], crossed
     assert all(walked is not None and walked < day for day, walked in crossed), crossed
+
+
+def test_the_company_side_count_names_the_lump_route_and_carries_its_denominators():
+    # The company's own detector (`credits_behind_the_walk`, every route) agrees with the world's
+    # lump counter on both books, and names the lump as the route. Defects named: the route falls
+    # through to `with_its_bill` (the lump's correlation id is not the one the company posts under),
+    # or the count fires on a lump that crossed in order.
+    in_order, behind = _book(), _book(walk_ahead_to=dt.date(2018, 4, 30))
+    assert in_order.credits_behind_the_walk()["count"] == 0
+    seen = behind.credits_behind_the_walk()
+    assert seen["count"] == 1 and seen["by_route"] == {"held_lump": 1}, seen
+    assert seen["rows"][0]["value_date"] == "2018-03-28"
+    assert seen["credits_posted"] >= 1
+    assert seen["dunning_steps"]["dunning_steps_issued"] >= 1, seen["dunning_steps"]

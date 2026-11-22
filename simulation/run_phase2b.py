@@ -6739,6 +6739,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # ...and the lumps that crossed behind their journey's walk, so a desk step that day read
         # the balance without them. AFTER the journeys for the same reason.
         "settlements_behind_the_walk": _payment_triad.settlements_behind_the_walk(),
+        # ...and every credit of any route that posted behind its walk, with the dunning steps such a
+        # credit cleared after issue over the dunning steps issued (book 61118, ACC-SYN-2016-239).
+        "credits_behind_the_walk": _payment_triad.credits_behind_the_walk(),
         # World truth (LEVEL_DD s.9.8 W1/W4): what the world asked on each mover's final bill,
         # and whether a level leaver's ledger credit came off it. Never crosses.
         "final_month_nets": _payment_triad.final_month_nets(),
