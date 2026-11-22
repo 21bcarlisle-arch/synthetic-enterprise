@@ -5017,14 +5017,28 @@ def awaited_paths(item: dict) -> list[str]:
     NEVER RAISES, and an unreadable item awaits nothing -- `embargoed_until`'s fail-open argument.
     A path that never appears does not hold the work for ever: the continuation store's own expiry
     (`seat_continuation.STALE_AFTER_SECONDS`) still drops it into `expired()`, where it is reported.
+
+    A PLACEHOLDER IS AN INSTRUCTION, NOT A PATH (2026-11-22). The re-arm rule tells the tick to
+    re-hand the row off "with DO NOT DRAW BEFORE /…/docs/reports/<name> EXISTS" once the book's
+    name is known; read as given, `<name>` held three grade rows until expiry. A path carrying
+    `<` or `{` is a template and awaits nothing.
+
+    A PATH ITS PRODUCER HAS DECLARED UNWRITTEN IS NOT AWAITED (2026-11-22): sim-runner records
+    `awaits_unwritten_run` on a row whose book died (`seat_continuation.flag_waiters_on_unwritten_run`),
+    so the row is drawn to be re-armed instead of waiting out its window on a file that will never
+    exist.
     """
     try:
         text = " ".join(v for v in item.values() if isinstance(v, str))
+        dead = item.get("awaits_unwritten_run")
+        dead_path = dead.get("path") if isinstance(dead, dict) else None
         waiting = []
         for m in _EMBARGO_PATH.finditer(text):
             if m.start() > 0 and text[m.start() - 1] == "`":
                 continue
             path = m.group("path").rstrip(".,;:)")
+            if "<" in path or "{" in path or path == dead_path:
+                continue
             if not os.path.exists(path) and path not in waiting:
                 waiting.append(path)
         return waiting

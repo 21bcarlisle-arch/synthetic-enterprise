@@ -539,6 +539,25 @@ def book_admission(head: str | None = None, *, spec_path: Path | None = None, to
     return {"admitted": True, "reason": None}
 
 
+def flag_continuations_on_unwritten_run(out_json: Path, reason: str) -> list[str]:
+    """Name, in this log, every seat continuation embargoed on `out_json`, and flag each in the store.
+
+    A run that ends without writing its book strands every grade embargoed on that file name
+    (d48, 22 Nov: twice in one day). The store marks the rows so the draw re-arms them; the log
+    line is what a reader of sim-runner-log.md sees. Never raises.
+    """
+    try:
+        from background import seat_continuation
+        ids = seat_continuation.flag_waiters_on_unwritten_run(out_json, reason)
+    except Exception as exc:  # noqa: BLE001 -- bookkeeping must not mask the run's own failure
+        log(f"Could not ask the continuation store who waits on {out_json.name}: {exc}")
+        return []
+    for cid in ids:
+        log(f"CONTINUATION ORPHANED -- {cid} waits on {out_json.name}, which this run did not "
+            f"write; flagged in the store for re-arming on the next book")
+    return ids
+
+
 def run_simulation(head: str | None = None, root: Path | None = None) -> bool:
     """Run one full simulation of the code at `root` (the book's worktree; default this tree).
     Returns True on success. Outputs are written to this tree's `docs/reports` either way."""
@@ -604,6 +623,7 @@ def run_simulation(head: str | None = None, root: Path | None = None) -> bool:
         update_agent_status("sim-runner", status="error", last_action=f"Run timed out after {elapsed:.0f}s", anomaly=f"TimeoutExpired after {elapsed:.0f}s: {failure_detail(exc.stderr)}")
         # PRODUCER HEALTH (RUNG 1d): a timeout is a terminal non-success like any other.
         record_run_outcome(False, detail=f"timeout after {elapsed:.0f}s: {failure_detail(exc.stderr)}", head=head, elapsed=elapsed)
+        flag_continuations_on_unwritten_run(out_json, f"timed out after {elapsed:.0f}s")
         return False
     elapsed = time.monotonic() - t0
 
@@ -619,6 +639,8 @@ def run_simulation(head: str | None = None, root: Path | None = None) -> bool:
         # drawable work. The 2026-08-17 outage failed here nine times and left nothing the
         # draw ladder could read.
         record_run_outcome(False, detail=failure_detail(getattr(result, "stderr", None)), head=head, elapsed=elapsed)
+        flag_continuations_on_unwritten_run(
+            out_json, f"rc={result.returncode}: {failure_detail(getattr(result, 'stderr', None))}")
         return False
 
     size_kb = out_json.stat().st_size / 1024

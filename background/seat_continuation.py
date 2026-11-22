@@ -709,6 +709,44 @@ def held_reason(work_id: str, path: Path | None = None, **probes) -> str | None:
     return None
 
 
+def flag_waiters_on_unwritten_run(out_path: str | os.PathLike, reason: str, *,
+                                  path: Path | None = None, now: float | None = None) -> list[str]:
+    """Mark every live row embargoed on `out_path` as waiting on a run that ended without writing
+    it. Returns the ids flagged; never raises (the caller is sim-runner's failure branch).
+
+    A GRADE HELD ON A DEAD FILE WAITS FOR EVER (2026-11-22, twice in one day). `d48-grade-the-
+    first-book-built-with-the-blend-at-0-5` said `DO NOT DRAW BEFORE …/run_output_35316f9395_…json
+    EXISTS`; the book died at extract_report_data on the roster KeyError and the row would have sat
+    unoffered until its window closed. The producer is the only thing that knows the file will never
+    come, so it says so here: the flag lifts the path embargo (`delivery_lane.awaited_paths`) and
+    the row's `what` is prefixed with the death, so the next draw re-arms it on the next book.
+    Matched by file NAME: a run_output name carries its sha and second, so it is unique.
+    """
+    try:
+        from background import delivery_lane  # lazy: delivery_lane imports this module
+        name = os.path.basename(os.fspath(out_path))
+        items = _load(path)
+        dead = _superseded_ids(items)
+        stamp = time.time() if now is None else now
+        flagged = []
+        for item in items:
+            if item.get("retired_at") or item.get("id") in dead or item.get("awaits_unwritten_run"):
+                continue
+            hits = [p for p in delivery_lane.awaited_paths(item) if os.path.basename(p) == name]
+            if not hits:
+                continue
+            item["awaits_unwritten_run"] = {"at": stamp, "path": hits[0], "reason": reason}
+            item["what"] = (f"THE RUN THIS WAITS ON ENDED WITHOUT WRITING {name} ({reason}); it "
+                            f"never will. Re-arm this row on the next book before anything else. "
+                            + str(item.get("what") or ""))
+            flagged.append(str(item.get("id")))
+        if flagged:
+            _save(items, path)
+        return flagged
+    except Exception:  # noqa: BLE001 -- a run's failure branch must not die on its bookkeeping
+        return []
+
+
 def replay_retired(path: Path | None = None, *, mtime=os.path.getmtime,
                    isfile=os.path.isfile) -> dict:
     """The retired rows `retirement_hold` would have held when they were retired, by evidence grade.
