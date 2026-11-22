@@ -92,6 +92,10 @@ attempt was cut at the bound:
 - 22 Nov: 26,456 tests reached, 12.6 GB peak
 - 10–16 Nov: 10.8–17.2 GB peaks
 
+*Correction (22 Nov, seat): "every full attempt was cut at the bound" holds only for 21 and 22 Nov. From
+the 16 Nov progress plugin until its fix `89f5e98d3`, any run reaching the reconciler module died
+at test 6 033 on an INTERNALERROR (`SEAT_FINDING_NO_HEAD_GREEN_CENSUS_..._2026-11-16.md` §11, §13).*
+
 **The suite is serial on a 16-core machine.** pytest-xdist is not installed. The census used 6 h 56 min
 of CPU over 6 h 20 min of wall time: about one core.
 

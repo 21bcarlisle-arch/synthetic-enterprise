@@ -317,3 +317,49 @@ shared tree advances before admission, read the register's HEAD. If it contains 
 
 **The first night that can test the fix is the 22 Nov 03:30 firing, and only if the shared tree has
 rejoined origin by then.**
+
+## 13. Grading §11 against the 21 and 22 Nov censuses (22 Nov 12:40 GMT, claim `grade-22-nov-census-after-plugin-fix`)
+
+**Both nights tested the fix, so §12's positive control was never run.** §12's ≈85% prediction
+(stop near 6 033 on the unfixed plugin) was conditional on the shared tree not advancing before
+admission. It did advance: the reflog shows fast-forwards from 16:45:55 on 21 Nov
+(`9e57aee83d`). Both runs ended exactly at the 17 400 s bound, so each was admitted 17 400 s before
+it finished: 21 Nov at about 19:09:49, HEAD `6bdfe9c851` (18:23:05); 22 Nov at about 05:01:59, HEAD
+`20a58061f`, which matches the register's own HEAD. `89f5e98d3` is an ancestor of both, as it is
+of `cc1edf3776`, the HEAD at 03:30 on 22 Nov. The `_OPEN = open` binding is present at
+`20a58061f`. The prediction is UNGRADED: its condition did not hold. It is not refuted and not
+confirmed, and the unfixed plugin was never re-run as a control.
+
+| | 21 Nov | 22 Nov |
+|---|---|---|
+| Queued from → admitted | 03:39 → ~19:10 (memory, per §12) | 03:31 → ~05:02 (two landings) |
+| Reached / red | **29 083** / 12 | **26 456** / 10 |
+| Ended | at the bound, no summary line | at the bound, no summary line |
+| Peak | 12.1 G, 358 M swap | 12.6 G, 586 M swap |
+
+- **Q1 PASS (indirect).** Neither night's journal has `OSError: no fd` or INTERNALERROR (0 of 14
+  lines). Only an early exit prints the tail, so the journal alone is weak evidence. Q2 is the strong
+  evidence: an INTERNALERROR ends the session, and both sessions ran until the bound killed them.
+- **Q2 PASS.** Both runs got 20 000+ tests past 6 033, the reconciler module's position. §11's
+  diagnosis and fix hold: that module was where the census stopped, and it no longer stops there.
+- **Q3 FAIL on both nights (I gave it ≈40%).** Neither run completed. With the plugin defect gone,
+  the 17 400 s bound is now the only thing stopping the census. The rate was 1.67 tests/s on 21 Nov
+  and 1.52 on 22 Nov. §2's open question, why the suite doubled in duration, is now the whole
+  problem.
+
+**Where the rest goes: the speed track, not here.** `docs/operations/EFFICIENCY_BACKLOG.md` E-p4
+(the suite is serial on 16 cores) and E-p5 (the progress plugin writes `report.duration`, so every
+partial census ranks the suite by file) cover exactly what is left. Adding a third route would
+duplicate them. E-p5 is the cheap next step: it turns tonight's partial run into the per-file
+ranking §2 needs. This finding's own ask is spent. The register is fresh nightly (PARTIAL rows
+dated 20, 21 and 22 Nov), and the plugin no longer cuts the run short. The item is parked to
+E-p4/E-p5, not closed, because a completed census is still owed.
+
+**Correction beside a claim, made in this commit.** `PROFILE_THREE_WORKLOADS_2026-11-22.md` said
+every full attempt since 4 Nov "was cut at the bound". That is wrong for 17–20 Nov. From the 16 Nov
+plugin until `89f5e98d3`, any run that reached the reconciler module died at test 6 033 on the
+plugin defect (§11). 21 Nov is the first night cut at the bound. So comparing per-test rates
+against early October is valid only for the 21 and 22 Nov runs.
+
+**§12's LATENT finding still stands.** `queued()` logs its reason only once. The 21 Nov line names a
+landing; the actual blocker for most of the 15.5 h wait was memory. Not fixed here.
