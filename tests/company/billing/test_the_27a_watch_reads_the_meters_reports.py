@@ -99,7 +99,7 @@ def test_the_consent_gate_takes_the_watch_and_refuses_without_it():
     assert desk.self_disconnection_watch == desk.watch_self_disconnection
     assert _desk(None).self_disconnection_watch is None
     watch = desk.self_disconnection_watch("C1", ON)
-    case = dict(account_id="C1", as_of=ON, arrangement_offered=True)
+    case = dict(account_id="C1", as_of=ON, arrangement_offered=True, on_prepayment=False)
     from company.billing.prepayment_suitability import (
         SuitabilityAnswers,
         assess_prepayment_suitability,

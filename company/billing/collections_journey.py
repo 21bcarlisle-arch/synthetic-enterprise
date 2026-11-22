@@ -1067,6 +1067,9 @@ class CollectionsJourneyDesk:
                       and self.own_holds.is_protected(journey.account_id, on)),
             breathing_space=bool(view.get("moratorium_active")),
             arrangement_offered=_arrangement_answered(journey),
+            # What the desk holds is the meters it moved. No payment-method read reaches it, so a
+            # household that prepaid before it joined reads False: a GAP, named in the commons s.5.
+            on_prepayment=journey.account_id in self._meters,
             self_disconnection_watch=(None if self.self_disconnection_watch is None
                                       else self.self_disconnection_watch(journey.account_id, on))))
         if not gate.permitted:

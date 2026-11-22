@@ -338,6 +338,10 @@ class EnforcementCase:
     ppm_route_exhausted: bool = False
     #: SLC 28B: the four dated precondition records (`SLC28B_PRECONDITIONS`), each its own record.
     involuntary_preconditions: tuple = ()
+    #: Whether the household already pays through a prepayment meter, as the company holds it. None:
+    #: not held, and a PPM move refuses, as every unrecorded precondition does (C32 tenth pass,
+    #: class 6: a second Consent offer re-fitted a meter the desk had already moved).
+    on_prepayment: Optional[bool] = None
 
 
 @dataclass(frozen=True)
@@ -370,6 +374,11 @@ SELF_DISCONNECTING = (
     "the watch has seen this household's meter run out of credit, and SLC 27A.1(b) answers that with "
     "support under 27.8: the weekly deduction is paused (27.8A(d)(iv)) until a review of its ability "
     "to pay re-instates it, and no such review is built, so the pause holds")
+ALREADY_ON_PREPAYMENT = ("the household already pays through a prepayment meter, so there is no meter to "
+                         "move: 27.6(a)(iii) offers payment through a PPM as a way to pay, and this "
+                         "household pays that way")
+PAYMENT_METHOD_NOT_HELD = ("the company holds no record of whether this household already pays through a "
+                           "prepayment meter, so no move to one is made")
 NO_ARRANGEMENT_OFFERED = ("no affordable arrangement has been offered and answered on this debt, and SLC "
                           "27.6/27.8 order that offer before any recovery step (27.8C: charges not "
                           "recoverable until 27.5-27.8 are met); an offer the household has not "
@@ -518,6 +527,8 @@ _CHECKS = {
     "involuntary": _involuntary_check,
     "own_hold": lambda c, _a: OWN_HOLD if c.own_hold else None,
     "breathing_space": lambda c, _a: IN_BREATHING_SPACE if c.breathing_space else None,
+    "payment_method": lambda c, _a: (PAYMENT_METHOD_NOT_HELD if c.on_prepayment is None
+                                     else ALREADY_ON_PREPAYMENT if c.on_prepayment else None),
 }
 
 #: The columns: every protection ground, the clause it rests on, and the check that reads it. Three
@@ -536,6 +547,8 @@ PROTECTION_GROUNDS = {
     "energy_uk_safety_net": ("Energy UK Vulnerability Commitment (voluntary; adopted)", "company_layer"),
     "psr_needs_codes": ("SLC 26; needs codes (CVS 2025 App. 6)", "company_layer"),
     "breathing_space": ("SI 2020/1311 reg 7", "breathing_space"),
+    "already_on_prepayment": ("SLC 27.6(a)(iii): a PPM is a way to pay; a move needs a credit meter",
+                              "payment_method"),
 }
 
 COVERED, GAP, NOT_APPLICABLE = "covered", "GAP", "n/a"
@@ -553,7 +566,7 @@ def _row(covered=(), gap=()):
 
 _LICENCE = ("slc_27_10_winter_pensionable", "slc_27_11_winter_reasonable_steps", "slc_27_11a_ascertain")
 _ALWAYS = ("slc_27_5_to_27_8_ability_to_pay", "own_hold_winter_moratorium", "breathing_space")
-_PPM = ("slc_27_6_a_iii_safe_and_practicable", "slc_27a_self_disconnection")
+_PPM = ("slc_27_6_a_iii_safe_and_practicable", "slc_27a_self_disconnection", "already_on_prepayment")
 
 #: THE TABLE. A cell is COVERED (the gate refuses when the ground is engaged), GAP (the ground
 #: may bar the action and the published record read here does not say how; named in the commons)

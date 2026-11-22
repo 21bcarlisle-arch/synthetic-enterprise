@@ -70,7 +70,7 @@ def _28b_with(kind, record):
 #: A case on which every precondition is met and nothing protective is held, in a summer month.
 BASE = EnforcementCase(account_id="H", as_of=JULY, categories=(), arrangement_offered=True,
                        suitability=_SRP, self_disconnection_watch=_WATCH, ppm_route_exhausted=True,
-                       involuntary_preconditions=_28B)
+                       involuntary_preconditions=_28B, on_prepayment=False)
 
 _POST_HOSPITAL = PSRRecord(account_id="H", categories=(), services_enrolled=(),
                            registration_date=dt.date(2024, 1, 1),
@@ -92,6 +92,7 @@ ENGAGE = {
     "energy_uk_safety_net": dict(categories=(PSRCategory.DISABILITY,)),
     "psr_needs_codes": dict(categories=None, record=_POST_HOSPITAL),
     "breathing_space": dict(breathing_space=True),
+    "already_on_prepayment": dict(on_prepayment=True),
 }
 
 
