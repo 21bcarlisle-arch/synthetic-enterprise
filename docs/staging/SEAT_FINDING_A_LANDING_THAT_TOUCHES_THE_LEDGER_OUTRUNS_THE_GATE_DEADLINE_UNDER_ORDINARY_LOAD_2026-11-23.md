@@ -11,6 +11,18 @@ mappable changes to **1,074 impacted test files** through the static import grap
 `tools/pre_commit_test_gate.py` runs them in one serial pytest, and `tools/surgical_land.py` kills the
 hook at `GATE_TIMEOUT_SECONDS = 3600`.
 
+> **Corrected 23 Nov 19:10Z (delivery seat). The two sentences above are wrong, and they are kept
+> because what follows was built on them.** 1,074 is what `tools/select_impacted_tests.py` returns.
+> Neither the commit hook nor `surgical_land` calls that tool; only `background/publish_scope.py`
+> does, for the publish path. The hook selects with `pre_commit_test_gate.select_targets`, and for
+> this pathspec that gives **181 files and 3,101 tests** (`gate_counts.txt`). For msc6's pathspec,
+> which adds the two conftests, the flat-supplier test and the MSC test, it gives **183 files**
+> (`/var/tmp/se-msc-keep/sel_msc6.txt`). So the gate was killed at 88% of about 3,100 tests, which
+> is about 2,730 tests in the hour, not 13,000. The sharding measurement below split the 1,074
+> files (`shard/s0-3.txt`, 268 or 269 each), not the hook's 181. **It measured a selection no gate
+> runs, so it neither supports nor refutes sharding the real gate.** What it does show still holds:
+> each whole-run fixture is paid again in every process that selects it.
+
 - v2 (22–23 Nov): refused unrun. The hook timed out while the gas chain gated `run_phase2b.py` beside it.
 - v3 (10:48–11:48Z, 23 Nov, `/tmp/msc_land/land3.log`): refused, `timed out after 3600 seconds`, with the
   pytest progress at **88%** and no failure printed. The 11.8 GB cut012 book and other lanes' suites
@@ -60,7 +72,8 @@ shards 8.2 GB):
 | 3 | 1,687, then a red | 2,852 s |
 | 2 | still running at 14:05Z, 53% | >3,800 s |
 
-Together that is ~7,000 tests in ~55 minutes. The serial gate managed ~13,000 in 58. **The
+Together that is ~7,000 tests in ~55 minutes. The serial gate managed ~13,000 in 58 *(wrong: the
+serial gate's selection is 3,101 tests, so 88% is about 2,730. See the 19:10Z correction above)*. **The
 prediction is refuted. Sharding halved the throughput.** Each shard pays the whole-run fixtures
 again: one setup alone, `test_the_flat_supplier_policy_makes_no_retention_offer`'s, took 1,660 s.
 Four shards running together then contend for a box that is already loaded. The sharded gate was
@@ -116,3 +129,21 @@ trigger. The slowest tests in three shards were dominated by `tests/background/`
 60–216 s). That is supervisor and self-note machinery. Ask, file by file, why a change to
 `saas/ledger.py` / `company/finance/*` selects it, and whether that reason holds. The MSC
 landing also still needs reds 3 and 4 settled first.
+
+## 23 Nov 19:10Z: what msc6 changes in the hook's own selection, and what it leaves (delivery seat)
+
+The selection's whole-run fixtures, read from the code at origin `c7b423b49a`:
+
+| fixture | window | shared? |
+|---|---|---|
+| `phase2b_2016_2018` (`test_run_phase2b.py`, `test_run_phase2b_event_log.py`) | 2016–2018 | one session run since 83570bd1c |
+| flat-supplier test, current arm | 2016–2017 | **msc6 makes it read `phase2b_2016_2018`** (fixture moved to `tests/conftest.py` so a file outside `tests/simulation/` can reach it). This saves one run, ~830 s of the 1,660 s setup |
+| flat-supplier test, flat arm | 2016–2017 | no: it is the arm under test, run under `FLAT_SUPPLIER_POLICY` |
+| `_phase2b_every_pre_css_win_erroneous` (reg 6C) | 2016–2017 | no: it monkeypatches the erroneous-transfer share to 1.0 for the whole run |
+
+The deadline is not raised and no file is dropped from the selection. This correction landed on its
+own ahead of MSC (the MSC gate cannot start before ~06:00Z on 24 Nov). land7 runs msc6 only after the
+s.12g book (pid 65649) has ended, unlike land5, which gated beside it. A serial `--durations=40`
+run of the 183-file selection is logged at `/var/tmp/se-msc-keep/durs_serial.log`. If the book ends
+first, the run is interrupted so that land7 has the machine. The durations table goes here when
+that run ends.
