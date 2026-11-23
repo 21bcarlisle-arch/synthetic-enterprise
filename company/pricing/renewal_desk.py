@@ -392,6 +392,42 @@ def laddered_forward(
     return sum(window) / len(window)
 
 
+#: The consumption the cap spreads its unit-rate allowances over, kWh/yr, as (from, kWh) by fuel. It is
+#: Ofgem's default tariff cap level model v1.31 benchmark consumption, read and corroborated against
+#: the published cap levels in tools/ofgem_cap_unit_rate_composition.py (BENCHMARK_KWH_SCHEDULE,
+#: GAS_BENCHMARK_KWH_SCHEDULE). A fix is one unit rate per tariff, so the share of the cost to serve
+#: its unit rate carries is spread over the cap's typical household, not over this prospect's own EAC.
+FIRST_TERM_OPEX_BENCHMARK_KWH: dict[str, tuple[tuple[str, int], ...]] = {
+    "electricity": (("2015-01-01", 3100), ("2026-01-01", 2700), ("2026-07-01", 2500)),
+    "gas": (("2015-01-01", 12000), ("2026-01-01", 11500), ("2026-07-01", 9500)),
+}
+
+
+def first_term_operating_cost_per_mwh(segment: str, commodity: str, term_start: str) -> float | None:
+    """The share of the company's cost to serve that a first-term unit rate must recover, GBP/MWh.
+
+    It is the company's own year cost to serve one account (`saas.cost_to_serve`), less what the
+    standing charge's opex allowance recovers (`renewal_advice_desk.standing_charge_opex_per_year`),
+    spread over the cap's benchmark consumption. `term_contribution_per_year` nets the same two figures,
+    so a benchmark household's term recovers exactly its cost to serve.
+
+    Returns None outside resi. Nothing in the commons splits an SME or I&C standing charge (a GAP), so
+    no share of their cost to serve can be put on the unit rate. Their strike carries no line, as before.
+    """
+    if segment != "resi":
+        return None
+    from company.crm.renewal_advice_desk import standing_charge_opex_per_year
+    from saas.cost_to_serve import fixed_overhead_gbp_per_year
+
+    kwh = FIRST_TERM_OPEX_BENCHMARK_KWH[commodity][0][1]
+    for starts, value in FIRST_TERM_OPEX_BENCHMARK_KWH[commodity]:
+        if term_start[:10] >= starts:
+            kwh = value
+    unrecovered = (fixed_overhead_gbp_per_year(segment, commodity, term_start[:10])
+                   - standing_charge_opex_per_year(commodity, term_start[:10]))
+    return unrecovered * 1000.0 / kwh
+
+
 def quote_first_term(
     *,
     segment: str,
@@ -411,7 +447,8 @@ def quote_first_term(
     12-month forward) wherever that ladder can be built: a fix is sold on the energy bought for it,
     not on today's spot. Before the published series covers a whole ladder (it starts 2021-02-08)
     the spot-led forward stands in. The strike is `strike_fixed_unit_rate`, the one every fixed
-    term uses. The gate is `should_attempt_acquisition` on the strike, or on the forward for a
+    term uses, plus `first_term_operating_cost_per_mwh`, the share of the company's cost to serve the
+    unit rate must recover. A renewal (`quote_renewal`) does not carry that line yet. The gate is `should_attempt_acquisition` on the strike, or on the forward for a
     default tariff, which has no strike. With no forward there is no quote to price or refuse:
     `(True, "no_forward", None)`.
     """
@@ -432,6 +469,9 @@ def quote_first_term(
             term_start=term_start, published_policy_cost_per_mwh=published_policy_cost_per_mwh,
             published_network_cost_per_mwh=published_network_cost_per_mwh,
         ).unit_rate_gbp_per_mwh
+        opex = first_term_operating_cost_per_mwh(segment, commodity, term_start)
+        if rate is not None and opex is not None:
+            rate += opex
     attempt, reason = should_attempt_acquisition(
         segment, commodity, fwd, term_start, quoted_unit_rate_per_mwh=rate)
     return attempt, reason, rate

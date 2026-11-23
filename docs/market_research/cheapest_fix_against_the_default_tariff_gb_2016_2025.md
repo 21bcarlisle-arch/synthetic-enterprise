@@ -538,3 +538,80 @@ on the strike: an operating-cost line read from the company's own cost to serve,
 the company, rather than Ofgem's allowance, which would be the regulator's number standing in for the
 company's. Then re-measure the position at these dates before the hold comes off. The wholesale
 shortfall (shape and losses) is second, and needs the world question above settled first.
+
+## 10. The first-term strike carries its cost to serve (2026-11-23)
+
+**What the design does.** `quote_first_term` now adds `first_term_operating_cost_per_mwh` to the
+fixed strike. The line is the company's own year cost to serve one resi account
+(`saas.cost_to_serve.fixed_overhead_gbp_per_year`, sourced per cap period), less what the standing
+charge's opex allowance recovers (`renewal_advice_desk.standing_charge_opex_per_year`), spread over
+the cap's benchmark consumption (3,100 kWh electricity and 12,000 kWh gas through 2025, from the
+corroborated schedule in `tools/ofgem_cap_unit_rate_composition.py`). `term_contribution_per_year`
+nets the same two figures, so a benchmark household's first term recovers exactly its cost to
+serve. Before the line, this term recovered all of it through the standing charge's opex credit and
+none through the unit rate.
+
+**Choices, and why.**
+- **The company's cost, not Ofgem's allowance.** §9 named this: the regulator's figure must not
+  stand in for the company's.
+- **Benchmark volume, not the prospect's EAC.** A market fix has one unit rate per tariff. Spreading
+  a per-account cost over the prospect's own EAC would quote a low user up to several times the
+  line.
+- **First term only.** `quote_renewal` does not carry the line yet, so a first term and its renewal
+  still differ on it (as §8 already notes for the forward).
+
+**GAPs.**
+- **SME and I&C get no line** (`None`). Nothing in the commons splits their standing charge, so no
+  share of their cost to serve can be placed on the unit rate.
+- **The line runs 3.5 £/MWh above the cap's own split.** It is 21.9 / 22.2 £/MWh at 2023-07 /
+  2024-04, against the cap's OC + SMNCC + PAP on the unit rate of 18.4 / 18.6 (§9). The company's
+  standing-charge credit counts only nil-column OC (CO from July 2025). Ofgem puts the nil-column
+  SMNCC and PAAC (IC from July 2025) on the standing charge as well, so the company carries them on
+  the unit rate. If the company's billed standing charge recovers them, this line and
+  `term_contribution_per_year` both over-count about £11 per account-year. That makes the quote
+  dearer, which errs against our own thesis (F11). It is not corrected here.
+
+**Measured at real inputs** (seed `run_base_seed()`). One variable: the line, on and off. Same book,
+same ladder. Predictions were filed first in `/var/tmp/se-ftq-opcost-probe/PREDICTION.md`.
+
+| year | median position vs cheapest, off → on | priced | declined | wins |
+|---|---|---|---|---|
+| 2016 | +10.8% → +24.7% | 296 → 296 | 0 → 0 | 29 → 21 |
+| 2017 | +3.2% → +14.9% | 311 → 311 | 0 → 0 | 30 → 27 |
+| 2018 | +26.5% → +40.0% | 310 → 310 | 0 → 0 | 13 → 20 |
+| 2019 | +0.8% → +15.2% | 315 → 290 | 5 → 30 | 25 → 26 |
+| 2020 | +0.6% → +15.9% | 317 → 312 | 0 → 5 | 21 → 21 |
+| 2021 | +10.1% → +20.4% | 244 → 163 | 60 → 141 | 20 → 23 |
+| 2022 | −8.0% → −4.4% | 20 → 10 | 67 → 77 | 5 → 6 |
+| 2023 | −12.5% → −4.5% | 121 → 117 | 27 → 31 | 27 → 30 |
+| 2024 | −15.5% → −5.1% | 254 → 254 | 0 → 0 | 47 → 48 |
+| 2025 | −13.9% → −5.5% | 51 → 97 | 0 → 0 | 8 → 20 |
+
+From 2023 Q2 to 2025 Q2, quarterly medians move from between −19% and −11% to between −12% and −2%.
+The campaign goes from 225 wins with 159 quotes withheld to 242 wins with 284 withheld.
+
+**Predictions.**
+- **P1 holds by construction**, because the line is added to the strike. The quote control checks
+  it. At the §9 dates the gap to the cheapest fix moves by exactly the line: from −34.2 to −12.3
+  £/MWh at 2023-07, and from −32.5 to −10.4 at 2024-04. These are §9's strikes plus the printed
+  line; §9's probe was not re-run.
+- **P2 held:** every year rose. 2023 landed at −4.5% (predicted −7% to −2%) and 2024 at −5.1%
+  (predicted −10% to −4%).
+- **P3 was refuted:** total wins rose from 225 to 242, although every position got dearer.
+- **P4 held:** declines rose in 2019–2023 and fell nowhere.
+
+On P3, **I cannot yet say** why. The hypothesis is that a withheld quote spends nothing, so the
+campaign's yearly budget carries prospects later. 2025's priced count doubles (51 → 97) with no
+decline in either arm. That hypothesis is not tested here.
+
+**What it means.**
+- **2023–25 is now mostly attributed.** The remaining undercut, a median 2–12%, is about the size
+  of §9's wholesale shortfall (shape, losses: GAP) and the margin gap (£2 against EBIT + headroom).
+  The hold (`ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`) stays on. The undercut is still on the side of
+  giving margin away.
+- **Pre-2021 strikes now sit 15–40% above the cheapest fix.** Those strikes are spot-led (§8, no
+  published forward). Without the line they sat at parity, so a strike that carries its full cost
+  is well above the market's cheapest fix in those years. That is either the spot-led forward
+  over-pricing a fix, or the market's cheapest fixes being sold below cost. **I cannot yet say
+  which.** It is the next question for those years, and it is a knowledge question before it is a
+  build.
