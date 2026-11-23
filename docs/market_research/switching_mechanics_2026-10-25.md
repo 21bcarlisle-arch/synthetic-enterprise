@@ -281,8 +281,8 @@ on its paid day as a credit bill does, discharging the oldest outstanding bill f
 default, as every other credit in `simulation/arrears_engine.py`); with nothing outstanding it waits and
 comes off the next bill collected (SLC 31H.12), and what is left at close is refunded with the rest of the
 closing credit (reg 6D). (2) It is not a payment by the debtor, so it does not restart the limitation
-clock. (3) A payment owed to a win that is not on supply (won from a gas-only household, so registered
-electricity with no premise to supply) or to a leg with no issued bill has no ledger to net against: it is
+clock. (3) A payment owed to a win that is not on supply (until 22 Nov 2026, a win from a gas-only
+household, registered electricity with no premise to supply) or to a leg with no issued bill has no ledger to net against: it is
 REFUSED with its reason and published, never booked as a bare P&L line, because a cost with no account
 behind it cannot be reconciled to any customer.
 
@@ -302,3 +302,18 @@ reason and the gain stays on supply, published in `erroneous_gains_not_returned`
 bill and the 6ZB credit close on one balance through the existing walk (choice 1 above).
 Unknown (GAP): how quickly old suppliers actually re-registered in practice; no published count was
 found, so the latest day the regulation allows is taken.
+
+**A win from a gas-only household is supplied as gas, from 22 Nov 2026.** Until then the win was
+registered electricity (`make_acquired_customer` stamped every win so), and a gas-only premise
+holds no electricity data, so the world refused to supply it: 2 of 16 wins on the 20 Nov run
+(SYN-2016-163_3, SYN-2016-585_3) carried their funnel cost and never a bill. Choices the design
+makes: (1) The win is registered on the fuel its predecessor was: a gas point at the same premise,
+named `<household>_<n>` with no trailing `g`, as a drawn gas-only household is named (`SYN-2016-163`,
+commodity gas); the `g` names the gas leg of a DUAL household, and the account `ACC-<id>` must find
+the win's own row. (2) Its record is cloned from the predecessor's gas record as an
+electricity win's is from its electricity record ("it IS the same property"): the AQ, the
+calorific-value and correction factors. No quantity is drawn or chosen. (3) Its opening term is a
+fix struck by the gas renewal builder (NBP), as for every gas leg; each boundary after that is the
+household's own engagement roll. (4) Its seasonal heating split is the premise's, carried as for an
+incoming occupant. (5) A win whose deciding leg is electricity still wins electricity alone: winning
+both fuels of a household lost is not built (GAP).

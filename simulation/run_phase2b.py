@@ -3228,16 +3228,6 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         leg, premise = record["customer_id"], predecessor["customer_id"]
         if get_customer(leg) is None or leg in term_indices:
             return
-        if predecessor.get("commodity", "electricity") != "electricity":
-            # `register_acquired_point` stamps every win electricity. Won from a gas-only household,
-            # there is no electricity premise to read and supplying it as gas is not built: 2 of the
-            # 16 wins on the 20 Nov run (SYN-2016-163_3, SYN-2016-585_3). Named, not filled in.
-            won_switches_not_supplied.append({
-                "customer_id": leg, "won_on": record["acquisition_date"], "predecessor": premise,
-                "reason": ("won from a gas-only household: the win is registered electricity and "
-                           "the premise holds no electricity data; supplying it as gas is not built"),
-            })
-            return
         _supplied_wins.append(record)
         if record.get("segment", "resi") == "resi":
             _admitted_resi_ids.add(leg)
@@ -3248,7 +3238,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _by_point[leg] = _by_point[premise]
         if premise in _WORLD_BASE_EAC_KWH:
             _WORLD_BASE_EAC_KWH[leg] = _WORLD_BASE_EAC_KWH[premise]
-        EFFECTIVE_EAC_KWH[leg] = EFFECTIVE_EAC_KWH.get(premise, record["eac_kwh"])
+        if "eac_kwh" in record:
+            EFFECTIVE_EAC_KWH[leg] = EFFECTIVE_EAC_KWH.get(premise, record["eac_kwh"])
         fabric_eligibility_verdicts.extend(
             FabricEligibility(leg, _v.is_eligible, _v.reason)
             for _v in list(fabric_eligibility_verdicts) if _v.customer_id == premise
@@ -3256,15 +3247,27 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         next_hf[leg] = current_hf[leg] = RESET_HEDGE_FRACTION
         term_indices[leg] = 0
         evolution_logs[leg] = []
-        _accounts_with_an_electricity_leg.add(household_of(leg))
-        _fuels_of_household.setdefault(household_of(leg), set()).add("electricity")
-        for _term in build_renewal_schedule(
+        commodity = record.get("commodity", "electricity")
+        _fuels_of_household.setdefault(household_of(leg), set()).add(commodity)
+        if commodity == "gas":
+            # WON FROM A GAS-ONLY HOUSEHOLD (from 22 Nov 2026; 2 of 16 wins on the 20 Nov run were
+            # refused before): a gas point at the same premise, its seasonal split the premise's as
+            # for an incoming occupant, its terms struck by the gas builder as every gas leg's are.
+            carry_premise_split_to_occupier(
+                premise, leg, gas_heating_fraction_by_customer, gas_shape_refusals)
+            _schedule = _build_gas_renewal_schedule(
+                record, gas_records, lookback_temps_fn=_lookback_temps_fn(leg),
+                report_end=effective_end, tariff_type=resolved_tariff_type(record))
+        else:
+            _accounts_with_an_electricity_leg.add(household_of(leg))
+            _schedule = build_renewal_schedule(
                 leg, record["acquisition_date"], effective_end, elec_records,
                 EFFECTIVE_EAC_KWH[leg], lookback_temps_fn=_lookback_temps_fn(leg),
                 segment=record.get("segment", "resi"),
                 # A win took the quote the gate priced, so its opening term is a fix.
-                tariff_type=resolved_tariff_type(record)):
-            _push_term(_term["acquisition_date"], leg, "electricity", _term)
+                tariff_type=resolved_tariff_type(record))
+        for _term in _schedule:
+            _push_term(_term["acquisition_date"], leg, commodity, _term)
 
     def _supply_at_new_home(cid: str, commodity: str, household: str, move_end: date,
                             carried_to: str) -> tuple[dict, str | None]:
@@ -3690,7 +3693,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
         # REG 6C: AN ERRONEOUS GAIN GOES BACK TO ITS OLD SUPPLIER on the day it re-registers it
         # (switching_mechanics_2026-10-25.md s.6, "Returning an erroneous gain"). A won switch is its
-        # own electricity-only household, so the loss ends the one leg and no predecessor. It lands
+        # own single-fuel household (electricity, or gas when won from a gas-only one), so the loss
+        # ends the one leg and no predecessor. It lands
         # inside the opening fixed term, where neither departure roll below runs; anything else is
         # refused by name, never forced, so the leg cannot leave twice in one term.
         if cid in _erroneous_return_on:
@@ -5358,6 +5362,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         if acq_won:
                             suffix = _acquisition_counter.get(billing_account, 3)
                             _acquisition_counter[billing_account] = suffix + 1
+                            # A gas win is named bare, as a drawn gas-only household is
+                            # (`SYN-2016-163`, commodity gas): the trailing `g` names a DUAL
+                            # household's gas leg, and its account `ACC-<id>` must find this row.
                             new_cid = f"{billing_account}_{suffix}"
                             new_customer = make_acquired_customer(new_cid, customer_data, term_start_str)
                             ACQUIRED_CUSTOMERS.append(new_customer)

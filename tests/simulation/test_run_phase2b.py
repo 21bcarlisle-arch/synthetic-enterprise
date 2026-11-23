@@ -336,6 +336,23 @@ def test_a_won_switch_is_settled_from_its_win(_phase2b_result_2017):
     assert not unsettled, f"won switches with no settled day: {unsettled}"
 
 
+def test_a_win_from_a_gas_only_household_is_supplied_as_gas(_phase2b_result_2017):
+    """A win from a gas-only household was refused supply: it was registered electricity and its
+    premise holds no electricity data (2 of 16 wins on the 20 Nov run). Defect named: a gas win
+    kept off supply, or settled on the electricity branch."""
+    result = _phase2b_result_2017
+    on_gas = {r["customer_id"] for r in result["all_records"] if r.get("commodity") == "gas"}
+    gas_wins = [c for c in result["acquired_customers"] if c in on_gas]
+    # The branch must be taken: the 2016-2018 window holds a win from a gas-only household.
+    assert gas_wins, f"no gas-only win in the window: {result['acquired_customers']}"
+    assert not result["won_switches_not_supplied"], result["won_switches_not_supplied"]
+    fuel_of = {}
+    for r in result["all_records"]:
+        if r["customer_id"] in gas_wins:
+            fuel_of.setdefault(r["customer_id"], set()).add(r.get("commodity"))
+    assert fuel_of == {c: {"gas"} for c in gas_wins}, fuel_of
+
+
 
 @pytest.fixture(scope="module")
 def _phase2b_every_pre_css_win_erroneous(tmp_path_factory):
