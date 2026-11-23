@@ -614,4 +614,67 @@ decline in either arm. That hypothesis is not tested here.
   is well above the market's cheapest fix in those years. That is either the spot-led forward
   over-pricing a fix, or the market's cheapest fixes being sold below cost. **I cannot yet say
   which.** It is the next question for those years, and it is a knowledge question before it is a
-  build.
+  build. *(Answered for 2019–20 in §11: not the forward.)*
+
+## 11. Before 2021: the forward does not over-price; the cheapest fix left nothing for cost to serve (2026-11-23)
+
+**Question (§10, last bullet).** With the operating-cost line, 2016–20 first terms sit 15–40% above
+the cheapest fix. Is that the spot-led forward over-pricing a fix, or were the market's cheapest
+fixes sold below cost?
+
+**Method.** This is §9's line-by-line comparison at three pre-ladder dates. Cap components come from
+the v1.31 cap level model (DD, single-rate electricity, regional median, read as in §9). The strike
+is the campaign's own path: `_COMPANY_ENGINE.get_forward_price` over the daily SSP feed (no published
+ladder exists, and the probe asserts that), `strike_fixed_unit_rate` with the residential network
+cost, and `first_term_operating_cost_per_mwh`. Predictions were filed after reading the cap's
+components and before computing any strike line or cheapest fix
+(`/var/tmp/se-ftq-pre2021/PREDICTION.md`; the probe is `strike_lines.py` beside it). Figures are
+£/MWh ex-VAT. The cap's DF is not available before 2019, so 2016–18 are not covered here.
+
+| | 2019-07 | 2020-01 | 2020-07 |
+|---|---|---|---|
+| wholesale: spot-led forward + capital charge | 39.1 | 41.3 | 30.7 |
+| cap DF + CM | 83.7 | 76.2 | 74.5 |
+| policy (term-ahead) vs cap PC | 38.8 vs 33.3 | 39.7 vs 33.7 | 40.1 vs 34.7 |
+| network vs cap NC | 38.6 = 38.6 | 39.2 = 39.2 | 37.8 = 37.8 |
+| margin vs cap E + H | 2.0 vs 5.3 | 2.0 vs 5.1 | 2.0 vs 5.0 |
+| operating cost vs cap OC + SMNCC + PAP | 18.4 vs 15.3 | 18.5 vs 15.4 | 19.5 vs 15.7 |
+| **strike without opex / with opex** | **118.5 / 136.9** | **122.2 / 140.7** | **110.6 / 130.1** |
+| market's cheapest fix (§7) | 119.3 | 117.3 | 118.6 |
+| cap total | 176.7 | 169.9 | 167.7 |
+| cheapest fix minus cap DF + CM + PC + NC | −36.2 | −31.7 | −28.4 |
+
+**Predictions.**
+- **P1 was refuted, and in the opposite direction.** I predicted the strike's wholesale line would sit
+  within ±15% of the cap's DF + CM. It sits 46–59% *under* it. The spot-led forward is not what puts
+  the strike above the cheapest fix. If anything, it under-prices the delivered commodity: §9's
+  shape-and-losses GAP is much larger before 2021 than in 2023–24 (11–27% there).
+- **P2 held.** On the per-fuel belief (§7), the market's cheapest fix sits £28–36/MWh below the cap's
+  direct costs (DF + CM + PC + NC), before any operating cost, smart, EBIT or headroom.
+- **P3 held.** Without the operating-cost line, the strike is within −0.7%, +4.2% and −6.7% of the
+  cheapest fix. Its lines are a baseload spot-led commodity, policy, network and £2, and nothing else.
+
+**What it answers.** For 2019–20 the answer is the second branch. On the company's own cost lines,
+the market's cheapest fix recovered at most an unshaped baseload commodity, policy and network. That
+leaves nothing for cost to serve. On the cap's lines, it did not recover even the direct costs. A
+strike that carries its cost to serve therefore sits 10–20% above it, and **that position is the
+right one, not a defect to price away**: winning the cheapest-fix shopper in those years meant
+selling below cost, which is transfer, not creation (M2). Erring dear is the safe direction (F11).
+
+**What it does not establish.**
+- **How far below cost.** The cap's DF is Ofgem's index: lagged, shaped and on the delivered MWh. In a
+  falling 2019–20 forward market, a lagged index sits above what a fix bought at the quote date cost.
+  The −28 to −36 is an upper bound on the shortfall, not its size. **GAP:** a fix seller's actual
+  delivered commodity cost at the quote date.
+- **Who sold them, and whether they lasted.** That the cheapest fixes of 2019–20 came from suppliers
+  pricing below cost, many of whom later failed, is the practitioner reading. It is not sourced on
+  this page. **GAP:** cite Ofgem's own supplier-failure reviews before any claim rests on it.
+- **2016–18.** There is no cap build to compare against, and §10's 2018 (+40%) is the largest
+  position. Not examined.
+- **The per-fuel split** of a whole-bill gap is still the stated belief from §7.
+
+**For the hold.** This does not argue for lowering the strike before 2021. It does mean the campaign
+wins fewer cheapest-fix shoppers in 2016–20 than a below-cost seller would, and the book's growth in
+those years is earned at cost. The remaining order is unchanged: the wholesale shape-and-losses world
+question (§9), the MSC in its own lane, then pre-register and delete
+`ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`.

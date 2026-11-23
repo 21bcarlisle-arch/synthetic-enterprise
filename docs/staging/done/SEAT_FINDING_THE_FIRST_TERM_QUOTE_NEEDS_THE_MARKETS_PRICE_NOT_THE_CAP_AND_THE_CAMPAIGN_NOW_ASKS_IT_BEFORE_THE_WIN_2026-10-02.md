@@ -356,3 +356,25 @@ cost to serve (K8: §9 states why the line belongs there). Re-measure the positi
 wholesale line. (3) The MSC, in its own lane. (4) Only then pre-register, delete
 `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world. (5) The renewal chain still
 strikes on the spot-led forward.
+
+## 2026-11-23 (late): before 2021 the forward is not what over-prices; the cheapest fix left nothing for cost to serve
+
+The table is on the knowledge page, §11. Predictions were filed first. At 2019-07, 2020-01 and 2020-07:
+
+- **The spot-led wholesale line sits 46–59% under the cap's DF + CM.** That refutes P1, in the
+  opposite direction from what I predicted.
+- **The market's cheapest fix sits £28–36/MWh below the cap's direct costs** (DF + CM + PC + NC).
+- **Without its opex line, the strike matches the cheapest fix to within ±7%.** So the cheapest fix
+  recovered at most baseload commodity, policy and network, and left nothing for cost to serve.
+
+The +10–20% position the opex line opened before 2021 is therefore the right one, not a defect to
+price away: winning that shopper meant selling below cost (M2, F11). Nothing is built from this.
+2016–18 are not covered, because the cap has no build before 2019.
+
+Also landed: `tests/simulation/test_net_new_acquisition.py`'s campaign-size pins, re-measured at
+3089 quotes and £67,372.63. They had been red on origin since the ladder.
+
+**Still owed, unchanged in order:** (1) the world question of shape and losses on the wholesale line
+(§9). This gap is wider before 2021. (2) The MSC, in its own lane. (3) Pre-register, delete
+`ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world. (4) The renewal chain still
+strikes on the spot-led forward, with no opex line.
