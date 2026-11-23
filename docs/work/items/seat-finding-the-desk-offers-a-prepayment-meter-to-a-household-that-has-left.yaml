@@ -1,0 +1,27 @@
+id: seat-finding-the-desk-offers-a-prepayment-meter-to-a-household-that-has-left
+title: The collections desk can ask a household that has left to take a prepayment
+  meter (23 Nov 2026)
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_DESK_OFFERS_A_PREPAYMENT_METER_TO_A_HOUSEHOLD_THAT_HAS_LEFT_2026-11-23.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: EP4_collections_journey
+blocked_by: []
+occurrences: 1
+state: done
+opened_at: '2026-11-23T00:00:00+00:00'
+chosen_at: null
+closed_at: '2026-11-23T20:16:45+00:00'
+chosen_by: null
+done_evidence: 1d1059350
+parked: null
+obsolete: null
+finding_lane: C_customer_ops

@@ -194,8 +194,9 @@ wrong:
       supplied (813c99cca). Nothing on the Consent path asks whether the account is still supplied. 12:24 23 Nov --
       the fix is built but not landed. 15:23 23 Nov -- refused three times on the same three controls, which were
       keyed to the leaver's offer. Focus item 1 re-keys them. 18:23 23 Nov -- with the controls re-keyed it passed its
-      gate (9423d3dc5) and is re-gating after losing the promotion race. Not yet on origin.
-    corrected: false
+      gate (9423d3dc5) and is re-gating after losing the promotion race. Not yet on origin. 19:50 23 Nov --
+      corrected: on origin as 1d1059350 (receipt verified, gate-rc 0); finding closed with that sha.
+    corrected: true
   - what: >-
       THE SEAT'S OWN, NEW. My 12:24Z direction named MSC's "1,074-file selection" as the gate's selection, and a worker
       designed, built and refuted a sharded gate against it (e554e8deb). That selection is select_impacted_tests',
