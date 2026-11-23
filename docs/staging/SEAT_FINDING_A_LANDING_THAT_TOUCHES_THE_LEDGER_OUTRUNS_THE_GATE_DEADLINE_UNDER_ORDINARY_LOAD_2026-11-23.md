@@ -89,6 +89,27 @@ refused at the end even with a longer deadline. Four reds, each also red **at or
    the null arm now returns a finite prior strength on the live roster, which has grown with the
    gas-only wins. It is C29's lane, and it needs a judgement on the estimator. **Not fixed.**
 
+   **Decided 23 Nov: (b), the control was keyed to today's answer.** The null arm was printed
+   before choosing, on the live roster (628 households) and on random halves and three-quarters of
+   it (3 draws each). It left the prior in all 7 cases, with strength 47–244 (dispersion z
+   0.44–1.28) and a lift of −0.01 to −0.11. The planted arm on the same books had strength
+   8.9–11.8 (z 4.0–6.7) and a lift of +0.23 to +0.26. Under a true null, the moment excess is a
+   noise term centred on zero, so it is positive about half the time at ANY roster size. The old
+   leg's `None` was a coin the roster's growth happened to turn. The estimator's response to a
+   weak excess is already proportionate: at strength 65, a five-anniversary account moves 7% of
+   the way from its channel rate toward its own record, against 35% when planted. (a) would need
+   a significance level to gate on, and nothing published sets one for this. That is a picked
+   constant standing in for a property the estimator already has. Re-keyed to the property: the
+   null arm's prior is either `None` or weaker than the planted arm's on the same book. The
+   collapse branch is asserted reachable on a book with no within-channel spread. The null's
+   ranking stays graded by its own leg (lift < 0.10). Open, not acted on: on the null the
+   estimate ranks slightly WORSE than the channel (lift ≈ −0.06). Part of that is the Spearman
+   tie structure (two channel values against 628 distinct estimates), so it is not yet a
+   decision cost.
+   **Mutation-proven:** each of these turns the re-keyed leg red (1 failed), and the file
+   is 8 passed unmutated. (1) Never collapse: return a finite strength where there is no excess.
+   (2) Always collapse. (3) A strength that ignores the size of the excess.
+
 **Next remedy, by the measurement:** the selection's content, as was done for reg 6C's billing
 trigger. The slowest tests in three shards were dominated by `tests/background/` files
 (`test_supervisor.py`, about ten tests at 80–216 s each; `test_daily_self_note.py`, about seven at
