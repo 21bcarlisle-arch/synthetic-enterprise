@@ -147,3 +147,43 @@ s.12g book (pid 65649) has ended, unlike land5, which gated beside it. A serial 
 run of the 183-file selection is logged at `/var/tmp/se-msc-keep/durs_serial.log`. If the book ends
 first, the run is interrupted so that land7 has the machine. The durations table goes here when
 that run ends.
+
+## 23 Nov 20:10Z: the durations table, and the gate does not fit even with msc6 (delivery seat)
+
+**Measured** (`/var/tmp/se-msc-keep/durs_serial.log`): one serial run of the hook's own 183-file
+selection, on origin `c7b423b49a` + msc6, with `--durations=40`, niced, beside the s.12g book (one
+core of 16). **3,331 passed, 2 skipped, 1 xfailed in 4,604 s.** It was green and took 1,004 s
+longer than `GATE_TIMEOUT_SECONDS`.
+
+| setup | s | what it runs | can it read the shared run? |
+|---|---|---|---|
+| flat-supplier test (first user, so it pays `phase2b_2016_2018` too) | 1,542 | shared 2016–2018 + flat arm 2016–2017 | flat arm: no, it is the arm under test |
+| `test_run_phase4c_on_phase2b.py::main_result` | **1,097** | `run_phase4c_on_phase2b.main(report_end="2018-12-31")`, **which runs `run_phase2b` over the shared run's own window again** | not as written: see below |
+| `test_run_phase2b.py::_phase2b_every_pre_css_win_erroneous` (reg 6C) | 557 | 2016–2017, share patched to 1.0 | no |
+| `test_collections_journey.py::answered_live_run` | 525 | 2017, plan answers patched to `high` | no |
+| `test_collections_journey.py::live_run` | 176 | 2016 | not without re-checking its window-keyed legs |
+| every other test, slowest single call | 71 | | |
+
+The five whole-run setups take 3,897 s, which is 85% of the gate. Every other call is 71 s or less.
+**What holds the gate is `tests/simulation/test_run_phase4c_on_phase2b.py`.** It repeats the 2016–2018
+run that the session already holds.
+
+**Why 4c cannot simply be handed `phase2b_2016_2018`.** `run_phase4c_on_phase2b._get_all_customers()`
+reads `run_phase2b.ACQUIRED_CUSTOMERS`, `SUCCESSOR_CUSTOMERS` and `incoming_occupant_supply_points()`,
+and the most recent `main()` in the process fills those. In the gate, the flat arm and reg 6C run
+after the shared fixture, so 4c would bill against another run's acquired customers. Also,
+`main` writes `phase2b_result["switching_gsop_credits_refused"]` (line ~733), and the shared dict
+must not be mutated. **The lever, not built here:** the shared fixture snapshots those run-filled
+lists beside its result. `run_phase4c_on_phase2b.main` then takes an optional
+`(phase2b_result, run_state)`, deep-copies the result and reads the snapshot. A control would show
+4c's output on the shared run equals its output from its own run. That saves about 950 s and brings
+the measured gate to about 3,650 s. That is still not inside the hour with margin, so the
+`live_run` window is the next lever.
+
+**Prediction for land7 (msc6, after the book, written before it runs):** a timeout at about 90–95%,
+no red. The book's absence frees one core, and the gate is a serial process. If it lands anyway,
+this prediction was wrong, and the margin was the box's load and not the selection.
+
+**The post-s.12g book is held** by the `commit: null` MSC row in `background/next_book_requires.yaml`
+(d5a209bac). It holds until MSC lands or the file lapses after 24 Nov. If land7 times out as predicted,
+the hold costs the book its 24 Nov slot. Deleting the row is the reverse (see the row's comment).
