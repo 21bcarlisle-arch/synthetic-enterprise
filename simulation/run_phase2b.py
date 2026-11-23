@@ -158,6 +158,7 @@ from sim.forward_curve import (
     WINTER_MONTHS,
     WINTER_MULTIPLIER,
     generate_forward_price,
+    published_forward_quote,
     short_first_term_lookbacks,
 )
 from sim.gas_prices_history import RECORD_START as NBP_RECORD_START
@@ -5691,6 +5692,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     _carried_from)
 
             cust_segment = customer.get("segment", "resi") if customer else "resi"
+            hedge_price = forward_price  # the fixed branch below swaps in the market's quote
             if term_tariff_type == "deemed":
                 # Phase 40c: out-of-contract period — spot + deemed_premium, no forward hedge.
                 # Phase 47a/MARGIN_REALISM Step 5: cap-bound 2019+ for resi (W3_1_price_cap_binding).
@@ -5788,8 +5790,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 else:
                     effective_shape_fn = shape_fn
 
+                # G15 (2026-11-23): the hedge EXECUTES at the market's traded 12-month forward as of
+                # the term's start where Ofgem published one (Feb 2021 on), not at the world's
+                # spot-EWMA model, which sat 0.51x to 1.65x the dealable price in 2021-22
+                # (`sim.forward_curve.published_forward_quote`). Before the series, the model.
+                _published_hedge = published_forward_quote(term_start_str, "electricity")
+                hedge_price = forward_price if _published_hedge is None else _published_hedge
                 term_records = run_hedged_term(
-                    cid, term_start_str, term_end_str, unit_rate, forward_price, hf,
+                    cid, term_start_str, term_end_str, unit_rate, hedge_price, hf,
                     risk["monthly_cost_of_capital_gbp"], effective_shape_fn, elec_records,
                     tou_rates=tou_rates, segment=cust_segment,
                     pass_through=(term_tariff_type == "pass_through"),
@@ -5799,7 +5807,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     economy_7=_economy_7,
                 )
                 # Phase 43a: open a forward contract in the company trading book.
-                # agreed_price = forward_price, the market's own PIT forward quote
+                # agreed_price = hedge_price, the market's own PIT forward quote
                 # (docs/market_research/a_hedge_executes_at_the_markets_quote_not_the_companys_own_forward_estimate_2026-10-12.md):
                 # a counterparty prices the trade, not the company's own belief --
                 # company_fwd stays the sizing input (decide_term_hedge, above) and
@@ -5815,7 +5823,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         term_start=term_start_str,
                         term_end=term_end_str,
                         volume_kwh=eac_kwh,
-                        forward_price_gbp_per_mwh=forward_price,
+                        forward_price_gbp_per_mwh=hedge_price,
                         hedge_fraction=hf,
                         term_days=term_days_count,
                     )
@@ -5844,7 +5852,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     if actual_term_kwh > 0 else 0.0
                 )
                 vt = compute_term_volume_tolerance(
-                    actual_term_kwh, contracted_term_kwh, avg_spot, forward_price, hf
+                    actual_term_kwh, contracted_term_kwh, avg_spot, hedge_price, hf
                 )
                 volume_tolerance_log.append({
                     "customer_id": cid,
@@ -5920,9 +5928,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             _gas_split = gas_heating_fraction_by_customer.get(cid)
             if cust_segment == "resi":
                 _gas_settled_resi[cid] = None
+            # G15: the gas hedge executes at the published NBP forward too, where there is one.
+            _published_gas_hedge = published_forward_quote(term_start_str, "gas")
             term_records = run_gas_term(
                 cid, term_start_str, term_end_str, aq_kwh,
-                unit_rate, hf, forward_price,
+                unit_rate, hf,
+                forward_price if _published_gas_hedge is None else _published_gas_hedge,
                 risk["monthly_cost_of_capital_gbp"], gas_records,
                 segment=cust_segment,
                 pass_through=(term_tariff_type == "pass_through"),

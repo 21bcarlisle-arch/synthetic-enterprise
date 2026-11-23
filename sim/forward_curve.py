@@ -245,6 +245,59 @@ def generate_forward_price(
     return forward_price
 
 
+_PUBLISHED_FORWARD_CSV = {
+    "electricity": Path(__file__).parent / "data" / "ofgem_forward_weekly_electricity.csv",
+    "gas": Path(__file__).parent / "data" / "ofgem_forward_weekly_gas.csv",
+}
+_PUBLISHED_FORWARD: dict[str, tuple[list[str], list[float]]] = {}
+#: Pence per therm to GBP per MWh: 10 / 29.3071 (kWh per therm, the statutory conversion).
+_P_PER_THERM_TO_GBP_PER_MWH = 10.0 / 29.3071
+
+
+def _published_forward_rows(fuel: str) -> tuple[list[str], list[float]]:
+    if fuel not in _PUBLISHED_FORWARD:
+        import csv
+        knowable, prices = [], []
+        with open(_PUBLISHED_FORWARD_CSV[fuel], encoding="utf-8") as fh:
+            for row in csv.DictReader(fh):
+                week_start = date.fromisoformat(row["week_start"])
+                # Ofgem: a row covers Monday to Friday of its week, so it is knowable from the
+                # following Monday (docs/data-sources/ofgem-forward-weekly.md).
+                knowable.append((week_start + timedelta(days=7)).isoformat())
+                prices.append(float(row["price_gbp_per_mwh"]) if fuel == "electricity"
+                              else float(row["price_pence_per_therm"]) * _P_PER_THERM_TO_GBP_PER_MWH)
+        _PUBLISHED_FORWARD[fuel] = (knowable, prices)
+    return _PUBLISHED_FORWARD[fuel]
+
+
+def published_forward_quote(trade_date: str, fuel: str = "electricity") -> float | None:
+    """The traded 12-month baseload forward as of `trade_date`, in GBP/MWh, or None.
+
+    The market's dealable price, not a model of it: Ofgem's weekly volume-weighted broker average
+    for the cap's reference contracts, from the latest week a trader could have seen by
+    `trade_date` (a row is read from the Monday after its week, never earlier). None before the
+    series starts (trade dates before 2021-02-08) and once the newest row is more than one
+    publication step stale, so a caller keeps its own estimate rather than an old price.
+
+    Why a hedge executes here and not at `generate_forward_price`: the 16 Nov comparison
+    (docs/market_research/the_worlds_synthetic_forward_against_the_published_forward_2021_2025_2026-11-16.md)
+    found the synthetic quote 0.51x the published in summer 2022 and 1.65x in autumn 2021, so a
+    world hedge was booked at a number no supplier could have dealt at in the years that decide a
+    hedging result. Stated belief, not a published fact: the published basket covers the next cap
+    period's twelve months, not twelve months from `trade_date` (no delivery axis is published;
+    `the_published_forward_has_an_as_of_axis_and_no_delivery_axis_2026-10-07.md`).
+    """
+    knowable, prices = _published_forward_rows(fuel)
+    i = bisect.bisect_right(knowable, trade_date) - 1
+    if i < 0:
+        return None
+    # One weekly step of staleness is the series' own cadence; past that the series has ended
+    # and the newest row is not this date's price.
+    if date.fromisoformat(trade_date) - date.fromisoformat(knowable[i]) >= timedelta(days=7):
+        return None
+    return prices[i]
+
+
 def short_first_term_lookbacks(
     customers: list[dict], record_start: str, short_record_reason: str | None,
     fuel: str, lookback_days: int = 90,
