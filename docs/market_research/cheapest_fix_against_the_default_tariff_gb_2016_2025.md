@@ -336,3 +336,63 @@ the world charges the MSC to the gainer for each win from 14 April 2022 to 31 Ma
 Ofgem's published weekly rates, and the company sees the charge in its own settlement. Second, the
 hedge-cost candidate is tested: strike on the cost of the company's own book against strike on
 spot-EWMA, at the same dates.
+
+**The hedge-cost candidate, tested 2026-11-23.** The predictions were filed before any number was
+computed. The method uses the same dates, the same 2,900 kWh domestic fixed electricity quote and the
+same `strike_fixed_unit_rate`, and changes **only the forward** handed to it:
+
+- **A** is the company's spot-EWMA. It reproduces the table above to the decimal, which is the control.
+- **B** is Ofgem's published 12-month forward that could be dealt on the quote date
+  (`sim.forward_curve.published_forward_quote`).
+- **C6** and **C12** are the mean of that published forward over the trailing 6 or 12 months, counting
+  only weeks a trader could have seen by the quote date. This stands for the cost of a book hedged
+  evenly on a ladder. The run's own hedge records are not used.
+
+| date | cheapest deal | A spot-EWMA | B dealable forward | C6 ladder | C12 ladder |
+|---|---|---|---|---|---|
+| 2022-10 | 323.8 | 272.8 / +19.6% | 414.9 / +64.0% | 301.8 / +28.6% | 231.1 / +6.5% |
+| 2023-01 | 323.8 | 245.5 / +14.0% | 194.9 / −2.2% | 348.5 / +47.0% | 273.8 / +23.1% |
+| 2023-04 | 323.8 | 113.9 / −25.1% | 148.3 / −14.0% | 233.9 / +13.4% | 267.8 / +24.2% |
+| 2023-07 | 273.0 | 96.3 / −17.8% | 124.1 / −7.3% | 141.7 / −0.6% | 245.1 / +38.7% |
+| 2023-10 | 250.3 | 103.4 / −4.7% | 102.4 / −5.1% | 122.4 / +3.2% | 178.2 / +26.3% |
+| 2024-01 | 247.8 | 85.0 / −10.4% | 77.3 / −13.6% | 107.7 / −0.9% | 124.4 / +6.1% |
+| 2024-04 | 212.6 | 48.4 / −15.6% | 74.5 / −2.9% | 85.6 / +2.5% | 103.6 / +11.4% |
+| 2024-07 | 205.1 | 81.6 / +4.3% | 81.6 / +4.3% | 76.5 / +1.7% | 92.4 / +9.7% |
+
+Each cell is the forward (£/MWh), then the strike's position against the cheapest deal. Both sides
+are ex-VAT. The cheapest deal is a retail unit rate; the forwards are wholesale.
+
+All four predictions held:
+
+- **P1.** B does not close 2023-04. It reaches −14.0%.
+- **P2.** C12 overshoots 2023 H1. It reaches +24.2% at 2023-04, carrying the August 2022 peak.
+- **P3.** A ladder closes 2023-07 to 2024-01. C6 sits at −0.6%, +3.2% and −0.9% there, where A sat
+  between −5% and −18%.
+- **P4.** At 2024-04 both ladders sit above A.
+
+What the table shows:
+
+- **From 2023-07 to 2024-07, the cheapest fix on the market was priced about where a six-month ladder
+  of the dealable forward sits.** All five dates fall within ±3.2%. The gap that remains is not the
+  per-fuel split and not the MSC: the MSC is 0 to 10 £/MWh across these dates and sits on top of
+  this.
+- **This does not separate the supplier's own hedge cost from the cap's lagged index.** Both are
+  trailing averages of the same forward, so this probe cannot tell them apart. What it does establish
+  is narrower: real fixes in that period were priced off a **lagged forward cost, not the spot-led
+  forward.** Our strike ignores that lag, and that is the larger part of the 2023 H2 – 2024 undercut.
+- **2022 Q4 – 2023 Q2 is not explained by any ladder.** The published gap was 0 in that period. The
+  cheapest deal *was* the default, under the EPG. In 2022-10 and 2023-01 every instrument except B
+  prices above it, so no fix could win; that agrees with the market of the time. At 2023-04 the
+  instruments disagree: A is at −25%, B at −14% and C6 at +13%. The MSC (about 17 £/MWh, about 20%
+  of A's gap) and the EPG floor (Ofgem, February 2023) remain the candidates. **I cannot yet say**
+  which.
+
+What it means for the company. A supplier striking a fixed first term prices the energy at what it
+will cost them, and a hedged book costs a lagged average, not today's spot-led forward. The
+published forward is something a real supplier sees. Building this is a change to the company's
+strike, not the world's. It means pricing the first term off the cost of its own hedge ladder, as
+the company buys it, with the ladder's length the company's own choice. That build comes before the
+hold can come off. Until it lands, deleting `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES` would let the
+2023 H2 – 2024 strikes win on a cost the company has not modelled. That is a transfer, not value
+created. Probe and predictions: `/var/tmp/se-hedgecost/` (outside the repo, reproducible from the
+two committed inputs).

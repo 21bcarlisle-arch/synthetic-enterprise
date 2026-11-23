@@ -280,3 +280,29 @@ counts. It stays above, beside this result.
 own settlement. The knowledge page now exists. (2) Test the hedge-cost candidate: strike on the cost
 of the company's own book against strike on spot-EWMA, at the same dates. (3) Only then
 pre-register, delete `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world.
+
+## 2026-11-23 (later): the hedge-cost candidate is tested, and a lagged forward explains 2023 H2 – 2024
+
+The table is on the knowledge page, §7, "The hedge-cost candidate, tested 2026-11-23". The
+predictions were filed before computing. The only thing changed is the forward handed to
+`strike_fixed_unit_rate`, at the same eight dates. The spot-EWMA reproduces the attribution table
+exactly.
+
+- **A trailing six-month mean of Ofgem's dealable 12-month forward strikes within ±3.2% of the
+  cheapest deal at every date from 2023-07 to 2024-07.** On spot-EWMA the same dates sat between −18%
+  and +4%. Pricing on the dealable forward at the quote date alone does not close it (−14% at
+  2023-04). A twelve-month ladder overshoots (+24% to +39% in 2023).
+- **This does not separate own-hedge cost from the cap's lagged index.** Both are trailing averages
+  of the same forward. It does establish that real fixes were priced off a lagged forward cost and
+  our strike is not.
+- **2023-04 is still open.** The instruments span −25% to +13% there. The MSC and the EPG floor are
+  the candidates. I cannot yet say which carries it.
+
+All four predictions held (P1–P4 on the page).
+
+**Still owed, in order:** (1) The MSC is charged to the gainer. This is in flight in its own lane, as
+the child item. (2) The company strikes a first term off the cost of its own hedge ladder, not
+spot-EWMA, reading the published forward through the seam. This is a company build, and it needs a
+K8 page section first. The ladder length is the company's choice; 6 months is what the market's fixes
+matched, not a value to hard-code. (3) Only then: pre-register, delete
+`ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world.
