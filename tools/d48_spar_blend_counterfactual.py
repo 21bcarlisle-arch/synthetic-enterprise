@@ -164,6 +164,21 @@ class _Dressed:
         self.printed = {"invoices": invoices}
 
 
+def rebill_or_name(bills, true_kwh, spar, book_spar=0.0) -> tuple[dict, dict, str | None]:
+    """`counterfactual_kwh`, or ({}, counters, reason) where the opening figure cannot be un-blended.
+
+    An account whose first actual read came so late that one advance carries weight 1 at the book's
+    SPAR (2 of 489 electricity accounts on the 23 Nov 2016-2018 pre-flight, first read over two
+    years after opening) kept nothing of its opening figure. Its bills stay as billed at every SPAR,
+    as gas, PC2 and no-read bills do, and it is NAMED in the sweep's output so the grade reports how
+    many it holds fixed. Before this, one such account raised and voided the whole sweep."""
+    try:
+        rebilled, seen = counterfactual_kwh(bills, true_kwh, spar, book_spar)
+        return rebilled, seen, None
+    except ValueError as exc:
+        return {}, {"zero_advances": 0, "hold_bills": 0}, str(exc)
+
+
 def sweep(book: dict, spars=SPAR_SWEEP, book_spar: float = 0.0) -> list[dict]:
     rows, truth, _belief, noskill, _s = account_errors(book)
     elec = np.array([r["fuel"] == "electricity" for r in rows])
@@ -176,10 +191,12 @@ def sweep(book: dict, spars=SPAR_SWEEP, book_spar: float = 0.0) -> list[dict]:
         true[r["customer_id"]][r["period_end"]] = r["true_consumption_kwh"]
     out = []
     for spar in spars:
-        num, c6, accts, zero, hold = 0.0, None, [], 0, 0
+        num, c6, accts, zero, hold, unrecoverable = 0.0, None, [], 0, 0, {}
         for cid, bills in by_acct.items():
             bills.sort(key=lambda b: b["period_end"])
-            rebilled, seen = counterfactual_kwh(bills, true[cid], spar, book_spar)
+            rebilled, seen, refused = rebill_or_name(bills, true[cid], spar, book_spar)
+            if refused:
+                unrecoverable[cid] = refused
             zero, hold = zero + seen["zero_advances"], hold + seen["hold_bills"]
             accts.append(_Dressed(cid, bills, rebilled))
             if bills[0].get("commodity") != "electricity":
@@ -202,6 +219,7 @@ def sweep(book: dict, spars=SPAR_SWEEP, book_spar: float = 0.0) -> list[dict]:
             "flag_where": [x["where"] for x in tally.flags],
             "elec_residual_kwh": num, "elec_noskill_kwh": den,
             "hold_bills_rebilled": hold, "zero_advances": zero,
+            "held_as_billed_opening_unrecoverable": unrecoverable,
         })
     return out
 
@@ -222,7 +240,8 @@ def main(argv=None) -> None:
         print(f"SPAR {r['spar']:>4}: elec gap {r['elec_gap']:.3f}  C6 |res| {r['c6_residual_kwh']:,.0f} kWh  "
               f"E1 runs {r['runs_checked']} breaches {r['breaches']} "
               f"(on moved accounts {len(r['breaches_on_moved_accounts'])}) flags {r['flags']}  "
-              f"hold bills {r['hold_bills_rebilled']} zero advances {r['zero_advances']}")
+              f"hold bills {r['hold_bills_rebilled']} zero advances {r['zero_advances']}  "
+              f"held as billed (opening unrecoverable) {len(r['held_as_billed_opening_unrecoverable'])}")
     if args.json:
         args.json.write_text(json.dumps(result, indent=1, default=str), encoding="utf-8")
 

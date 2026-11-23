@@ -9,7 +9,7 @@ from datetime import date
 import pytest
 
 from company.billing.unread_month_estimate import profile_weight
-from tools.d48_spar_blend_counterfactual import counterfactual_kwh
+from tools.d48_spar_blend_counterfactual import counterfactual_kwh, rebill_or_name
 
 
 def _bill(end, start, basis, kwh):
@@ -61,3 +61,21 @@ def test_a_book_built_with_the_blend_is_read_back_to_the_hold_and_to_itself():
     other, _ = counterfactual_kwh(book, TRUE, 3.0, book_spar=0.5)
     direct, _ = counterfactual_kwh(BILLS, TRUE, 3.0)
     assert other == {k: pytest.approx(v) for k, v in direct.items()}
+
+
+def test_an_account_read_first_after_two_years_is_held_as_billed_and_named_not_fatal():
+    """Defect: on a book built at SPAR 0.5 an account whose first actual read came over two years
+    after opening carries an advance of weight 1, so its opening figure cannot be un-blended. The
+    raise voided the whole sweep (23 Nov pre-flight, 2 of 489 accounts). The account is held as
+    billed and named; the ordinary account beside it is still re-billed."""
+    months = [(f"{y}-{m:02d}-01", f"{y}-{m:02d}-28") for y in (2016, 2017, 2018) for m in range(1, 13)]
+    late = [_bill(e, s, "estimated", 600.0) for s, e in months[:26]]
+    late += [_bill(months[26][1], months[26][0], "actual", 300.0),
+             _bill(months[27][1], months[27][0], "estimated", 600.0)]
+    late_true = {b["period_end"]: 300.0 for b in late}
+    with pytest.raises(ValueError, match="weight 1"):
+        counterfactual_kwh(late, late_true, 0.0, book_spar=0.5)
+    rebilled, seen, refused = rebill_or_name(late, late_true, 0.0, book_spar=0.5)
+    assert rebilled == {} and seen["hold_bills"] == 0 and "weight 1" in refused
+    ordinary, _, none = rebill_or_name(BILLS, TRUE, 1.0)
+    assert ordinary and none is None
