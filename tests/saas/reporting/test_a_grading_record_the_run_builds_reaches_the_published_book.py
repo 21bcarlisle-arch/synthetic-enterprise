@@ -45,6 +45,15 @@ GRADING_RECORDS = {
         {"customer_id": "SYN-2016-163_3", "won_on": "2017-03-31", "predecessor": "SYN-2016-163",
          "reason": "won from a gas-only household"},
     ],
+    # 22 Nov: reg 6C, the erroneous gains returned to their old supplier and any the world kept.
+    "erroneous_gains_returned": [
+        {"customer_id": "SYN-2016-144_3", "returned_on": "2017-05-18", "agreed_on": "2017-04-18",
+         "basis": "stated belief: the last day reg 6C allows"},
+    ],
+    "erroneous_gains_not_returned": [
+        {"customer_id": "SYN-2016-301_3", "due_on": "2018-01-29",
+         "reason": "the return falls after the run's window"},
+    ],
 }
 
 

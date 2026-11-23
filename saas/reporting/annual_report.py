@@ -1304,6 +1304,10 @@ def extract_report_data(run_output: dict) -> dict:
         # The reg 6ZA switching payments, which the billing ledger credits on the won leg's own
         # ledger (tools/generate_billing_ledger.py). Default empty: a run without switching pays none.
         "switching_gsop_payments": phase2b.get("switching_gsop_payments", []),
+        # Reg 6C: the erroneous gains the old supplier re-registered, and those the world could not
+        # return, each with its reason. No default: absent means a run built before the return.
+        "erroneous_gains_returned": phase2b.get("erroneous_gains_returned"),
+        "erroneous_gains_not_returned": phase2b.get("erroneous_gains_not_returned"),
         "churned_billing_accounts": phase2b.get("churned_billing_accounts", []),
         # The home movers, forwarded for the same reason as `svt_departures` above, with NO default:
         # absent means moves are off. Dropped here until 2026-10-10, so the ledger could not see a

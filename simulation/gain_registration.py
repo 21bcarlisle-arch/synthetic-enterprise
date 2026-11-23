@@ -21,9 +21,9 @@ WHAT IS DRAWN AND WHAT IS NOT
 * **Posted:** each payment the company owes on a gain is credited to the won leg's ledger
   (`account_credits_from_switching_payments`, netted by `arrears_engine`'s walk). A payment to a
   win with no ledger is refused with its reason (switching_mechanics_2026-10-25.md s.6).
-* **Not built:** an erroneously transferred customer is returned to its old supplier (reg 6C, the
-  OLD supplier's duty) within 21 working days of the agreement. Until it is, an erroneous gain stays
-  on supply and the book OVERSTATES its revenue; expected count under one on today's volume.
+* **Returned:** an erroneously transferred customer is re-registered by its old supplier on the last
+  day reg 6C allows (`erroneous_gain_returned_on`), and `run_phase2b` ends the won household's supply
+  there (switching_mechanics_2026-10-25.md s.6, "Returning an erroneous gain").
 """
 from __future__ import annotations
 
@@ -55,6 +55,12 @@ ERRONEOUS_TRANSFER_SHARE_PRE_CSS = 0.005
 #: let it be. The true day lies in [supply start, this day].
 ERRONEOUS_TRANSFER_AGREEMENT_WORKING_DAYS = 20
 
+#: Reg 6C of S.I. 2015/1544 (as inserted by S.I. 2019/218): "the old supplier must within 21 working
+#: days of the agreement ... re-register the customer" (switching_mechanics_2026-10-25.md s.6). A
+#: STATED BELIEF on the day, as for the agreement: the last day 6C allows. The true day lies in
+#: [agreement, that day]; how fast old suppliers re-registered in practice is not published (GAP).
+ERRONEOUS_TRANSFER_RETURN_WORKING_DAYS = 21
+
 _DELAY_GAP = ("registration delay not drawn: no published share of GB switches missing 15 or 5 "
               "working days, 2016-2025 (switching_mechanics_2026-10-25.md s.6 (b), named gap 3)")
 _POST_CSS_GAP = ("no erroneous transfer drawn after CSS go-live: no published post-CSS rate "
@@ -70,6 +76,12 @@ def _working_day_end(first_day: date, working_days: int) -> date:
             if counted == working_days:
                 return d
         d += timedelta(days=1)
+
+
+def erroneous_gain_returned_on(agreed_on: date) -> date:
+    """The day the old supplier re-registers an erroneously transferred customer: the 21st working
+    day counted from the day after the agreement. It is the first day the gainer does not supply."""
+    return _working_day_end(agreed_on + timedelta(days=1), ERRONEOUS_TRANSFER_RETURN_WORKING_DAYS)
 
 
 def draw_gain_registration(customer_id: str, supply_start: date, seed: str) -> dict:

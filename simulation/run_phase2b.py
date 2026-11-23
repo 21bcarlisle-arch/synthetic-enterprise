@@ -243,7 +243,7 @@ from simulation.feedback_survey import (
     dispatch_dd_shock_complaint,
     dispatch_nps_survey,
 )
-from simulation.gain_registration import draw_gain_registration
+from simulation.gain_registration import draw_gain_registration, erroneous_gain_returned_on
 from simulation.gas_settlement import _GAS_BOILER_HEATING_FRACTION, run_gas_term
 from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
 from simulation.hh_consumption import (
@@ -3368,9 +3368,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _change_of_supplier_register = open_change_of_supplier_register()
 
     def _notify_registration_loss(household: str, effective_from: str,
-                                  pending_already_sent: bool = False) -> None:
-        _points = supply_points_on_supply(household, effective_from, elec_schedules, gas_schedules,
-                                          _moved_out_on_by_leg)
+                                  pending_already_sent: bool = False,
+                                  points: list[tuple[str, str]] | None = None) -> None:
+        # `points` names them where the schedules cannot: a won switch is pushed straight into the
+        # heap and is in neither `elec_schedules` nor `gas_schedules`.
+        _points = points if points is not None else supply_points_on_supply(
+            household, effective_from, elec_schedules, gas_schedules, _moved_out_on_by_leg)
         _departed_on[household] = effective_from
         # EACH LEG'S OWN DEPARTURE, for readers that count per supply point. Not
         # `customer_events_log`: its churned rows are counted as households leaving, and a second
@@ -3456,6 +3459,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # What the registration service and the losing supplier tell the gainer about each won switch
     # (`simulation/gain_registration.py`): the company owes regs 6ZA and 6ZB on these facts.
     gain_registration_log: list[dict] = []
+    # Reg 6C: per supplied won leg agreed erroneous, the day its old supplier re-registers it; and
+    # what happened to each (both published).
+    _erroneous_return_on: dict[str, date] = {}
+    erroneous_gains_returned: list[dict] = []
+    erroneous_gains_not_returned: list[dict] = []
     # Phase 12b: retention cost events and log
     retention_cost_events: list[dict] = []
     retention_log: list[dict] = []
@@ -3678,6 +3686,41 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         term_end_str = _next_renewal_str
                         # Choice 7: a follower is not an exit, so its bills are not final bills.
                         _moved_out_on_by_leg.pop(cid, None)
+
+        # REG 6C: AN ERRONEOUS GAIN GOES BACK TO ITS OLD SUPPLIER on the day it re-registers it
+        # (switching_mechanics_2026-10-25.md s.6, "Returning an erroneous gain"). A won switch is its
+        # own electricity-only household, so the loss ends the one leg and no predecessor. It lands
+        # inside the opening fixed term, where neither departure roll below runs; anything else is
+        # refused by name, never forced, so the leg cannot leave twice in one term.
+        if cid in _erroneous_return_on:
+            _back = _erroneous_return_on[cid]
+            _cut, _back_in_term = term_window_under_move(
+                date.fromisoformat(term_start_str[:10]), date.fromisoformat(term_end_str[:10]), _back)
+            if _back_in_term or _cut is None:
+                del _erroneous_return_on[cid]
+                _why_kept = (
+                    "the household had already left" if billing_account in churned_billing_accounts
+                    else "the return falls after the term it should cut began" if _cut is None
+                    else "the return falls outside the opening fixed term, where a renewal "
+                         "decision could also end supply; not built"
+                    if (term_indices[cid] != 0 or _spliced
+                        or term.get("tariff_type", "fixed") == SVT_TARIFF_TYPE) else None)
+                if _why_kept is None:
+                    term_end_str = _cut.isoformat()
+                    churned_billing_accounts.add(billing_account)
+                    _notify_registration_loss(billing_account, term_end_str,
+                                              pending_already_sent=True,
+                                              points=[(cid, commodity)])
+                    erroneous_gains_returned.append({
+                        "customer_id": cid, "returned_on": term_end_str,
+                        "agreed_on": next(g["erroneous_transfer_agreed_on"]
+                                          for g in gain_registration_log
+                                          if g["customer_id"] == cid),
+                        "basis": "stated belief: the last day reg 6C allows",
+                    })
+                else:
+                    erroneous_gains_not_returned.append({
+                        "customer_id": cid, "due_on": _back.isoformat(), "reason": _why_kept})
 
         # A DEFAULT TARIFF IS PRICED AT ITS PAYMENT METHOD'S CAP COLUMN (SLC 28AD), read from the
         # method the company's own register holds on the segment's first day. The schedule was
@@ -5325,6 +5368,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             })
                             gain_registration_log.append(draw_gain_registration(
                                 new_cid, date.fromisoformat(term_start_str), acq_seed))
+                            _agreed = gain_registration_log[-1]["erroneous_transfer_agreed_on"]
+                            if _agreed is not None and new_cid in term_indices:
+                                _erroneous_return_on[new_cid] = erroneous_gain_returned_on(
+                                    date.fromisoformat(_agreed))
                             print(
                                 f"  [ACQUIRE] Fresh acquisition won: {new_cid} at {term_start_str} "
                                 f"(£{acq_cost:.0f}, {segment})"
@@ -6783,6 +6830,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # SUPPLY_SO_THE_SWITCHING_GSOP_HAS_NO_ACCOUNT_TO_CREDIT_2026-11-21).
         "gain_registration_log": gain_registration_log,
         "switching_gsop_payments": switching_payments_on_gains(gain_registration_log),
+        # Reg 6C: each erroneous gain the old supplier re-registered, and any the world could not.
+        "erroneous_gains_returned": erroneous_gains_returned,
+        "erroneous_gains_not_returned": erroneous_gains_not_returned
+            + [{"customer_id": _c, "due_on": _d.isoformat(),
+                "reason": "the return falls after the run's window"}
+               for _c, _d in sorted(_erroneous_return_on.items())],
         "fixed_cost_events": fixed_cost_events,
         "acquired_customers": [c["customer_id"] for c in ACQUIRED_CUSTOMERS],
         # Of those, the wins `_supply_won_switch` refused to put on supply, each with its reason.
