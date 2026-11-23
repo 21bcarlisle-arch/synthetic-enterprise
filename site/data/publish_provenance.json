@@ -24,9 +24,9 @@
     "run_retained": true,
     "verified_at": "2026-11-18T10:20:38Z"
   },
-  "paused_gate": null,
-  "paused_reason": null,
-  "paused_since": null,
+  "paused_gate": "Refused by the domain-invariant check: 1 of its rules is broken and no dated exception covers it. An estimated run is judged afterwards against what the meter later showed [INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER]: broken on 9 of 4,429 checked (unit: run of estimated bills bounded by actual reads).",
+  "paused_reason": "domain-invariant breaches at git=6a588a832f that no exception covers: INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER 9 (9 breaches exceed the exception's max_breached 8)",
+  "paused_since": "2026-11-23T04:24:16Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-11-18T10:20:38Z",
@@ -40,6 +40,6 @@
     "run_retained": true,
     "verified_at": "2026-11-18T10:20:38Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-11-18T10:20:38Z"
+  "verification_state": "paused",
+  "written_at": "2026-11-23T04:24:16Z"
 }
