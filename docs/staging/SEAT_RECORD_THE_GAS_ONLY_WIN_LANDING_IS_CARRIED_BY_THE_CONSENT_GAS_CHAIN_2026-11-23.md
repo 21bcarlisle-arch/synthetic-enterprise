@@ -27,3 +27,13 @@ Seat executor, 23 Nov 2026. Read, not built.
    verify-gas-only-win-landing-from-the-6c-resume-chain`, this released id. If the binding line in
    `/tmp/seat_exec_e/chain/chain.log` refuses on a released claim, bind the landed paths under the
    successor with `delivery_lane --landed-under`; the commits on origin are the evidence either way.
+5. **Two duplicate holds retired (dropped, reversible).** After release, `--release` left
+   `verify-gas-only-win-landing-from-the-6c-resume-chain` offered (its retiring artefact is the gas
+   landing marker), with its DO NOT DRAW file already present, so it was dropped. So was
+   `fix-the-live-consent-red-from-7527a2e36-then-land-the-gas-only-win`: its hold
+   (`/var/tmp/se-consent-red-probe-20261123/compare.txt`, 08:13Z) was open, and its remainder
+   (re-key the two controls, land the gas-only win) is exactly what the in-flight chain does, so a
+   draw would have run a second landing over the same paths. Its full entry is saved at
+   `/tmp/seat_rec_gas/dropped_fix_consent_red.json`; to reverse, re-hand it off from that file.
+   Class: a successor written from a predecessor's reading must `--supersedes` it, or the
+   predecessor's open hold offers the same landing twice.
