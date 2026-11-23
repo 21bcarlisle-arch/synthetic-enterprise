@@ -712,7 +712,7 @@ items:
     first_seen: "2026-11-03"
     fate: fix
     status: open
-    owner: "W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape (the world's year-to-year term, with the ERA5 pull); held by a dated exception, recheck by 23 Nov"
+    owner: "W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape (the world's year-to-year term, with the ERA5 pull); held by a dated exception, recheck by 23 Nov. Rechecked 23 Nov 15:23Z by the delivery seat: still held, recheck again by 26 Nov. W2_30 is director-gated behind W1_14 (on the coupled-triad L3 wall), no book can be built before s.12g ends (~06:30Z 24 Nov), and both supplier focus items are red-on-origin or refused landings that block landings today"
     reason: "Triaged 2026-11-08 by the delivery seat. It is the world's and it is real: a supplier whose year-on-year forecast is graded against a world with no year-on-year variance learns nothing about forecast error. It stays a fix, but not in focus, because the publish it would block is blocked first by supplier defects. It enters focus at the 23 Nov recheck, or when it is the last gate row a book fails."
   - id: a-triad-settlement-prediction-waits-on-its-book
     problem: "26c891276's pre-registration filed '(2) falls to 0' and read 19 settlements (GBP 682.47); the replacement prediction (0 on the first book carrying 12a470de7) is unread."

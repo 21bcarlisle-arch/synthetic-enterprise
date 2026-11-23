@@ -1,9 +1,75 @@
 {
- "generated_at": "2026-11-23T12:30:22.714929+00:00",
+ "generated_at": "2026-11-23T18:28:35.991260+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "a2d8c2888",
+    "at": "2026-11-23T17:30:03Z",
+    "subject": "Close seat-finding-origin-is-red-on-the-live-consent-offer-since-7527a2e36-and-it-blocks-the-gas-only-win: done by 017382851e",
+    "substantive": false
+   },
+   {
+    "sha": "8a9e5ecea",
+    "at": "2026-11-23T16:43:59Z",
+    "subject": "C29's null arm was keyed to a coin: its control now asks for a weaker prior than the planted arm's, not none",
+    "substantive": true
+   },
+   {
+    "sha": "b0b05661f",
+    "at": "2026-11-23T15:31:25Z",
+    "subject": "A carried edit keeps its lane's last-write time, so a stale copy the reconciler carries can still age out",
+    "substantive": true
+   },
+   {
+    "sha": "e554e8deb",
+    "at": "2026-11-23T14:31:38Z",
+    "subject": "A wall-clock time bomb in the two-reader tick test is pinned inside its trial window, and sharding the MSC gate is measured and refuted",
+    "substantive": true
+   },
+   {
+    "sha": "ddefa8f23",
+    "at": "2026-11-23T13:26:59Z",
+    "subject": "delivery seat: merge origin/main into the census-test fix before promotion",
+    "substantive": false
+   },
+   {
+    "sha": "9af8c4a14",
+    "at": "2026-11-23T13:25:38Z",
+    "subject": "Two census tests stub the memory governor the census actually calls: they went red whenever the box had under ~13 GB free",
+    "substantive": true
+   },
+   {
+    "sha": "2a928a5a2",
+    "at": "2026-11-23T13:05:55Z",
+    "subject": "delivery seat: merge origin/main into the direction landing (upstream does not touch its paths)",
+    "substantive": false
+   },
+   {
+    "sha": "7be1ba629",
+    "at": "2026-11-23T13:02:58Z",
+    "subject": "delivery seat: merge origin/main into the direction landing (upstream does not touch its paths)",
+    "substantive": false
+   },
+   {
+    "sha": "6613986bc",
+    "at": "2026-11-23T12:58:31Z",
+    "subject": "The coming book's grades are pre-flighted, increment 2: every reader ran on the 2016-2018 book, and the D48 blend sweep no longer voids itself on an account read first after two years",
+    "substantive": true
+   },
+   {
+    "sha": "0cae0973a",
+    "at": "2026-11-23T12:52:30Z",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
+   {
+    "sha": "7c03dfda0",
+    "at": "2026-11-23T12:33:21Z",
+    "subject": "One landing gate runs at a time: surgical_land holds a box-wide flock around the hook, and the gate hour starts when it holds it",
+    "substantive": true
+   },
    {
     "sha": "52dba1ade",
     "at": "2026-11-23T11:59:05Z",
@@ -177,162 +243,72 @@
     "at": "2026-11-23T05:49:43Z",
     "subject": "Seat record: the reg 6C / gas-only landing chain is carried by its resume successor, and that successor's hold was already open",
     "substantive": false
-   },
-   {
-    "sha": "09ae79aa0",
-    "at": "2026-11-23T05:47:58Z",
-    "subject": "delivery seat: merge origin/main into the 6C landing before promotion (origin moved under the gate; no conflict)",
-    "substantive": false
-   },
-   {
-    "sha": "cc9f08ae3",
-    "at": "2026-11-23T05:35:41Z",
-    "subject": "Reg 6C: an erroneous gain goes back to its old supplier on the last day the regulation allows",
-    "substantive": true
-   },
-   {
-    "sha": "779054e30",
-    "at": "2026-11-23T05:27:43Z",
-    "subject": "delivery seat: merge origin/main into the B8 switch-on pre-registration landing (upstream touches only an s12g record, not this landing's paths)",
-    "substantive": false
-   },
-   {
-    "sha": "e23d5d3b6",
-    "at": "2026-11-23T05:25:59Z",
-    "subject": "B8: switching the blind retention holdout on in the standing policy is pre-registered before its book, and the switch-on is one named flag, ready and off",
-    "substantive": true
-   },
-   {
-    "sha": "e56d8b885",
-    "at": "2026-11-23T05:12:29Z",
-    "subject": "s.12g's next lever is chosen for each outcome before the run ends",
-    "substantive": false
-   },
-   {
-    "sha": "9b5116a44",
-    "at": "2026-11-23T04:37:11Z",
-    "subject": "chore(provenance): verification paused banner (git=6a588a832f) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
-    "substantive": false
-   },
-   {
-    "sha": "83570bd1c",
-    "at": "2026-11-23T04:13:23Z",
-    "subject": "The event-log tests read the shared 2016-2018 run: one run, not two, in the commit gate, and their retention loops now have entries to check",
-    "substantive": true
-   },
-   {
-    "sha": "75734ae95",
-    "at": "2026-11-23T03:47:46Z",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "8a52399b8",
-    "at": "2026-11-23T01:48:47Z",
-    "subject": "The world holds the Market Stabilisation Charge: Ofgem's 102 published weekly rates, looked up by switch date, times the customer's own annual volume per fuel",
-    "substantive": true
-   },
-   {
-    "sha": "965a59053",
-    "at": "2026-11-23T01:21:35Z",
-    "subject": "merge origin/main: fold e9744505f under the switching-leaver final-bill net",
-    "substantive": false
-   },
-   {
-    "sha": "755536805",
-    "at": "2026-11-23T01:20:26Z",
-    "subject": "merge origin/main: fold 7c4c3f1e4 under the switching-leaver final-bill net (no shared paths)",
-    "substantive": false
    }
   ],
-  "substantive": 9,
-  "mechanical": 31,
+  "substantive": 11,
+  "mechanical": 29,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-11-23T12:24:47.251254+00:00",
+  "oriented_at": "2026-11-23T18:23:07.458521+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "This stretch had 19 commits. 2 were substantive, and 8 changed nothing at all (each was a merge of origin into a landing that lost its race). By side: supplier 0, world 0, both 1, other 18. Measured against the thesis, the per-customer advantage over the flat-rules twin is still unmeasured. s.12g is the run that measures it (its twin child, pid 2243091, is running). That run ends about 06:30Z on 24 Nov, and no book has been built for about 69 hours. Two results this stretch do matter. First, the gas-only win landed (a525847e9), so a won switch is now put on supply for both fuels, and that wrong row is corrected. Second, and this is what matters most for the thesis, the renewal baseline on held-back years was measured (094429018, predictions filed first in 9527c646a). Pooled over 2019-2024, the LIVE renewal belief ranks leavers at AUC 0.452, worse than a coin. The CONDITIONED belief ranks them at 0.857, and its lower bound over live is +0.34. So the company already holds an inference that is much better than the one it acts on, and that inference is switched off. Whether it becomes the live belief is gated on B8's five grades from 25 Nov, and those grades read the coming book. That is the strongest evidence so far that the advantage can come from inference. It is also why the renewal wrong row stays open: the company still acts on the belief that ranks backwards. The steer partly held. Of four focus items, three were drawn. The renewal baseline is done and leaves focus. The gate flock is landing now (surgical_land pid 819673). The closed-account invariant was built, but it never landed: worker-tick timed out, and fork_salvage kept the work as 1e0202e65 in /tmp/wt-closedacct. That commit holds the invariant, the NO_LONGER_SUPPLIED refusal and the tests, plus ledger churn that is not the item's. The fourth item, the checkout fast-forward, was not drawn for the second stretch running, and the checkout is now 31 behind origin, not 12. I treat that steer as drifting. The landing door read it as \"nothing to land\", because the item named code files whose bytes already equal origin's. This orientation measured the real blockers. Origin changed 33 paths, and 17 of them are dirty in the shared tree. Eight of those are byte-identical twins of origin, including bounded_landing.py and promote_worktree_landing.py, so they should be cleared. Nine differ from both, which means they belong to a lane. Five untracked files collide with files origin added. The item now names those paths. The MSC win's v3 landing hit the gate timeout with its tests at 88% and no red (52dba1ade), because a ledger change selects 1,074 test files. The flock serialises gates, but it does not make that selection fit inside the hour. The pre-flight for the coming book's grades is now ripe (/var/tmp/preflight-2018-out/run_output_2018.json exists), and it is what lets the B8 gate read on the first attempt.",
+  "thesis_read": "This stretch had 3 commits. 2 were substantive, and by side all 3 were other: supplier 0, world 0. That makes four stretches running in which the supplier gained nothing on origin, so the thesis did not advance. The machine's whole output is going on getting work through one gate. The per-customer advantage over the flat-rules twin is still unmeasured. s.12g's twin child (pid 2243091) is 11h21m in at 10.6 GB, and /var/tmp/vtn-out/A and /var/tmp/vtn-out/twin are both still empty. The book every supplier grade reads has now been unbuilt for about 75 hours. The steer did take. The previous focus named 3 items and 2 were drawn. Item 2 is finished: C29's null arm was a control keyed to a coin, and it now asks for a weaker prior than the planted arm's (8a9e5ecea, on origin), so that item leaves focus. Item 1 nearly finished. A fourth unchanged relaunch was refused at 16:34Z on the same three reds, but the 17:18Z landing, with the controls re-keyed, passed its gate as 9423d3dc5. It lost the promotion race to a2d8c2888 and is re-gating now (bounded_landing pid 4104513). Item 3 is the error of this stretch: it was retired at 15:31Z because its fix had LANDED (b0b05661f), but what it was meant to achieve never happened. The shared checkout is 42 behind origin, not 39. So every daemon still runs without the one-gate flock and the in-job retry, and a tombstone recorded the item as done. The MSC replacement-win is now the supplier result most at risk. land5 timed out at 3600 s, again at 88% with no red. It ran from a worktree detached at origin, so the flock WAS live there, which means concurrent gates are not the whole cause: the 181-file hook selection on that pathspec does not fit the hour on this box by itself. land6 then died in under a second because /var/tmp/se-msc-wt had been removed. The MSC work now exists only as /tmp/msc_land/msc6.patch and the salvage ae573846b1. And it has to reach origin before sim-runner starts the post-s.12g book (about 06:30Z 24 Nov), or that book is built without it. My own correction (the 181-file selection, not 1,074) was refused with \"already at HEAD\", because it ran in a tree where the file did not differ. The finding on origin still reads 1,074.",
   "focus": [
+   {
+    "id": "the-msc-replacement-win-lands-before-the-post-s12g-book",
+    "lane": "E_finance_treasury",
+    "side": "supplier",
+    "what": "The MSC replacement-win (the market stabilisation charge booked in saas/ledger.py, company/finance/double_entry.py and company/finance/accounting_close.py, plus its simulation/run_phase2b.py hunks and red 3's decision-leg guard) must reach origin, and it now lives only in /tmp/msc_land/msc6.patch and salvage ae573846b1, because /var/tmp/se-msc-wt is gone. FIRST, before anything else, copy msc6.patch, msg6.txt and land6.sh somewhere durable that is not /tmp (for example /var/tmp/se-msc-keep/) and lock a fresh worktree detached at origin/main. Do NOT relaunch land6.sh as it stands. land5 timed out at 3600 s at 88% with the flock live, so a seventh unchanged attempt will die the same way. Instead, run the hook's own selection for that pathspec with --durations=40 (one run, logged), name the tests and fixtures that spend the hour, and make the two run_phase2b fixtures that 52dba1ade's finding names read the one shared 2016-2018 run, the way 83570bd1c did for the event-log tests. Do not raise the deadline and do not drop tests from the selection. Then apply msc6.patch on that worktree and land with surgical_land. In the same landing, correct docs/staging/SEAT_FINDING_A_LANDING_THAT_TOUCHES_THE_LEDGER_OUTRUNS_THE_GATE_DEADLINE_UNDER_ORDINARY_LOAD_2026-11-23.md: the hook's selection is 181 files, and 1,074 is select_impacted_tests', which no gate calls. Keep the wrong figure beside the correction.",
+    "why": "The coming book is the first in 75 hours, and every supplier grade queued for 24-25 Nov reads it (B8's five, D48, KNIFE3, the gas-only wins). If MSC misses it, the supplier's P&L in that book books a 2022-24 charge wrongly, and the next chance is a day later. Done means MSC is on origin before the post-s.12g book starts, and the durations table that shows where the hour went is in the finding. If it cannot land in time, done means a filed finding naming the test that holds the gate, and a seat_continuation row holding the book until MSC lands.",
+    "written_at": 1795458495.263
+   },
    {
     "id": "a-closed-account-is-never-offered-a-prepayment-meter",
     "lane": "C_customer_ops",
     "side": "supplier",
-    "what": "The landing door will say \"nothing to land\", and that is expected: the shared-tree copies of these paths equal origin, because the work is in a salvage commit and not in the shared tree. The work is BUILT and sits unlanded in salvage commit 1e0202e65 on branch wt-closedacct-1123 (worktree /tmp/wt-closedacct). Do not rebuild it. Run tools/isolate_hunks.py to take ONLY these five paths from that commit onto current origin/main: company/billing/collections_journey.py, company/billing/winter_moratorium.py (EnforcementCase.last_supplied_on and NO_LONGER_SUPPLIED), company/compliance/domain_invariants.py, tests/company/billing/test_collections_journey.py and tests/company/billing/test_the_enforcement_table.py. Drop its docs/observability ledger churn; coupled_gap_ledger.json alone is -3,355 lines and belongs to no one. Check that the tests include the ACC-SYN-2016-005 shape (journey opened after leaving, Consent offer on 2016-10-26, 7527's closing forced off, step refused with the named reason). Check that they include the control showing a SUPPLIED account in the same state still gets the Consent offer, and add it if it is missing. Run both test files. Land with surgical_land --content after the one-gate flock is on origin, or under it if it is live. Then close the finding with work_items --done naming the commit, and delete the wt-closedacct branch only after that commit is on origin.",
-    "why": "A real supplier knows it closed the account, so this is the company misusing what it can see. The fix exists, and the only thing between it and origin is a landing. Done means the invariant and both tests are on origin, the finding is closed, and the closed-account wrong row can be marked corrected.",
-    "written_at": 1795437000.675
+    "what": "The fix passed its gate as 9423d3dc5 (worktree /var/tmp/se-seat-executor, branch w2-36-land), lost the promotion race to a2d8c2888, and is re-gating under bounded_landing pid 4104513 (log /var/tmp/longjob-land-se-seat-executor-1795454282.log). Do not start a second copy while that pid lives. When it ends, read its log. If it promoted, run python3 -m tools.surgical_land --verify on the origin sha, then work_items --done on SEAT_FINDING_THE_DESK_OFFERS_A_PREPAYMENT_METER_TO_A_HOUSEHOLD_THAT_HAS_LEFT_2026-11-23.md naming that sha, and remove the strict-xfail marker on test_every_live_consent_offer_goes_to_an_account_still_supplied if it is still there. If it was refused, read the named reds before anything else. A refusal on a test this landing does not touch is origin's red, so file it and land on the next base. Never relaunch unchanged. Push 9423d3dc5's branch to a remote ref, so that the worktree is no longer the only copy.",
+    "why": "A real supplier knows which accounts it has closed, and offering a prepayment meter at a premise it no longer supplies misuses what it can see. The fix has been built for 8 hours and has passed its gate once. Done means it is on origin, the finding is closed with the sha, and the closed-account wrong row is marked corrected.",
+    "written_at": 1795458495.263
    },
    {
-    "id": "finish-the-coming-books-pre-flight-on-the-2016-2018-book",
-    "lane": "B_commercial",
-    "side": "supplier",
-    "what": "The premise is RIPE NOW: /var/tmp/preflight-2018-out/run_output_2018.json exists. Do section 4 (increment 2) of docs/staging/records/SEAT_RECORD_THE_COMING_BOOKS_GRADES_PRE_FLIGHTED_2026-11-23.md, as the live continuation of the same id describes. Run each of B8's five readers against that 2016-2018 output: the ending-term renewal belief, the dual-household answers, the supplied won switches, knife3 I1-I5, and the D48 blend. For each one, record whether it reads (finds its records, parses, and produces a number) or name the missing record and its writer line. Fix any reader that fails on origin now, while there is no book to wait for.",
-    "why": "The conditioned renewal belief beats the live one by +0.34 AUC on held-back years. Switching it on (B8, 25 Nov) is gated on five grades that all read the coming book. A reader that fails on that book costs another multi-day cycle. Done means the record's section 4 lists all five as reading on the 2018 output, or as fixed on origin, and the item retires.",
-    "written_at": 1795437000.675
-   },
-   {
-    "id": "one-commit-gate-runs-at-a-time",
+    "id": "the-shared-checkout-actually-reaches-origin",
     "lane": "H_harness",
     "side": "other",
-    "what": "surgical_land pid 819673 is landing the box-wide gate flock now; do not start a second copy. When it ends, read its log. If it was refused, land it again from its own worktree. If it landed, confirm that the MSC win's v4 landing (pid 644691, end marker /var/tmp/se-msc-land4-ended-20261123.txt) and the next executor landing each gated alone. Then take the finding in 52dba1ade (docs/staging/SEAT_FINDING_A_LANDING_THAT_TOUCHES_THE_LEDGER_OUTRUNS_THE_GATE_DEADLINE_UNDER_ORDINARY_LOAD_2026-11-23.md) to its first measurement. Time the 1,074-file selection with the flock held and the box otherwise quiet. If it fits inside 3600 s, the finding is about concurrency and the flock closes it. If it does not fit, make surgical_land print, BEFORE starting the gate, the selection's predicted duration from test_execution_log.jsonl against the deadline. Do not raise the deadline and do not trim the selection.",
-    "why": "Every supplier fix that touches the ledger (MSC, and the next money class) dies at the gate without a red, and v2 and v3 were each an hour of gate time thrown away. Done means the flock is on origin, MSC lands or fails with a named red, and the ledger-selection finding carries a measured duration.",
-    "written_at": 1795437000.675
-   },
-   {
-    "id": "the-shared-checkout-runs-the-promotion-fix-origin-already-has",
-    "lane": "H_harness",
-    "side": "other",
-    "what": "The landing door will say \"nothing to land\", and that is expected: the twins equal origin by definition, and the change to land is the fix to background/reconcile_watch.py plus the fast-forward itself. The shared checkout is 31 behind origin/main and cannot fast-forward. This orientation measured why: origin changed 33 paths, and 17 of them are dirty here. EIGHT are byte-identical twins of origin and must be cleared by background/reconcile_watch.py's twin rule (H49 c42bae1174): background/bounded_landing.py, tools/promote_worktree_landing.py, sim/forward_curve.py, simulation/gain_registration.py, docs/direction/decisions.jsonl, docs/status/SEAT_STRETCH_LOG.md, site/data/delivery.json and docs/market_research/the_worlds_synthetic_forward_against_the_published_forward_2021_2025_2026-11-16.md. Find why the reconciler did not clear them, read reconcile-watch-log.md first, and fix that in background/reconcile_watch.py. NINE differ from both HEAD and origin (simulation/run_phase2b.py, tools/surgical_land.py, saas/reporting/annual_report.py, tests/simulation/test_run_phase2b.py, tests/saas/reporting/test_a_grading_record_the_run_builds_reaches_the_published_book.py, docs/market_research/switching_mechanics_2026-10-25.md, the gas-only finding, STARTUP_ANCHORS.md and DIRECTION.yaml). For each, name the lane that holds it (pgrep -af surgical_land) and leave it alone. FIVE untracked files collide with files origin added; for each, compare it to origin's copy and treat an identical one as a twin. Never stash, check out a path or reset.",
-    "why": "Named twice and never drawn, and it went from 5 behind to 31. Every daemon, including the one that launches landings, is running code origin has replaced, and 0b4d8ae59's retry fix is still not live. Done means HEAD equals origin/main and one executor landing afterwards leaves one register row and no empty merge. If it cannot be done, a filed finding names the lane bytes that block it.",
-    "written_at": 1795437000.675
+    "what": "The reconciler fix (b0b05661f) is on origin, but the shared checkout is 42 behind and has not fast-forwarded since it landed at 15:31Z. Read reconcile-watch's log and background/origin_reconcile.py's last verdicts since 15:31Z, and name, PATH BY PATH, what refuses the advance. For each path, say whether it is a byte-identical twin of origin (carry it), a live lane's bytes (name the lane and its pid or claim), or orphaned bytes with no lane (record them in the class register and say so). Note that the shared tree's working copy carries edits to background/bounded_landing.py, background/origin_reconcile.py, company/finance/accounting_close.py and company/finance/double_entry.py, and that some of these may be MSC's or the reconciler's own copies. Never stash, check out a path or reset. If a code defect stops the advance, fix it with a test and land it. If only a lane's bytes stop it, do not move them; file the finding naming them.",
+    "why": "Every daemon, including the one that launches landings, is running code that origin replaced 6 commits ago. That includes the one-gate flock and the in-job retry, so landings from the shared tree still race and gate side by side. The previous item for this was retired on its LANDING, not its effect, and that is this stretch's error. Done means HEAD equals origin/main at one reading and the brief's units-lacking-origin list is empty. If that cannot be done, a filed finding names the bytes that block it and whose they are.",
+    "written_at": 1795458495.263
    }
   ],
   "not_now": [
    {
-    "what": "Raising surgical_land's 3600 s gate deadline, or trimming the MSC selection by hand, to get the MSC win landed.",
-    "why": "Both weaken the one gate that most needs to be strong (it covers changes to the money modules) to land one change. The flock and a measured selection duration come first. A slower MSC landing costs a day; a gate that can be bypassed costs every later ledger change."
+    "what": "Relaunching land6.sh as written, or raising the 3600 s gate deadline, to get MSC through.",
+    "why": "land5 died at 88% with the flock live, so concurrency is not the whole cause, and a seventh identical attempt buys the same death. Raising the deadline weakens the gate on the money modules to win one landing. The hour is spent somewhere nameable, and naming it is cheaper than either."
    },
    {
-    "what": "Switching the conditioned renewal belief on now, on the strength of 0.857 against 0.452.",
-    "why": "The comparison was pre-registered as a baseline, and B8's pre-registration gates the switch-on on five grades from the coming book (25 Nov). Flipping it before then would spend the blind holdout's evidence in order to win two days. The pre-flight item makes those grades read the first time instead."
+    "what": "A supplier build atom (B7 home moves or W2_36 unbilled energy, both DRAWABLE and both on the billing-accuracy priority).",
+    "why": "Both sit on the world lane, and neither can be graded without a book. More importantly, the gate is the bottleneck: four landings queued behind one another this stretch (SITE, seat-finding close, closed-account, MSC). A new build adds a fifth to the queue ahead of MSC's deadline. They come back once the checkout is on origin and MSC has landed."
    },
    {
-    "what": "Letting the book share the box with s.12g.",
-    "why": "About 18h of s.12g remain. Running both together saves at most that, and it risks the run that measures the thesis, which the director said not to kill. I withdraw the concern below for this reason."
+    "what": "N17 (metered electricity barely moves year to year).",
+    "why": "It is held to 26 Nov in wrong_triage.yaml. W2_30 is director-gated behind W1_14, which is on the coupled-triad L3 wall, and no book can test a fix before s.12g ends."
    },
    {
-    "what": "A heartbeat line in the mute worker-seat-manager.",
-    "why": "Its cause is on file and its wait channel is still hrtimer_nanosleep. It is a behaviour change to the daemon that seeds the worker seat, and no supplier result waits on it."
+    "what": "Reaping the 12 worktrees holding commits no remote keeps, including the unlocked /var/tmp/se-msc-v6-note salvage (87850e7e4).",
+    "why": "A reap cannot be undone, and se-msc-wt's disappearance is exactly what just cost the MSC chain its tree. se-msc-v6-note may hold the v6 finding note that died at 17:29Z. Nothing is reaped until MSC is on origin."
    },
    {
-    "what": "Reaping the 11 worktrees that hold commits no remote keeps, and the stalled site atoms.",
-    "why": "A reap cannot be undone, and each worktree except wt-closedacct is locked with a named owner. wt-closedacct is focus item 1's source, and its branch goes only after that work is on origin. The site atoms are waiting on a book to publish."
+    "what": "Switching the conditioned renewal belief on before B8's five grades.",
+    "why": "The pre-registration gates it on the coming book (25 Nov). Flipping it early would spend the blind holdout's evidence."
    },
    {
-    "what": "PB4/PB5 (C29's blockers) and G15 follow-on grading.",
-    "why": "Neither changes a per-customer decision this week. Turning the better renewal belief on, through the pre-flight and then B8, does."
+    "what": "Building the generic any-end marker for long-job landings.",
+    "why": "Every hand-built marker this stretch fired correctly (land5, land6 and v6-note each wrote theirs on exit). It changes launch_long_job, which every lane uses, so it waits until the checkout runs origin's code."
    }
   ],
-  "for_the_director": [
-   {
-    "id": "s-12g-was-admitted-at-19-32",
-    "raised": "2026-11-22",
-    "kind": "strategy",
-    "decision_kind": "harness",
-    "what": "s.12g was admitted at 19:32:32Z, before the book-first decision could act, so the next book now waits ~35h behind it (~86h since the last book) unless it shares the box.",
-    "proposal": "One-off: let sim-runner's next book (descending from 59cd5ebda) skip the resident-long-job yield for s.12g only, since the declared arithmetic fits (11.8+~6+2.6 < 23.0 GB). Otherwise leave s.12g alone and the book runs after it.",
-    "recommendation": "I recommend we wait: leave s.12g running and let the book follow it. You said not to kill s.12g, and co-residence risks exactly that, because the resident-yield rule exists after an undeclared worker OOM-killed a long job. Say 'go' and I will land a one-unit exemption instead.",
-    "based_on": "d48ffb3893",
-    "status": "withdrawn",
-    "resolution": "Withdrawn 23 Nov 12:24Z by the delivery seat. No answer came, and silence keeps the holding position, which was my recommendation: the book follows s.12g. s.12g's declared end is about 06:30Z on 24 Nov, about 18h away, so the one-off exemption would now save at most 18h, at the risk the recommendation named. The defect underneath (job admission does not read the seat's ordering) stays listed in wrong. It is not a question for him.",
-    "resolved": "2026-11-23",
-    "no_action": "The withdrawal keeps the current state: s.12g runs to its end and sim-runner's book follows under the existing resident-yield rule. Nothing is built or changed. The queued grades (07:00 24 Nov onward) already wait for that book.",
-    "evidence": "docs/staging/SEAT_FINDING_THE_BOOK_THE_FIVE_GRADES_WAIT_ON_WOULD_HAVE_DROPPED_THREE_OF_THEIR_RECORDS_AND_IS_STARVED_2026-11-21.md, section 'Re-read 22 Nov 19:37Z'"
-   }
-  ],
+  "for_the_director": [],
   "orientations_recorded": 15,
   "skips_recorded": 0,
   "refusals_recorded": 5
@@ -341,9 +317,9 @@
   "problems": [
    {
     "key": "triage:the-live-renewal-belief-ranks-leavers-backwards",
-    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 09:21 23 Nov -- unchanged; its baseline focus item was not drawn, so it is restated as ripe now. 12:24 23 Nov -- measured on held-back years (094429018): pooled 2019-2024 live 0.452, conditioned 0.857, paired lower bound +0.34. The company still acts on the backwards belief. Not corrected until the conditioned belief is live (B8's gate, 25 Nov).",
-    "last_at": "2026-11-23T12:24:47.251254+00:00",
-    "first_at": "2026-11-19T03:20:44.845299+00:00",
+    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 12:24 23 Nov -- measured on held-back years (094429018): pooled 2019-2024 live 0.452, conditioned 0.857, paired lower bound +0.34. The company still acts on the backwards belief. Not corrected until the conditioned belief is live (B8's gate, 25 Nov). 15:23 23 Nov -- unchanged; the pre-flight (6613986bc) now lets all five of B8's grades read. 18:23 23 Nov -- unchanged.",
+    "last_at": "2026-11-23T18:23:07.458521+00:00",
+    "first_at": "2026-11-19T06:23:17.588820+00:00",
     "times_listed": 37,
     "corrected": false,
     "fate": "fix",
@@ -354,22 +330,22 @@
    },
    {
     "key": "triage:metered-electricity-barely-moves-year-to-year",
-    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 09:21 23 Nov -- unchanged. 12:24 23 Nov -- unchanged; it needs a book.",
-    "last_at": "2026-11-23T12:24:47.251254+00:00",
-    "first_at": "2026-11-19T03:20:44.845299+00:00",
+    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 12:24 23 Nov -- unchanged; it needs a book. 15:23 23 Nov -- the triage recheck fell due; re-held to 26 Nov, with the reason in wrong_triage.yaml. 18:23 23 Nov -- unchanged.",
+    "last_at": "2026-11-23T18:23:07.458521+00:00",
+    "first_at": "2026-11-19T06:23:17.588820+00:00",
     "times_listed": 37,
     "corrected": false,
     "fate": "fix",
     "status": "open",
     "retired": false,
-    "owner": "W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape (the world's year-to-year term, with the ERA5 pull); held by a dated exception, recheck by 23 Nov",
+    "owner": "W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape (the world's year-to-year term, with the ERA5 pull); held by a dated exception, recheck by 23 Nov. Rechecked 23 Nov 15:23Z by the delivery seat: still held, recheck again by 26 Nov. W2_30 is director-gated behind W1_14 (on the coupled-triad L3 wall), no book can be built before s.12g ends (~06:30Z 24 Nov), and both supplier focus items are red-on-origin or refused landings that block landings today",
     "reason": "Triaged 2026-11-08 by the delivery seat. It is the world's and it is real: a supplier whose year-on-year forecast is graded against a world with no year-on-year variance learns nothing about forecast error. It stays a fix, but not in focus, because the publish it would block is blocked first by supplier defects. It enters focus at the 23 Nov recheck, or when it is the last gate row a book fails."
    },
    {
     "key": "triage:settlement-books-no-standing-charge-the-bill-charges",
-    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 09:21 23 Nov -- unchanged. 12:24 23 Nov -- unchanged.",
-    "last_at": "2026-11-23T12:24:47.251254+00:00",
-    "first_at": "2026-11-19T03:20:44.845299+00:00",
+    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 12:24 23 Nov -- unchanged. 15:23 23 Nov -- unchanged. 18:23 23 Nov -- unchanged.",
+    "last_at": "2026-11-23T18:23:07.458521+00:00",
+    "first_at": "2026-11-19T06:23:17.588820+00:00",
     "times_listed": 37,
     "corrected": false,
     "fate": "fix",
@@ -380,10 +356,10 @@
    },
    {
     "key": "text:with the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin",
-    "what": "THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. [Earlier tails are in decisions.jsonl.] 09:21 23 Nov -- the cut arm has written its member and control files; the twin child is running (pid 2243091), and A has not written. 12:24 23 Nov -- unchanged; the twin child is 5h23m in. Not corrected until s.12g publishes the advantage with its interval.",
-    "last_at": "2026-11-23T12:24:47.251254+00:00",
+    "what": "THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. [Earlier tails are in decisions.jsonl.] 12:24 23 Nov -- unchanged; the twin child is 5h23m in. Not corrected until s.12g publishes the advantage with its interval. 15:23 23 Nov -- the twin child is 8h21m in, and A has not written. 18:23 23 Nov -- the twin child is 11h21m in at 10.6 GB, and both output directories are empty.",
+    "last_at": "2026-11-23T18:23:07.458521+00:00",
     "first_at": "2026-11-20T09:20:07.819595+00:00",
-    "times_listed": 26,
+    "times_listed": 28,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -393,10 +369,10 @@
    },
    {
     "key": "text:the book that every queued supplier grade reads has not been built for 30 hours (since 20 nov 15:39)",
-    "what": "THE MACHINE'S, NEW. The book that every queued supplier grade reads has not been built for 30 hours (since 20 Nov 15:39). [Earlier tails are in decisions.jsonl.] 09:21 23 Nov -- worse: about 66 hours, and about 21h more of s.12g to come. 12:24 23 Nov -- worse: about 69 hours, and about 18h to come.",
-    "last_at": "2026-11-23T12:24:47.251254+00:00",
+    "what": "THE MACHINE'S, NEW. The book that every queued supplier grade reads has not been built for 30 hours (since 20 Nov 15:39). [Earlier tails are in decisions.jsonl.] 12:24 23 Nov -- worse: about 69 hours, and about 18h to come. 15:23 23 Nov -- worse: about 72 hours, and about 15h to come. 18:23 23 Nov -- worse: about 75 hours, and about 12h to come.",
+    "last_at": "2026-11-23T18:23:07.458521+00:00",
     "first_at": "2026-11-21T21:22:43.717192+00:00",
-    "times_listed": 14,
+    "times_listed": 16,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -406,10 +382,10 @@
    },
    {
     "key": "text:two declared long jobs and the book queued one behind another with nobody choosing the order",
-    "what": "THE MACHINE'S, NEW. Two declared long jobs and the book queued one behind another with nobody choosing the order. From 16:26Z sim-runner deferred every book to the queued s.12g (2,100 minutes). 21:21 22 Nov -- the seat chose book-first at 18:22Z, but s.12g was admitted at 19:32:32Z, before any worker drew that decision. So the order was still made by whoever reached the queue first. Raised with the director as s-12g-was-admitted-at-19-32. The admission path still reads no seat ordering. 09:21 23 Nov -- unchanged. 12:24 23 Nov -- the concern is withdrawn because s.12g nearly finished, but the admission path is unchanged.",
-    "last_at": "2026-11-23T12:24:47.251254+00:00",
+    "what": "THE MACHINE'S, NEW. Two declared long jobs and the book queued one behind another with nobody choosing the order. From 16:26Z sim-runner deferred every book to the queued s.12g (2,100 minutes). 21:21 22 Nov -- the seat chose book-first at 18:22Z, but s.12g was admitted at 19:32:32Z, before any worker drew that decision. So the order was still made by whoever reached the queue first. 12:24 23 Nov -- the concern is withdrawn because s.12g nearly finished, but the admission path is unchanged. 15:23 23 Nov -- unchanged. 18:23 23 Nov -- unchanged.",
+    "last_at": "2026-11-23T18:23:07.458521+00:00",
     "first_at": "2026-11-22T18:21:59.995874+00:00",
-    "times_listed": 6,
+    "times_listed": 8,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -419,10 +395,10 @@
    },
    {
     "key": "text:the reg 6c re-landing (longjob-land-reg-6c-erroneous-gains-2) was refused at 01:25z, 3 seconds in, on a stale copy of simulation/run_phase2b.py",
-    "what": "THE MACHINE'S, NEW. The reg 6C re-landing (longjob-land-reg-6c-erroneous-gains-2) was refused at 01:25Z, 3 seconds in, on a stale copy of simulation/run_phase2b.py. The refusal printed its remedy, and no lane ran it. Its continuation build-gas-supply-for-a-gas-only-win waits on a file that only success writes, so a refused landing left its own follow-on held with no owner until this orientation. 09:21 23 Nov -- the MSC instance is re-landing as v2 under an end-marker job (msc-land2-end-marker) that writes a file on ANY end, and the consent chain does the same. That is the right per-instance shape, but the mechanism is still hand-built per landing. 12:24 23 Nov -- v4 again carries a hand-built end marker. Unchanged.",
-    "last_at": "2026-11-23T12:24:47.251254+00:00",
+    "what": "THE MACHINE'S, NEW. The reg 6C re-landing (longjob-land-reg-6c-erroneous-gains-2) was refused at 01:25Z, 3 seconds in, on a stale copy of simulation/run_phase2b.py. The refusal printed its remedy, and no lane ran it. Its continuation waited on a file that only success writes, so a refused landing left its own follow-on held with no owner. 12:24 23 Nov -- v4 again carries a hand-built end marker. Unchanged. 15:23 23 Nov -- land5 carries another hand-built marker (/var/tmp/se-msc-land5-ended-20261123.txt). Unchanged; held in not_now until the checkout catches up. 18:23 23 Nov -- unchanged; land5's and land6's hand-built markers both fired on failure.",
+    "last_at": "2026-11-23T18:23:07.458521+00:00",
     "first_at": "2026-11-23T03:22:44.727556+00:00",
-    "times_listed": 4,
+    "times_listed": 6,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -432,10 +408,101 @@
    },
    {
     "key": "text:the launch register recorded three executor landings as died (exit 2, 01:14z-01:20z), but their work reached origin: each was refused at promotion because origin had moved, and the retries left three merges that authored nothing (f68028b7f, 755536805, 965a59053)",
-    "what": "THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z), but their work reached origin: each was refused at promotion because origin had moved, and the retries left three merges that authored nothing (f68028b7f, 755536805, 965a59053). So the brief overstated lost work by three jobs. This is a new instance of a-landing-loses-its-race-to-origin. 06:20 23 Nov -- fixed on origin with a test (0b4d8ae59), but NOT LIVE. 09:21 23 Nov -- still not live; the checkout is now 12 behind, and its focus item was not drawn. 12:24 23 Nov -- worse: 31 behind, and this stretch has 8 more empty merges. The blocking paths are now named in focus.",
-    "last_at": "2026-11-23T12:24:47.251254+00:00",
+    "what": "THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z), but their work reached origin: each was refused at promotion because origin had moved, and the retries left three merges that authored nothing (f68028b7f, 755536805, 965a59053). This is a new instance of a-landing-loses-its-race-to-origin. 06:20 23 Nov -- fixed on origin with a test (0b4d8ae59), but NOT LIVE. 12:24 23 Nov -- worse: 31 behind, and 8 more empty merges. 15:23 23 Nov -- 39 behind, and 3 more empty merges; the reconciler fix is landing (pid 2960194). 18:23 23 Nov -- the reconciler fix landed (b0b05661f), but the checkout is 42 behind, and the closed-account landing lost its promotion race again (to a2d8c2888).",
+    "last_at": "2026-11-23T18:23:07.458521+00:00",
     "first_at": "2026-11-23T03:22:44.727556+00:00",
+    "times_listed": 6,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the msc replacement-win landing's gate timed out at 3600 s (land-msc-replacement-win, 04:55z to 05:56z) while other gates ran beside it",
+    "what": "THE MACHINE'S, NEW. The MSC replacement-win landing's gate timed out at 3600 s (land-msc-replacement-win, 04:55Z to 05:56Z) while other gates ran beside it. 12:24 23 Nov -- v2 and v3 both died on the timeout; v3 reached 88% with no red. 15:23 23 Nov -- the flock is on origin (7c03dfda0) but is not live in the shared checkout. The real cause was partly that origin was red on its own (reds 1-4 in 52dba1ade's finding): reds 1 and 2 are fixed, red 3 rides land5, and red 4 is focus item 2. Not corrected until land5 lands or fails on a named red. 18:23 23 Nov -- worse: land5 died on the same timeout at 88% (16:31Z), from a worktree detached at origin, so with the flock live. Concurrency was not the whole cause. Red 4 is fixed (8a9e5ecea).",
+    "last_at": "2026-11-23T18:23:07.458521+00:00",
+    "first_at": "2026-11-23T15:23:10.234952+00:00",
+    "times_listed": 2,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:7527a2e36 reached origin with test_collections_journey.py red on the live consent offer (773e2d9ba), so origin itself refused the next landing on that path",
+    "what": "THE MACHINE'S, NEW. 7527a2e36 reached origin with test_collections_journey.py red on the live Consent offer (773e2d9ba), so origin itself refused the next landing on that path. Either a landing's gate passed while origin was red on a test in its own path, or the red came from the merge with what moved under it. Which of the two has not been established. 10:47 23 Nov -- the red itself is gone (017382851, on origin via 56d118ffc). 15:23 23 Nov -- unchanged. The 52dba1ade run found four more tests red at origin alone, so this is now a class: origin carries reds that no landing's gate caught. 18:23 23 Nov -- red 4 is fixed (8a9e5ecea) and red 3 rides MSC, but how a red reaches origin past a gate is still unexplained.",
+    "last_at": "2026-11-23T18:23:07.458521+00:00",
+    "first_at": "2026-11-23T15:23:10.234952+00:00",
+    "times_listed": 2,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the collections desk opened a debt journey for a household that had left (acc-syn-2016-005, closed june 2016) and offered it a prepayment meter by consent on 2016-10-26, at a premise the company no longer supplied (813c99cca)",
+    "what": "THE COMPANY'S, NEW. The collections desk opened a debt journey for a household that had left (ACC-SYN-2016-005, closed June 2016) and offered it a prepayment meter by Consent on 2016-10-26, at a premise the company no longer supplied (813c99cca). Nothing on the Consent path asks whether the account is still supplied. 12:24 23 Nov -- the fix is built but not landed. 15:23 23 Nov -- refused three times on the same three controls, which were keyed to the leaver's offer. Focus item 1 re-keys them. 18:23 23 Nov -- with the controls re-keyed it passed its gate (9423d3dc5) and is re-gating after losing the promotion race. Not yet on origin.",
+    "last_at": "2026-11-23T18:23:07.458521+00:00",
+    "first_at": "2026-11-23T09:21:04.224063+00:00",
     "times_listed": 4,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:my 12:24z direction named msc's \"1,074-file selection\" as the gate's selection, and a worker designed, built and refuted a sharded gate against it (e554e8deb)",
+    "what": "THE SEAT'S OWN, NEW. My 12:24Z direction named MSC's \"1,074-file selection\" as the gate's selection, and a worker designed, built and refuted a sharded gate against it (e554e8deb). That selection is select_impacted_tests', which no gate calls. The hook's selection is 181 files. I copied the figure from 52dba1ade without asking which selector produced it. The correction is landing (land-msc-gate-finding-correction). 18:23 23 Nov -- that landing was refused at 15:22Z with \"already at HEAD\", so nothing landed, and the finding on origin still reads 1,074. It now rides focus item 1.",
+    "last_at": "2026-11-23T18:23:07.458521+00:00",
+    "first_at": "2026-11-23T15:23:10.234952+00:00",
+    "times_listed": 2,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the closed-account landing was relaunched at 14:35z unchanged after two refusals on the same three reds (11:55z, 14:26z), and it was refused a third time",
+    "what": "THE MACHINE'S, NEW. The closed-account landing was relaunched at 14:35Z unchanged after two refusals on the same three reds (11:55Z, 14:26Z), and it was refused a third time. The register still lists it as live while its log reads REFUSED. A refusal that names its reds was retried without anyone reading them. 18:23 23 Nov -- it happened again: the 16:34Z attempt (1795451681) was refused a fourth time on the same three reds. Only the 17:18Z attempt carried the re-keyed controls.",
+    "last_at": "2026-11-23T18:23:07.458521+00:00",
+    "first_at": "2026-11-23T15:23:10.234952+00:00",
+    "times_listed": 2,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:focus item the-shared-checkout-runs-the-promotion-fix-origin-already-has was retired at 15:31z when its fix landed on origin (b0b05661f)",
+    "what": "THE SEAT'S OWN, NEW. Focus item the-shared-checkout-runs-the-promotion-fix-origin-already-has was retired at 15:31Z when its fix landed on origin (b0b05661f). Its done-means was HEAD equal to origin/main, and that never held: the checkout went from 39 behind to 42. I wrote a done-means the tombstone did not read, so the item was retired on its landing rather than its effect. Re-focused this stretch as the-shared-checkout-actually-reaches-origin.",
+    "last_at": "2026-11-23T18:23:07.458521+00:00",
+    "first_at": "2026-11-23T18:23:07.458521+00:00",
+    "times_listed": 1,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the msc chain's worktree, /var/tmp/se-msc-wt, was removed while the chain still depended on it",
+    "what": "THE MACHINE'S, NEW. The MSC chain's worktree, /var/tmp/se-msc-wt, was removed while the chain still depended on it. land6 died in under a second (cd failed, exit 2), and the MSC work now survives only as /tmp/msc_land/msc6.patch, in /tmp, and as salvage ae573846b1. Which lane or reaper removed it has not been established.",
+    "last_at": "2026-11-23T18:23:07.458521+00:00",
+    "first_at": "2026-11-23T18:23:07.458521+00:00",
+    "times_listed": 1,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -459,19 +526,6 @@
    {
     "key": "text:7527a2e36 reached origin with test_collections_journey.py red on the live consent offer (773e2d9ba), so origin itself refused the next landing on that path (the gas-only win)",
     "what": "THE MACHINE'S, NEW. 7527a2e36 reached origin with test_collections_journey.py red on the live Consent offer (773e2d9ba), so origin itself refused the next landing on that path (the gas-only win). That means a landing's gate passed while origin was red on a test in its own path, or the red came from the merge with what moved under it. Which of the two has not been established. 10:47 23 Nov -- the red itself is gone: 017382851 re-keyed both controls to the 2017 answered window (on origin via 56d118ffc). Which of the two caused it is still not established.",
-    "last_at": "2026-11-23T12:24:47.251254+00:00",
-    "first_at": "2026-11-23T09:21:04.224063+00:00",
-    "times_listed": 2,
-    "corrected": false,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:the collections desk opened a debt journey for a household that had left (acc-syn-2016-005, closed june 2016) and offered it a prepayment meter by consent on 2016-10-26, at a premise the company no longer supplied (813c99cca)",
-    "what": "THE COMPANY'S, NEW. The collections desk opened a debt journey for a household that had left (ACC-SYN-2016-005, closed June 2016) and offered it a prepayment meter by Consent on 2016-10-26, at a premise the company no longer supplied (813c99cca). 7527 hid the one instance. Nothing on the Consent path asks whether the account is still supplied. Owned by focus item a-closed-account-is-never-offered-a-prepayment-meter. 12:24 23 Nov -- the fix is built (salvage 1e0202e65 in /tmp/wt-closedacct) but not landed: the tick that built it timed out.",
     "last_at": "2026-11-23T12:24:47.251254+00:00",
     "first_at": "2026-11-23T09:21:04.224063+00:00",
     "times_listed": 2,
@@ -863,8 +917,8 @@
     "key": "triage:the-value-arm-loses-to-the-flat-book-on-the-better-belief",
     "what": "THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 09:20 20 Nov -- CORRECTED by its own triage test (published with its interval, whatever its sign): b1e04fab3 reads the value arm at +GBP 1.00 (+0.27 to +2.05) against A with the 0.12 cut, and the flat book at -0.02. The residual is carried as a new row.",
     "last_at": "2026-11-20T09:20:07.819595+00:00",
-    "first_at": "2026-11-19T03:20:44.845299+00:00",
-    "times_listed": 13,
+    "first_at": "2026-11-19T06:23:17.588820+00:00",
+    "times_listed": 11,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -941,8 +995,8 @@
     "key": "text:on the published book 6af7fd0bf, 3 economy 7 fix-to-svt crossing bills (pros-2016-0253, pros-2017-0286, pros-2021-0313) are charged above every kwh at the highest rate sold",
     "what": "THE COMPANY'S, NEW. On the published book 6af7fd0bf, 3 Economy 7 fix-to-SVT crossing bills (PROS-2016-0253, PROS-2017-0286, PROS-2021-0313) are charged above every kWh at the highest rate sold. One SVT term rate reads 25.4557 p/kWh against the published 25.41 p/kWh. The denominator of crossing periods is uncounted. 09:23 19 Nov -- corrected, and it was not the company's. There were 87 crossings (84 BOUNDED, 3 DISAGREED). The bills were right; the exported stub term carried no Day/Night pair (fixed in c6695cd8d). The cap row was the validator's basis, not a charge above the cap (24963ecd0: 996 to AGREED, 0 the other way). The readers confirm at the next publish (continuation e7-crossing-and-mr-cap-readers-green-after-publish).",
     "last_at": "2026-11-19T09:23:28.598939+00:00",
-    "first_at": "2026-11-19T03:20:44.845299+00:00",
-    "times_listed": 4,
+    "first_at": "2026-11-19T06:23:17.588820+00:00",
+    "times_listed": 2,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -954,8 +1008,8 @@
     "key": "text:d48's landing ran its surgical_land commit gate inside the seat-executor's bounded unit",
     "what": "THE MACHINE'S, NEW. D48's landing ran its surgical_land commit gate inside the seat-executor's bounded unit. It was SIGKILLed at the 5400 s teardown at 00:47Z (pid 276185), so a finished measurement (the coupled-gap tool, its ledger rows and the finding) is stranded uncommitted in the shared tree. 09:23 19 Nov -- corrected. The tool landed in 6918823b5, and the W2_30 and W1_14 rows in aca12f3a5.",
     "last_at": "2026-11-19T09:23:28.598939+00:00",
-    "first_at": "2026-11-19T03:20:44.845299+00:00",
-    "times_listed": 4,
+    "first_at": "2026-11-19T06:23:17.588820+00:00",
+    "times_listed": 2,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -967,8 +1021,8 @@
     "key": "text:after a2c848965 and b585a3bb3 spent it, the seat-executor redrew the focus item skip1-is-graded-against-s12es-branches about eight times (01:56z to 03:16z), landing nothing each time, because the live focus still named it",
     "what": "THE MACHINE'S, NEW. After a2c848965 and b585a3bb3 spent it, the seat-executor redrew the focus item skip1-is-graded-against-s12es-branches about eight times (01:56Z to 03:16Z), landing nothing each time, because the live focus still named it. A spent item at the head of focus starves the rest of the lane until the next orientation. 09:23 19 Nov -- corrected on its own test. This stretch drew only the three items the live focus named, and each one landed (42b5d1f5e and 24963ecd0, aca12f3a5, 5e554a00b). skip1's last draw was about 03:50Z, before the stretch.",
     "last_at": "2026-11-19T09:23:28.598939+00:00",
-    "first_at": "2026-11-19T03:20:44.845299+00:00",
-    "times_listed": 4,
+    "first_at": "2026-11-19T06:23:17.588820+00:00",
+    "times_listed": 2,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -981,33 +1035,7 @@
     "what": "THE MACHINE'S, NEW. D48's ledger rows were relaunched four times in one stretch (d48-surgical-land, d48-ledger-land, d48-wt-ledger-land, d48-ledger-rows-land3), and each one died. The last died on a red test gate. 09:23 19 Nov -- corrected. The cause was named (the gate selected seven simulation runs for a ledger edit), fixed in tools/pre_commit_test_gate.py, and the rows landed in aca12f3a5. The duplicate land4 exited 1 at the same instant, which did no harm.",
     "last_at": "2026-11-19T09:23:28.598939+00:00",
     "first_at": "2026-11-19T06:23:17.588820+00:00",
-    "times_listed": 3,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "triage:a-landing-loses-its-race-to-origin",
-    "what": "THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 03:20 19 Nov -- graded corrected on its own criterion. A second stretch has passed with no written_at banner commit. D48's log has been read: it was killed at the unit's teardown and did not lose a race (new row below).",
-    "last_at": "2026-11-19T03:20:44.845299+00:00",
-    "first_at": "2026-11-19T03:20:44.845299+00:00",
-    "times_listed": 1,
-    "corrected": true,
-    "fate": "fix",
-    "status": "open",
-    "retired": false,
-    "owner": "focus item the-paused-banner-commits-only-on-a-change (background/process_run_complete.py, background/publish_freshness.py)",
-    "reason": "Triaged 2026-11-17 by the delivery seat. The written_at-only banner is the one origin move that can be removed for nothing, and it has recurred in every record since 13 Nov (0ad9d831a, 6c025b3b9). Corrected when a stretch's commit list carries no written_at-only banner and no landing logs a lost race to one. The primary-checkout refusal that ended d5-land9 C2 and d5-land10 C3 is a separate, already-designed route to worktrees and is not this row."
-   },
-   {
-    "key": "text:skip1's reader exited 2: 2 of the 9 pre-registered flip renewals (syn-2016-581 and syn-2016-468, seed 11111) are absent or unlogged in skip1's output",
-    "what": "THE MACHINE'S OR THE RUN'S, NEW. skip1's reader exited 2: 2 of the 9 pre-registered flip renewals (SYN-2016-581 and SYN-2016-468, seed 11111) are absent or unlogged in skip1's output. 03:20 19 Nov -- it was the reader. Both are absent by construction (one left in 2017, one on SVT with no term ending). The reader v3 was re-run on the same files with rc 0 (a2c848965).",
-    "last_at": "2026-11-19T03:20:44.845299+00:00",
-    "first_at": "2026-11-19T03:20:44.845299+00:00",
-    "times_listed": 1,
+    "times_listed": 2,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1016,18 +1044,158 @@
     "reason": null
    }
   ],
-  "distinct": 52,
-  "triaged": 6,
+  "distinct": 56,
+  "triaged": 5,
   "triaged_by_fate": {
-   "fix": 6,
+   "fix": 5,
    "fold": 0,
    "accept": 0
   },
-  "untriaged": 46,
-  "distinct_open": 15,
-  "rows": 317,
+  "untriaged": 51,
+  "distinct_open": 20,
+  "rows": 328,
   "triage_register": "read",
   "entries": [
+   {
+    "at": "2026-11-23T18:23:07.458521+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-11-23T18:23:07.458521+00:00",
+    "corrected": false,
+    "problem": "triage:metered-electricity-barely-moves-year-to-year"
+   },
+   {
+    "at": "2026-11-23T18:23:07.458521+00:00",
+    "corrected": false,
+    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
+   },
+   {
+    "at": "2026-11-23T18:23:07.458521+00:00",
+    "corrected": false,
+    "problem": "text:with the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin"
+   },
+   {
+    "at": "2026-11-23T18:23:07.458521+00:00",
+    "corrected": false,
+    "problem": "text:the book that every queued supplier grade reads has not been built for 30 hours (since 20 nov 15:39)"
+   },
+   {
+    "at": "2026-11-23T18:23:07.458521+00:00",
+    "corrected": false,
+    "problem": "text:two declared long jobs and the book queued one behind another with nobody choosing the order"
+   },
+   {
+    "at": "2026-11-23T18:23:07.458521+00:00",
+    "corrected": false,
+    "problem": "text:the reg 6c re-landing (longjob-land-reg-6c-erroneous-gains-2) was refused at 01:25z, 3 seconds in, on a stale copy of simulation/run_phase2b.py"
+   },
+   {
+    "at": "2026-11-23T18:23:07.458521+00:00",
+    "corrected": false,
+    "problem": "text:the launch register recorded three executor landings as died (exit 2, 01:14z-01:20z), but their work reached origin: each was refused at promotion because origin had moved, and the retries left three merges that authored nothing (f68028b7f, 755536805, 965a59053)"
+   },
+   {
+    "at": "2026-11-23T18:23:07.458521+00:00",
+    "corrected": false,
+    "problem": "text:the msc replacement-win landing's gate timed out at 3600 s (land-msc-replacement-win, 04:55z to 05:56z) while other gates ran beside it"
+   },
+   {
+    "at": "2026-11-23T18:23:07.458521+00:00",
+    "corrected": false,
+    "problem": "text:7527a2e36 reached origin with test_collections_journey.py red on the live consent offer (773e2d9ba), so origin itself refused the next landing on that path"
+   },
+   {
+    "at": "2026-11-23T18:23:07.458521+00:00",
+    "corrected": false,
+    "problem": "text:the collections desk opened a debt journey for a household that had left (acc-syn-2016-005, closed june 2016) and offered it a prepayment meter by consent on 2016-10-26, at a premise the company no longer supplied (813c99cca)"
+   },
+   {
+    "at": "2026-11-23T18:23:07.458521+00:00",
+    "corrected": false,
+    "problem": "text:my 12:24z direction named msc's \"1,074-file selection\" as the gate's selection, and a worker designed, built and refuted a sharded gate against it (e554e8deb)"
+   },
+   {
+    "at": "2026-11-23T18:23:07.458521+00:00",
+    "corrected": false,
+    "problem": "text:the closed-account landing was relaunched at 14:35z unchanged after two refusals on the same three reds (11:55z, 14:26z), and it was refused a third time"
+   },
+   {
+    "at": "2026-11-23T18:23:07.458521+00:00",
+    "corrected": false,
+    "problem": "text:focus item the-shared-checkout-runs-the-promotion-fix-origin-already-has was retired at 15:31z when its fix landed on origin (b0b05661f)"
+   },
+   {
+    "at": "2026-11-23T18:23:07.458521+00:00",
+    "corrected": false,
+    "problem": "text:the msc chain's worktree, /var/tmp/se-msc-wt, was removed while the chain still depended on it"
+   },
+   {
+    "at": "2026-11-23T15:23:10.234952+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-11-23T15:23:10.234952+00:00",
+    "corrected": false,
+    "problem": "triage:metered-electricity-barely-moves-year-to-year"
+   },
+   {
+    "at": "2026-11-23T15:23:10.234952+00:00",
+    "corrected": false,
+    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
+   },
+   {
+    "at": "2026-11-23T15:23:10.234952+00:00",
+    "corrected": false,
+    "problem": "text:with the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin"
+   },
+   {
+    "at": "2026-11-23T15:23:10.234952+00:00",
+    "corrected": false,
+    "problem": "text:the book that every queued supplier grade reads has not been built for 30 hours (since 20 nov 15:39)"
+   },
+   {
+    "at": "2026-11-23T15:23:10.234952+00:00",
+    "corrected": false,
+    "problem": "text:two declared long jobs and the book queued one behind another with nobody choosing the order"
+   },
+   {
+    "at": "2026-11-23T15:23:10.234952+00:00",
+    "corrected": false,
+    "problem": "text:the reg 6c re-landing (longjob-land-reg-6c-erroneous-gains-2) was refused at 01:25z, 3 seconds in, on a stale copy of simulation/run_phase2b.py"
+   },
+   {
+    "at": "2026-11-23T15:23:10.234952+00:00",
+    "corrected": false,
+    "problem": "text:the launch register recorded three executor landings as died (exit 2, 01:14z-01:20z), but their work reached origin: each was refused at promotion because origin had moved, and the retries left three merges that authored nothing (f68028b7f, 755536805, 965a59053)"
+   },
+   {
+    "at": "2026-11-23T15:23:10.234952+00:00",
+    "corrected": false,
+    "problem": "text:the msc replacement-win landing's gate timed out at 3600 s (land-msc-replacement-win, 04:55z to 05:56z) while other gates ran beside it"
+   },
+   {
+    "at": "2026-11-23T15:23:10.234952+00:00",
+    "corrected": false,
+    "problem": "text:7527a2e36 reached origin with test_collections_journey.py red on the live consent offer (773e2d9ba), so origin itself refused the next landing on that path"
+   },
+   {
+    "at": "2026-11-23T15:23:10.234952+00:00",
+    "corrected": false,
+    "problem": "text:the collections desk opened a debt journey for a household that had left (acc-syn-2016-005, closed june 2016) and offered it a prepayment meter by consent on 2016-10-26, at a premise the company no longer supplied (813c99cca)"
+   },
+   {
+    "at": "2026-11-23T15:23:10.234952+00:00",
+    "corrected": false,
+    "problem": "text:my 12:24z direction named msc's \"1,074-file selection\" as the gate's selection, and a worker designed, built and refuted a sharded gate against it (e554e8deb)"
+   },
+   {
+    "at": "2026-11-23T15:23:10.234952+00:00",
+    "corrected": false,
+    "problem": "text:the closed-account landing was relaunched at 14:35z unchanged after two refusals on the same three reds (11:55z, 14:26z), and it was refused a third time"
+   },
    {
     "at": "2026-11-23T12:24:47.251254+00:00",
     "corrected": false,
@@ -2527,91 +2695,6 @@
     "at": "2026-11-19T06:23:17.588820+00:00",
     "corrected": false,
     "problem": "text:d48's ledger rows were relaunched four times in one stretch (d48-surgical-land, d48-ledger-land, d48-wt-ledger-land, d48-ledger-rows-land3), and each one died"
-   },
-   {
-    "at": "2026-11-19T06:23:17.588820+00:00",
-    "corrected": false,
-    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
-   },
-   {
-    "at": "2026-11-19T06:23:17.588820+00:00",
-    "corrected": false,
-    "problem": "triage:the-value-arm-loses-to-the-flat-book-on-the-better-belief"
-   },
-   {
-    "at": "2026-11-19T06:23:17.588820+00:00",
-    "corrected": false,
-    "problem": "triage:metered-electricity-barely-moves-year-to-year"
-   },
-   {
-    "at": "2026-11-19T06:23:17.588820+00:00",
-    "corrected": false,
-    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
-   },
-   {
-    "at": "2026-11-19T06:23:17.588820+00:00",
-    "corrected": false,
-    "problem": "text:on the published book 6af7fd0bf, 3 economy 7 fix-to-svt crossing bills (pros-2016-0253, pros-2017-0286, pros-2021-0313) are charged above every kwh at the highest rate sold"
-   },
-   {
-    "at": "2026-11-19T06:23:17.588820+00:00",
-    "corrected": false,
-    "problem": "text:d48's landing ran its surgical_land commit gate inside the seat-executor's bounded unit"
-   },
-   {
-    "at": "2026-11-19T06:23:17.588820+00:00",
-    "corrected": false,
-    "problem": "text:after a2c848965 and b585a3bb3 spent it, the seat-executor redrew the focus item skip1-is-graded-against-s12es-branches about eight times (01:56z to 03:16z), landing nothing each time, because the live focus still named it"
-   },
-   {
-    "at": "2026-11-19T06:23:17.588820+00:00",
-    "corrected": false,
-    "problem": "text:d48's ledger rows were relaunched four times in one stretch (d48-surgical-land, d48-ledger-land, d48-wt-ledger-land, d48-ledger-rows-land3), and each one died"
-   },
-   {
-    "at": "2026-11-19T03:20:44.845299+00:00",
-    "corrected": false,
-    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
-   },
-   {
-    "at": "2026-11-19T03:20:44.845299+00:00",
-    "corrected": false,
-    "problem": "triage:the-value-arm-loses-to-the-flat-book-on-the-better-belief"
-   },
-   {
-    "at": "2026-11-19T03:20:44.845299+00:00",
-    "corrected": false,
-    "problem": "triage:metered-electricity-barely-moves-year-to-year"
-   },
-   {
-    "at": "2026-11-19T03:20:44.845299+00:00",
-    "corrected": false,
-    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
-   },
-   {
-    "at": "2026-11-19T03:20:44.845299+00:00",
-    "corrected": true,
-    "problem": "triage:a-landing-loses-its-race-to-origin"
-   },
-   {
-    "at": "2026-11-19T03:20:44.845299+00:00",
-    "corrected": true,
-    "problem": "text:skip1's reader exited 2: 2 of the 9 pre-registered flip renewals (syn-2016-581 and syn-2016-468, seed 11111) are absent or unlogged in skip1's output"
-   },
-   {
-    "at": "2026-11-19T03:20:44.845299+00:00",
-    "corrected": false,
-    "problem": "text:on the published book 6af7fd0bf, 3 economy 7 fix-to-svt crossing bills (pros-2016-0253, pros-2017-0286, pros-2021-0313) are charged above every kwh at the highest rate sold"
-   },
-   {
-    "at": "2026-11-19T03:20:44.845299+00:00",
-    "corrected": false,
-    "problem": "text:d48's landing ran its surgical_land commit gate inside the seat-executor's bounded unit"
-   },
-   {
-    "at": "2026-11-19T03:20:44.845299+00:00",
-    "corrected": false,
-    "problem": "text:after a2c848965 and b585a3bb3 spent it, the seat-executor redrew the focus item skip1-is-graded-against-s12es-branches about eight times (01:56z to 03:16z), landing nothing each time, because the live focus still named it"
    }
   ],
   "refused_own_records": [
@@ -2650,19 +2733,78 @@
     "problems": []
    }
   ],
-  "outstanding": 267,
-  "corrected": 50,
+  "outstanding": 280,
+  "corrected": 48,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
+   "the-msc-replacement-win-lands-before-the-post-s12g-book",
    "a-closed-account-is-never-offered-a-prepayment-meter",
-   "finish-the-coming-books-pre-flight-on-the-2016-2018-book",
-   "one-commit-gate-runs-at-a-time",
-   "the-shared-checkout-runs-the-promotion-fix-origin-already-has"
+   "the-shared-checkout-actually-reaches-origin"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "a-closed-account-is-never-offered-a-prepayment-meter",
+       "the-engagement-estimates-null-arm-is-red-on-origin"
+      ],
+      "focus": [
+       "a-closed-account-is-never-offered-a-prepayment-meter",
+       "the-engagement-estimates-null-arm-is-red-on-origin",
+       "the-shared-checkout-runs-the-promotion-fix-origin-already-has"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "a-closed-account-is-never-offered-a-prepayment-meter",
+     "the-engagement-estimates-null-arm-is-red-on-origin"
+    ],
+    "focus": [
+     "a-closed-account-is-never-offered-a-prepayment-meter",
+     "the-engagement-estimates-null-arm-is-red-on-origin",
+     "the-shared-checkout-runs-the-promotion-fix-origin-already-has"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-23T15:23:10.234952+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-11-23T15:23:10.234952+00:00"
+   },
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "a-closed-account-is-never-offered-a-prepayment-meter",
+       "finish-the-coming-books-pre-flight-on-the-2016-2018-book",
+       "the-shared-checkout-runs-the-promotion-fix-origin-already-has"
+      ],
+      "focus": [
+       "a-closed-account-is-never-offered-a-prepayment-meter",
+       "finish-the-coming-books-pre-flight-on-the-2016-2018-book",
+       "one-commit-gate-runs-at-a-time",
+       "the-shared-checkout-runs-the-promotion-fix-origin-already-has"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "a-closed-account-is-never-offered-a-prepayment-meter",
+     "finish-the-coming-books-pre-flight-on-the-2016-2018-book",
+     "the-shared-checkout-runs-the-promotion-fix-origin-already-has"
+    ],
+    "focus": [
+     "a-closed-account-is-never-offered-a-prepayment-meter",
+     "finish-the-coming-books-pre-flight-on-the-2016-2018-book",
+     "one-commit-gate-runs-at-a-time",
+     "the-shared-checkout-runs-the-promotion-fix-origin-already-has"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-23T12:24:47.251254+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-11-23T12:24:47.251254+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -2758,80 +2900,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-23T03:22:44.727556+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-11-23T03:22:44.727556+00:00"
-   },
-   {
-    "by_class": {
-     "atom": {
-      "drawn": [],
-      "focus": [
-       "B8_discovered_price_sensitivity_holdout"
-      ],
-      "steered": false
-     },
-     "lane_0": {
-      "drawn": [
-       "the-commit-gate-finishes-inside-its-hour",
-       "a-level-leavers-refund-is-paid-on-the-credit-it-held",
-       "supply-a-win-from-a-gas-only-household-as-gas"
-      ],
-      "focus": [
-       "the-commit-gate-finishes-inside-its-hour",
-       "a-level-leavers-refund-is-paid-on-the-credit-it-held",
-       "supply-a-win-from-a-gas-only-household-as-gas"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "the-commit-gate-finishes-inside-its-hour",
-     "a-level-leavers-refund-is-paid-on-the-credit-it-held",
-     "supply-a-win-from-a-gas-only-household-as-gas"
-    ],
-    "focus": [
-     "the-commit-gate-finishes-inside-its-hour",
-     "a-level-leavers-refund-is-paid-on-the-credit-it-held",
-     "B8_discovered_price_sensitivity_holdout",
-     "supply-a-win-from-a-gas-only-household-as-gas"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 6.0h since 2026-11-22T21:20:43.517479+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 6.0h since 2026-11-22T21:20:43.517479+00:00"
-   },
-   {
-    "by_class": {
-     "atom": {
-      "drawn": [],
-      "focus": [
-       "B8_discovered_price_sensitivity_holdout"
-      ],
-      "steered": false
-     },
-     "lane_0": {
-      "drawn": [
-       "the-commit-gate-finishes-inside-its-hour",
-       "a-level-leavers-refund-is-paid-on-the-credit-it-held"
-      ],
-      "focus": [
-       "the-commit-gate-finishes-inside-its-hour",
-       "a-level-leavers-refund-is-paid-on-the-credit-it-held",
-       "supply-a-win-from-a-gas-only-household-as-gas"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "the-commit-gate-finishes-inside-its-hour",
-     "a-level-leavers-refund-is-paid-on-the-credit-it-held"
-    ],
-    "focus": [
-     "the-commit-gate-finishes-inside-its-hour",
-     "a-level-leavers-refund-is-paid-on-the-credit-it-held",
-     "B8_discovered_price_sensitivity_holdout",
-     "supply-a-win-from-a-gas-only-household-as-gas"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-22T21:20:43.517479+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-11-22T21:20:43.517479+00:00"
    }
   ],
   "steered_recently": true,
@@ -3102,7 +3170,7 @@
     },
     {
      "date": "2026-11-23",
-     "commit": "52dba1ade",
+     "commit": "a2d8c2888",
      "population": 169,
      "chained": 167,
      "minted": 58,
