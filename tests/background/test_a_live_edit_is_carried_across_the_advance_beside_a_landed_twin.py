@@ -231,3 +231,27 @@ def test_a_clean_merge_that_defines_a_method_twice_is_not_carried(world, lane_na
     else:
         assert "Triad.record" in out["reason"] and "defined twice" in out["reason"], out["reason"]
         assert (shared / _PY).read_text() == mine, "a doubled definition is never written over"
+
+
+def test_a_carried_edit_keeps_its_lanes_last_write_time_so_it_can_still_age_out(world):
+    """The carry rewrites the file; it must not reset the clock the abandoned class reads. Defect
+    named: a stale copy carried across every advance reads as freshly written each time, so it is
+    never aged out -- annual_report.py re-reverted 0efa633c1b through four carries (21-23 Nov) and
+    read "8h old, LIVE" while the shared tree fell 39 behind. MUTATION: drop the `os.utime` in
+    `_apply_carry` -> the mtime is the carry's, and this reds."""
+    import os
+    seed, shared = world
+    origin_live = _LINES.replace("line 2\n", "line 2 -- origin's revision\n")
+    _commit(seed, {_TWIN: "landed\n", _LIVE: origin_live}, "origin lands the twin, revises live")
+    _put(shared, _TWIN, "landed\n")
+    _put(shared, _LIVE, _LINES.replace("line 18\n", "line 18 -- the lane's edit\n"))
+    three_days_ago = int((orc.datetime.now().timestamp() - 72 * 3600) * 1e9)
+    os.utime(shared / _LIVE, ns=(three_days_ago, three_days_ago))
+
+    out = _advance(shared)
+
+    assert out["advanced"] is True, out["reason"]             # the carry leg was taken
+    assert "line 18 -- the lane's edit" in (shared / _LIVE).read_text()
+    assert os.lstat(shared / _LIVE).st_mtime_ns == three_days_ago, \
+        "the carry stamped its own time on the lane's file, so its age now reads as fresh"
+    assert orc._age_hours(shared, _LIVE) > orc.ABANDONED_AFTER_HOURS
