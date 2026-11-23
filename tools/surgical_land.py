@@ -881,8 +881,14 @@ GATE_TIMEOUT_SECONDS = 3600
 def run_gate(checkout: Path, hook_rel: str = HOOK_REL,
              gated_tree: str | None = None,
              merge_parent: str | None = None,
-             prior_green: str | None = None) -> tuple[int, str, str]:
+             prior_green: str | None = None,
+             label: str = "") -> tuple[int, str, str]:
     """Run the repo's own pre-commit hook inside the extract. Returns (rc, stdout, stderr).
+
+    ONE LANDING GATE RUNS AT A TIME: the hook runs inside `pre_commit_test_gate.LandingGateLock`
+    and `GATE_TIMEOUT_SECONDS` starts only once it is held, so a gate queued behind another is
+    not killed for the other's hour. `label` (the landing's first message line) is what a
+    waiter prints about this holder.
 
     `gated_tree` IS THE TREE THIS TOOL HAS ALREADY JUDGED with `stale_copy_refusal.violations`,
     handed to the hook so its own `--staged` leg does not ask the same question a second time
@@ -928,7 +934,9 @@ def run_gate(checkout: Path, hook_rel: str = HOOK_REL,
     elif prior_green:
         env[pre_commit_test_gate.MERGE_PARENT_ENV] = prior_green
     try:
-        r = _run_killing_the_tree(["sh", hook_rel], checkout, env, GATE_TIMEOUT_SECONDS)
+        with pre_commit_test_gate.LandingGateLock(label or str(checkout)) as held:
+            env[pre_commit_test_gate.LANDING_GATE_HELD_ENV] = held.held_env_value()
+            r = _run_killing_the_tree(["sh", hook_rel], checkout, env, GATE_TIMEOUT_SECONDS)
     except (OSError, subprocess.SubprocessError) as exc:
         raise LandingRefused(
             "the gate could not be EXECUTED ({}) -- refusing rather than landing ungated.{}".format(
@@ -1979,7 +1987,8 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
                       "change.".format(parent[:9], prior_green[:9]), flush=True)
             rc, gate_out, gate_err = run_gate(checkout, hook_rel, gated_tree=gated_tree,
                                               merge_parent=merge_parent,
-                                              prior_green=prior_green)
+                                              prior_green=prior_green,
+                                              label=message.splitlines()[0][:120])
         tests = _test_summary(gate_out + gate_err)
         if rc != 0:
             raise LandingRefused(

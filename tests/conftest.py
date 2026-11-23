@@ -149,6 +149,17 @@ def _no_real_session_spawn(request, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _no_real_landing_gate_lock(monkeypatch):
+    """A test that calls the real `surgical_land.run_gate` must not take the box-wide landing-gate
+    lock: inside a landing's own gate that lock is HELD by the landing, so the test would wait on
+    its own grandparent for the whole hour."""
+    import tempfile
+    monkeypatch.setenv("SE_LANDING_GATE_LOCK", str(
+        pathlib.Path(tempfile.gettempdir()) / f"se_landing_gate_tests_{os.getpid()}.lock"))
+    monkeypatch.delenv("SE_LANDING_GATE_LOCK_HELD", raising=False)
+
+
+@pytest.fixture(autouse=True)
 def _no_real_tick_mode(monkeypatch):
     """The director's tick mode lives in ~/.config and its spawn stamps in ~/.cache, outside the
     repo, so neither guard above sees them: without this, `off` on the box reds every route's tests
