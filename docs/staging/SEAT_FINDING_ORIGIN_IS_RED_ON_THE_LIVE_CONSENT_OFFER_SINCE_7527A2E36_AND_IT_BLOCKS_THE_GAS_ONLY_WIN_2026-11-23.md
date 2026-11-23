@@ -70,3 +70,29 @@ the world can empty them, and when it does it reds every landing that touches
 3. Origin is green on both tests. The gas-only win is then landed from `/tmp/seat_gas/files` with
    its existing message (`/tmp/seat_gas/msg/msg.txt`), promoted, and `/var/tmp/se-reg6c-land` is
    removed.
+
+## Done-means 1 answered: the mechanism (probe, 23 Nov 08:15-08:40Z)
+
+Pre-registered: `docs/staging/records/SEAT_PREREG_WHICH_7527_PATH_EMPTIES_THE_LIVE_CONSENT_RUNG_2026-11-23.md`.
+Two answered 2016 runs on origin 6903ea3d86 (`plan_take_up_share` at `high`): A as is, B with
+`LivePaymentTriad.record_period` forced to `closing=False` (7527's only runtime change).
+
+| | A (origin) | B (closing=False) |
+|---|---|---|
+| 90-day Consent rung | ACC-SYN-2016-105 withheld only | 105 withheld, **005 offered 2016-10-26** |
+| 005's final bills (2016-06) | elec face 56.07 asks 66.83 (debit 10.76); gas face 15.03 asks 51.35 (debit 36.32); both paid | at face; the level debit stays unpaid |
+
+- **P1 right:** B restores the offer, so 7527 is the whole mechanism.
+- **P2 right, P3 wrong:** a correction to this page. **ACC-SYN-2016-005 does leave in 2016.** It is on
+  `churned_billing_accounts` and closes in June. Under 7527, its final bills ask face plus the
+  level-schedule debit (choice 26), and it pays them. No draw moved: this is a legitimate change in its
+  payments, and 7527's "no seed moves" stands.
+- **What the control stood on was itself a defect.** Before 7527, the departed household's level debit
+  stayed open. Its journey opened on 2016-07-29, after it left, and on 2016-10-26 the desk asked it, by
+  Consent, to take a prepayment meter at a premise the company no longer supplied. The only live offer
+  the two controls ever saw went to a household that had gone. That class is filed separately:
+  `SEAT_FINDING_THE_DESK_OFFERS_A_PREPAYMENT_METER_TO_A_HOUSEHOLD_THAT_HAS_LEFT_2026-11-23.md`.
+
+So done-means 2 takes its second branch. The control is re-keyed to the property: some answered
+household **still supplied** is offered, and the gate decides both ways. It needs a window that holds such an
+offer. A 2016-2017 answered probe is measuring that now (`/tmp/seat_exec_e/probe/out_2017.json`).
