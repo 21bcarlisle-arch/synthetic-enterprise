@@ -386,7 +386,6 @@ PHASE2B_KEYS_NOT_PUBLISHED: dict[str, str] = {
     "registration_loss_exceptions": _NO_READER,
     "registration_losses_notified": _NO_READER,
     "renewal_decisions_log": _NO_READER,
-    "retention_blind_holdout_log": _NO_READER,
     "retention_holdout_log": _NO_READER,
     "retention_holdout_outcomes": _NO_READER,
     "shared_rise_log": _NO_READER,
@@ -1085,6 +1084,12 @@ def extract_report_data(run_output: dict) -> dict:
         # why the desk held nobody out. Built by the run from 775a3c46c on and dropped here the same
         # way. `None` for a run that did not record one, never an empty table.
         "retention_holdout_by_desk_year": phase2b.get("retention_holdout_by_desk_year"),
+        # B8's blind coin, one row per renewal the desk considered: its arm, whether the guard would
+        # have offered and whether it stayed. The switch-on's pre-registration grades the held
+        # renewals the guard would have offered on, which the per-year counts above cannot split
+        # (SEAT_PREREG_B8_THE_HOLDOUT_SWITCHED_ON_IN_THE_STANDING_POLICY_2026-11-23.md). `None` with
+        # the switch off, which is every standing policy until that record's rule flips it.
+        "retention_blind_holdout_log": phase2b.get("retention_blind_holdout_log"),
         # Every renewal the churn desk priced: the belief it held, the term it ended and whether
         # the account left at the roll. The ending-term belief's grade on a standing book reads it
         # (SEAT_PREREG_THE_ENDING_TERM_BELIEF_ON_THE_COMING_BOOK_2026-11-22.md). `None` for a run

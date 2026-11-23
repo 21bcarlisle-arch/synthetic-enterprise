@@ -119,7 +119,13 @@ is why they fitted a quadratic. The world's slope per £ also falls as the cut g
    the guard and either other coin. A held renewal loses the proactive approach only; its re-fix
    tariff and end-of-fix notice are the same as the treated arm's. With the switch on, the book adds
    `retention_holdout_by_desk_year["blind_approach"]`, both arms per year, as intention to treat.
-   With it off, the book is unchanged. No standing run has turned it on yet. Unknown, and so not a value to
+   With it off, the book is unchanged. No standing run has turned it on yet. **2026-11-23:** the
+   director ruled holdouts yes (22 Nov). The standing policy's switch-on is one named flag,
+   `B8_BLIND_HOLDOUT_ON_IN_THE_STANDING_POLICY`. It is ready and off, and it is pre-registered with
+   its off-rule in `docs/staging/records/SEAT_PREREG_B8_THE_HOLDOUT_SWITCHED_ON_IN_THE_STANDING_POLICY_2026-11-23.md`.
+   That record also finds that a standing book of about 100 considered renewals reads the approach's
+   effect to about ±0.20, against the +0.035 the 0.8 slope implies. About 7,800 are needed. One book
+   can sign the effect, not size it. Unknown, and so not a value to
    pick: the share a real GB retention desk holds out. No published source was found, so it is a
    practitioner question (K4).
 

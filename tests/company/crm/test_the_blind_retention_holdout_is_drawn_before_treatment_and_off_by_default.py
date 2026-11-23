@@ -73,6 +73,21 @@ def test_off_on_every_standing_policy_and_the_book_is_unchanged_when_off():
     assert "blind_approach" not in off
 
 
+def test_the_switch_on_is_one_named_flag_that_the_standing_policy_reads_and_it_is_off():
+    """Defect: the switch-on is made by editing CURRENT_POLICY's literal, so nothing names it and its
+    pre-registration cannot be checked against the commit that flips it; or the flag ships on before
+    the five queued grades are read (SEAT_PREREG_B8_THE_HOLDOUT_SWITCHED_ON_IN_THE_STANDING_POLICY_
+    2026-11-23.md). Keyed to the property: CURRENT_POLICY's switch IS the flag, whatever its value."""
+    tree = ast.parse(inspect.getsource(decision_policy))
+    current = next(n.value for n in tree.body if isinstance(n, ast.Assign)
+                   and any(getattr(t, "id", None) == "CURRENT_POLICY" for t in n.targets))
+    kw = {k.arg: k.value for k in current.keywords}
+    assert getattr(kw.get(SWITCH), "id", None) == "B8_BLIND_HOLDOUT_ON_IN_THE_STANDING_POLICY"
+    assert decision_policy.CURRENT_POLICY.retention_holdout_drawn_blind_before_treatment is (
+        decision_policy.B8_BLIND_HOLDOUT_ON_IN_THE_STANDING_POLICY)
+    assert decision_policy.B8_BLIND_HOLDOUT_ON_IN_THE_STANDING_POLICY is False
+
+
 def _run_loop_tree():
     from simulation import run_phase2b
 
