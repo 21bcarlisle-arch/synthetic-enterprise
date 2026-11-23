@@ -1460,7 +1460,8 @@ def _swap_head(root: Path, new: str, parent: str) -> None:
 
 
 def _commit_and_swap(root: Path, result_tree: str, parent: str, message: str,
-                     files: list[str], merge_parent: str | None = None) -> str:
+                     files: list[str], merge_parent: str | None = None,
+                     expected: str | None = None, moved: list[str] | None = None) -> str:
     """commit-tree + a compare-and-swap ref update, under the tree lock.
 
     The CAS is what makes the gate's verdict still true at the moment of landing: on this shared
@@ -1469,10 +1470,16 @@ def _commit_and_swap(root: Path, result_tree: str, parent: str, message: str,
 
     The lock is taken only for the REAL shared tree. `tree_lock` exists to serialise the several
     daemons that write THIS working tree; a scratch repo has no other writers, and taking the
-    live lock from a test would block on whatever publisher happens to hold it."""
+    live lock from a test would block on whatever publisher happens to hold it.
+
+    `expected` and `moved` are the REPLAY's (see `replay`): the new commit's parent is the moved
+    origin, but HEAD is still the landing being replaced, so the swap compares against that, and
+    the paths the origin move brought are brought into the index and working tree the way a
+    merge's are."""
+    expected = expected or parent
     with _write_lock(root):
         now = _git_text(root, "rev-parse", "HEAD")
-        if now != parent:
+        if now != expected:
             # The verdict is GREEN and about the wrong tree. Its commit object is written anyway,
             # unreferenced (left for gc like the one `_swap_head` strands), so the next attempt
             # can name the tree that passed -- see `land`, REGATING ONLY WHAT THE MOVE BROUGHT.
@@ -1482,18 +1489,19 @@ def _commit_and_swap(root: Path, result_tree: str, parent: str, message: str,
             raise BaseMoved(
                 "HEAD moved from {} to {} while the gate ran, so the gated tree is no longer the "
                 "tree this commit would create. Nothing was committed; re-run and it will gate "
-                "the new base.".format(parent[:9], now[:9]), parent, now, green=green)
+                "the new base.".format(expected[:9], now[:9]), expected, now, green=green)
         # READ THE DISPOSITIONS BEFORE THE REF MOVES, and that ordering is the whole correctness
         # of it. `git status` answers against HEAD; once HEAD is the merge commit every path the
         # merge changed reports as a STAGED difference (the index still holds the parent's), so
         # asking afterwards classifies all of them as another lane's staged work and the merge
         # lands with an index and a working tree that were never moved. Both of this module's
         # merge post-state tests fail on that mistake, which is how it was found.
-        dispositions = merge_dispositions(root, files) if merge_parent else None
+        dispositions = (merge_dispositions(root, files) if merge_parent
+                        else merge_dispositions(root, moved) if moved else None)
         extra = ["-p", merge_parent] if merge_parent else []
         new = _git_text(root, "commit-tree", result_tree, "-p", parent, *extra, "-m", message)
         try:
-            _swap_head(root, new, parent)
+            _swap_head(root, new, expected)
         except BaseMoved as exc:
             exc.green = new
             raise
@@ -1504,6 +1512,7 @@ def _commit_and_swap(root: Path, result_tree: str, parent: str, message: str,
             refreshable, writable = dispositions
             _refresh_index_for(root, result_tree, refreshable, sha=new)
             _write_worktree_from_tree(root, result_tree, writable)
+            # A replay's own paths need nothing: the index already holds the landing's blobs.
         else:
             _refresh_index_for(root, result_tree, files, sha=new)
         return new
@@ -1620,6 +1629,69 @@ def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
             len(lost),
             "\n".join("  attempt {}: {} -> {}".format(i + 1, e.parent[:9], e.observed[:9])
                       for i, e in enumerate(lost))))
+
+
+class NotReplayable(LandingRefused):
+    """The landing cannot be replayed onto the new base as itself; a `--merge` decides instead.
+
+    Not terminal for the caller that asked: it names why the cheap route does not apply, and the
+    caller falls back to the merge, which lets git's three-way rules settle what both sides did."""
+
+
+def replay(root: Path, onto: str, hook_rel: str = HOOK_REL) -> str:
+    """Re-land HEAD's own landing on `onto` as one commit whose parent is `onto`, gated again.
+
+    WHY (2026-11-23, direction `a-promotion-that-loses-its-race-is-one-job-not-three-died-ones`).
+    A worktree landing that lost the promotion race used to be folded under origin with
+    `--merge origin/main`: f68028b7f, 755536805 and 965a59053 each authored nothing, and each was
+    a separate job the launch register read as DIED. When the move is DISJOINT from the landing,
+    the same bytes on the new base are the same change, so it lands as itself: the paths HEAD
+    changed against its parent, with HEAD's bytes, over `onto`.
+
+    GATED, NOT COPIED. The tree is new, so the whole chain runs on it; tests select only on what
+    differs from both it and the landing that already passed (`prior_green`, the rule of
+    5a354ebcb), which for a disjoint move is nothing. Refuses (NotReplayable) when HEAD is a
+    merge, when `onto` does not contain HEAD's parent, or when both sides touched a path --
+    an overlay there would overwrite the mover's bytes, and a merge is what settles that.
+    NothingToLand when `onto` already carries the landing's content."""
+    landed = _git_text(root, "rev-parse", "HEAD")
+    target = _git_text(root, "rev-parse", "{}^{{commit}}".format(onto))
+    parents = _git_text(root, "rev-list", "--parents", "-n", "1", landed).split()[1:]
+    if len(parents) != 1:
+        raise NotReplayable("HEAD {} has {} parents; only a single-parent landing replays as "
+                            "itself.".format(landed[:9], len(parents)))
+    base = parents[0]
+    if _git(root, "merge-base", "--is-ancestor", landed, target).returncode == 0:
+        raise NothingToLand("{} already contains {}: the landing is there.".format(
+            target[:9], landed[:9]))
+    if _git(root, "merge-base", "--is-ancestor", base, target).returncode != 0:
+        raise NotReplayable("{} does not descend from the landing's parent {}, so what moved "
+                            "is not a list of paths.".format(target[:9], base[:9]))
+    # --no-renames: a rename is two paths, and the overlay needs the deleted one named too.
+    mine, theirs = ([ln for ln in _git_text(root, "diff", "--no-renames", "--name-only", base,
+                                            side).splitlines() if ln.strip()]
+                    for side in (landed, target))
+    if all(_git(root, "rev-parse", "-q", "--verify", "{}:{}".format(side, path)).stdout
+           == _git(root, "rev-parse", "-q", "--verify", "{}:{}".format(landed, path)).stdout
+           for path in mine for side in (target,)):
+        raise NothingToLand("{} already carries the bytes {} changed ({} path(s)).".format(
+            target[:9], landed[:9], len(mine)))
+    shared = sorted(set(mine) & set(theirs))
+    if shared:
+        raise NotReplayable("both the landing and the move changed {}; a merge settles a path "
+                            "both sides touched.".format(", ".join(shared[:8])))
+    present = set(_git_text(root, "ls-tree", "-r", "--name-only", "--full-name", landed, "--",
+                            *mine).splitlines())
+    content: dict[str, bytes | None] = {
+        p: (_git(root, "cat-file", "blob", "{}:{}".format(landed, p)).stdout
+            if p in present else None) for p in mine}
+    message = _git_text(root, "log", "-1", "--format=%B", landed)
+    message = message.split("\n\n" + RECEIPT_HEADER)[0].split(RECEIPT_HEADER)[0].rstrip()
+    sha = _land_once(root, mine, message, hook_rel, content, prior_green=landed,
+                     onto=target, moved=theirs)
+    _refuse_a_landing_no_ref_holds(root, sha)
+    announce_landing(sha, message, mine)
+    return sha
 
 
 #: The trunk a landing on the PRIMARY checkout must already contain. Read from the local
@@ -1772,14 +1844,17 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
                merge: str | None = None,
                resolutions: Mapping[str, bytes] | None = None,
                drops: frozenset[str] = frozenset(),
-               prior_green: str | None = None) -> str:
+               prior_green: str | None = None,
+               onto: str | None = None, moved: list[str] | None = None) -> str:
     """ONE attempt: read HEAD, build the resulting tree, gate it, compare-and-swap.
 
-    `prior_green` is an earlier attempt's green commit -- see `land`."""
+    `prior_green` is an earlier attempt's green commit -- see `land`. `onto` builds on that commit
+    instead of HEAD and swaps HEAD to the result -- see `replay`."""
     if merge is None and not paths:
         raise LandingRefused("no paths given -- a surgical landing names its paths explicitly.")
-    parent = _git_text(root, "rev-parse", "HEAD")
-    parent_tree = _git_text(root, "rev-parse", "HEAD^{tree}")
+    expected = _git_text(root, "rev-parse", "HEAD")
+    parent = onto or expected
+    parent_tree = _git_text(root, "rev-parse", parent + "^{tree}")
     merge_parent = None
     if merge is not None:
         if paths or content:
@@ -1821,8 +1896,11 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
     # then attributes the other lane's deletion to THIS landing. See `adopted_from_merge`.
     adopted = (stale_copy_refusal.adopted_from_merge(root, parent, merge_parent, files)
                if merge_parent is not None else frozenset())
-    reverts = stale_copy_refusal.violations(root, parent, result_tree, files, allow=drops,
-                                            merge_ref=merge_parent)
+    # A REPLAY'S PATHS WERE JUDGED ON THE LANDING IT REPLAYS: `replay` refuses unless the move
+    # left every one of them untouched, so the last commit to each is one that landing already
+    # stood on. Asking again would re-litigate it without the `--drops` it was landed with.
+    reverts = [] if onto else stale_copy_refusal.violations(
+        root, parent, result_tree, files, allow=drops, merge_ref=merge_parent)
     if reverts:
         raise LandingRefused(stale_copy_refusal.refusal_text(reverts, merge_ref=merge_parent))
     # THE TREE THAT WAS ACTUALLY JUDGED, pinned here rather than read again at the gate. A merge
@@ -1918,7 +1996,7 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
                             msg_hook_rel=MSG_HOOK_REL, msg_gate_rc=mrc,
                             prior_green=prior_green if merge_parent is None else None)
     return _commit_and_swap(root, result_tree, parent, message + "\n\n" + receipt, files,
-                            merge_parent=merge_parent)
+                            merge_parent=merge_parent, expected=expected, moved=moved)
 
 
 # ---------------------------------------------------------------------------------------------

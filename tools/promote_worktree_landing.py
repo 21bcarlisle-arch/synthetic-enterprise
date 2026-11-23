@@ -76,6 +76,20 @@ class PromotionRefused(RuntimeError):
     """The landing may not be promoted. The message always names which condition failed."""
 
 
+class AlreadyOnOrigin(PromotionRefused):
+    """`origin/main` IS the landing: nothing to push, and nothing was lost. A caller that just
+    landed reads this as success -- someone else's push carried the same commit."""
+
+
+class NotFastForward(PromotionRefused):
+    """`origin/main` moved under the landing. The one refusal a caller may answer by re-landing
+    on `remote_head` (see `background/bounded_landing.promote_until_landed`)."""
+
+    def __init__(self, message: str, remote_head: str):
+        super().__init__(message)
+        self.remote_head = remote_head
+
+
 def _git(cwd: Path, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
         ["git", *args], cwd=str(cwd), capture_output=True, text=True, timeout=300,
@@ -353,16 +367,16 @@ def _refuse_if_not_fast_forward(worktree: Path, commit: str) -> str:
     _git_out(worktree, "fetch", "--quiet", REMOTE)
     remote_head = _git_out(worktree, "rev-parse", f"{REMOTE}/{BRANCH}")
     if remote_head == commit:
-        raise PromotionRefused(
+        raise AlreadyOnOrigin(
             f"{REMOTE}/{BRANCH} is already at {commit[:9]}: there is nothing to promote."
         )
     ancestor = _git(worktree, "merge-base", "--is-ancestor", remote_head, commit)
     if ancestor.returncode != 0:
         behind = _git_out(worktree, "rev-list", "--count", f"{commit}..{remote_head}")
-        raise PromotionRefused(
+        raise NotFastForward(
             f"{REMOTE}/{BRANCH} has moved to {remote_head[:9]} — {behind} commit(s) this landing "
             "does not contain, so promoting it is not a fast-forward. Re-gate on the new base and "
-            "land again. This route never forces."
+            "land again. This route never forces.", remote_head
         )
     return remote_head
 
@@ -455,7 +469,7 @@ def promote(worktree: Path, *, work_id: str | None = None, dry_run: bool = False
     # read as a defect in the commit rather than as "there is no work here".
     local_remote = _git(worktree, "rev-parse", f"{REMOTE}/{BRANCH}")
     if local_remote.returncode == 0 and local_remote.stdout.strip() == commit:
-        raise PromotionRefused(
+        raise AlreadyOnOrigin(
             f"the worktree is at {REMOTE}/{BRANCH} ({commit[:9]}) and has landed nothing: "
             "there is no work here to promote."
         )
