@@ -577,3 +577,17 @@ Cautions on the table:
 - **Ombudsman Services energy sector reports:** they sit on tag-craft.files.svdcdn.com and were fetchable only after a web search surfaced each URL.
 
 I did not save any of this.
+## Done
+
+2026-11-23, delivery seat. The advisor's reading, acted on in order:
+1. **The two §1.2 lines are corrected** in `docs/market_research/customer_voice_theme_map_gb_energy_2026-11-21.md`
+   (and the three places that repeated them, §2.2, §3 and §3.1): "smart meter problems are the most common
+   complaint" is not stated (smart is 31%, second to net billing 70%, Fig. 39, n=96; meter reading 16% leads
+   contact reasons, Fig. 25), and the 22% is an inference graded S; the P figure for "passed to another
+   organisation" is 10% (Fig. 49). §6 now points here for V1-V6.
+2. and 4. **Filed** as `end-of-fix-default-is-rational-when-fixes-price-above-the-cap` in
+   `customer_outcomes_candidates` (`docs/direction/priority_order.yaml`), carrying the front-line versus
+   Ombudsman population point.
+3. **Filed** as `a-home-move-seeds-an-unnamed-account-and-its-debt` in the same list. The 20-40% is graded S
+   in Pack B's own table (supplier-reported, quoted in an Ofgem call for input), not P.
+No world or supplier parameter rests on any figure here yet: each is verified against its primary first.

@@ -95,10 +95,17 @@ From `ofgem.gov.uk/news-and-insight/data/data-portal/customer-service-data`, rea
   switching-process satisfaction 87% among switchers; billing-accuracy satisfaction 81% and
   bill-understanding 84% among credit-meter customers. Sample sizes are not on the page.
 - **The survey's contact reasons are not on the web page.** Citizens Advice cites the January 2026
-  findings report (p. 51) for "**smart meter problems are the most common complaint to energy
-  suppliers**", and p. 62 for: of people who contacted their supplier about a smart meter problem,
-  **22% were told it could not be resolved for now or had been passed to another organisation**.
-  Both are second-hand until the findings report itself is read (V1).
+  findings report for two claims that the report itself does not state (corrected 23 Nov from the
+  advisor's Pack C read of the report, `docs/staging/advisor/done/DIRECTOR_EVIDENCE_CUSTOMER_VOICE_PRICE_SHOCKS_REFUNDS_MOVES_SOLR_EV_AND_THE_REPORTS_2026-11-23.md`;
+  cite the report by figure number, its page numbers differ between reads):
+  - **"Smart meter problems are the most common complaint" is not a stated finding.** In the Jan
+    2026 complaint reasons (Fig. 39, n=96, below the report's own caution base of 100) smart meter
+    problem is **31%, second to net billing at 70%**. Among all contact reasons (Fig. 25, n=1,473)
+    the most common is **meter reading, 16%**; smart meter query is 14%. Not carried as P.
+  - **The "22% told it could not be resolved or passed on" is an inference, graded S.** Fig. 49
+    gives smart-problem outcomes of resolved by supplier 49%, **passed to another organisation
+    10%**, still being looked into 9%; the 22% appears to be the 10% plus about 12% "couldn't be
+    resolved at the moment", whose label was not cleanly mapped. Use 10% (P) for "passed on".
 
 ### 1.3 Citizens Advice smart-meter polling — P (weighted), S (single wave)
 
@@ -143,7 +150,7 @@ path, and it counts as an account only for existence.
 ### 2.2 Codes the wider sample added to the scheme
 
 - `supplier_handling`: **`blamed_third_party`** (O2, the smart network was outside the supplier's
-  control; matches the 22% "passed to another organisation" in §1.2), **`passed_between_suppliers`**
+  control; matches the 10% "passed to another organisation" in §1.2), **`passed_between_suppliers`**
   (O7), **`apologised_goodwill_only`** (O8: a goodwill sum in place of the statutory one).
 - A recurring pattern the fields can hold but did not name: **the customer proves the fault
   themselves** (O6: the case turned when a relative filmed a meter test). Coded in `chain` as
@@ -191,7 +198,7 @@ is this page's routing under steer item 3.
 | Estimated bills and reads | 19% of first-issue bills not on actual reads (2024, P, bill-shock page §1.1); bills on a read is 15% of the Citizens Advice rating | reads given and ignored (C1); estimate after a transfer (C2) | `simulation/meter_reads.py` | `company/billing/meter_read_validation.py`, `unread_month_estimate.py`, `read_duty_register.py` | Covered both sides. **Insight (P):** the read-based billing share is a published league-table observable the supplier is ranked on |
 | DD changes | none published per event (bill-shock page G4) | not noticed until a large re-level (C5); self-serve reset (M1) | `simulation/dd_review_in_loop.py`, `dd_shock_response.py`, `bacs_rails.py` | `company/billing/dd_review.py`, `dd_collections_desk.py` | Covered both sides; carried by the bill-shock world build already handed on |
 | Switching and onboarding | 87% of switchers satisfied with the process (ECSS 2026, P); no dispute share (not an Ombudsman category) | **wrong meter code blocks a switch, both suppliers pass it back (O7); six-month transfer delay, statutory payments missed (O8)** | debt objection, funnel and loss feed exist; **erroneous or delayed transfers: none** | `company/crm/cos_process.py`, `company/market/transfer_objection_register.py`; `company/regulatory/gsop.py` has the £30 `ERRONEOUS_TRANSFER` type, **never triggered**; the objection register cites an `erroneous_transfer.py` that now lives only in `archive/unhooked_supplier/company/market/`, retired with no caller | **World item** (failed and delayed transfers) **and supplier item** (GSOP switching payments paid when due). Handed on (§5) |
-| Smart meter installs and failures | **Smart meter problems are the most common complaint to suppliers** (ECSS Jan 2026 via Citizens Advice, P, second-hand); Smart Meters 5–21% of large suppliers' Ombudsman disputes, a **4× spread** (P); 17–29% of smart households read manually monthly (P); 22% told "can't fix now / passed on" (P, second-hand) | silent meter → catch-up (C3, C4); supplier blames a third party (O2); meter code breaks a switch (O7) | `simulation/meter_reads.py` (`SMART_METER_NOT_COMMUNICATING_RATE`, a lasting state), `simulation/life_events.py` (install, exchange hazard); **no failed install appointment** | `company/billing/billing_accuracy.py`, `read_duty_register.py` | **Insight (P):** the dispute share differs 4× between large suppliers, so handling, not the meter, explains much of it (Citizens Advice's own reading, and the 15–27% ex-London spread supports it). **Supplier item:** a fault-resolution path for a non-communicating meter, measured on time to restore. Handed on (§5) |
+| Smart meter installs and failures | Smart meter problem is the **second** complaint reason, 31% behind net billing 70% (ECSS Jan 2026 Fig. 39, P, n=96 below caution base; "the most common" is not stated); Smart Meters 5–21% of large suppliers' Ombudsman disputes, a **4× spread** (P); 17–29% of smart households read manually monthly (P); 10% of smart-problem contacts passed to another organisation (ECSS Fig. 49, P; the 22% "can't fix now / passed on" is an inference, S) | silent meter → catch-up (C3, C4); supplier blames a third party (O2); meter code breaks a switch (O7) | `simulation/meter_reads.py` (`SMART_METER_NOT_COMMUNICATING_RATE`, a lasting state), `simulation/life_events.py` (install, exchange hazard); **no failed install appointment** | `company/billing/billing_accuracy.py`, `read_duty_register.py` | **Insight (P):** the dispute share differs 4× between large suppliers, so handling, not the meter, explains much of it (Citizens Advice's own reading, and the 15–27% ex-London spread supports it). **Supplier item:** a fault-resolution path for a non-communicating meter, measured on time to restore. Handed on (§5) |
 | Debt, collections, prepayment | Payments 1–5% of large suppliers' Ombudsman disputes (P) | plan agreed then never reviewed (O5); debt collection after a silent meter (C3) | `simulation/arrears_engine.py`, `payment_method_dynamics.py` (prepay for debt), `self_rationing.py` | `company/billing/collections_journey.py`, `ppm_debt_loading.py`, `prepayment_suitability.py`, `winter_moratorium.py` | Covered both sides. **Gap:** no published account of a forced prepayment install (2022–23) was reached (§6, V3) |
 | Home moves | none (not a category) | appears only as a circumstance causing a billing error (O4: account never created; O6: wrong meter) | `simulation/life_events.py`, `move_out_notice_feed.py` | `company/crm/move_out_register.py`, `change_of_tenancy_register.py` | **Insight (S):** in both accounts the move is the *cause* of a later billing error, not a pain at the move. The world's move should be able to seed a wrong opening read or a missing account; whether it does is not yet checked (§6, V4) |
 | Final bills and refunds | none (recoded into Billing) | none found | `simulation/final_bill_outcome.py`, `credit_refund_events.py` | `company/billing/credit_refund.py`, `gsop.py` final-bill payment | Covered both sides. Needs forum accounts before any insight (V5) |
@@ -203,7 +210,7 @@ is this page's routing under steer item 3.
 ### 3.1 Themes the evidence adds
 
 - **The accountability gap with a third party** (DCC, the other supplier, the industry record).
-  O2, O7 and the 22% "passed to another organisation" (§1.2). It crosses smart meters and
+  O2, O7 and the 10% "passed to another organisation" (§1.2). It crosses smart meters and
   switching. Kept as the `supplier_handling` codes `blamed_third_party` and
   `passed_between_suppliers`, not a new theme, because it is a way of handling, and the scheme
   already reads handling against outcome.
@@ -250,6 +257,14 @@ Each is one `background.seat_continuation` hand-off, filed with this landing.
 | `customer-voice-monthly-refresh` | knowledge | The standing monthly read (5 Nov reading-log ruling): re-read the sources in §7, ask only "what is new or changed", amend this page and the coded accounts |
 
 ## 6. Gaps and what the forum and review pass must find
+
+**23 Nov: the advisor's pass answered this section in part** (three packs, secondary evidence through
+WebFetch summaries, every figure to be verified against its primary before it feeds the world, the
+supplier or the site): `docs/staging/advisor/done/DIRECTOR_EVIDENCE_CUSTOMER_VOICE_PRICE_SHOCKS_REFUNDS_MOVES_SOLR_EV_AND_THE_REPORTS_2026-11-23.md`.
+Pack A codes 27 price-shock and final-bill/refund accounts (V5); Pack B codes 26 home-move, SoLR and
+EV/export accounts (V4, V5; no usable green-tariff account); Pack C reads the ECSS Jan 2026 report and
+its series (V1, which corrected §1.2), suppliers' top-five pages (V2), the 2022-23 forced prepayment
+reports (V3) and Ombudsman shares (V6). Each pack's "(d) What I could not find" lists what stays open.
 
 - **V1** The ECSS January 2026 findings report itself (contact reasons by category, p. 51; smart
   handling, p. 62), and the earlier waves back to 2018 for a 2018–2025 series. Not reachable from
