@@ -480,3 +480,61 @@ the MSC (0–17 £/MWh, in its own lane), and cost lines the cap's unit rate car
 EBIT and headroom allowances). There is also the stated belief that the dual-fuel gap share applies
 to the electricity unit rate. The next step is a line-by-line comparison of the strike against the
 cap's published unit-rate build at one date.
+
+## 9. The strike, line by line, against the cap's unit-rate build (2026-11-23)
+
+**Method.** Each cap component's unit-rate allowance is read from Ofgem's cap level model
+(`Default-tariff-cap-level-v1.31.xlsx`, direct debit, single-rate electricity) using the same
+construction as `tools/ofgem_cap_unit_rate_composition.py`: (benchmark £/yr − nil £/yr) ÷ 3,100 kWh,
+taking the median over 14 regions. The strike is `strike_fixed_unit_rate` on §8's ladder, with the
+residential network cost, at the dates §7 used. Its lines add to the strike exactly. Predictions were
+filed after reading the cap's components and before computing any strike line
+(`/var/tmp/se-capbuild/PREDICTION.md`). All figures are £/MWh ex-VAT.
+
+| line | 2023-07 strike | cap (Jul–Sep 23) | gap | 2024-04 strike | cap (Apr–Jun 24) | gap |
+|---|---|---|---|---|---|---|
+| wholesale: ladder + capital charge vs DF + CM | 147.0 | 165.3 | −18.3 | 88.7 | 121.9 | −33.1 |
+| policy vs PC | 47.5 | 41.8 | +5.8 | 58.3 | 48.6 | +9.7 |
+| network vs NC | 42.4 | 42.4 | 0.0 | 31.1 | 31.1 | 0.0 |
+| margin £2 vs EBIT + headroom (E + H) | 2.0 | 8.9 | −6.9 | 2.0 | 8.6 | −6.6 |
+| operating cost (OC) | — | 15.3 | −15.3 | — | 15.9 | −15.9 |
+| smart (SMNCC) + payment adj. (PAP) | — | 3.1 | −3.1 | — | 2.7 | −2.7 |
+| adjustment allowance (AA) | — | 11.2 | −11.2 | — | 5.1 | −5.1 |
+| **total** | **238.9** | **285.4** | **−46.6** | **180.0** | **233.5** | **−53.5** |
+| market's cheapest fix (§7) | | 273.0 | | | 212.6 | |
+
+The component gaps sum to −49.0 and −54.6. The cap totals differ from this by 2.4 and 1.1 because
+a median of regional totals is not the sum of the medians.
+
+**What carries the undercut.** The strike sits 34.2 and 32.5 under the cheapest fix. The cheapest fix
+sits 12.4 and 20.9 under the cap.
+
+- **The strike has no operating-cost line.** Ofgem allows 15.3–15.9 £/MWh of operating cost on the
+  unit rate, plus 2.7–3.1 for smart and payment method. A fix seller must recover those somewhere.
+  `price_fixed_tariff` recovers them nowhere on the unit rate. Alone they come to 18–19 £/MWh, more
+  than half the undercut.
+- **The wholesale line sits 11% (2023-07) and 27% (2024-04) under the cap's delivered commodity.**
+  DF is priced on the delivered MWh, carrying shape, imbalance and transaction cost, and on Ofgem's
+  own index and not a six-month baseload ladder. The strike's line is a baseload forward plus the
+  capital charge. Neither the strike nor the world's settlement carries line losses: only
+  `company/carbon/` reads a T&D loss factor. Whether the world should settle supplier volume grossed
+  up for losses is a fidelity question. **GAP, not examined here.**
+- **The margin is £2 against Ofgem's 6.6–8.9 of EBIT and headroom.** A market fix plausibly shaves
+  headroom and the adjustment allowance (AA recovers past costs a new fix need not carry), and the
+  cap-to-cheapest gap of 12–21 is the size of AA + H + part of E.
+- **The policy line runs the other way**, 5.8–9.7 above the cap's PC. The company prices policy cost
+  over the term ahead, and the cap prices it on the period's own allowance. That pushes the strike
+  up, so it is not part of the undercut.
+
+**Predictions.** P1 held: the allowances the strike has no line for sum to 38.5 and 32.3, inside
+28–40. **P2 was refuted on policy**: the network line agrees exactly, but policy is +14% and +20%,
+outside ±10%. P3 held: wholesale sits 11.1% and 27.2% under DF + CM, against a >10% prediction (the
+2023-07 margin is thin). P4 held: the cap-to-cheapest gap (12.4 and 20.9) is smaller than P1's sum.
+
+**What it means.** The remaining undercut is not a market-position puzzle. It is mostly cost lines
+the company's own strike leaves out, operating cost first. A first term struck below the company's
+cost to serve wins on value it transfers rather than creates (M2). The next build is the company's,
+on the strike: an operating-cost line read from the company's own cost to serve, which is known to
+the company, rather than Ofgem's allowance, which would be the regulator's number standing in for the
+company's. Then re-measure the position at these dates before the hold comes off. The wholesale
+shortfall (shape and losses) is second, and needs the world question above settled first.

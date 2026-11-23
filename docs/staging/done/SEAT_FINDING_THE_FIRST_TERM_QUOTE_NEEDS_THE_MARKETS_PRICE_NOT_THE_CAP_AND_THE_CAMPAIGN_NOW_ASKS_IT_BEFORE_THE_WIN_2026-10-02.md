@@ -333,3 +333,26 @@ gap belief. The MSC is in its own lane. (2) Only then pre-register, delete
 `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world. (3) The renewal chain
 still strikes on the spot-led forward; a first term and its renewal are priced on different bases
 until it moves.
+
+## 2026-11-23 (later again): the strike against the cap's unit-rate build, line by line
+
+The table is on the knowledge page, §9. Predictions were filed first. At 2023-07 and 2024-04 the
+strike sits 46.6 and 53.5 £/MWh under the cap, and 34.2 and 32.5 under the cheapest fix. What
+carries it:
+
+- **No operating-cost line.** OC is 15.3–15.9 £/MWh of the cap's unit rate; smart and the payment
+  adjustment add 2.7–3.1 more. `price_fixed_tariff` has no line for either.
+- **Wholesale is 18.3 and 33.1 £/MWh under the cap's DF + CM.** That is baseload with no shape and no
+  losses, against the delivered commodity. Neither the strike nor the world's settlement carries line
+  losses. GAP.
+- **The margin is £2 against EBIT + headroom of 6.6–8.9.**
+- **Policy runs the other way**, at +5.8 and +9.7 (the term-ahead price against the period's allowance).
+
+P1, P3 and P4 held. P2 was refuted on policy.
+
+**Still owed, in order:** (1) An operating-cost line on the first-term strike, from the company's own
+cost to serve (K8: §9 states why the line belongs there). Re-measure the position at §9's dates.
+(2) The world question: should supplier volume settle grossed up for losses? Then shape on the
+wholesale line. (3) The MSC, in its own lane. (4) Only then pre-register, delete
+`ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world. (5) The renewal chain still
+strikes on the spot-led forward.
