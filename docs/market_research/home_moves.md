@@ -1112,6 +1112,15 @@ the netted closing. On 6a588a832f that left 149 legs, GBP 3,673.83, refunded sho
 (`SEAT_FINDING_A_SWITCHING_LEVEL_LEAVER_IS_REFUNDED_SHORT_BECAUSE_THE_WORLD_NETS_THE_FINAL_BILL_FOR_MOVERS_ONLY_2026-11-23.md`).
 SLC 27.17 and reg 6D bind a final bill on any closure, a switch included, so choice 14 applies to switch-aways too.
 
+25. *(written down 23 Nov; cited in code since 12 Nov.) The world nets a level leaver's final bill on any closure.*
+    The ask is the face less the larger of the credit-bill credit waiting and the leg's own ledger credit, never
+    their sum (`background/live_payment_triad.record_period`). "Final" is the leg's last bill on a closed account:
+    the runner's `left` flag (`supply_points_that_left`), passed as `closing`, or a home move's `moved_out_on`. A
+    switch sets no move date, so before 23 Nov the branch reached movers only. The same branch carries choice 26,
+    so a switch-away's final bill now also asks the ledger debit, as the page (`debit_asked_gbp`) and the runner
+    (`_left_level_owed`, "the leg's last asking bill") already read it. `final_month_nets` gains a row per
+    switch-away's final month. The mover's exit draw stays keyed on `moved_out_on`: no seed moves.
+
 **What the run records (added 16 Nov, before the build).** The 16 Nov book could not tell whether that
 net fired. The page builds a paid bill's payment from its face (`tools/generate_billing_ledger.py`), and
 no run field held the world's ask. So LEVEL_DD s.9.8 W1 and W4 were ungraded, and its two hypotheses

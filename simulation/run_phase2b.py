@@ -2873,6 +2873,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             moved_out_on=_moved_out_on_by_leg.get(cid),
             household_legs=len(_fuels_of_household.get(household_of(cid), ())) or 1,
             level_collection=None if left else _level_row,
+            closing=left,
         )
         # The page's schedule holds only what the world presented (`InLoopLevelCollection.withdraw`).
         if _level_row is not None and _payment_triad.last_level_presented is not _level_row:

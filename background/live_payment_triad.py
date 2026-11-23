@@ -1493,6 +1493,7 @@ class LivePaymentTriad:
         credit_gbp: float = 0.0,
         period_end: Optional[str] = None,
         level_collection: Optional[dict] = None,
+        closing: bool = False,
     ) -> dict:
         """Generate the ONE canonical W2_11 payment event for this
         (customer, period), cross the seam + feed the company consumer LIVE,
@@ -1521,7 +1522,10 @@ class LivePaymentTriad:
         posts at its face, and a credit bill still posts its credit note; neither changes what the
         schedule collects (payments_and_direct_debit_2026-10-25.md, "What a level direct debit must
         be"). The company is told it is a level collection (`note_level_collection_request`), which is
-        its own act: it set the amount."""
+        its own act: it set the amount.
+
+        `closing` says this is the leg's final bill because its account closed, a switch-away
+        included. A home move also says so through `moved_out_on`; a switch sets no move date."""
         self._deliver_settlements_through(due_date)
         bill_month = bill_month or due_date.isoformat()[:7]
         period_index = _period_index_for(bill_month)
@@ -1553,8 +1557,12 @@ class LivePaymentTriad:
         if method == DIRECT_DEBIT and dd_shock_effect is not None and dd_shock_effect.cancelled:
             method = PAY_ON_RECEIPT_METHOD
         stress = income_stress_value if income_stress_value else "low"
-        # A mover's final month is settled on the final bill's face, so it keeps the bill path.
-        final_month = bool(moved_out_on) and (
+        # A leaver's final month is settled on the final bill's face, so it keeps the bill path.
+        # ANY CLOSURE, NOT ONLY A MOVE (home_moves.md s.8.8c choice 25): gated on `moved_out_on`
+        # alone, a switch-away's final bill skipped the net below and was collected at face while the
+        # page netted it and the refund paid the netted closing. 149 legs refunded GBP 3,673.83 short
+        # on 6a588a832f (SEAT_FINDING_A_SWITCHING_LEVEL_LEAVER_IS_REFUNDED_SHORT_..._2026-11-23.md).
+        final_month = closing or bool(moved_out_on) and (
             period_end is not None and date.fromisoformat(period_end[:10])
             >= date.fromisoformat(moved_out_on[:10]) - timedelta(days=1))
         level = (level_collection if method == DIRECT_DEBIT and level_collection is not None

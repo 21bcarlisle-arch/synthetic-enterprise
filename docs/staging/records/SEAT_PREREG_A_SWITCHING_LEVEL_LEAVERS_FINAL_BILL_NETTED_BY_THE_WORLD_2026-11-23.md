@@ -115,4 +115,14 @@ for L in legs:
 json.dump(allu, open('/var/tmp/ll-scripts/under_refunded_legs.json','w'), indent=1)
 ```
 
-**Reverse.** Delete this file. No code changed.
+## Addendum, written at the build and before any book carries it (23 Nov)
+
+The change landed as a `closing` flag on `record_period` that the runner sets from its `left` flag. It opens the
+whole final-month branch, so choice 26's **debit half** now reaches switch-aways too: a switch-away leg whose
+ledger reads in debit at its final bill is asked face plus that debit, less any SLC 21BA bar. Those legs are in
+debit, so they are disjoint from the 149 credit legs this record grades, and the grade above is unchanged. No
+baseline count of them exists. **Prediction, direction only:** `final_month_nets` rows with `debit_asked_gbp > 0`
+on legs absent from `home_move_outs` go from 0 to more than 0. This is a reading, not graded. Its count is
+written down before it is used to judge anything.
+
+**Reverse.** Delete this file. The code reverses by dropping `closing=left` in `simulation/run_phase2b.py`.
