@@ -247,3 +247,36 @@ the hold comes off, because removing the hold would let those strikes through.
 
 **Still owed:** (1) attribute the 2023–24 position (above). (2) Pre-register, delete
 `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world against this baseline.
+
+## 2026-11-23: the 2023–24 position is attributed, and both stated explanations were wrong
+
+The table and reasoning are on the knowledge page,
+`docs/market_research/cheapest_fix_against_the_default_tariff_gb_2016_2025.md` §7, "Attributed 2026-11-23".
+Each candidate was tested one variable at a time, at real inputs:
+
+- **The per-fuel gap is refuted for 2023 H1.** The gap there is 0.0, yet the position is −25%. Later
+  in the period the split moves the position the wrong way, making it more negative.
+- **The forward underpricing is refuted for 2023.** The spot-EWMA forward sat above the 12-month SSP
+  outturn at every 2023 date, so pricing on the outturn makes the position more negative (−37% in
+  April 2023). The forward does explain 2024-04 alone: 48 against an outturn of 82 closes the
+  position to +0.8%.
+- **What remains.** From 2022 Q4 to 2023 Q4 the market's cheapest fix implies a wholesale cost 1.6
+  to 2.5 times the outturn.
+- **The MSC is a minority of it.** Ofgem's published weekly electricity rate covers about 20% of the
+  gap in 2023-04, 10% in 2023-07, a third in 2023-10 and 40% in 2024-01
+  (`docs/market_research/the_market_stabilisation_charge_2022_2024.md`, new this turn). My first draft
+  of this section named the MSC as the leading cause before its size was known. That was wrong, and
+  it is corrected on the knowledge page beside the claim.
+- **The rest is not attributed.** The candidates are the EPG's £2,500 (Ofgem's Feb 2023 MSC decision
+  says suppliers did not price fixes below it), the BAT, and the cap's lagged index. There is also one
+  on the company's own side: the strike ignores the cost of the company's own hedge book. I cannot
+  yet say which carries it.
+
+My prediction in the fifth increment, that it was "forward or per-fuel gap", was wrong on both
+counts. It stays above, beside this result.
+
+**Still owed, in order:** (1) the world charges the MSC to the gaining supplier for wins from 14 April
+2022 to 31 March 2024, from Ofgem's published weekly rates, and the company sees the charge in its
+own settlement. The knowledge page now exists. (2) Test the hedge-cost candidate: strike on the cost
+of the company's own book against strike on spot-EWMA, at the same dates. (3) Only then
+pre-register, delete `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world.
