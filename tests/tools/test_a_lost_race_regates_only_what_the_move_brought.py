@@ -71,7 +71,7 @@ def _racing(repo: Path, lose_until: int, seen: list[dict], between=None):
     real = sl.run_gate
 
     def gate(checkout, hook_rel=sl.HOOK_REL, gated_tree=None, merge_parent=None,
-             prior_green=None):
+             prior_green=None, label=''):
         rc, out, err = real(checkout, hook_rel, gated_tree, merge_parent, prior_green)
         seen.append({"prior_green": prior_green, "tree": gated_tree,
                      "base": _run(repo, "git", "rev-parse", "HEAD")})

@@ -825,6 +825,103 @@ def staged_files() -> list[str]:
     return [ln.strip() for ln in out.splitlines() if ln.strip()]
 
 
+# ---------------------------------------------------------------------------------------------
+# ONE LANDING GATE RUNS AT A TIME, BOX-WIDE.
+#
+# The 3600 s hour was measured for one gate alone (5a354ebcb, 1c9cd8195: reg 6C's pytest leg is
+# ~55 min at ~90% of a core). Four ran together on 23 Nov and the MSC gate was killed at 05:56Z
+# beside two others -- the hour it was given was never the hour it had. `surgical_land.run_gate`
+# (and so `bounded_landing`, which runs `surgical_land.main`) holds this lock around the hook and
+# starts the hour's clock only once it holds it, so the wait is not spent from the hour. The
+# lock is an flock on one fixed path: the kernel drops it when the holder dies, so a SIGKILLed
+# landing cannot wedge the box. Plain `git commit` hooks do not take it.
+# ---------------------------------------------------------------------------------------------
+
+#: Overridable so tests never contend with a real landing. Under /var/tmp because the gate's
+#: own extracts live there and it survives a reboot-free WSL session the same way /tmp does.
+LANDING_GATE_LOCK_ENV = "SE_LANDING_GATE_LOCK"
+LANDING_GATE_LOCK_DEFAULT = "/var/tmp/se_landing_gate.lock"
+#: Set in the hook's environment by the holder: "<pid> <label>". Diagnostic -- the hook prints it.
+LANDING_GATE_HELD_ENV = "SE_LANDING_GATE_LOCK_HELD"
+#: How often a waiter re-tries, and how often it re-prints an unchanged holder. Not domain
+#: constants: they bound a poll and a log line.
+LANDING_GATE_POLL_S = 5.0
+LANDING_GATE_REPORT_EVERY_S = 300.0
+
+
+def landing_gate_lock_path(env: dict | None = None) -> Path:
+    env = os.environ if env is None else env
+    return Path(env.get(LANDING_GATE_LOCK_ENV) or LANDING_GATE_LOCK_DEFAULT)
+
+
+def _landing_gate_holder(fd: int) -> str:
+    try:
+        return os.pread(fd, 512, 0).decode("utf-8", "replace").strip() or "an unnamed holder"
+    except OSError:
+        return "an unreadable holder"
+
+
+class LandingGateLock:
+    """Hold the box-wide landing-gate lock. `with LandingGateLock(label) as held:` blocks until
+    no other landing gate runs; `held.waited_s` is how long that took. While waiting it prints the
+    holder's pid and landing message to `out`, again whenever the holder changes and every
+    `LANDING_GATE_REPORT_EVERY_S`. Released on exit -- or by the kernel when the process dies."""
+
+    def __init__(self, label: str, path: Path | None = None, out=None,
+                 poll_s: float = LANDING_GATE_POLL_S,
+                 report_every_s: float = LANDING_GATE_REPORT_EVERY_S):
+        self.label = " ".join(label.split())[:200]
+        self.path = path or landing_gate_lock_path()
+        self.out = out if out is not None else sys.stdout
+        self.poll_s, self.report_every_s = poll_s, report_every_s
+        self.waited_s = 0.0
+        self._fd: int | None = None
+
+    def __enter__(self) -> LandingGateLock:
+        import fcntl
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        fd = os.open(str(self.path), os.O_RDWR | os.O_CREAT, 0o666)
+        start = time.monotonic()
+        last_holder, last_report = None, 0.0
+        try:
+            while True:
+                try:
+                    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    break
+                except BlockingIOError:
+                    holder = _landing_gate_holder(fd)
+                    now = time.monotonic()
+                    if holder != last_holder or now - last_report >= self.report_every_s:
+                        print("[landing-gate-lock] another landing gate is running -- waiting "
+                              "for {} ({:.0f} s so far; this wait is not spent from the "
+                              "hour)".format(holder, now - start), file=self.out, flush=True)
+                        last_holder, last_report = holder, now
+                    time.sleep(self.poll_s)
+            os.ftruncate(fd, 0)
+            os.pwrite(fd, "pid {} {}\n".format(os.getpid(), self.label).encode(), 0)
+        except BaseException:
+            os.close(fd)
+            raise
+        self._fd = fd
+        self.waited_s = time.monotonic() - start
+        if last_holder is not None:
+            print("[landing-gate-lock] acquired after {:.0f} s; the gate's clock starts now"
+                  .format(self.waited_s), file=self.out, flush=True)
+        return self
+
+    def __exit__(self, *exc) -> None:
+        if self._fd is not None:
+            try:
+                os.ftruncate(self._fd, 0)
+            except OSError:
+                pass
+            os.close(self._fd)  # closing the only descriptor releases the flock
+            self._fd = None
+
+    def held_env_value(self) -> str:
+        return "{} {}".format(os.getpid(), self.label)
+
+
 #: Set by `tools/surgical_land.py` to the merge's OTHER parent when it gates a `--merge`. Its
 #: extract is built by `archive`+`init`, not by `git merge`, so it has no `MERGE_HEAD` to read.
 MERGE_PARENT_ENV = "PRE_COMMIT_GATE_MERGE_PARENT"
@@ -2594,6 +2691,9 @@ def main() -> int:
     # belongs here). Flushing before handing the fds to a child is the general rule, not a patch
     # for this call site.
     print(f"[test-gate] {len(targets)} test file(s): {', '.join(targets)}", flush=True)
+    if os.environ.get(LANDING_GATE_HELD_ENV):
+        print(f"[test-gate] running alone under the box-wide landing-gate lock "
+              f"({landing_gate_lock_path()}, pid {os.environ[LANDING_GATE_HELD_ENV]})", flush=True)
     gitless_env = _gitless_env(os.environ)
     # The merge token is this process's, not the suite's: inherited, it would narrow selection
     # inside every test that calls `main()` while a merge is being gated, and nowhere else.
