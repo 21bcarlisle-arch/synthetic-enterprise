@@ -273,3 +273,66 @@ The campaign went from 210 wins on 3,250 quotes to 230 wins on 3,066 quotes, wit
 **Open, and not settled by this page.** The 2023–24 strikes sit 20–28% below Ofgem's cheapest deal.
 Either the company's spot-EWMA forward underprices a market that was pricing off forward curves, or
 the per-fuel application of the gap is wrong for electricity in those years. I cannot yet say which.
+
+**Attributed 2026-11-23: neither of the two explanations above.** Both were tested one variable at a
+time, at real inputs, on electricity quotes dated the 15th of each quarter. The position is the
+strike against the cheapest deal, both ex-VAT.
+
+| date | position | with gap 0 (vs default) | with the outturn as the forward | market's implied wholesale | company forward | 12-month SSP outturn |
+|---|---|---|---|---|---|---|
+| 2022-10 | +19.6% | +19.6% | −30.2% | 210.2 | 272.8 | 113.7 |
+| 2023-01 | +14.0% | +14.0% | −34.8% | 201.7 | 245.5 | 93.1 |
+| 2023-04 | −25.1% | −25.1% | −37.2% | 192.2 | 113.9 | 76.0 |
+| 2023-07 | −17.8% | −21.8% | −27.0% | 143.2 | 96.3 | 72.0 |
+| 2023-10 | −4.7% | −8.4% | −18.2% | 114.7 | 103.4 | 70.7 |
+| 2024-01 | −10.4% | −18.5% | −15.1% | 109.8 | 85.0 | 73.6 |
+| 2024-04 | −15.6% | −23.1% | +0.8% | 80.3 | 48.4 | 82.0 |
+| 2024-07 | +4.3% | +0.4% | +5.5% | 73.1 | 81.6 | 84.1 |
+
+The market's implied wholesale is the forward at which the company's strike would equal the cheapest
+deal. The outturn is used as an instrument only and is never a company input.
+
+- **The per-fuel gap is refuted for 2023 H1.** The gap there is 0.0 (§3, floored), so how the gap is
+  split between fuels cannot move the reference at all. Yet the position is −25%. From 2023 Q3 the
+  split can move the position by 4–8 points, but in the direction that makes it more negative, not
+  less.
+- **"The forward underprices" is refuted for 2023.** The company's spot-EWMA forward sat *above* the
+  12-month outturn at every 2023 date. Pricing on the outturn makes the strikes cheaper still. The one
+  date where the forward does explain the position is **2024-04** (48 against an outturn of 82, which
+  closes the position to +0.8%). That is the EWMA following the early-2024 spot trough.
+- **What the evidence leaves.** From 2022 Q4 to 2023 Q4, the market's cheapest deal implies a wholesale
+  cost 1.6 to 2.5 times the outturn, well above any spot-based forward. Real fixes were not priced off
+  the cost of energy at the time they were sold.
+- **The Market Stabilisation Charge explains only a minority of it** (`the_market_stabilisation_charge_2022_2024.md`,
+  Ofgem's 102-week published series). The MSC was a one-off charge in £/MWh on the switching customer's
+  annual consumption, paid by the gaining supplier to the losing one. Here is the electricity rate in
+  force at each quote date, against the gap between the strike and the cheapest deal:
+
+  | date | MSC (£/MWh) | cheapest deal − strike (£/MWh) | share of the gap |
+  |---|---|---|---|
+  | 2023-04 | about 17 | 81 | about 20% |
+  | 2023-07 | about 5 | 49 | about 10% |
+  | 2023-10 | about 4 | 12 | about 1/3 |
+  | 2024-01 | 10 | 26 | about 40% |
+  | 2024-04 | 0 (expired 31 March) | 33 | 0; the forward explains it |
+
+  *Seat, corrected the same day:* a first draft of this section treated the MSC as the leading
+  explanation, and read the MSC's end matching the 2024 Q3 turn as support for it. That was written
+  before the charge's size was known. It is wrong at every date. The size is known now: the MSC is a
+  real cost that the strike leaves out, but it is not the main cause.
+- **The remainder is not attributed.** Ofgem names more than one constraint (Feb 2023 MSC decision,
+  §3.3): suppliers did not price fixes below the EPG's £2,500. Two other published rules also bear on
+  it: the ban on acquisition-only tariffs (SLC 22B), which put any cheap acquisition fix in front of
+  the whole book, and the cap's lagged wholesale index, which carried crisis-era hedges. Neither has
+  been sized here. A second candidate sits on the company's own side: the strike reads a spot-EWMA
+  forward and ignores the cost of the company's own hedge book. A supplier still holding hedges bought
+  in 2022 would not strike off 2023 spot. Which of these carries the remainder, **I cannot yet say**.
+
+**What this means for removing the hold.** Deleting `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES` now would
+let the 2023 Q2 – 2024 Q2 strikes win at 10–25% under the market. Some of that undercut is a cost real
+law imposed and the simulation leaves out (the MSC). The rest is not yet attributed. Winning on a
+missing rule would be value transferred, not created. So two things come before the deletion. First,
+the world charges the MSC to the gainer for each win from 14 April 2022 to 31 March 2024, from
+Ofgem's published weekly rates, and the company sees the charge in its own settlement. Second, the
+hedge-cost candidate is tested: strike on the cost of the company's own book against strike on
+spot-EWMA, at the same dates.
