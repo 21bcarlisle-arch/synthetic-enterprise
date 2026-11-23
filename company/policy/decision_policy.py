@@ -326,8 +326,9 @@ class DecisionPolicy:
     #: blind coin (`growth_desk.retention_blind_holdout_draws`) BEFORE the cut, the guard or any
     #: other coin is asked, at the power-derived `SAVE_HOLDOUT_SHARE`; a held renewal gets no
     #: proactive approach and the same tariff. The book publishes both arms per year as
-    #: `retention_holdout_by_desk_year["blind_approach"]`. Off on every standing policy until the
-    #: director's practitioner row answers whether a GB desk does this:
+    #: `retention_holdout_by_desk_year["blind_approach"]`. The director ruled holdouts yes on 22 Nov
+    #: (`docs/staging/advisor/DIRECTOR_RULING_HOLDOUTS_YES_*_2026-11-22.md`). The standing policy
+    #: takes it through `B8_BLIND_HOLDOUT_ON_IN_THE_STANDING_POLICY`, below, and nowhere else:
     #: `docs/market_research/retention_slope_per_pound_of_renewal_cut.md` §3.5.
     retention_holdout_drawn_blind_before_treatment: bool = False
 
@@ -413,6 +414,16 @@ class DecisionPolicy:
         return 0.0
 
 
+#: (2026-11-23, B8) THE SWITCH-ON, ready and off. True puts the blind retention holdout on
+#: CURRENT_POLICY, and so on every arm built from it. It is pre-registered before any book carries
+#: it, with the rule that turns it back off:
+#: `docs/staging/records/SEAT_PREREG_B8_THE_HOLDOUT_SWITCHED_ON_IN_THE_STANDING_POLICY_2026-11-23.md`.
+#: It stays False until the five grades already queued on the coming book (D48, KNIFE3 I1-I5, the
+#: dual household's answers, won-switch P2-P5, the ending-term belief) are read, so no book they
+#: grade carries a second change. Flipping it reds `test_off_on_every_standing_policy...`; amend
+#: that leg in the same commit.
+B8_BLIND_HOLDOUT_ON_IN_THE_STANDING_POLICY: bool = False
+
 # Mirrors RETENTION_TIERS in simulation/run_phase2b.py exactly -- kept as a
 # separate literal (not imported) so this module has no import-time
 # dependency on the sim entry point.
@@ -429,6 +440,7 @@ CURRENT_POLICY = DecisionPolicy(
     use_var_hedge_decision=True,
     framing_mode="ab_test",
     tone_mode="ab_test",
+    retention_holdout_drawn_blind_before_treatment=B8_BLIND_HOLDOUT_ON_IN_THE_STANDING_POLICY,
 )
 
 # Pre-Phase-14a/15b/43b state: naive flat-discount retention with a

@@ -37,6 +37,12 @@ GRADING_RECORDS = {
         "renewal_offer": {"assigned": True, "by_year": {"2019": {"treated": 9, "holdout": 1}}},
         "save_offer": {"assigned": False, "why": "the standing policy runs no save-offer coin"},
     },
+    # 23 Nov: B8's blind coin per considered renewal; the switch-on's P3 reads would_offer on it.
+    "retention_blind_holdout_log": [
+        {"customer_id": "C1", "event_date": "2017-06-01", "commodity": "electricity",
+         "arm": "holdout", "company_churn_estimate": 0.41, "would_offer": True,
+         "stayed_at_decision": False},
+    ],
     "riding_leg_answers": [
         {"customer_id": "C1g", "riding_leg": "gas", "answer": "renewed", "basis": "household"},
     ],
