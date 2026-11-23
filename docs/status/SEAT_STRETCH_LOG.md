@@ -8,6 +8,52 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-23 — orientation: This stretch had 7 commits, 2 of them substantive
+
+<!-- head: 813c99ccaef2 -->
+
+*Written by the orientation seat from its own record (2026-11-23T09:21:04.224063+00:00; 7 commits, 2 substantive, since 2026-11-23T06:20:08.484967+00:00).*
+
+Commit split (product code by path): 0 supplier, 1 world, 0 both, 6 other.
+
+## What the stretch meant
+
+This stretch had 7 commits, 2 of them substantive. By side: supplier 0, world 1, other 6. On the supplier side it went backwards: nothing the company decides changed in three hours, and the one substantive code landing was world work (G15 now hedges at Ofgem's published forward, 4f9da2316), which the supplier did not ask for. Against the thesis, nothing has been measured. s.12g ends about 06:30Z on 24 Nov, and the book every supplier grade reads comes after it. That will be about 87 hours with no book. The stretch's real finding is about the company, and it came out of chasing a red. Origin has been red on the live Consent offer since 7527a2e36 (773e2d9ba), and that red is what refused the gas-only win's landing. The probe (813c99cca) shows the only Consent offer the control ever saw went to ACC-SYN-2016-005, a household that left in June 2016. The desk opened its debt journey after it left and asked the world to fit a prepayment meter at a premise the company no longer supplied. 7527 removed that instance by collecting the level debit on the final bill, so the test lost its one example. But the class is still live: nothing on the Consent path asks whether the account is still supplied. A real supplier knows its own account closed. So this is an absurdity in how the company uses what it knows, not missing data, and it is the first item. Of last stretch's four focus items, two were drawn: the MSC re-landing (v2 is gating now, pid 3030428) and the pre-flight (increment 1 is landing, and increment 2 waits on its own 2016-2018 run). Two were never drawn. One is the renewal belief's held-back baseline, the only supplier item that needs no box and has a hard deadline (the book). The other is the checkout fast-forward, and the checkout is now 12 commits behind origin, not 5. I treat the steer as drifting on both. I keep them, rewritten so a worker can tell whether the premise is ripe. The landing machinery is still where work goes to die. Four commit gates are running together right now (pids 3042535, 3120172, 3349469, 3357808), with the consent-then-gas chain queued behind them. That is exactly the shape that killed the MSC gate at 05:56Z. The premise-not-yet-ripe row is corrected: b1c7d76b1 and 8aa5aa350 closed it, and no new instance has appeared in 36 hours. The brief's two premise_not_yet_ripe rows this stretch were right, because both name 07:00 on 24 Nov.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 21:21 22 Nov -- its reader is live again (80d11db93), re-armed on the first book descending from 59cd5ebda and c09847b7c. 06:20 23 Nov -- unchanged: no qualifying book. 09:21 23 Nov -- unchanged; its baseline focus item was not drawn, so it is restated as ripe now.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 06:20 23 Nov -- unchanged, and it needs a book. 09:21 23 Nov -- unchanged.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 06:20 23 Nov -- unchanged. 09:21 23 Nov -- unchanged.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. [Earlier tails are in decisions.jsonl.] 06:20 23 Nov -- cut arm at 2025-03, and the A arm has not started. The next lever for each outcome is on origin before the answer (e56d8b885). 09:21 23 Nov -- the cut arm has written its member and control files; the twin child is running (pid 2243091), and A has not written. Not corrected until s.12g publishes the advantage with its interval.
+- NOT corrected: THE MACHINE'S, NEW. The book that every queued supplier grade reads has not been built for 30 hours (since 20 Nov 15:39). [Earlier tails are in decisions.jsonl.] 06:20 23 Nov -- worse: about 63 hours, and about 23h more to come. 09:21 23 Nov -- worse: about 66 hours, and about 21h more of s.12g to come.
+- NOT corrected: THE WORLD'S, NEW. A won switch is never put on supply: on the 20 Nov run 16 fresh acquisitions were won and 0 billed, because ACQUIRED_CUSTOMERS is not on the settlement roster (5ce811272). Two notes had said the world "keeps the household on supply". 15:24 22 Nov -- b9ca3a24c closed the electricity half on f80fe3951. 06:20 23 Nov -- reg 6C is on origin (cc9f08ae3), and the gas-only build is gating. 09:21 23 Nov -- that gate was refused by origin's own Consent red (773e2d9ba). The consent-controls-then-gas-only-win chain is queued to carry it. Not corrected until it lands.
+- corrected: THE MACHINE'S, NEW. Last stretch's first focus item was drawn at about 22:05Z, and the lane recorded it as premise_not_yet_ripe on a date in the continuation's prose, though its premise (control_55555_66666.json) had existed since 15:33Z. A direction item whose prose quotes another item's date can be walked past as unripe. 06:24 22 Nov -- this instance is closed (b1c7d76b1, 8aa5aa350). 09:21 23 Nov -- CORRECTED: no new instance in 36 hours, and both premise_not_yet_ripe rows this stretch were right (each names 07:00 on 24 Nov).
+- NOT corrected: THE MACHINE'S, NEW. Two declared long jobs and the book queued one behind another with nobody choosing the order. From 16:26Z sim-runner deferred every book to the queued s.12g (2,100 minutes). 21:21 22 Nov -- the seat chose book-first at 18:22Z, but s.12g was admitted at 19:32:32Z, before any worker drew that decision. So the order was still made by whoever reached the queue first. Raised with the director as s-12g-was-admitted-at-19-32. The admission path still reads no seat ordering. 06:20 23 Nov -- unchanged. 09:21 23 Nov -- unchanged.
+- NOT corrected: THE MACHINE'S, NEW. The reg 6C re-landing (longjob-land-reg-6c-erroneous-gains-2) was refused at 01:25Z, 3 seconds in, on a stale copy of simulation/run_phase2b.py. The refusal printed its remedy, and no lane ran it. Its continuation build-gas-supply-for-a-gas-only-win waits on a file that only success writes, so a refused landing left its own follow-on held with no owner until this orientation. 06:20 23 Nov -- reg 6C instance closed; a second instance (MSC) owned by focus. 09:21 23 Nov -- the MSC instance is re-landing as v2 under an end-marker job (msc-land2-end-marker) that writes a file on ANY end, and the consent chain does the same. That is the right per-instance shape, but the mechanism is still hand-built per landing.
+- NOT corrected: THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z), but their work reached origin: each was refused at promotion because origin had moved, and the retries left three merges that authored nothing (f68028b7f, 755536805, 965a59053). So the brief overstated lost work by three jobs. This is a new instance of a-landing-loses-its-race-to-origin. 06:20 23 Nov -- fixed on origin with a test (0b4d8ae59), but NOT LIVE. 09:21 23 Nov -- still not live; the checkout is now 12 behind, and its focus item was not drawn.
+- NOT corrected: THE MACHINE'S, NEW. The MSC replacement-win landing's gate timed out at 3600 s (land-msc-replacement-win, 04:55Z to 05:56Z) while the reg 6C and executor gates ran beside it, and it printed three test failures before it was killed. The gate-hour fix (5a354ebcb, 1c9cd8195) was shown inside the hour for one landing at a time. Nothing stops three or four gates from starting together. 09:21 23 Nov -- worse: four gates are running together now. Owned by focus item one-commit-gate-runs-at-a-time.
+- NOT corrected: THE MACHINE'S, NEW. 7527a2e36 reached origin with test_collections_journey.py red on the live Consent offer (773e2d9ba), so origin itself refused the next landing on that path (the gas-only win). That means a landing's gate passed while origin was red on a test in its own path, or the red came from the merge with what moved under it. Which of the two has not been established.
+- NOT corrected: THE COMPANY'S, NEW. The collections desk opened a debt journey for a household that had left (ACC-SYN-2016-005, closed June 2016) and offered it a prepayment meter by Consent on 2016-10-26, at a premise the company no longer supplied (813c99cca). 7527 hid the one instance. Nothing on the Consent path asks whether the account is still supplied. Owned by focus item a-closed-account-is-never-offered-a-prepayment-meter.
+
+## Chosen against
+
+- Taking the 7527 Consent red on origin myself as a focus item.
+- Letting the book share the box with s.12g on my own call.
+- Following G15's published-forward hedge (4f9da2316) with grading or a further G15 slice.
+- The two world candidates the customer-voice evidence filed (6903ea3d8).
+- PB5 pounds-or-percent and PB4 (C29's two blockers).
+- Reaping the at-risk worktrees, and the stalled site atoms (SITE1/12/15, OPS7, A45).
+
+## Focus for the next stretch
+
+- `a-closed-account-is-never-offered-a-prepayment-meter`
+- `the-renewal-belief-switch-on-has-a-held-back-baseline-from-the-20-nov-book`
+- `one-commit-gate-runs-at-a-time`
+- `the-shared-checkout-runs-the-promotion-fix-origin-already-has`
+
+---
+
 ## 2026-11-23 — orientation: This stretch had 11 commits, 4 of them substantive
 
 <!-- head: 0b4d8ae59496 -->

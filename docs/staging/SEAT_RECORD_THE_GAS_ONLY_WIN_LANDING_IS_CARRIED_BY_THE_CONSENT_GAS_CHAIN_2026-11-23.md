@@ -37,3 +37,9 @@ Seat executor, 23 Nov 2026. Read, not built.
    `/tmp/seat_rec_gas/dropped_fix_consent_red.json`; to reverse, re-hand it off from that file.
    Class: a successor written from a predecessor's reading must `--supersedes` it, or the
    predecessor's open hold offers the same landing twice.
+6. **A third duplicate retired (09:53Z).** `verify-reg-6c-and-gas-only-win-resume-chain` was drawn
+   after this record: its premise (both commits it cites, cc9f08ae3 and 779054e30) was already on
+   origin/main, reg 6C is on origin as 09ae79aa0c (`/var/tmp/se-reg-6c-landed-20261123.txt`), and its
+   remainder (gas-only landing, remove `/var/tmp/se-reg6c-land`) is the successor's above, whose
+   chain `longjob-consent-controls-then-gas-only-win` was still `active (running)` at draw. Not
+   re-run; released and dropped. Its WHAT is recoverable from this commit's git history if needed.
