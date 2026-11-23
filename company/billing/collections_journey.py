@@ -650,6 +650,9 @@ class CollectionsJourneyDesk:
         #: ledger the desk held when it issued it (`_refuse_issued`); this is what the re-read would
         #: have refused, kept so the late credits stay countable rather than silently forgiven.
         self.steps_cleared_after_issue: List[dict] = []
+        #: account -> the last day this company supplied it, told when its own record closes the
+        #: account (`note_supply_ended`). Never the world's `churned_billing_accounts`.
+        self._supply_ended: Dict[str, dt.date] = {}
 
     def _refuse_issued(self, journey: "_Journey", judged: int, account_id: str,
                        ledger: Optional[AccountLedger]) -> None:
@@ -661,6 +664,9 @@ class CollectionsJourneyDesk:
         re-read 12-15 at GBP -22.53 and stopped the run). What that re-read finds is recorded in
         `steps_cleared_after_issue` when the journey cures."""
         record = journey.as_record()
+        from company.compliance.domain_invariants import refuse_premise_step_after_supply_ended
+        refuse_premise_step_after_supply_ended(
+            {**record, "stages": record["stages"][judged:]}, self._supply_ended.get(account_id))
         earlier = record["stages"][:judged]
         record["stages"] = ([s for s in earlier if s["stage"] == CURED]
                             + record["stages"][judged:])
@@ -673,6 +679,15 @@ class CollectionsJourneyDesk:
                 self.steps_cleared_after_issue.append({
                     "account_id": f["account_id"], "stage": f["stage"], "on": f["on"],
                     "ledger_balance_gbp": f["ledger_balance_gbp"], "found_on": found_on})
+
+    def note_supply_ended(self, account_id: str, last_supplied: dt.date) -> None:
+        """Record that this company's own record holds `account_id` closed, last supplied on
+        `last_supplied` (it issued the final bill and lost the registration). From the day after,
+        no step is taken at the premise: the gate's `account_still_supplied` column refuses it and
+        the debt goes to the final-account route (`_write_off_if_closed`). The earliest closure
+        told is kept: a re-told closure never re-opens a supplied window."""
+        held = self._supply_ended.get(account_id)
+        self._supply_ended[account_id] = last_supplied if held is None else min(held, last_supplied)
 
     def dunning_at_leaving(self, account_id: str) -> Callable[[dt.date], bool]:
         """`dunned_at(left)` for `arrears_engine.left_level_asks`: whether this account's open journey
@@ -1101,6 +1116,7 @@ class CollectionsJourneyDesk:
             # What the desk holds is the meters it moved. No payment-method read reaches it, so a
             # household that prepaid before it joined reads False: a GAP, named in the commons s.5.
             on_prepayment=journey.account_id in self._meters,
+            supply_ended_on=self._supply_ended.get(journey.account_id),
             self_disconnection_watch=(None if self.self_disconnection_watch is None
                                       else self.self_disconnection_watch(journey.account_id, on))))
         if not gate.permitted:
