@@ -52,3 +52,10 @@ requires:
 - commit: c71d2521d
   what: W3_3 network split per kWh and per supply point per day (years/<y>/network_cost_gbp falls 1-9% 2017-2025)
   owner: W3_3_the_network_charge_splits_per_unit_and_per_day
+# MSC: the first book after s.12g's (last config A from 18:34Z on 23 Nov, ~06:00Z on 24 Nov) is the
+# one every supplier grade of 24-25 Nov reads. Without the MSC replacement win, its P&L omits the
+# 2022-24 Market Stabilisation Charge on won switches. The landing is queued
+# (longjob-land8-msc-replacement-win; /var/tmp/se-msc-keep/land7.sh) and writes its sha into this row
+# when it reaches origin. REVERSE: delete the row. It also lapses with the whole file after 24 Nov.
+- commit: null
+  what: MSC replacement win booked as a levy (the-msc-replacement-win-lands-before-the-post-s12g-book)
