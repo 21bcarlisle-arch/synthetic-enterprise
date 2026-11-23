@@ -1,0 +1,27 @@
+id: seat-finding-origin-is-red-on-the-live-consent-offer-since-7527a2e36-and-it-blocks-the-gas-only-win
+title: origin/main has been red on the live Consent offer since 7527a2e36, and that
+  red blocks the gas-only win (23 Nov 2026)
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: BLOCKING
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_ORIGIN_IS_RED_ON_THE_LIVE_CONSENT_OFFER_SINCE_7527A2E36_AND_IT_BLOCKS_THE_GAS_ONLY_WIN_2026-11-23.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: EP4_collections_journey
+blocked_by: []
+occurrences: 1
+state: done
+opened_at: '2026-11-23T00:00:00+00:00'
+chosen_at: null
+closed_at: '2026-11-23T17:10:27+00:00'
+chosen_by: null
+done_evidence: 017382851e
+parked: null
+obsolete: null
+finding_lane: C_customer_ops
