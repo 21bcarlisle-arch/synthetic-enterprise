@@ -342,6 +342,12 @@ class EnforcementCase:
     #: not held, and a PPM move refuses, as every unrecorded precondition does (C32 tenth pass,
     #: class 6: a second Consent offer re-fitted a meter the desk had already moved).
     on_prepayment: Optional[bool] = None
+    #: The last day this company supplied the premise, where its own record holds the account
+    #: closed (it issued the final bill and lost the registration; `CollectionsJourneyDesk.
+    #: note_supply_ended`). None: no closure is held, so the account is supplied. This is the one
+    #: column whose unrecorded state permits: closure is the company's own act, recorded when it
+    #: happens, and "supplied" is not a dated finding anyone makes.
+    supply_ended_on: Optional[dt.date] = None
 
 
 @dataclass(frozen=True)
@@ -388,6 +394,12 @@ NOT_PPM_FIRST = ("SLC 27.9: no disconnection for unpaid charges until all reason
 IN_BREATHING_SPACE = ("a Debt Respite moratorium is active: SI 2020/1311 reg 7(7)(a) forbids any step "
                       "to collect the moratorium debt")
 OWN_HOLD = "this supplier has placed its own hold on the account (WinterMoratoriumRegister)"
+#: A step at the premise needs a premise the company supplies. A closed account's debt goes to
+#: final-account recovery: write-off a year after the final bill, then agency placement
+#: (`docs/market_research/debt_and_collections.md` s.7.3), never the 90-day rung's meter.
+SUPPLY_ENDED = ("this company no longer supplies the premise: its own record holds the account closed "
+                "after {last}, so no step is taken at the premise and the debt goes to final-account "
+                "recovery (debt_and_collections.md s.7.3)")
 NO_INVOLUNTARY_PRECONDITIONS = (
     "SLC 28B: an involuntary prepayment meter needs the Debt Trigger, at least 10 contact attempts, a "
     "Site Welfare Visit and a do-not-install check (75+ without support, a child under 2), each a "
@@ -529,6 +541,9 @@ _CHECKS = {
     "breathing_space": lambda c, _a: IN_BREATHING_SPACE if c.breathing_space else None,
     "payment_method": lambda c, _a: (PAYMENT_METHOD_NOT_HELD if c.on_prepayment is None
                                      else ALREADY_ON_PREPAYMENT if c.on_prepayment else None),
+    "supplied": lambda c, _a: (SUPPLY_ENDED.format(last=c.supply_ended_on.isoformat())
+                               if c.supply_ended_on is not None and c.as_of > c.supply_ended_on
+                               else None),
 }
 
 #: The columns: every protection ground, the clause it rests on, and the check that reads it. Three
@@ -549,6 +564,8 @@ PROTECTION_GROUNDS = {
     "breathing_space": ("SI 2020/1311 reg 7", "breathing_space"),
     "already_on_prepayment": ("SLC 27.6(a)(iii): a PPM is a way to pay; a move needs a credit meter",
                               "payment_method"),
+    "account_still_supplied": ("supplier's own record: a premise step needs a supplied premise; "
+                               "debt_and_collections.md s.7.3", "supplied"),
 }
 
 COVERED, GAP, NOT_APPLICABLE = "covered", "GAP", "n/a"
@@ -566,7 +583,8 @@ def _row(covered=(), gap=()):
 
 _LICENCE = ("slc_27_10_winter_pensionable", "slc_27_11_winter_reasonable_steps", "slc_27_11a_ascertain")
 _ALWAYS = ("slc_27_5_to_27_8_ability_to_pay", "own_hold_winter_moratorium", "breathing_space")
-_PPM = ("slc_27_6_a_iii_safe_and_practicable", "slc_27a_self_disconnection", "already_on_prepayment")
+_PPM = ("slc_27_6_a_iii_safe_and_practicable", "slc_27a_self_disconnection", "already_on_prepayment",
+        "account_still_supplied")
 
 #: THE TABLE. A cell is COVERED (the gate refuses when the ground is engaged), GAP (the ground
 #: may bar the action and the published record read here does not say how; named in the commons)
@@ -574,7 +592,7 @@ _PPM = ("slc_27_6_a_iii_safe_and_practicable", "slc_27a_self_disconnection", "al
 #: table exists to remove. The support row is never barred: support is not a step to collect.
 ENFORCEMENT_TABLE = {
     _D: _row(_ALWAYS + _LICENCE + ("slc_27_9_ppm_before_disconnection", "energy_uk_safety_net",
-                                   "psr_needs_codes"),
+                                   "psr_needs_codes", "account_still_supplied"),
              gap=("slc_28_15_proportionate",)),
     _W: _row(_ALWAYS + _PPM + ("slc_28b_involuntary_ppm", "energy_uk_safety_net", "psr_needs_codes"),
              gap=("slc_28_15_proportionate",)),

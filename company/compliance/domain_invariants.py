@@ -1017,6 +1017,60 @@ def refuse_dunning_of_a_cleared_debt(journey: dict, balance_on) -> None:
             f"GBP {f['ledger_balance_gbp']} (cured {f['cured_on']})" for f in findings))
 
 
+# --- No step at a premise this company no longer supplies (2026-11-23) ---
+#
+# The desk asked the world to fit a prepayment meter at ACC-SYN-2016-005 four months after the
+# account closed (docs/staging/SEAT_FINDING_THE_DESK_OFFERS_A_PREPAYMENT_METER_TO_A_HOUSEHOLD_THAT_
+# HAS_LEFT_2026-11-23.md). The gate's `account_still_supplied` column refuses it at the source; this
+# reads the journey RECORD, so a premise stage added later by a route that skips the gate is caught
+# by a read it does not share. The closure date is the company's own record, never the world's
+# `churned_billing_accounts`.
+NO_PREMISE_STEP_AFTER_SUPPLY_ENDED = StructuralInvariant(
+    id="no_premise_step_after_supply_ended",
+    description=(
+        "No collections step taken AT THE PREMISE -- a prepayment meter offered or fitted, a remote "
+        "switch, a warrant, a disconnection -- may be dated after the last day the company's own "
+        "record holds it supplied the account. A closed account's debt goes to final-account "
+        "recovery. One-directional: letters, write-off and agency placement are untouched."
+    ),
+    source=(
+        "Logic, not a published sentence: a meter is fitted, and a supply cut, at a supplied premise "
+        "(SLC 27.6(a)(iii), 28.22 presuppose one). Final-account route: "
+        "docs/market_research/debt_and_collections.md, the closed-account write-off convention"
+    ),
+)
+
+#: Journey stages that are a step taken at the premise. The 90-day rung itself
+#: (`prepayment_or_debt_agency`) is a label that also names the agency route, so it is not one;
+#: the offer it makes, and the meter fitted on it, are.
+PREMISE_JOURNEY_STAGES = frozenset({"prepayment_offered", "prepayment"})
+
+
+def premise_steps_after_supply_ended(journey: dict, supply_ended_on) -> list[dict]:
+    """NO_PREMISE_STEP_AFTER_SUPPLY_ENDED over one journey record. `supply_ended_on` is the last day
+    the company supplied the account, or None where it holds no closure. Returns findings."""
+    if supply_ended_on is None:
+        return []
+    return [{"check": NO_PREMISE_STEP_AFTER_SUPPLY_ENDED.id, "account_id": journey["account_id"],
+             "stage": s["stage"], "on": s["on"], "supply_ended_on": supply_ended_on.isoformat()}
+            for s in journey["stages"]
+            if s["stage"] in PREMISE_JOURNEY_STAGES
+            and date.fromisoformat(s["on"]) > supply_ended_on]
+
+
+class PremiseStepAfterSupplyEndedError(Exception):
+    """A step was taken at a premise the company's own record says it no longer supplied."""
+
+
+def refuse_premise_step_after_supply_ended(journey: dict, supply_ended_on) -> None:
+    """The preventive form: RAISES naming each step, its date and the last day supplied."""
+    findings = premise_steps_after_supply_ended(journey, supply_ended_on)
+    if findings:
+        raise PremiseStepAfterSupplyEndedError("; ".join(
+            f"{f['account_id']} {f['stage']} on {f['on']}, supply ended {f['supply_ended_on']}"
+            for f in findings))
+
+
 # --- The Ban on Acquisition-only Tariffs (roadmap R4, 2026-08-28) ---
 #
 # WHY THIS IS BASELINE AND NOT CURRICULUM, stated because R13 turns on it. This registers a
@@ -1286,6 +1340,7 @@ ALL_INVARIANTS: list = [
     PAYMENT_CHANNEL_DD_CONSISTENCY,
     SUPPLY_START_NOT_BEFORE_FIRST_OBSERVABLE,
     DUNNING_REQUIRES_AN_UNCLEARED_DEBT,
+    NO_PREMISE_STEP_AFTER_SUPPLY_ENDED,
     EXPECTED_LOSS_BELIEF_WITHIN_ZERO_AND_ONE,
 ]
 

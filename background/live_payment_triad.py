@@ -1302,13 +1302,21 @@ class LivePaymentTriad:
         legs = supply_points_that_left(departed_households, {r.customer_id for r in self._records})
         self._closed_accounts |= {account_of(cid) for cid in legs}
 
-    def close_account(self, household: str, final_bill_due: date) -> None:
+    def close_account(self, household: str, final_bill_due: date,
+                      last_supplied: Optional[date] = None) -> None:
         """Tell the queue, AS THE RUN CLOSES IT, that every account of `household` has closed and
         when its final bill falls due. The run knows both on the day the household goes (the last
         day supplied fixes the final bill's month), so nothing is looked ahead; from here on a
         reader forcing a crossing cuts that household's lumps dated after `final_bill_due`.
-        `close_accounts` at the run's end stays the backstop for any closure not told here."""
+        `close_accounts` at the run's end stays the backstop for any closure not told here.
+
+        `last_supplied` is also told to the company's collections desk: the company's own record
+        of the closure (it issues the final bill and loses the registration that day), so no step
+        is taken at a premise it no longer supplies (`note_supply_ended`, 2026-11-23)."""
         self._closed_households[household] = final_bill_due
+        if last_supplied is not None:
+            for consumer in (self._consumer, self._cf_consumer):
+                consumer.collections_journeys.note_supply_ended(account_of(household), last_supplied)
 
     def _after_final_bill(self, account_id: str, settled_on: date) -> bool:
         """Whether `settled_on` falls after the final bill's due date of an account that closed.

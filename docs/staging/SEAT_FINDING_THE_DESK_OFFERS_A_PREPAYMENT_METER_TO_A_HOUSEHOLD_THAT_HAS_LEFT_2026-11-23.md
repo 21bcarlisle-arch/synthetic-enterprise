@@ -36,3 +36,40 @@ bill, then agency placement (`debt_and_collections.md` s.7.3). It does not go to
    mutation-proven (removing the closed-account column reds it).
 3. The epistemic question is answered in the commit: the closure the gate reads is the company's own
    record, not world truth.
+
+## Resolution (23 Nov 2026, claim `a-closed-account-is-never-offered-a-prepayment-meter`)
+
+- **The gate.** `winter_moratorium` has a new column, `account_still_supplied`
+  (`EnforcementCase.supply_ended_on`, refusal `SUPPLY_ENDED`). It covers every action taken AT THE
+  PREMISE: disconnection, warrant, remote switch, Consent offer. Agency hand-off is n/a, because it
+  is the final-account route. The commons s.5 table carries the column, and the table control
+  engages it.
+- **The desk.** `CollectionsJourneyDesk.note_supply_ended(account, last_supplied)` holds the
+  company's own closure date. `_offer_prepayment` passes it to the gate, so a refused offer records
+  `prepayment_withheld` with the reason. The debt stays on the journey until `_write_off_if_closed`
+  takes it a year after the final bill.
+- **The class.** `domain_invariants.NO_PREMISE_STEP_AFTER_SUPPLY_ENDED` is in `ALL_INVARIANTS`. The
+  desk raises it in `_refuse_issued` over every stage it issues, so a later premise route that
+  skips the gate is caught by a read it does not share.
+- **The epistemic answer.** The closure the gate reads is the company's own record. The run tells
+  the desk the last day supplied at the two moments it closes an account: a registration loss is
+  filed, or a move does not follow (`LivePaymentTriad.close_account(..., last_supplied=)`). The
+  company issues that account's final bill and loses its registration on those same facts. The
+  world's `churned_billing_accounts` is never read.
+- **Tests.** `tests/company/billing/test_a_closed_account_is_never_offered_a_prepayment_meter.py`
+  rebuilds the ACC-SYN-2016-005 shape (left 30 Jun, opened 29 Jul, declined 25 Aug, Consent
+  26 Oct). The permit leg is that a supplied account in the same state is offered and fitted. A
+  closure dated on the step day does not reach back. Mutation: removing `supply_ended_on=` from the
+  desk's gate call reds only the refusal test.
+- **On the live run.** `test_every_live_consent_offer_goes_to_an_account_still_supplied`, held
+  open by a strict xfail, XPASSed. Its xfail is dropped, and it now also asserts that a leaver
+  reached the rung, so the check is not vacuous. The answered window to 2017-12-31 held three
+  offers, all to leavers, and all are now withheld. So the window holds NO Consent offer. The two
+  answered controls, `test_an_answered_live_run_decides_the_consent_offer_both_ways` (split from
+  the 90-day-rung test, whose shipped leg stays live) and
+  `test_the_world_counts_every_consent_offer_the_company_made`, are vacuous there. They are held
+  open by a strict xfail that names the re-key.
+- **Not done here, handed on.** The measurement that finds a window with an offer to a SUPPLIED
+  account (`docs/staging/records/SEAT_PREREG_THE_ANSWERED_WINDOW_AFTER_CLOSED_ACCOUNTS_ARE_REFUSED_2026-11-23.md`)
+  could not be admitted in this turn: the box queue held both in-process probes asleep for 30 min.
+  It runs as a long job, and the re-key waits on its result file.
