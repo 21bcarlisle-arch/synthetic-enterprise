@@ -1368,6 +1368,26 @@ def test_site_lane_recognises_site_prefixed_paths():
     assert {a["id"] for a in selected} == {"DEEP_SITE"}
 
 
+def test_an_atom_that_also_writes_the_world_is_not_a_site_atom():
+    """The SITE lane is ungated because `site/**` is disjoint from sim/company; an
+    atom naming `site/knowledge/` beside `simulation/population_draw.py` (W2_18) is
+    not. Both legs: the site-plus-tools atom must still be drawn, or a rule that
+    refuses everything would pass."""
+    supervisor.MATURITY_MAP_PATH.write_text(
+        "- id: SITE_WITH_GENERATOR\n  lane: L\n  dial_inherited: 1\n  loop_stage: build\n"
+        "  level_current: 0\n  level_target: 1\n"
+        "  file_scope: [\"site/knowledge/\", \"tools/generate_x.py\", \"tests/tools/test_x.py\"]\n"
+        "- id: WORLD_WITH_A_PAGE\n  lane: L\n  dial_inherited: 1\n  loop_stage: build\n"
+        "  level_current: 0\n  level_target: 3\n"
+        "  file_scope: [\"simulation/population_draw.py\", \"site/knowledge/\"]\n"
+        "- id: SUPPLIER_WITH_A_PAGE\n  lane: L\n  dial_inherited: 1\n  loop_stage: build\n"
+        "  level_current: 0\n  level_target: 3\n"
+        "  file_scope: [\"saas/churn_model.py\", \"site/index.html\"]\n"
+    )
+    selected = supervisor._site_lane_draw_concurrent(width=5)
+    assert {a["id"] for a in selected} == {"SITE_WITH_GENERATOR"}
+
+
 def test_site_lane_excludes_externally_blocked_atom():
     """R15 (both directions): a site atom blocked on a GENUINE external act -- an upstream
     real-world data gap, so a fork would find nothing to build -- is NOT drawn. Ungated means
