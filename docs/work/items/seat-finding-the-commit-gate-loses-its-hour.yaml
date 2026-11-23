@@ -1,0 +1,26 @@
+id: seat-finding-the-commit-gate-loses-its-hour
+title: 'Landings are not reaching origin: where the commit gate''s hour goes (2026-11-22)'
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: BLOCKING
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_COMMIT_GATE_LOSES_ITS_HOUR_2026-11-22.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: done
+opened_at: '2026-11-22T00:00:00+00:00'
+chosen_at: null
+closed_at: '2026-11-23T17:33:36+00:00'
+chosen_by: null
+done_evidence: 5a354ebcb3
+parked: null
+obsolete: null
+finding_lane: H_harness
