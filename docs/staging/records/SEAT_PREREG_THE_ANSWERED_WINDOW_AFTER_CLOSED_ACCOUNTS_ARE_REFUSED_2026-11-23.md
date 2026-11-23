@@ -23,3 +23,13 @@ instrument (a seeded supplied household), not a longer window.
 `plan_offer_response.BASIS = basis_at("high")`, as the `answered_live_run` fixture does. It counts
 `prepayment_offered` and `prepayment_withheld` stages, with their reasons, and every offer's
 account against `final_month_nets`.
+
+**Launched (23 Nov 2026, claim `the-answered-window-holds-a-consent-offer-to-a-supplied-account`).**
+The instrument runs as `/var/tmp/answered_window_probe/probe.py <report_end> <out.json>`, launched with
+`PYTHONPATH` at the repo root. The 2018-12-31 and 2019-12-31 windows were started together, so the
+2019 reading is ready if 2018 is empty. Nothing is read before the decision rule above. Each run writes
+`/var/tmp/answered_window_probe/result_<year>.json`, with offers, offers_to_supplied, the withheld
+reasons, each offer's row and the world's concealing count. The 2018 run had not finished after 9 minutes.
+Decision rule, unchanged: if 2018 holds an offer to a supplied account, set `ANSWERED_WINDOW_END =
+"2018-12-31"` and drop both `_NO_SUPPLIED_OFFER_IN_WINDOW` strict-xfails. Otherwise check 2019. If 2019
+is also empty, build the seeded supplied household and do not lengthen the window.
