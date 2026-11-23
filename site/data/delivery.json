@@ -1,9 +1,75 @@
 {
- "generated_at": "2026-11-23T03:28:25.079651+00:00",
+ "generated_at": "2026-11-23T06:25:26.221275+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "0b4d8ae59",
+    "at": "2026-11-23T05:55:00Z",
+    "subject": "A landing that loses its promotion race is re-landed inside the same job, so the register sees one outcome, not a died row per retry",
+    "substantive": true
+   },
+   {
+    "sha": "0369aa1c5",
+    "at": "2026-11-23T05:52:37Z",
+    "subject": "delivery seat: merge origin/main into the reg-6C chain-record landing (origin moved; upstream is reg 6C, disjoint path)",
+    "substantive": false
+   },
+   {
+    "sha": "f31866a1b",
+    "at": "2026-11-23T05:49:43Z",
+    "subject": "Seat record: the reg 6C / gas-only landing chain is carried by its resume successor, and that successor's hold was already open",
+    "substantive": false
+   },
+   {
+    "sha": "09ae79aa0",
+    "at": "2026-11-23T05:47:58Z",
+    "subject": "delivery seat: merge origin/main into the 6C landing before promotion (origin moved under the gate; no conflict)",
+    "substantive": false
+   },
+   {
+    "sha": "cc9f08ae3",
+    "at": "2026-11-23T05:35:41Z",
+    "subject": "Reg 6C: an erroneous gain goes back to its old supplier on the last day the regulation allows",
+    "substantive": true
+   },
+   {
+    "sha": "779054e30",
+    "at": "2026-11-23T05:27:43Z",
+    "subject": "delivery seat: merge origin/main into the B8 switch-on pre-registration landing (upstream touches only an s12g record, not this landing's paths)",
+    "substantive": false
+   },
+   {
+    "sha": "e23d5d3b6",
+    "at": "2026-11-23T05:25:59Z",
+    "subject": "B8: switching the blind retention holdout on in the standing policy is pre-registered before its book, and the switch-on is one named flag, ready and off",
+    "substantive": true
+   },
+   {
+    "sha": "e56d8b885",
+    "at": "2026-11-23T05:12:29Z",
+    "subject": "s.12g's next lever is chosen for each outcome before the run ends",
+    "substantive": false
+   },
+   {
+    "sha": "9b5116a44",
+    "at": "2026-11-23T04:37:11Z",
+    "subject": "chore(provenance): verification paused banner (git=6a588a832f) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
+    "substantive": false
+   },
+   {
+    "sha": "83570bd1c",
+    "at": "2026-11-23T04:13:23Z",
+    "subject": "The event-log tests read the shared 2016-2018 run: one run, not two, in the commit gate, and their retention loops now have entries to check",
+    "substantive": true
+   },
+   {
+    "sha": "75734ae95",
+    "at": "2026-11-23T03:47:46Z",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "8a52399b8",
     "at": "2026-11-23T01:48:47Z",
@@ -177,144 +243,78 @@
     "at": "2026-11-22T18:05:36Z",
     "subject": "A run that ends without writing its book flags, by name, every continuation embargoed on that book",
     "substantive": true
-   },
-   {
-    "sha": "b12a9876f",
-    "at": "2026-11-22T17:29:59Z",
-    "subject": "delivery seat: merge origin/main into the behind-the-walk landing (upstream does not touch its paths)",
-    "substantive": false
-   },
-   {
-    "sha": "9caeb0a92",
-    "at": "2026-11-22T17:27:47Z",
-    "subject": "A credit that posts behind the collections walk is counted, by route, and published with its denominators",
-    "substantive": true
-   },
-   {
-    "sha": "1af94c513",
-    "at": "2026-11-22T16:44:50Z",
-    "subject": "Close B8's holdout work item: the blind holdout is on origin default-off (318d042e7e) and shown taken in a run (e2515972ea)",
-    "substantive": false
-   },
-   {
-    "sha": "e2515972e",
-    "at": "2026-11-22T16:43:36Z",
-    "subject": "B8's blind holdout is shown taken in a run: with the switch on, 2017 holds out 16 of 72 considered renewals, none approached, 9 stay on the re-fix, and the reactive save never reads the coin",
-    "substantive": true
-   },
-   {
-    "sha": "817453da0",
-    "at": "2026-11-22T16:18:49Z",
-    "subject": "s.12g: the dunning fix is ported into the pin as a stated deviation, re-pinned, and the run is re-queued on book 61118",
-    "substantive": true
-   },
-   {
-    "sha": "03c5472ab",
-    "at": "2026-11-22T16:16:51Z",
-    "subject": "delivery seat: merge origin/main into the dunning-fix landing (upstream does not touch its paths)",
-    "substantive": false
-   },
-   {
-    "sha": "e09f1640a",
-    "at": "2026-11-22T16:14:09Z",
-    "subject": "A dunning step is judged on the ledger it was issued on: a back-valued credit no longer stops the run",
-    "substantive": true
-   },
-   {
-    "sha": "67b5c30ae",
-    "at": "2026-11-22T15:58:54Z",
-    "subject": "delivery seat: merge origin/main into the direction landing (upstream does not touch its paths)",
-    "substantive": false
-   },
-   {
-    "sha": "72539d22e",
-    "at": "2026-11-22T15:56:15Z",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "ec2967a4d",
-    "at": "2026-11-22T15:45:20Z",
-    "subject": "The campaign can read the company's price history in 2 MB: the daily SSP feed is persisted beside the cache",
-    "substantive": true
-   },
-   {
-    "sha": "8c9c85839",
-    "at": "2026-11-22T15:30:21Z",
-    "subject": "A daily (date, count, mean) price feed strikes the company's forward bit-for-bit: 3,501 rows in place of 168,026 SSP records",
-    "substantive": true
    }
   ],
-  "substantive": 18,
-  "mechanical": 22,
+  "substantive": 16,
+  "mechanical": 24,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-11-23T03:22:44.727556+00:00",
+  "oriented_at": "2026-11-23T06:20:08.484967+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "This stretch had 18 commits, 8 of them substantive. By side: supplier 0, world 2, both 1, other 15. This is the third stretch in a row with no supplier-side commit. Measured against the thesis, the supplier did not move. The one change that touched supplier code (f3c6a45cb: the growth campaign asks the company's first-term quote before the win, 210 -> 230 wins) was counted as both sides. What did move is the machinery that loses finished work, and this time the fixes held. The bounded-landing hand-off was lost last stretch and was rebuilt and landed (8bd0092e8, 23:23Z). Since then every executor landing has run in its own longjob-land-* unit, and none was killed at teardown. The commit gate's hour is fixed at the cause (5a354ebcb re-gates only what a lost race brought; 1c9cd8195 stops billing riding a saas/ path it never imports, and weekly-rhythm drops from 509 s to 21 s). After 00:37Z, landings gated inside the hour while s.12g held the box. 7527a2e36 gated in 41 minutes and is on origin, and the 01:20Z landing took 4.5 minutes. So the gate row and the bounded-turn row are corrected. So is the 14:15Z-15:26Z stand-down row: 8bd0092e8 names its cause, a refused direction record read as \"no focus\", and fixes it. Billing accuracy at home moves got a real result. The level leaver's short refund was traced to the world netting the final bill for movers only (f1a01411f: 149 legs, GBP 3,673.83 on 6a588a832f), and the world now nets it on any closure (7527a2e36). Last stretch's focus: three of four items were drawn. The gate and the leaver refund are done. Gas-only supply was drawn and did not land. Its second landing was refused at 01:25Z, 3 seconds in, because its copy of simulation/run_phase2b.py predates 7527a2e36. The refusal printed the remedy (isolate_hunks), and nothing has run it. Its continuation build-gas-supply-for-a-gas-only-win waits on a file that only a successful landing writes, so the handoff back to focus that its own prose promised is mine to make. B8's switch-on pre-registration was NEVER DRAWN. I named it by its atom id, and an atom id only biases the ordinary draw: B8 is at 140 unchanged draws and was not drawn this stretch. That steer drifted because of how I wrote it. It goes back in as a Lane 0 item. The thesis test is still running. s.12g's cut arm was at 2020-09-29 at 03:22Z (7h50m in), and the A arm has not started (/var/tmp/vtn-out/A/ is empty). The 24 Nov ~05:30Z end still holds. No book has been written for about 60 hours, and the five supplier grades still wait on the one after s.12g. So the supplier work that can move now is work that needs no book: the B8 pre-registration, and a decision recorded before s.12g publishes on what the supplier does for each outcome. A decision written after the number is known is a post-registration, and that is the cost of leaving it.",
+  "thesis_read": "This stretch had 11 commits, 4 of them substantive. By side: supplier 1, world 0, both 1, other 9. For the first time in four stretches the supplier moved, and all four items in last stretch's focus were drawn and retired. B8's switch-on is pre-registered, and the switch is one named flag, ready and off (e23d5d3b6). It landed before any book carries it, so the company will learn price sensitivity from its own renewals and will not be told it. That is the thesis's inference-not-access shape. The supplier's move for each s.12g outcome was written down blind (e56d8b885), about 23h before the answer. That is the first time a value-test lever was chosen before its number, and it closes the way the 0.12 cut was fitted on the pair it was then graded on. Reg 6C landed (cc9f08ae3), with 7527a2e36's closing=left intact. The gas-only win build was rebuilt from salvage eccf3dc756 and is in surgical_land now (pid 1572076, gate running since 05:48Z). The promotion-race fix is on origin with a test (0b4d8ae59). Against the thesis itself, nothing has been measured. The per-customer arm still has no result that beats the flat-rules twin. s.12g's cut arm reached 2025-03 at 06:20Z after 10h47m, the A arm has not started, and the run still ends about 05:30Z on 24 Nov. I did not read its treasury. No book has been built for about 63 hours, and every supplier grade waits on the one after s.12g. Three things are drifting. (1) Landing is again what loses finished work. The MSC replacement-win landing died at 05:56Z because its gate timed out at 3600 s. Three gates were running at once (reg 6C, MSC, executor), and its gate showed three test failures before it was killed. The gate-hour fix holds for one landing at a time, not three. Its continuation is held on a file that only success writes, so no one owns it: the same shape reg 6C had at 01:25Z. (2) The shared checkout is 5 commits behind origin. Every daemon, including the executor that launches landings, imports the bounded_landing.py that 0b4d8ae59 replaced, so the promotion fix is on origin but not live. Two more empty merges landed this stretch (779054e30, 0369aa1c5). (3) A G15 world landing (published forward for hedges) is gating now, from an interactive session, while the correctness stretch holds G15. The ruling lets work already landing finish, so I am not stopping it. But it is a fourth concurrent gate, and it is world work the supplier did not ask for. Until the book exists, the supplier work that can move needs no box: make the coming book's grades mechanical, and give the renewal switch-on a held-back baseline from the book that already exists.",
   "focus": [
    {
-    "id": "reg-6c-and-gas-only-supply-re-land-on-the-current-run-phase2b",
-    "what": "Land reg 6C (erroneous-gain return) and then gas supply for a gas-only win. The second landing (longjob-land-reg-6c-erroneous-gains-2, script /tmp/seat_6c/land6c_2.sh) was refused at 01:25Z by the stale-copy gate, because /tmp/seat_6c/run_phase2b.py predates 7527a2e36 (it lacks `closing=left,`). The other five --content files were not faulted. FIRST check nobody is already doing this. Run pgrep -af surgical_land and launch_long_job. A pytest over tests/simulation/test_run_phase2b.py was running at 03:19Z, so read whose it is. If a live holder names reg 6C, stand down and say so. Otherwise run `python3 -m tools.isolate_hunks --survey simulation/run_phase2b.py` against /tmp/seat_6c/run_phase2b.py, keep only the reg 6C hunks (the erroneous_gain_returned_on name), and build HEAD-plus-those into a fresh file. Re-check the other five against origin/main the same way. Then land them once through background/launch_long_job.py with surgical_land --content, writing /var/tmp/se-reg-6c-landed-20261123.txt on success as land6c_2.sh does. That file releases continuation build-gas-supply-for-a-gas-only-win. If this tick has room, do that continuation next: the gas build is in salvage eccf3dc756, not in the reg 6C bytes (7c4c3f1e4).",
-    "why": "This work is finished, and it has been refused or killed three times since 07:15Z on 22 Nov. A won customer the supplier never supplies makes CLV against acquisition cost unreadable, and the won-switch P2-P5 grade opens at 09:00Z today. Done means reg 6C is on origin with 7527a2e36's closing=left intact, /var/tmp/se-reg-6c-landed-20261123.txt exists, and the gas-only build is either landed or released to its continuation with the salvage sha named.",
+    "id": "the-msc-replacement-win-re-lands-with-its-three-failures-named",
+    "what": "Land the Market Stabilisation Charge on REPLACEMENT wins. longjob land-msc-replacement-win died at 05:56Z: its gate timed out at 3600 s while two other gates ran (see /tmp/msc_land/land.log), and before the kill it had printed three failures (F.FF at 83%). FIRST run pgrep -af surgical_land. If a live holder names the MSC, stand down and say so. Do not start your gate while another surgical_land is past its first 10 minutes on simulation/run_phase2b.py; wait for it with tools/wait_for.py --pid. In a worktree off origin/main, re-run the gate's selection for the MSC paths and name the three failing tests. Fix the MSC hunks if they caused the failures. If the failures belong to another lane's bytes, file that in docs/staging/. surgical_land printed that saas/ledger.py (2 hunks) and company/finance/accounting_close.py (3 hunks) carry hunks against HEAD, and accounting_close.py is edited in the shared tree by another lane. So build the content with tools.isolate_hunks --survey on each, keeping only the MSC hunks. Then land once through background/launch_long_job.py with surgical_land --content, writing /var/tmp/se-msc-replacement-win-landed-20261123.txt on success. That file releases continuation msc-on-campaign-net-new-wins-and-verify-replacement-landing.",
+    "why": "The book that runs after s.12g is the first book that can price 2022-24 wins with the charge their gainer actually paid. If the MSC is not on origin before sim-runner starts that book, the book prices acquisitions without it, and the next chance is a week away. Done means the MSC replacement-win commit is on origin, the three failures are named in its message or in a filed finding, and the landed file exists.",
     "lane": "C_customer_ops",
     "side": "world",
-    "unblocks": "the P2-P5 grade of SEAT_PREREG_A_WON_SWITCH_IS_SUPPLIED_FROM_ITS_WIN_2026-11-21 (09:00Z today), and CLV against acquisition cost for the two gas-only wins",
-    "written_at": 1795404488.668
+    "unblocks": "CLV against acquisition cost for 2022-24 wins on the first book after s.12g (the 2023 first-term position that e9744505f attributes)",
+    "written_at": 1795415108.187
    },
    {
-    "id": "b8-holdout-switch-on-is-pre-registered-before-its-book",
-    "what": "Write and land the pre-registration for switching B8's blind retention holdout ON in the standing policy, as docs/staging/records/SEAT_PREREG_B8_THE_HOLDOUT_SWITCHED_ON_IN_THE_STANDING_POLICY_2026-11-23.md. It must land before any book that carries the switch exists. The holdout is default-off on origin (318d042e7e). It was shown taken in a 2017 run (e2515972e: 16 of 72 considered renewals held out), and the director ruled holdouts yes on 22 Nov (a87572556c). State five things. (1) The holdout count per renewal year, with an interval. (2) The price-sensitivity estimate it should let the company discover, and its expected width at that count, from the earlier B8 records in docs/staging/records/SEAT_PREREG_B8_*. (3) The renewal margin it costs on the held-out households. (4) Which of the five pending book grades (D48, KNIFE3 I1-I5, dual-household answers, won-switch P2-P5, ending-term belief) it would disturb if it were on in the same book. (5) The rule that turns it back off. Add the switch-on as a named flag that is ready but off, and arm one continuation through seat_continuation that reads it on the first book after those five grades.",
-    "why": "The thesis says advantage comes from inference. The holdout is how the company learns each customer's price sensitivity from its own renewals instead of being told it. It needs no book, and the box will be held for about 26 more hours. Last stretch this was named only by the atom B8_discovered_price_sensitivity_holdout and was never drawn. Done means the pre-registration and the default-off flag are on origin with a commit time earlier than any run_output that carries the flag, and the reader is in seat_continuation.live().",
-    "lane": "B_commercial",
-    "side": "supplier",
-    "written_at": 1795404488.668
-   },
-   {
-    "id": "s12g-outcome-decision-is-recorded-before-it-publishes",
-    "what": "Before /var/tmp/vtn-out/A/member_13131_14141.json exists, write docs/staging/records/SEAT_PREREG_WHAT_THE_SUPPLIER_DOES_ON_EACH_S12G_OUTCOME_2026-11-23.md. Do not open anything under /var/tmp/vtn-out/. For each of three outcomes of the per-customer arm's advantage over the flat-rules twin, name the next supplier lever and the one-variable run that would test it. The three outcomes: the interval sits wholly above zero; it straddles zero; it sits wholly below zero. Read the candidates from docs/design/THE_VALUE_TEST_REDESIGN.md (s.12c to s.12g, and the lever s.12e names) and from the open renewal-belief row in docs/direction/wrong_triage.yaml (the-live-renewal-belief-ranks-leavers-backwards, owner company/policy/decision_policy.py). Also state what each outcome means for the 0.12 cut having been fitted on the same pair it is now tested on. Then amend continuation s12g-has-a-reader-when-it-ends so that its reader grades against this record and opens the chosen lever's run.",
-    "why": "s.12g is the thesis's live test, and it ends about 05:30Z on 24 Nov. A choice of next lever made after the number is read cannot be told apart from fitting to it. That already happened once, when the 0.12 cut was fitted on the pair it was then graded on. Done means the record is on origin with a commit time earlier than member_13131_14141.json's mtime, and the reader continuation names it.",
+    "id": "the-coming-books-grades-are-pre-flighted-on-the-shared-2016-2018-run",
+    "what": "Run every reader queued on the first book after s.12g against the shared 2016-2018 run that the event-log tests already build (tests/simulation/conftest.py, 83570bd1c), not against a new run. The readers: D48 blend at 0.5, KNIFE3 I1-I5, dual-household answers, won-switch P2-P5, the ending-term belief, switching-level leavers, the B8 holdout record (e23d5d3b6), and the s.12g outcome reader (e56d8b885). Read their continuations through seat_continuation.live() and their pre-registrations under docs/staging/records/. For each one, record whether it finds every record it names in that run's output and can compute its grade mechanically, or the exact record or field it cannot find. Fix a reader that points at the wrong path or name. Where the run does not emit a record a pre-registration needs, file a finding naming the writer. Do not grade any prediction on the 2016-2018 run: it is a plumbing check, and its numbers are not the book. Write the result as docs/staging/records/SEAT_RECORD_THE_COMING_BOOKS_GRADES_PRE_FLIGHTED_2026-11-23.md.",
+    "why": "The book has been starved for about 63 hours, and the next one carries five-plus supplier grades at once. A reader that discovers a missing record on 24 Nov costs another ~30h book. Done means the record lists every reader as reads-clean or blocked-on-<named writer>, and every blocked one has a landed fix or a filed finding, before sim-runner starts the book.",
     "lane": "G_data_learning",
     "side": "supplier",
-    "written_at": 1795404488.668
+    "written_at": 1795415108.187
    },
    {
-    "id": "a-promotion-that-loses-its-race-is-one-job-not-three-died-ones",
-    "what": "Three executor landings were registered as DIED with exit 2 between 01:14Z and 01:20Z (land-se-seat-executor-1795394035, -1795396520, -1795396769), each with \"origin/main has moved ... not a fast-forward\" (see /var/tmp/longjob-land-se-seat-executor-1795394035.log). Their work reached origin anyway, through three merges that authored nothing (f68028b7f, 755536805, 965a59053). Trace the promote step in background/bounded_landing.py and tools/surgical_land.py. Then make a lost promotion race retry inside the same job, re-gating only what the move brought (5a354ebcb). It should end success or refused once, not leave a died row per retry. Also make it stop folding a disjoint origin move with an empty merge, if a replay of the landed commit onto the new origin passes the same gate. Key the control to the property: a landing whose content is on origin is never registered as died.",
-    "why": "The launch register is what every orientation reads to decide whether work was lost. This stretch it said 6 jobs died when 3 of them had landed, and the brief's NO_WORK alarm is the same event seen from git. Done means a test reproduces a promotion race and shows one register row with the true outcome, and the next stretch's brief has no empty-merge run caused by promotion.",
+    "id": "the-renewal-belief-switch-on-has-a-held-back-baseline-from-the-20-nov-book",
+    "what": "On the already-published 20 Nov book (6a588a832f, docs/reports/run_output_latest.json and its desk states), measure the live renewal churn belief and the corrected ending-term belief (7a7ad95dc, default off) on desk states from years held back from the corrected belief's fit. Report AUC per renewal year with a bootstrap interval for each, and the count of leavers per year. FIRST check docs/staging/records/ and the grades 427e5f021 and 5cdb72eb3. If a record already gives per-year held-back ranking for both beliefs, cite it, retire this with --premise-spent, and stop. Write the result as a section of the pre-registration that read-the-ending-term-belief-grade-on-the-coming-book grades against. Commit it before any book descending from 59cd5ebda and c09847b7c exists, so that the switch-on decision has a baseline written before its answer. The change set is that record alone: write it as docs/staging/records/SEAT_RECORD_THE_RENEWAL_BELIEFS_ON_HELD_BACK_YEARS_2026-11-23.md and point the reader continuation at it. The policy file is read, never changed.",
+    "why": "The live belief ranks leavers backwards (AUC 0.333 on 2019 desk states). The corrected one has twice graded with a departure interval straddling zero, so the coming book will be the third reading with no held-back baseline beside it. Telling a better belief from luck is exactly the thesis's inference test, and it needs no box. Done means the per-year held-back comparison is on origin with a commit time earlier than the qualifying book, and the reader names it.",
+    "lane": "B_commercial",
+    "side": "supplier",
+    "written_at": 1795415108.187
+   },
+   {
+    "id": "the-shared-checkout-runs-the-promotion-fix-origin-already-has",
+    "what": "The shared checkout is 5 commits behind origin/main, and every daemon imports background/bounded_landing.py, tools/surgical_land.py and tools/promote_worktree_landing.py from before 0b4d8ae59. Find what normally fast-forwards this checkout and why it has not: read background/deploy_restart.py and the reconcile-watch log for the last fast-forward and its refusal. The three landing files above are read-only here, because their fix is already on origin. Fix the cause in whatever advances the checkout (background/deploy_restart.py or background/reconcile_watch.py). The tree has other lanes' uncommitted edits, so never stash, checkout a path or reset. Then confirm the next executor landing runs 0b4d8ae59's promote-retry: its register row, its log, and no empty merge on origin.",
+    "why": "The promotion-race fix landed and cannot act, because the code that launches landings is the old copy. Two empty merges came this stretch, and the launch register still over-reports died landings. Done means HEAD equals origin/main (or a named, filed reason it cannot), and one executor landing after that is registered with a single true outcome.",
     "lane": "H_harness",
     "side": "other",
-    "written_at": 1795404488.668
+    "written_at": 1795415108.187
    }
   ],
   "not_now": [
    {
-    "what": "Letting the book share the box with s.12g on my own call, now that it is 60 hours since the last book.",
-    "why": "It is still the open director concern s-12g-was-admitted-at-19-32, and I recommended waiting. About 26 hours remain, and an OOM would cost the thesis test far more than that. Silence is not a yes to the option I advised against."
+    "what": "Letting the book share the box with s.12g on my own call, now that it is about 63 hours since the last book.",
+    "why": "It is still the open director concern s-12g-was-admitted-at-19-32, and I recommended waiting. About 23h remain, and the s.12g cut arm is in its final year. An OOM would cost the thesis test far more than the wait does. Silence is not a yes to the option I advised against."
    },
    {
-    "what": "Wiring the Market Stabilisation Charge into the company's acquisition value (a supplier-side MSC item).",
-    "why": "The world does not charge it yet: simulation/market_stabilisation_charge.py has no caller on origin, and the-world-charges-the-market-stabilisation-charge-to-the-gainer is already a live continuation. If the company priced a cost the world never charges, it would distort the 2023 first-term position that e9744505f is attributing. The world charge comes first, then the supplier side."
+    "what": "Stopping or deferring the in-flight G15 landing (pid 1902939), which the correctness stretch holds.",
+    "why": "The 26 Oct ruling lets work already landing finish, and killing a landing mid-gate is how finished work was lost three times last week. Its cost is one more concurrent gate, and focus item 1 handles that by waiting for the holder. I will not put G15's follow-on grading into focus."
    },
    {
-    "what": "Peeking at s.12g's partial cut-arm log (treasury at 2020-09) to get ahead on the next lever.",
-    "why": "That would turn focus item 3 into a post-registration. Erring against our own thesis means writing the decision blind."
+    "what": "PB5 pounds-or-percent (DRAWABLE, level 0), which together with PB4 unblocks C29, decisions stop being lookup tables.",
+    "why": "9e52d22543 already made households decide in pounds, so PB5 may be finished and unrecorded. But C29 also waits on PB4, whose file_scope nothing has worked for 7 days. Moving one of the two changes no draw this week, and the book grades are closer to a supplier result."
    },
    {
-    "what": "Re-arming the stale premise_not_yet_ripe mechanism (a direction item that quotes another item's date is walked past).",
-    "why": "It fired correctly this stretch (grade-dual-household... was correctly unripe), and the instance that hurt was closed. It stays a listed wrong row with no focus slot. Landing finished work and the two supplier items move the thesis, and this does not."
+    "what": "Peeking at s.12g's partial output to get ahead of its reader.",
+    "why": "e56d8b885 chose the next lever blind. Reading the partial treasury would turn it into a post-registration after the fact. The progress line was read for its date alone."
    },
    {
-    "what": "The stalled site atoms (SITE1, SITE12, SITE15, OPS7) and A45's 1617-draw streak.",
-    "why": "There is no new book to publish, and none of them changes a supplier result. A45 is landing under other ids (30 commits on its file_scope). That is a counter problem, not stalled work."
+    "what": "The stalled site atoms (SITE1, SITE12, SITE15, OPS7) and A45's 1655-draw streak.",
+    "why": "There is no new book to publish, and none of them changes a supplier result. A45 and OPS7 are landing under other ids. That is a counter problem, not stalled work."
    },
    {
-    "what": "Reaping the at-risk worktrees, including the two fresh /tmp/seat_msc salvage trees.",
-    "why": "/var/tmp/value-test-cut012 is s.12g's pin. The /tmp/seat_msc trees were salvaged at 03:16Z by a lane that may still be working, and the MSC landed at 01:48Z. A reap cannot be undone, and none of them blocks a result."
+    "what": "Reaping the at-risk worktrees.",
+    "why": "/var/tmp/value-test-cut012 is s.12g's pin, and the others are locked with named owners. A reap cannot be undone, and none of them blocks a result."
    }
   ],
   "for_the_director": [
@@ -340,9 +340,9 @@
   "problems": [
    {
     "key": "triage:the-live-renewal-belief-ranks-leavers-backwards",
-    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:22 22 Nov -- WORSE: the grade that would switch it on was not in the live queue. 21:21 22 Nov -- its reader is live again (80d11db93), re-armed on the first book descending from 59cd5ebda and c09847b7c. No such book exists, and none will start before s.12g ends (about 33h). 03:22 23 Nov -- unchanged. The reader re-checked at 02:46Z and still found no qualifying book.",
-    "last_at": "2026-11-23T03:22:44.727556+00:00",
-    "first_at": "2026-11-18T18:24:21.100633+00:00",
+    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 21:21 22 Nov -- its reader is live again (80d11db93), re-armed on the first book descending from 59cd5ebda and c09847b7c. 03:22 23 Nov -- unchanged. 06:20 23 Nov -- unchanged: no qualifying book. Focus item the-renewal-belief-switch-on-has-a-held-back-baseline-from-the-20-nov-book writes its baseline before that book exists.",
+    "last_at": "2026-11-23T06:20:08.484967+00:00",
+    "first_at": "2026-11-18T21:21:20.571758+00:00",
     "times_listed": 37,
     "corrected": false,
     "fate": "fix",
@@ -353,9 +353,9 @@
    },
    {
     "key": "triage:metered-electricity-barely-moves-year-to-year",
-    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:22 22 Nov -- unchanged; the 23 Nov recheck stands. 21:21 22 Nov -- unchanged. 03:22 23 Nov -- unchanged; the recheck is due today and has not run.",
-    "last_at": "2026-11-23T03:22:44.727556+00:00",
-    "first_at": "2026-11-18T18:24:21.100633+00:00",
+    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 03:22 23 Nov -- unchanged; the recheck is due today and has not run. 06:20 23 Nov -- unchanged, and it needs a book.",
+    "last_at": "2026-11-23T06:20:08.484967+00:00",
+    "first_at": "2026-11-18T21:21:20.571758+00:00",
     "times_listed": 37,
     "corrected": false,
     "fate": "fix",
@@ -366,9 +366,9 @@
    },
    {
     "key": "triage:settlement-books-no-standing-charge-the-bill-charges",
-    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 21:21 22 Nov -- unchanged. 03:22 23 Nov -- unchanged.",
-    "last_at": "2026-11-23T03:22:44.727556+00:00",
-    "first_at": "2026-11-18T18:24:21.100633+00:00",
+    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 03:22 23 Nov -- unchanged. 06:20 23 Nov -- unchanged.",
+    "last_at": "2026-11-23T06:20:08.484967+00:00",
+    "first_at": "2026-11-18T21:21:20.571758+00:00",
     "times_listed": 37,
     "corrected": false,
     "fate": "fix",
@@ -379,10 +379,10 @@
    },
    {
     "key": "text:with the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin",
-    "what": "THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. [Earlier tails are in decisions.jsonl.] 18:22 22 Nov -- re-queued with the dunning port, no reader. 21:21 22 Nov -- s.12g has been running since 19:32:32Z, and its cut arm is at the end of 2017. Its reader is armed (5ee17f514). Not corrected until it publishes the advantage with its interval. 03:22 23 Nov -- cut arm at 2020-09-29; the A arm has not started. Focus item s12g-outcome-decision-is-recorded-before-it-publishes writes the next lever down before the answer arrives.",
-    "last_at": "2026-11-23T03:22:44.727556+00:00",
+    "what": "THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the same pair. [Earlier tails are in decisions.jsonl.] 03:22 23 Nov -- cut arm at 2020-09-29; the A arm has not started. 06:20 23 Nov -- cut arm at 2025-03, and the A arm has not started. The next lever for each outcome is on origin before the answer (e56d8b885). Not corrected until s.12g publishes the advantage with its interval.",
+    "last_at": "2026-11-23T06:20:08.484967+00:00",
     "first_at": "2026-11-20T09:20:07.819595+00:00",
-    "times_listed": 23,
+    "times_listed": 24,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -392,10 +392,10 @@
    },
    {
     "key": "text:the book that every queued supplier grade reads has not been built for 30 hours (since 20 nov 15:39)",
-    "what": "THE MACHINE'S, NEW. The book that every queued supplier grade reads has not been built for 30 hours (since 20 Nov 15:39). [Earlier tails are in decisions.jsonl.] 18:22 22 Nov -- worse: 51 hours. 21:21 22 Nov -- worse: 54 hours. sim-runner yields every cycle to s.12g and the reg 6C landing, and the book is about 33h more away unless the director says go on s-12g-was-admitted-at-19-32. 03:22 23 Nov -- worse: about 60 hours, and about 26h more of s.12g to come.",
-    "last_at": "2026-11-23T03:22:44.727556+00:00",
+    "what": "THE MACHINE'S, NEW. The book that every queued supplier grade reads has not been built for 30 hours (since 20 Nov 15:39). [Earlier tails are in decisions.jsonl.] 21:21 22 Nov -- worse: 54 hours. 03:22 23 Nov -- worse: about 60 hours, and about 26h more of s.12g to come. 06:20 23 Nov -- worse: about 63 hours, and about 23h more to come.",
+    "last_at": "2026-11-23T06:20:08.484967+00:00",
     "first_at": "2026-11-21T21:22:43.717192+00:00",
-    "times_listed": 11,
+    "times_listed": 12,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -405,10 +405,10 @@
    },
    {
     "key": "text:a won switch is never put on supply: on the 20 nov run 16 fresh acquisitions were won and 0 billed, because acquired_customers is not on the settlement roster (5ce811272)",
-    "what": "THE WORLD'S, NEW. A won switch is never put on supply: on the 20 Nov run 16 fresh acquisitions were won and 0 billed, because ACQUIRED_CUSTOMERS is not on the settlement roster (5ce811272). Two notes had said the world \"keeps the household on supply\". 15:24 22 Nov -- b9ca3a24c closed the electricity half on f80fe3951. 21:21 22 Nov -- reg 6C and gas-only supply are in surgical_land (pid 134360) since 19:40Z, at 1.7x their declared hour. Not landed; the 2 gas-only wins are still off supply. 03:22 23 Nov -- still not landed. The first landing timed out at the gate (22:34Z), and the second was refused at 01:25Z on a stale copy of run_phase2b.py. The gas build is in salvage eccf3dc756 (7c4c3f1e4). Owned by focus item reg-6c-and-gas-only-supply-re-land-on-the-current-run-phase2b.",
-    "last_at": "2026-11-23T03:22:44.727556+00:00",
+    "what": "THE WORLD'S, NEW. A won switch is never put on supply: on the 20 Nov run 16 fresh acquisitions were won and 0 billed, because ACQUIRED_CUSTOMERS is not on the settlement roster (5ce811272). Two notes had said the world \"keeps the household on supply\". 15:24 22 Nov -- b9ca3a24c closed the electricity half on f80fe3951. 03:22 23 Nov -- still not landed; the gas build is in salvage eccf3dc756. 06:20 23 Nov -- reg 6C is on origin (cc9f08ae3). The gas-only build, rebuilt onto it, has been gating in surgical_land (pid 1572076) since 05:48Z. Not corrected until it lands.",
+    "last_at": "2026-11-23T06:20:08.484967+00:00",
     "first_at": "2026-11-21T21:22:43.717192+00:00",
-    "times_listed": 11,
+    "times_listed": 12,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -418,10 +418,62 @@
    },
    {
     "key": "text:last stretch's first focus item was drawn at about 22:05z, and the lane recorded it as premise_not_yet_ripe on a date in the continuation's prose, though its premise (control_55555_66666.json) had existed since 15:33z",
-    "what": "THE MACHINE'S, NEW. Last stretch's first focus item was drawn at about 22:05Z, and the lane recorded it as premise_not_yet_ripe on a date in the continuation's prose, though its premise (control_55555_66666.json) had existed since 15:33Z. A direction item whose prose quotes another item's date can be walked past as unripe. 06:24 22 Nov -- this instance is closed (b1c7d76b1, 8aa5aa350). 21:21 22 Nov -- unchanged. The mechanism has not been touched. 03:22 23 Nov -- unchanged, and no new instance this stretch.",
-    "last_at": "2026-11-23T03:22:44.727556+00:00",
+    "what": "THE MACHINE'S, NEW. Last stretch's first focus item was drawn at about 22:05Z, and the lane recorded it as premise_not_yet_ripe on a date in the continuation's prose, though its premise (control_55555_66666.json) had existed since 15:33Z. A direction item whose prose quotes another item's date can be walked past as unripe. 06:24 22 Nov -- this instance is closed (b1c7d76b1, 8aa5aa350). 03:22 23 Nov -- unchanged, and no new instance. 06:20 23 Nov -- unchanged, and no new instance.",
+    "last_at": "2026-11-23T06:20:08.484967+00:00",
     "first_at": "2026-11-22T00:23:52.978199+00:00",
-    "times_listed": 10,
+    "times_listed": 11,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:two declared long jobs and the book queued one behind another with nobody choosing the order",
+    "what": "THE MACHINE'S, NEW. Two declared long jobs and the book queued one behind another with nobody choosing the order. From 16:26Z sim-runner deferred every book to the queued s.12g (2,100 minutes). 21:21 22 Nov -- the seat chose book-first at 18:22Z, but s.12g was admitted at 19:32:32Z, before any worker drew that decision. So the order was still made by whoever reached the queue first. Raised with the director as s-12g-was-admitted-at-19-32. The admission path still reads no seat ordering. 03:22 23 Nov -- unchanged. 06:20 23 Nov -- unchanged.",
+    "last_at": "2026-11-23T06:20:08.484967+00:00",
+    "first_at": "2026-11-22T18:21:59.995874+00:00",
+    "times_listed": 4,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the reg 6c re-landing (longjob-land-reg-6c-erroneous-gains-2) was refused at 01:25z, 3 seconds in, on a stale copy of simulation/run_phase2b.py",
+    "what": "THE MACHINE'S, NEW. The reg 6C re-landing (longjob-land-reg-6c-erroneous-gains-2) was refused at 01:25Z, 3 seconds in, on a stale copy of simulation/run_phase2b.py. The refusal printed its remedy, and no lane ran it. Its continuation build-gas-supply-for-a-gas-only-win waits on a file that only success writes, so a refused landing left its own follow-on held with no owner until this orientation. 06:20 23 Nov -- the reg 6C instance is closed (cc9f08ae3, and the gas build relaunched). A SECOND INSTANCE: land-msc-replacement-win died at 05:56Z, and msc-on-campaign-net-new-wins-and-verify-replacement-landing is held on a file only success writes. Owned by focus item the-msc-replacement-win-re-lands-with-its-three-failures-named. The mechanism, a held follow-on with no owner when its landing is refused, has not been touched.",
+    "last_at": "2026-11-23T06:20:08.484967+00:00",
+    "first_at": "2026-11-23T03:22:44.727556+00:00",
+    "times_listed": 2,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the launch register recorded three executor landings as died (exit 2, 01:14z-01:20z), but their work reached origin: each was refused at promotion because origin had moved, and the retries left three merges that authored nothing (f68028b7f, 755536805, 965a59053)",
+    "what": "THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z), but their work reached origin: each was refused at promotion because origin had moved, and the retries left three merges that authored nothing (f68028b7f, 755536805, 965a59053). So the brief overstated lost work by three jobs. This is a new instance of a-landing-loses-its-race-to-origin. 06:20 23 Nov -- fixed on origin with a test (0b4d8ae59), but NOT LIVE. The shared checkout is 5 commits behind origin, so the executor still imports the old bounded_landing.py, and two more empty merges landed (779054e30, 0369aa1c5). Owned by focus item the-shared-checkout-runs-the-promotion-fix-origin-already-has.",
+    "last_at": "2026-11-23T06:20:08.484967+00:00",
+    "first_at": "2026-11-23T03:22:44.727556+00:00",
+    "times_listed": 2,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the msc replacement-win landing's gate timed out at 3600 s (land-msc-replacement-win, 04:55z to 05:56z) while the reg 6c and executor gates ran beside it, and it printed three test failures before it was killed",
+    "what": "THE MACHINE'S, NEW. The MSC replacement-win landing's gate timed out at 3600 s (land-msc-replacement-win, 04:55Z to 05:56Z) while the reg 6C and executor gates ran beside it, and it printed three test failures before it was killed. The gate-hour fix (5a354ebcb, 1c9cd8195) was shown inside the hour for one landing at a time. Nothing stops three or four gates from starting together, and a G15 gate is running beside the gas-only gate now. Owned for this instance by focus item the-msc-replacement-win-re-lands-with-its-three-failures-named, which waits for a holder rather than gating beside it. No mechanism serialises gates.",
+    "last_at": "2026-11-23T06:20:08.484967+00:00",
+    "first_at": "2026-11-23T06:20:08.484967+00:00",
+    "times_listed": 1,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -456,51 +508,12 @@
     "reason": null
    },
    {
-    "key": "text:two declared long jobs and the book queued one behind another with nobody choosing the order",
-    "what": "THE MACHINE'S, NEW. Two declared long jobs and the book queued one behind another with nobody choosing the order. From 16:26Z sim-runner deferred every book to the queued s.12g (2,100 minutes). 21:21 22 Nov -- the seat chose book-first at 18:22Z, but s.12g was admitted at 19:32:32Z, before any worker drew that decision. So the order was still made by whoever reached the queue first. Raised with the director as s-12g-was-admitted-at-19-32. The admission path still reads no seat ordering. 03:22 23 Nov -- unchanged.",
-    "last_at": "2026-11-23T03:22:44.727556+00:00",
-    "first_at": "2026-11-22T18:21:59.995874+00:00",
-    "times_listed": 3,
-    "corrected": false,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
     "key": "text:the commit gate ran past 3600 s and refused land-se-seat-executor-1795372804 at 19:40z",
     "what": "THE MACHINE'S, NEW. The commit gate ran past 3600 s and refused land-se-seat-executor-1795372804 at 19:40Z. From 19:40Z the reg 6C landing stayed in surgical_land for 1h40m+ while origin moved five times. Landing, not building, is now what loses finished work. 03:22 23 Nov -- CORRECTED at the cause: 5a354ebcb and 1c9cd8195. The reg 6C gate that started before them still timed out (22:34Z). Every landing gated after 00:37Z finished inside the hour with s.12g resident (7527a2e36 in 41 minutes, the 01:20Z landing in 4.5 minutes).",
     "last_at": "2026-11-23T03:22:44.727556+00:00",
     "first_at": "2026-11-22T21:20:43.517479+00:00",
     "times_listed": 2,
     "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:the reg 6c re-landing (longjob-land-reg-6c-erroneous-gains-2) was refused at 01:25z, 3 seconds in, on a stale copy of simulation/run_phase2b.py",
-    "what": "THE MACHINE'S, NEW. The reg 6C re-landing (longjob-land-reg-6c-erroneous-gains-2) was refused at 01:25Z, 3 seconds in, on a stale copy of simulation/run_phase2b.py. The refusal printed its remedy, and no lane ran it. Its continuation build-gas-supply-for-a-gas-only-win waits on a file that only success writes, so a refused landing left its own follow-on held with no owner until this orientation. Owned by focus item reg-6c-and-gas-only-supply-re-land-on-the-current-run-phase2b.",
-    "last_at": "2026-11-23T03:22:44.727556+00:00",
-    "first_at": "2026-11-23T03:22:44.727556+00:00",
-    "times_listed": 1,
-    "corrected": false,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:the launch register recorded three executor landings as died (exit 2, 01:14z-01:20z), but their work reached origin: each was refused at promotion because origin had moved, and the retries left three merges that authored nothing (f68028b7f, 755536805, 965a59053)",
-    "what": "THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z), but their work reached origin: each was refused at promotion because origin had moved, and the retries left three merges that authored nothing (f68028b7f, 755536805, 965a59053). So the brief overstated lost work by three jobs. This is a new instance of a-landing-loses-its-race-to-origin. Owned by focus item a-promotion-that-loses-its-race-is-one-job-not-three-died-ones.",
-    "last_at": "2026-11-23T03:22:44.727556+00:00",
-    "first_at": "2026-11-23T03:22:44.727556+00:00",
-    "times_listed": 1,
-    "corrected": false,
     "fate": null,
     "status": null,
     "retired": false,
@@ -823,8 +836,8 @@
     "key": "triage:the-value-arm-loses-to-the-flat-book-on-the-better-belief",
     "what": "THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 09:20 20 Nov -- CORRECTED by its own triage test (published with its interval, whatever its sign): b1e04fab3 reads the value arm at +GBP 1.00 (+0.27 to +2.05) against A with the 0.12 cut, and the flat book at -0.02. The residual is carried as a new row.",
     "last_at": "2026-11-20T09:20:07.819595+00:00",
-    "first_at": "2026-11-18T18:24:21.100633+00:00",
-    "times_listed": 16,
+    "first_at": "2026-11-18T21:21:20.571758+00:00",
+    "times_listed": 15,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -953,8 +966,8 @@
     "key": "triage:a-landing-loses-its-race-to-origin",
     "what": "THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 03:20 19 Nov -- graded corrected on its own criterion. A second stretch has passed with no written_at banner commit. D48's log has been read: it was killed at the unit's teardown and did not lose a race (new row below).",
     "last_at": "2026-11-19T03:20:44.845299+00:00",
-    "first_at": "2026-11-18T18:24:21.100633+00:00",
-    "times_listed": 4,
+    "first_at": "2026-11-18T21:21:20.571758+00:00",
+    "times_listed": 3,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -979,8 +992,8 @@
     "key": "text:the continuation the-box-runs-the-skip-pair-before-another-book is still offered by seat_continuation.live() at 15:21z, though 32349d382 recorded it premise-spent at 13:29z and its work (c18067646, skip1 running) is done",
     "what": "THE MACHINE'S, NEW. The continuation the-box-runs-the-skip-pair-before-another-book is still offered by seat_continuation.live() at 15:21Z, though 32349d382 recorded it premise-spent at 13:29Z and its work (c18067646, skip1 running) is done. A spent item that stays drawable costs a tick that finds nothing. 18:24 18 Nov -- still offered (focus 3). 21:21 18 Nov -- CORRECTED by 606bcd4ad: seat_continuation.live() no longer offers it, and a premise_spent disposition now retires the same-id continuation.",
     "last_at": "2026-11-18T21:21:20.571758+00:00",
-    "first_at": "2026-11-18T18:24:21.100633+00:00",
-    "times_listed": 2,
+    "first_at": "2026-11-18T21:21:20.571758+00:00",
+    "times_listed": 1,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -992,8 +1005,8 @@
     "key": "text:the reserved row the-github-repository-is-still-public-gh reached origin inside the parked-document audit commit (4cd09c6ce), under a [for-the-director] title that names the row and not the audit",
     "what": "THE MACHINE'S, NEW. The reserved row the-github-repository-is-still-public-gh reached origin inside the parked-document audit commit (4cd09c6ce), under a [FOR-THE-DIRECTOR] title that names the row and not the audit. At 18:24Z the brief lists it in concerns_unpaged, so the director has not been told about a G5 row raised today. 21:21 18 Nov -- CORRECTED: the brief's concerns_unpaged is now empty, and the row stays carried open below.",
     "last_at": "2026-11-18T21:21:20.571758+00:00",
-    "first_at": "2026-11-18T18:24:21.100633+00:00",
-    "times_listed": 2,
+    "first_at": "2026-11-18T21:21:20.571758+00:00",
+    "times_listed": 1,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1002,18 +1015,73 @@
     "reason": null
    }
   ],
-  "distinct": 51,
+  "distinct": 52,
   "triaged": 6,
   "triaged_by_fate": {
    "fix": 6,
    "fold": 0,
    "accept": 0
   },
-  "untriaged": 45,
-  "distinct_open": 13,
-  "rows": 303,
+  "untriaged": 46,
+  "distinct_open": 14,
+  "rows": 307,
   "triage_register": "read",
   "entries": [
+   {
+    "at": "2026-11-23T06:20:08.484967+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-11-23T06:20:08.484967+00:00",
+    "corrected": false,
+    "problem": "triage:metered-electricity-barely-moves-year-to-year"
+   },
+   {
+    "at": "2026-11-23T06:20:08.484967+00:00",
+    "corrected": false,
+    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
+   },
+   {
+    "at": "2026-11-23T06:20:08.484967+00:00",
+    "corrected": false,
+    "problem": "text:with the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin"
+   },
+   {
+    "at": "2026-11-23T06:20:08.484967+00:00",
+    "corrected": false,
+    "problem": "text:the book that every queued supplier grade reads has not been built for 30 hours (since 20 nov 15:39)"
+   },
+   {
+    "at": "2026-11-23T06:20:08.484967+00:00",
+    "corrected": false,
+    "problem": "text:a won switch is never put on supply: on the 20 nov run 16 fresh acquisitions were won and 0 billed, because acquired_customers is not on the settlement roster (5ce811272)"
+   },
+   {
+    "at": "2026-11-23T06:20:08.484967+00:00",
+    "corrected": false,
+    "problem": "text:last stretch's first focus item was drawn at about 22:05z, and the lane recorded it as premise_not_yet_ripe on a date in the continuation's prose, though its premise (control_55555_66666.json) had existed since 15:33z"
+   },
+   {
+    "at": "2026-11-23T06:20:08.484967+00:00",
+    "corrected": false,
+    "problem": "text:two declared long jobs and the book queued one behind another with nobody choosing the order"
+   },
+   {
+    "at": "2026-11-23T06:20:08.484967+00:00",
+    "corrected": false,
+    "problem": "text:the reg 6c re-landing (longjob-land-reg-6c-erroneous-gains-2) was refused at 01:25z, 3 seconds in, on a stale copy of simulation/run_phase2b.py"
+   },
+   {
+    "at": "2026-11-23T06:20:08.484967+00:00",
+    "corrected": false,
+    "problem": "text:the launch register recorded three executor landings as died (exit 2, 01:14z-01:20z), but their work reached origin: each was refused at promotion because origin had moved, and the retries left three merges that authored nothing (f68028b7f, 755536805, 965a59053)"
+   },
+   {
+    "at": "2026-11-23T06:20:08.484967+00:00",
+    "corrected": false,
+    "problem": "text:the msc replacement-win landing's gate timed out at 3600 s (land-msc-replacement-win, 04:55z to 05:56z) while the reg 6c and executor gates ran beside it, and it printed three test failures before it was killed"
+   },
    {
     "at": "2026-11-23T03:22:44.727556+00:00",
     "corrected": false,
@@ -2493,41 +2561,6 @@
     "at": "2026-11-18T21:21:20.571758+00:00",
     "corrected": true,
     "problem": "text:the reserved row the-github-repository-is-still-public-gh reached origin inside the parked-document audit commit (4cd09c6ce), under a [for-the-director] title that names the row and not the audit"
-   },
-   {
-    "at": "2026-11-18T18:24:21.100633+00:00",
-    "corrected": false,
-    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
-   },
-   {
-    "at": "2026-11-18T18:24:21.100633+00:00",
-    "corrected": false,
-    "problem": "triage:the-value-arm-loses-to-the-flat-book-on-the-better-belief"
-   },
-   {
-    "at": "2026-11-18T18:24:21.100633+00:00",
-    "corrected": false,
-    "problem": "triage:metered-electricity-barely-moves-year-to-year"
-   },
-   {
-    "at": "2026-11-18T18:24:21.100633+00:00",
-    "corrected": false,
-    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
-   },
-   {
-    "at": "2026-11-18T18:24:21.100633+00:00",
-    "corrected": false,
-    "problem": "triage:a-landing-loses-its-race-to-origin"
-   },
-   {
-    "at": "2026-11-18T18:24:21.100633+00:00",
-    "corrected": false,
-    "problem": "text:the continuation the-box-runs-the-skip-pair-before-another-book is still offered by seat_continuation.live() at 15:21z, though 32349d382 recorded it premise-spent at 13:29z and its work (c18067646, skip1 running) is done"
-   },
-   {
-    "at": "2026-11-18T18:24:21.100633+00:00",
-    "corrected": false,
-    "problem": "text:the reserved row the-github-repository-is-still-public-gh reached origin inside the parked-document audit commit (4cd09c6ce), under a [for-the-director] title that names the row and not the audit"
    }
   ],
   "refused_own_records": [
@@ -2566,19 +2599,53 @@
     "problems": []
    }
   ],
-  "outstanding": 252,
+  "outstanding": 256,
   "corrected": 51,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "reg-6c-and-gas-only-supply-re-land-on-the-current-run-phase2b",
-   "b8-holdout-switch-on-is-pre-registered-before-its-book",
-   "s12g-outcome-decision-is-recorded-before-it-publishes",
-   "a-promotion-that-loses-its-race-is-one-job-not-three-died-ones"
+   "the-msc-replacement-win-re-lands-with-its-three-failures-named",
+   "the-coming-books-grades-are-pre-flighted-on-the-shared-2016-2018-run",
+   "the-renewal-belief-switch-on-has-a-held-back-baseline-from-the-20-nov-book",
+   "the-shared-checkout-runs-the-promotion-fix-origin-already-has"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "reg-6c-and-gas-only-supply-re-land-on-the-current-run-phase2b",
+       "b8-holdout-switch-on-is-pre-registered-before-its-book",
+       "s12g-outcome-decision-is-recorded-before-it-publishes",
+       "a-promotion-that-loses-its-race-is-one-job-not-three-died-ones"
+      ],
+      "focus": [
+       "reg-6c-and-gas-only-supply-re-land-on-the-current-run-phase2b",
+       "b8-holdout-switch-on-is-pre-registered-before-its-book",
+       "s12g-outcome-decision-is-recorded-before-it-publishes",
+       "a-promotion-that-loses-its-race-is-one-job-not-three-died-ones"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "reg-6c-and-gas-only-supply-re-land-on-the-current-run-phase2b",
+     "b8-holdout-switch-on-is-pre-registered-before-its-book",
+     "s12g-outcome-decision-is-recorded-before-it-publishes",
+     "a-promotion-that-loses-its-race-is-one-job-not-three-died-ones"
+    ],
+    "focus": [
+     "reg-6c-and-gas-only-supply-re-land-on-the-current-run-phase2b",
+     "b8-holdout-switch-on-is-pre-registered-before-its-book",
+     "s12g-outcome-decision-is-recorded-before-it-publishes",
+     "a-promotion-that-loses-its-race-is-one-job-not-three-died-ones"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-23T03:22:44.727556+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-11-23T03:22:44.727556+00:00"
+   },
    {
     "by_class": {
      "atom": {
@@ -2720,36 +2787,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-22T15:23:56.228720+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-11-22T15:23:56.228720+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "the-book-reports-every-customer-it-supplies",
-       "the-book-runs-before-a-still-waiting-s12g"
-      ],
-      "focus": [
-       "the-book-reports-every-customer-it-supplies",
-       "the-book-runs-before-a-still-waiting-s12g",
-       "supply-a-win-from-a-gas-only-household-as-gas",
-       "a-bounded-turn-cannot-start-a-landing-it-cannot-outlive"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "the-book-reports-every-customer-it-supplies",
-     "the-book-runs-before-a-still-waiting-s12g"
-    ],
-    "focus": [
-     "the-book-reports-every-customer-it-supplies",
-     "the-book-runs-before-a-still-waiting-s12g",
-     "supply-a-win-from-a-gas-only-household-as-gas",
-     "a-bounded-turn-cannot-start-a-landing-it-cannot-outlive"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 6.0h since 2026-11-22T09:21:55.742684+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 6.0h since 2026-11-22T09:21:55.742684+00:00"
    }
   ],
   "steered_recently": true,
@@ -2757,16 +2794,16 @@
  },
  "the_queues_link_to_the_map": {
   "available": true,
-  "population": 167,
-  "chained": 165,
+  "population": 168,
+  "chained": 166,
   "minted": 57,
-  "unminted": 108,
+  "unminted": 109,
   "unminted_by_kind": {
    "alarm": 2,
    "directive": 3,
    "finding": 94,
    "reference": 1,
-   "unknown": 8
+   "unknown": 9
   },
   "unresolved": [],
   "epoch_contradicted": [
@@ -3019,11 +3056,11 @@
     },
     {
      "date": "2026-11-23",
-     "commit": "8a52399b8",
-     "population": 167,
-     "chained": 165,
+     "commit": "0b4d8ae59",
+     "population": 168,
+     "chained": 166,
      "minted": 57,
-     "unminted": 108,
+     "unminted": 109,
      "unread": 56
     }
    ]
