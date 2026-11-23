@@ -43,6 +43,20 @@ def rhythm(tmp_path, monkeypatch):
     # The orphan index walks the whole tree (~20 s); its own section test is below.
     from tools import capability_index
     monkeypatch.setattr(capability_index, "build_rows", lambda root=None: [])
+    # The map AST-parses ~600 modules for its mutation index (~25 s a step, x26 tests: 8.5 min of
+    # every code commit's gate, measured 22 Nov); its own tests are tests/tools/test_the_map*.py.
+    from tools import knowledge_plan, the_map
+    monkeypatch.setattr(the_map, "build", lambda *a, **k: None)
+    monkeypatch.setattr(the_map, "summary", lambda *a, **k: "MAP-COUNTS")
+    monkeypatch.setattr(knowledge_plan, "build", lambda *a, **k: None)
+    monkeypatch.setattr(knowledge_plan, "report", lambda *a, **k: "PLAN-ROWS")
+    # Three more live reads (~11 s a step together), each with its own suite: the drawn world
+    # (test_world_claims), the draw's history (test_draw_follows_the_order), git's merge log
+    # (test_merge_pressure_census).
+    from tools import draw_follows_the_order, merge_pressure_census, world_claims
+    monkeypatch.setattr(world_claims, "drawn_book", lambda: [])
+    monkeypatch.setattr(draw_follows_the_order, "render", lambda *a, **k: "ORDER-TABLE")
+    monkeypatch.setattr(merge_pressure_census, "render", lambda *a, **k: "MERGE-TABLE")
     return tmp_path
 
 
@@ -614,7 +628,7 @@ def test_the_monday_step_prints_the_pages_claims_and_says_when_it_cannot(monkeyp
     assert "NOT MEASURED" in text and "no draw" in text, text
 
 
-def test_the_monday_step_grades_explores_cast_and_says_when_it_cannot(monkeypatch, tmp_path):
+def test_the_monday_step_grades_explores_cast_and_says_when_it_cannot(rhythm, monkeypatch, tmp_path):
     """Director steer 2026-10-23, item 4: the cast's checks run in the Monday step.
     DEFECT: a section that read clean whatever the verdict, or vanished when the feed was missing."""
     from tools import generate_explore_cast as cast
@@ -698,7 +712,7 @@ def test_the_monday_step_writes_the_directors_note_and_friday_does_not(rhythm, m
     assert "NOT WRITTEN" in note.read_text() and "ZeroDivisionError" in note.read_text()
 
 
-def test_the_monday_step_reads_the_orphan_register_and_says_when_it_cannot(monkeypatch, tmp_path):
+def test_the_monday_step_reads_the_orphan_register_and_says_when_it_cannot(rhythm, monkeypatch, tmp_path):
     """The archive's Done means, point 3: `--dispositions` has a weekly caller.
     DEFECT: a section that read clean whatever the register said, or vanished when the index raised.
     The control is over the whole partition: clean, red and unmeasured are each reachable."""
@@ -742,7 +756,7 @@ def test_the_orphan_section_goes_red_on_a_real_unruled_orphan(tmp_path, monkeypa
     assert "**RED:" in text and "company.billing.abandoned" in text, text
 
 
-def test_the_friday_step_proposes_the_weeks_balance_before_the_reset():
+def test_the_friday_step_proposes_the_weeks_balance_before_the_reset(rhythm):
     """The 11 Nov ruling: the balance is reviewed before each week of new tokens, from the step
     that lands before Monday's reset, and it reads the live share rather than restating one.
 

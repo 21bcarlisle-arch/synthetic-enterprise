@@ -1304,11 +1304,33 @@ def test_every_billing_trigger_runs_the_whole_billing_suite_and_nothing_else_doe
     under tests/company/billing, and a change elsewhere in company/ does not."""
     suite = set(gate.billing_suite_tests())
     assert len(suite) > 1 and all(t.startswith("tests/company/billing/") for t in suite)
-    for trigger in ("company/billing/pre_bill_validation.py", "saas/reporting.py",
+    for trigger in ("company/billing/pre_bill_validation.py", "saas/bill_generator.py",
                     *gate.BILLING_SURFACE_FILES):
         missing = suite - set(gate.select_targets([trigger]))
         assert not missing, f"{trigger} leaves {len(missing)} billing test(s) out: {sorted(missing)[:3]}"
     assert not suite <= set(gate.select_targets(["company/crm/enriched_churn_estimate.py"]))
+
+
+def test_a_saas_module_billing_never_imports_does_not_select_the_billing_suite(monkeypatch):
+    """The billing trigger's reason is "billing imports it", so a saas/ module is on it exactly
+    when the billing code reaches it by import. reg 6C's `saas/reporting/annual_report.py` reads
+    the book and is imported by no billing module; under the old `saas/` prefix it put 116 billing
+    files under a gate that already ran ~55 minutes.
+
+    Defect it catches: restoring the `saas/` prefix (the first assert fails), or a closure that
+    stops at company/billing's direct imports (`saas/money.py` is reached only through other
+    modules, so the second fails). An unreadable file on the walk counts every saas/ path."""
+    reached = gate.billing_reached_saas()
+    assert reached and "saas/bill_generator.py" in reached
+    assert not gate.billing_surface_changed(["saas/reporting/annual_report.py"])
+    direct = {n.module for p in (gate.ROOT / gate.BILLING_SURFACE_PREFIX).rglob("*.py")
+              for n in ast.walk(ast.parse(p.read_bytes()))
+              if isinstance(n, ast.ImportFrom) and (n.module or "").startswith("saas.")}
+    transitive_only = sorted(s for s in reached
+                             if s[:-3].replace("/", ".") not in direct)
+    assert transitive_only and gate.billing_surface_changed([transitive_only[0]])
+    monkeypatch.setattr(gate, "billing_reached_saas", lambda: None)
+    assert gate.billing_surface_changed(["saas/reporting/annual_report.py"])
 
 
 def test_a_module_that_only_CITES_a_document_is_not_its_reader(monkeypatch, tmp_path):

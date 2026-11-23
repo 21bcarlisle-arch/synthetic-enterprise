@@ -978,7 +978,15 @@ DISCHARGE_SURFACE_TESTS = [
 # (`monthly_bill_assembly`, `pre_bill_validation`, `dd_review`). The whole directory was 183s,
 # 2,556 tests, on 2026-11-03: docs/staging/records/SEAT_PREREG_WHAT_RUNNING_THE_BILLING_SUITE_
 # WHOLE_COSTS_A_BILLING_LANDING_2026-11-03.md.
-BILLING_SURFACE_PREFIXES = ("company/billing/", "saas/")
+#
+# `saas/` WAS A PREFIX AND IS NOW DERIVED (2026-11-22): the reason above is "billing imports it", and
+# billing reaches 15 of saas/'s modules, never `saas/reporting/`. reg 6C's `annual_report.py`, a
+# reader of the book, put 116 billing files under a simulation change whose gate already ran ~55
+# minutes (docs/staging/SEAT_FINDING_THE_COMMIT_GATE_LOSES_ITS_HOUR_2026-11-22.md). A saas/ path now
+# triggers when the billing code or the two billing tools reach it by import, transitively through
+# company/ and saas/. Fails toward running: an unreadable file on the walk makes every saas/ path a
+# trigger again.
+BILLING_SURFACE_PREFIX = "company/billing/"
 BILLING_SURFACE_FILES = ("tools/generate_billing_ledger.py", "tools/independent_bill_validator.py")
 BILLING_SUITE_DIR = "tests/company/billing"
 
@@ -987,6 +995,57 @@ def billing_suite_tests() -> list[str]:
     """Every test file in the billing suite, as files rather than the directory, so the
     import-derived leg can see they already ran."""
     return sorted(str(p.relative_to(ROOT)) for p in (ROOT / BILLING_SUITE_DIR).rglob("test_*.py"))
+
+
+def _module_file(dotted: str) -> str | None:
+    for rel in (dotted.replace(".", "/") + ".py", dotted.replace(".", "/") + "/__init__.py"):
+        if (ROOT / rel).is_file():
+            return rel
+    return None
+
+
+def billing_reached_saas() -> frozenset[str] | None:
+    """The `saas/` files the billing code reaches by import, or None (every saas/ path counts)
+    when a file on the walk cannot be read. Function-local imports count: `ast.walk` sees them."""
+    stack = [str(p.relative_to(ROOT)) for p in (ROOT / BILLING_SURFACE_PREFIX).rglob("*.py")]
+    stack += list(BILLING_SURFACE_FILES)
+    seen: set[str] = set()
+    while stack:
+        rel = stack.pop()
+        if rel in seen:
+            continue
+        seen.add(rel)
+        try:
+            tree = ast.parse((ROOT / rel).read_text(encoding="utf-8"))
+        except (OSError, SyntaxError, ValueError, UnicodeDecodeError):
+            return None
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                names = [a.name for a in node.names]
+            elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+                names = [node.module, *(f"{node.module}.{a.name}" for a in node.names)]
+            else:
+                continue
+            for name in names:
+                parts = name.split(".")
+                if parts[0] not in ("company", "saas"):
+                    continue
+                # `import saas.a.b` executes saas/__init__ and saas/a/__init__ too
+                for depth in range(1, len(parts) + 1):
+                    found = _module_file(".".join(parts[:depth]))
+                    if found and found not in seen:
+                        stack.append(found)
+    return frozenset(s for s in seen if s.startswith("saas/"))
+
+
+def billing_surface_changed(files: list[str]) -> bool:
+    if any(f.startswith(BILLING_SURFACE_PREFIX) or f in BILLING_SURFACE_FILES for f in files):
+        return True
+    saas_paths = [f for f in files if f.startswith("saas/")]
+    if not saas_paths:
+        return False
+    reached = billing_reached_saas()
+    return reached is None or any(f in reached for f in saas_paths)
 
 # THE CANON SURFACE (2026-08-10, atom OPS5). CLAUDE.md and the design doc beside it are data by
 # every prefix rule here, but they are the files that tell a seat what it may DO -- and one of the
@@ -1360,7 +1419,7 @@ def select_targets(files: list[str]) -> list[str]:
         targets.update(t for t in SITE_SURFACE_TESTS if (ROOT / t).exists())
     if discharge_surface_changed:
         targets.update(t for t in DISCHARGE_SURFACE_TESTS if (ROOT / t).exists())
-    if any(f.startswith(BILLING_SURFACE_PREFIXES) or f in BILLING_SURFACE_FILES for f in files):
+    if billing_surface_changed(files):
         targets.update(billing_suite_tests())
     for f in files:
         targets.update(tests_for(f))
