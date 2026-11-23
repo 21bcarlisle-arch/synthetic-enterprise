@@ -340,6 +340,17 @@ def test_the_order_check_refuses_an_unlawful_walk(stages, exit, why):
 #: cutoff and so the book, which is why the reaching ends are not nested.
 LIVE_WINDOW_END = "2016-12-31"
 
+#: The answered run's window, apart from the shipped run's since 2026-11-23. 7527a2e36 collects a
+#: leaving level household's schedule debit on its final bill, and the one 2016 offer
+#: (ACC-SYN-2016-005, 2016-10-26) was to a household that had closed in June: once its debit was
+#: collected, the 2016 window held no offer. 2017 holds three, ACC-SYN-2016-055, -099 and -390, and
+#: each is dated three to four months after that household's final bill. So these controls are
+#: non-vacuous here only because of a defect: the desk offers a prepayment meter to a household that
+#: has left (SEAT_FINDING_THE_DESK_OFFERS_A_PREPAYMENT_METER_TO_A_HOUSEHOLD_THAT_HAS_LEFT_2026-11-23.md).
+#: `test_every_live_consent_offer_goes_to_an_account_still_supplied` holds that open strictly. When
+#: the defect is fixed, that test XPASSes, and these two controls must be re-keyed in the same change.
+ANSWERED_WINDOW_END = "2017-12-31"
+
 
 @pytest.fixture(scope="module")
 def live_run():
@@ -365,7 +376,7 @@ def answered_live_run():
     shipped = por.BASIS
     por.BASIS = por.basis_at("high")
     try:
-        return main(report_end=LIVE_WINDOW_END)
+        return main(report_end=ANSWERED_WINDOW_END)
     finally:
         por.BASIS = shipped
 
@@ -455,6 +466,33 @@ def test_the_world_counts_every_consent_offer_the_company_made(answered_live_run
                for j in answered_live_run["collections_journeys"] for s in j["stages"])
     assert made, "no live Consent offer -- the count's agreement is untested"
     assert answered_live_run["consent_offers_to_concealing_households"]["offers"] == made
+
+
+def _offers_after_the_household_left(run):
+    """Every live Consent offer dated after the offered account's final bill month: the world's own
+    record of each leaver's final month (`final_month_nets`, a harness reading; nothing here crosses
+    the seam). A household that has left is supplied by someone else, and a prepayment meter is
+    fitted at a supplied premise."""
+    closed_through = {}
+    for row in run["final_month_nets"]["rows"]:
+        month = row["bill_month"]
+        closed_through[row["account_id"]] = max(closed_through.get(row["account_id"], month), month)
+    return [(j["account_id"], s["on"], closed_through[j["account_id"]])
+            for j in run["collections_journeys"] for s in j["stages"]
+            if s["stage"] == PREPAYMENT_OFFERED and j["account_id"] in closed_through
+            and s["on"][:7] > closed_through[j["account_id"]]]
+
+
+@pytest.mark.xfail(strict=True, reason=(
+    "OPEN DEFECT: SEAT_FINDING_THE_DESK_OFFERS_A_PREPAYMENT_METER_TO_A_HOUSEHOLD_THAT_HAS_LEFT_"
+    "2026-11-23.md. On the 2017 answered window all three live offers are to households that left "
+    "months before. When this XPASSes, re-key the two controls above (ANSWERED_WINDOW_END)."))
+def test_every_live_consent_offer_goes_to_an_account_still_supplied(answered_live_run):
+    """Defect: the desk asks a household that has left, by Consent, to take a prepayment meter at a
+    premise the company no longer supplies (ACC-SYN-2016-005 on 2016-10-26, closed in June)."""
+    assert answered_live_run["final_month_nets"]["rows"], "no leaver's final month -- untested"
+    gone = _offers_after_the_household_left(answered_live_run)
+    assert not gone, f"Consent offers to households that had left: {gone}"
 
 
 class _World:
