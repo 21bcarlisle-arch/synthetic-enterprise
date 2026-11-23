@@ -183,11 +183,13 @@ def quote_first_term(
     observable_daily_prices: list[tuple[str, int, float]],
     published_policy_cost_per_mwh: float,
     published_network_cost_per_mwh: float,
+    observable_published_forward: list[tuple[str, float]] | None = None,
 ) -> FirstTermQuote:
     """Strike a prospect's first-term rate and decide whether to quote it at all.
 
     The world hands over what any market participant holds: the prospect, the day, the published
-    daily spot history as `(date, count, mean)` rows, and the published levy and network costs.
+    daily spot history as `(date, count, mean)` rows, the published 12-month forward as
+    `(knowable_from, GBP/MWh)` rows, and the published levy and network costs.
     The forward, the strike and the no-offer rule are the company's, and they run behind the door
     (`company.pricing.renewal_desk.quote_first_term`). The no-offer rule is the same
     `should_attempt_acquisition` the replacement path asks through `decide_acquisition`.
@@ -199,6 +201,7 @@ def quote_first_term(
         term_start=term_start, observable_daily_prices=observable_daily_prices,
         published_policy_cost_per_mwh=published_policy_cost_per_mwh,
         published_network_cost_per_mwh=published_network_cost_per_mwh,
+        observable_published_forward=observable_published_forward,
     )
     return FirstTermQuote(quoted, reason, rate)
 

@@ -354,6 +354,44 @@ def _daily_feed(rows: list[tuple[str, int, float]]) -> DailyPriceFeed:
     return held[1]
 
 
+#: How many months of the published 12-month forward a fixed first term is struck on: the company's
+#: chosen hedge ladder, bought evenly week by week. Cited: Ofgem's cap index observed the same
+#: forward over a 6-month window until June 2022 (index 6-2-12) and 3 months after
+#: (docs/market_research/the_published_forward_gets_its_delivery_axis_from_the_cap_indexation_rule_2026-10-10.md).
+#: It narrows the 2023-24 undercut against the market's cheapest fix without closing it
+#: (docs/market_research/cheapest_fix_against_the_default_tariff_gb_2016_2025.md §8).
+FIRST_TERM_LADDER_MONTHS = 6
+
+
+def laddered_forward(
+    published_forward: list[tuple[str, float]], as_of: str,
+    months: int = FIRST_TERM_LADDER_MONTHS,
+) -> float | None:
+    """What a book bought evenly over the trailing `months` of the published forward costs, GBP/MWh.
+
+    `published_forward` is `(knowable_from, price)` rows in date order: a weekly price a trader could
+    first read on `knowable_from`. The ladder is the mean of the rows knowable within
+    `(as_of - months, as_of]`. None, so the caller keeps its own forward, when the series does not
+    reach back to the window's first week (a part-built ladder over-weights its newest weeks) or
+    when its newest row is a week or more stale (the series has ended, and an old price is not this
+    date's).
+    """
+    import bisect
+    from datetime import date, timedelta
+
+    day = date.fromisoformat(as_of[:10])
+    lo = day - timedelta(days=round(months * 30.44))
+    keys = [k for k, _ in published_forward]
+    if not keys or date.fromisoformat(keys[0]) > lo + timedelta(days=7):
+        return None
+    hi = bisect.bisect_right(keys, day.isoformat())
+    start = bisect.bisect_right(keys, lo.isoformat())
+    if hi <= start or day - date.fromisoformat(keys[hi - 1]) >= timedelta(days=7):
+        return None
+    window = [p for _, p in published_forward[start:hi]]
+    return sum(window) / len(window)
+
+
 def quote_first_term(
     *,
     segment: str,
@@ -364,13 +402,18 @@ def quote_first_term(
     observable_daily_prices: list[tuple[str, int, float]],
     published_policy_cost_per_mwh: float,
     published_network_cost_per_mwh: float,
+    observable_published_forward: list[tuple[str, float]] | None = None,
 ) -> tuple[bool, str | None, float | None]:
     """`(quoted, reason, ex-VAT strike or None)` for one prospect's first term, asked before the win.
 
-    The forward is this desk's own engine over the published daily history. The strike is
-    `strike_fixed_unit_rate`, the one every fixed term uses. The gate is
-    `should_attempt_acquisition` on the strike, or on the forward for a default tariff, which has no
-    strike. With no forward there is no quote to price or refuse: `(True, "no_forward", None)`.
+    The forward is this desk's own engine over the published daily history. A fixed term is struck
+    on the cost of the company's hedge ladder instead (`laddered_forward` over the published
+    12-month forward) wherever that ladder can be built: a fix is sold on the energy bought for it,
+    not on today's spot. Before the published series covers a whole ladder (it starts 2021-02-08)
+    the spot-led forward stands in. The strike is `strike_fixed_unit_rate`, the one every fixed
+    term uses. The gate is `should_attempt_acquisition` on the strike, or on the forward for a
+    default tariff, which has no strike. With no forward there is no quote to price or refuse:
+    `(True, "no_forward", None)`.
     """
     from saas.growth_mandate import should_attempt_acquisition
 
@@ -381,8 +424,11 @@ def quote_first_term(
         return True, "no_forward", None
     rate = None
     if tariff_type == "fixed":
+        ladder = (laddered_forward(observable_published_forward, term_start)
+                  if observable_published_forward else None)
         rate = strike_fixed_unit_rate(
-            tariff_type=tariff_type, company_forward_price_gbp_per_mwh=fwd, eac_kwh=eac_kwh,
+            tariff_type=tariff_type,
+            company_forward_price_gbp_per_mwh=fwd if ladder is None else ladder, eac_kwh=eac_kwh,
             term_start=term_start, published_policy_cost_per_mwh=published_policy_cost_per_mwh,
             published_network_cost_per_mwh=published_network_cost_per_mwh,
         ).unit_rate_gbp_per_mwh

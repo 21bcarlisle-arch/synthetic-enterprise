@@ -362,6 +362,33 @@ same `strike_fixed_unit_rate`, and changes **only the forward** handed to it:
 Each cell is the forward (£/MWh), then the strike's position against the cheapest deal. Both sides
 are ex-VAT. The cheapest deal is a retail unit rate; the forwards are wholesale.
 
+**Seat, corrected 2026-11-23 (later): both tables above priced the strike on the wrong network
+cost, and the ±3.2% result is an artefact of it.** Both probes passed the segment as `"domestic"`.
+`simulation.policy_costs.get_electricity_network_cost_per_mwh` does not know that label, so it
+falls through to the SME volume table: 75 £/MWh in 2023-07, where the residential cap allowance the
+campaign uses (`"resi"`) is 42.4, and 69 against 29.0 in 2024-07. The strike was 30–40 £/MWh too
+dear at every date from 2023. Re-run with `"resi"`, nothing else changed (probe:
+`/var/tmp/se-ftq-probe/hedgecost_seg.py`):
+
+| date | cheapest deal | A spot-EWMA | B dealable forward | C6 ladder | C12 ladder |
+|---|---|---|---|---|---|
+| 2022-10 | 323.8 | +11.3% | +55.7% | +20.3% | −1.8% |
+| 2023-01 | 323.8 | +5.7% | −10.5% | +38.7% | +14.8% |
+| 2023-04 | 323.8 | −35.8% | −24.7% | +2.7% | +13.5% |
+| 2023-07 | 273.0 | −29.8% | −19.2% | −12.5% | +26.8% |
+| 2023-10 | 250.3 | −17.7% | −18.1% | −9.8% | +13.3% |
+| 2024-01 | 247.8 | −23.5% | −26.7% | −14.0% | −7.0% |
+| 2024-04 | 212.6 | −33.4% | −20.7% | −15.3% | −6.5% |
+| 2024-07 | 205.1 | −15.2% | −15.2% | −17.8% | −9.7% |
+
+What survives: a lagged ladder sits nearer the market than the spot-led forward at every date from
+2023-04 to 2024-04, so the direction of P3 holds. What does not: **no instrument closes 2023 H2 –
+2024.** C6 sits 10–18% under the cheapest deal there, which is 25–40 £/MWh. The "within ±3.2%"
+sentence below and the "attributed" reading of 2023 H2 – 2024 are withdrawn. The undercut is
+narrowed, not explained. The attribution table further up carries the same defect. Its directions
+stand (a per-fuel gap of 0.0 still cannot move 2023 H1, and the outturn is still below the
+forward), but every position in it is about 8–12 points too high.
+
 All four predictions held:
 
 - **P1.** B does not close 2023-04. It reaches −14.0%.
@@ -396,3 +423,60 @@ hold can come off. Until it lands, deleting `ACQUISITION_HELD_AT_CAP_TARIFF_TYPE
 2023 H2 – 2024 strikes win on a cost the company has not modelled. That is a transfer, not value
 created. Probe and predictions: `/var/tmp/se-hedgecost/` (outside the repo, reproducible from the
 two committed inputs).
+
+
+## 8. The company's first-term forward is its hedge ladder (K8, 2026-11-23)
+
+**What the rules require.** Nothing in the licence sets how a supplier prices a fix. SLC 22B bans
+acquisition-only tariffs, so a first-term fix is also priced to the existing book (§7). The cap's own
+wholesale allowance is a trailing average of the published 12-month forward: a 6-month observation
+window until June 2022 (index 6-2-12) and 3 months after (3-1.5-12)
+(`the_published_forward_gets_its_delivery_axis_from_the_cap_indexation_rule_2026-10-10.md`). That is
+the regulator's own model of what a hedged supplier's energy costs.
+
+**What the design does.** `company.pricing.renewal_desk.quote_first_term` strikes a fixed first term
+on `laddered_forward`. That is the mean of the published weekly 12-month forward over the trailing
+`FIRST_TERM_LADDER_MONTHS` (6), counting only weeks a trader could read by the quote day. The world
+hands over exactly those rows (`sim.forward_curve.published_forward_knowable_by`). The ladder is
+refused, and the spot-led forward stands in, in two cases. First, where the series does not reach
+back a whole window: it starts 2021-02-08, so every quote before about August 2021 is unchanged.
+Second, where its newest row is a week or more stale. The no-offer rule reads the laddered strike.
+A default-tariff prospect has no strike, so its gate still reads the spot-led forward.
+
+**Choices, and why.** Six months is the cap's own window for most of the period with a published
+series. Three months (the cap from June 2022) is the other published choice. The company may change
+it, and nothing here grades which is better. The ladder is a modelled book bought evenly, not the
+run's own hedge records. The campaign is resolved before the run hedges anything, so there is no
+book yet to read.
+
+**GAP.** Before 2021-02-08 no forward is published, so pre-2021 strikes stay spot-led. A real
+supplier then priced off broker forwards we do not hold. The renewal chain (`quote_renewal`) still
+strikes on the spot-led forward, so a first term and its renewal are priced on different bases
+until that chain is moved too.
+
+**Measured at real inputs** (seed `run_base_seed()`, one variable: the forward a fixed first term is
+struck on; predictions filed first in `/var/tmp/se-ftq-probe/PREDICTION.md`):
+
+| year | priced, before → after | median position vs cheapest | declined |
+|---|---|---|---|
+| 2016–20 | identical | identical | identical |
+| 2021 | 154 → 244 | +13.3% → +10.1% | 150 → 60 |
+| 2022 | 17 → 20 | −17.7% → −8.0% | 70 → 67 |
+| 2023 | 146 → 121 | −27.5% → −12.5% | 2 → 27 |
+| 2024 | 254 → 254 | −20.3% → −15.5% | 0 → 0 |
+| 2025 | 39 → 51 | −12.5% → −13.9% | 8 → 0 |
+
+The campaign goes from 230 wins with 235 quotes withheld to 225 wins with 159 withheld. The wins
+per year in 2016–20 move although no position does: the settlement ceiling picks which wins settle
+across the whole campaign. P1, P4 and P5 held. **P2 was refuted.** I predicted 2023 within
+[−10%, +15%] and 2024 within [−8%, +8%] from the ±3.2% probe, and that probe was wrong (correction
+in §7). P3 held for 2023 (37 → 27 wins) and failed for 2024 (43 → 47).
+
+**What it means for the hold.** From 2023 Q2 to 2025 Q2, quarterly median positions on the ladder
+still sit 11–19% under the market's cheapest fix. `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES` must not
+come off on this. What carries the remaining 25–40 £/MWh, **I cannot yet say**. The candidates are
+the MSC (0–17 £/MWh, in its own lane), and cost lines the cap's unit rate carries that
+`strike_fixed_unit_rate` may not (operating cost, the smart-metering and bad-debt allowances, the
+EBIT and headroom allowances). There is also the stated belief that the dual-fuel gap share applies
+to the electricity unit rate. The next step is a line-by-line comparison of the strike against the
+cap's published unit-rate build at one date.

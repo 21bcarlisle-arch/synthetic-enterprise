@@ -270,6 +270,15 @@ def _published_forward_rows(fuel: str) -> tuple[list[str], list[float]]:
     return _PUBLISHED_FORWARD[fuel]
 
 
+def published_forward_knowable_by(trade_date: str, fuel: str = "electricity") -> list[tuple[str, float]]:
+    """Every published weekly 12-month forward a trader could have read by `trade_date`, as
+    `(knowable_from, GBP/MWh)` rows in date order. What any market participant holds on the day;
+    nothing later crosses."""
+    knowable, prices = _published_forward_rows(fuel)
+    i = bisect.bisect_right(knowable, trade_date)
+    return list(zip(knowable[:i], prices[:i]))
+
+
 def published_forward_quote(trade_date: str, fuel: str = "electricity") -> float | None:
     """The traded 12-month baseload forward as of `trade_date`, in GBP/MWh, or None.
 

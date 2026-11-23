@@ -306,3 +306,30 @@ spot-EWMA, reading the published forward through the seam. This is a company bui
 K8 page section first. The ladder length is the company's choice; 6 months is what the market's fixes
 matched, not a value to hard-code. (3) Only then: pre-register, delete
 `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world.
+
+## 2026-11-23 (later): the first term is struck on a six-month ladder, and the ±3.2% result was wrong
+
+**Correction first.** The hedge-cost probe above passed the segment as `"domestic"`.
+`get_electricity_network_cost_per_mwh` does not know that label and fell through to the SME
+volume table (75 against 42.4 £/MWh in 2023-07), so every strike in it was 30–40 £/MWh too dear.
+Re-run with `"resi"`, the six-month ladder sits 10–18% under the cheapest deal from 2023-07 to
+2024-07, not within ±3.2%. The attribution table carries the same defect. Its directions stand;
+its positions are 8–12 points too high. Both are corrected on the knowledge page, beside the
+claims (§7).
+
+**Landed.** The company strikes a fixed first term on `laddered_forward`: the trailing six-month
+mean of the published 12-month forward, counting only weeks knowable on the quote day, which the
+world hands over through `published_forward_knowable_by`. Six months is the cap's own observation
+window. Where no whole ladder exists (before about August 2021), the spot-led forward stands in.
+K8 section: knowledge page §8. At the run's seed, 2016–20 positions are unchanged. 2021 declines
+fall from 150 to 60. The 2023 median moves from −27.5% to −12.5%, and 2024 from −20.3% to −15.5%.
+Wins go from 230 to 225, and withheld quotes from 235 to 159. This is the new baseline. P2 was
+refuted, and it stays on the page.
+
+**Still owed, in order:** (1) Find what carries the remaining 25–40 £/MWh in 2023 Q2 – 2025 by
+comparing the strike line by line against the cap's published unit-rate build at one date. The
+candidates are operating cost, the smart, bad-debt, EBIT and headroom allowances, and the per-fuel
+gap belief. The MSC is in its own lane. (2) Only then pre-register, delete
+`ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world. (3) The renewal chain
+still strikes on the spot-led forward; a first term and its renewal are priced on different bases
+until it moves.
