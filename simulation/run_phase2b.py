@@ -3389,8 +3389,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             })
         # The account closes today, so its final bill is the month of the last day supplied: told
         # now, before the next reader forces a crossing (`close_account`).
-        _payment_triad.close_account(household, _final_bill_due(
-            household, date.fromisoformat(effective_from[:10]) - timedelta(days=1)))
+        _last_supplied = date.fromisoformat(effective_from[:10]) - timedelta(days=1)
+        _payment_triad.close_account(household, _final_bill_due(household, _last_supplied),
+                                     last_supplied=_last_supplied)
         _pending = [] if pending_already_sent else (
             _registration_loss_feed.wire_pending_notices_for_departure(_points, effective_from))
         for _wire in (
@@ -5619,7 +5620,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         if (_home_moves_on and _moved_in_term
                 and (billing_account, _move_end) not in _followed_moves):
             _payment_triad.close_account(billing_account, _final_bill_due(
-                billing_account, _move_end - timedelta(days=1)))
+                billing_account, _move_end - timedelta(days=1)),
+                last_supplied=_move_end - timedelta(days=1))
 
         # SLC 22C.4(a): THE END-OF-FIXED-TERM STATEMENT, 42-49 days before the fixed term ends, to
         # every domestic fixed term still supplied that day. Here, once the term's supplied end is

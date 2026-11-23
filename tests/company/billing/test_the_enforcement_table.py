@@ -93,6 +93,7 @@ ENGAGE = {
     "psr_needs_codes": dict(categories=None, record=_POST_HOSPITAL),
     "breathing_space": dict(breathing_space=True),
     "already_on_prepayment": dict(on_prepayment=True),
+    "account_still_supplied": dict(supply_ended_on=JULY - dt.timedelta(days=1)),
 }
 
 
