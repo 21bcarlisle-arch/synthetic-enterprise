@@ -1,195 +1,187 @@
 version: 1
-oriented_at: "2026-11-23T09:21:04.224063+00:00"
+oriented_at: "2026-11-23T12:24:47.251254+00:00"
 thesis_read: >-
-  This stretch had 7 commits, 2 of them substantive. By side: supplier 0, world 1, other 6. On the supplier side it
-  went backwards: nothing the company decides changed in three hours, and the one substantive code landing was world
-  work (G15 now hedges at Ofgem's published forward, 4f9da2316), which the supplier did not ask for. Against the thesis,
-  nothing has been measured. s.12g ends about 06:30Z on 24 Nov, and the book every supplier grade reads comes after it.
-  That will be about 87 hours with no book. The stretch's real finding is about the company, and it came out of chasing
-  a red. Origin has been red on the live Consent offer since 7527a2e36 (773e2d9ba), and that red is what refused the
-  gas-only win's landing. The probe (813c99cca) shows the only Consent offer the control ever saw went to
-  ACC-SYN-2016-005, a household that left in June 2016. The desk opened its debt journey after it left and asked the
-  world to fit a prepayment meter at a premise the company no longer supplied. 7527 removed that instance by collecting
-  the level debit on the final bill, so the test lost its one example. But the class is still live: nothing on the
-  Consent path asks whether the account is still supplied. A real supplier knows its own account closed. So this is an
-  absurdity in how the company uses what it knows, not missing data, and it is the first item. Of last stretch's four
-  focus items, two were drawn: the MSC re-landing (v2 is gating now, pid 3030428) and the pre-flight (increment 1 is
-  landing, and increment 2 waits on its own 2016-2018 run). Two were never drawn. One is the renewal belief's held-back
-  baseline, the only supplier item that needs no box and has a hard deadline (the book). The other is the checkout
-  fast-forward, and the checkout is now 12 commits behind origin, not 5. I treat the steer as drifting on both. I keep
-  them, rewritten so a worker can tell whether the premise is ripe. The landing machinery is still where work goes to
-  die. Four commit gates are running together right now (pids 3042535, 3120172, 3349469, 3357808), with the
-  consent-then-gas chain queued behind them. That is exactly the shape that killed the MSC gate at 05:56Z. The
-  premise-not-yet-ripe row is corrected: b1c7d76b1 and 8aa5aa350 closed it, and no new instance has appeared in 36 hours.
-  The brief's two premise_not_yet_ripe rows this stretch were right, because both name 07:00 on 24 Nov.
+  This stretch had 19 commits. 2 were substantive, and 8 changed nothing at all (each was a merge of origin into a
+  landing that lost its race). By side: supplier 0, world 0, both 1, other 18. Measured against the thesis, the
+  per-customer advantage over the flat-rules twin is still unmeasured. s.12g is the run that measures it (its twin
+  child, pid 2243091, is running). That run ends about 06:30Z on 24 Nov, and no book has been built for about 69
+  hours. Two results this stretch do matter. First, the gas-only win landed (a525847e9), so a won switch is now put
+  on supply for both fuels, and that wrong row is corrected. Second, and this is what matters most for the thesis,
+  the renewal baseline on held-back years was measured (094429018, predictions filed first in 9527c646a). Pooled over
+  2019-2024, the LIVE renewal belief ranks leavers at AUC 0.452, worse than a coin. The CONDITIONED belief ranks them
+  at 0.857, and its lower bound over live is +0.34. So the company already holds an inference that is much better
+  than the one it acts on, and that inference is switched off. Whether it becomes the live belief is gated on B8's
+  five grades from 25 Nov, and those grades read the coming book. That is the strongest evidence so far that the
+  advantage can come from inference. It is also why the renewal wrong row stays open: the company still acts on
+  the belief that ranks backwards. The steer partly held. Of four focus items, three were drawn. The renewal
+  baseline is done and leaves focus. The gate flock is landing now (surgical_land pid 819673). The closed-account
+  invariant was built, but it never landed: worker-tick timed out, and fork_salvage kept the work as 1e0202e65 in
+  /tmp/wt-closedacct. That commit holds the invariant, the NO_LONGER_SUPPLIED refusal and the tests, plus ledger
+  churn that is not the item's. The fourth item, the checkout fast-forward, was not drawn for the second stretch
+  running, and the checkout is now 31 behind origin, not 12. I treat that steer as drifting. The landing door read
+  it as "nothing to land", because the item named code files whose bytes already equal origin's. This orientation
+  measured the real blockers. Origin changed 33 paths, and 17 of them are dirty in the shared tree. Eight of those
+  are byte-identical twins of origin, including bounded_landing.py and promote_worktree_landing.py, so they should
+  be cleared. Nine differ from both, which means they belong to a lane. Five untracked files collide with files
+  origin added. The item now names those paths. The MSC win's v3 landing hit the gate timeout with its tests at 88%
+  and no red (52dba1ade), because a ledger change selects 1,074 test files. The flock serialises gates, but it does
+  not make that selection fit inside the hour. The pre-flight for the coming book's grades is now ripe
+  (/var/tmp/preflight-2018-out/run_output_2018.json exists), and it is what lets the B8 gate read on the first
+  attempt.
 stretch_reviewed:
-  since: "2026-11-23T06:20:08.484967+00:00"
-  commits: 7
+  since: "2026-11-23T09:21:04.224063+00:00"
+  commits: 19
   substantive: 2
 focus:
 - id: a-closed-account-is-never-offered-a-prepayment-meter
   lane: C_customer_ops
   side: supplier
-  what: Make "no recovery step against an account the company no longer supplies" a class invariant, per
-    docs/staging/SEAT_FINDING_THE_DESK_OFFERS_A_PREPAYMENT_METER_TO_A_HOUSEHOLD_THAT_HAS_LEFT_2026-11-23.md.
-    In company/billing/collections_journey.py, _offer_prepayment and every other premise-side step (a
-    field visit, a warrant, a meter fit) must refuse, with a named reason, for an account on churned_billing_accounts
-    or closed before the step's date. A closed account's debt goes to the final-account route the desk
-    already has. Add the rule to company/compliance/domain_invariants.py. Write a test that rebuilds the
-    ACC-SYN-2016-005 shape (journey opened after leaving, Consent offer on 2016-10-26) with 7527's closing
-    forced off, and asserts the step is refused. Add one control showing a SUPPLIED account in the same
-    state still gets the Consent offer (the branch can be taken). FIRST run pgrep -af surgical_land and
-    read /tmp/seat_exec_e/chain/chain.log. If the consent-controls-then-gas-only-win chain is editing
-    collections_journey.py, build in a worktree off origin/main and land with surgical_land --content
-    only after /var/tmp/se-consent-gas-chain-ended-20261123.txt exists.
-  why: A real supplier knows it closed the account; asking the world to fit a meter at a premise it no
-    longer supplies is the company misusing what it can see, and 7527 only hid the one example the control
-    had. Done means the invariant and both tests are on origin, and the finding is closed with work_items
-    --done naming the commit.
-  written_at: 1795425917.131
-- id: the-renewal-belief-switch-on-has-a-held-back-baseline-from-the-20-nov-book
+  what: 'The landing door will say "nothing to land", and that is expected: the shared-tree copies of
+    these paths equal origin, because the work is in a salvage commit and not in the shared tree. The
+    work is BUILT and sits unlanded in salvage commit 1e0202e65 on branch wt-closedacct-1123 (worktree
+    /tmp/wt-closedacct). Do not rebuild it. Run tools/isolate_hunks.py to take ONLY these five paths from
+    that commit onto current origin/main: company/billing/collections_journey.py, company/billing/winter_moratorium.py
+    (EnforcementCase.last_supplied_on and NO_LONGER_SUPPLIED), company/compliance/domain_invariants.py,
+    tests/company/billing/test_collections_journey.py and tests/company/billing/test_the_enforcement_table.py.
+    Drop its docs/observability ledger churn; coupled_gap_ledger.json alone is -3,355 lines and belongs
+    to no one. Check that the tests include the ACC-SYN-2016-005 shape (journey opened after leaving,
+    Consent offer on 2016-10-26, 7527''s closing forced off, step refused with the named reason). Check
+    that they include the control showing a SUPPLIED account in the same state still gets the Consent
+    offer, and add it if it is missing. Run both test files. Land with surgical_land --content after the
+    one-gate flock is on origin, or under it if it is live. Then close the finding with work_items --done
+    naming the commit, and delete the wt-closedacct branch only after that commit is on origin.'
+  why: A real supplier knows it closed the account, so this is the company misusing what it can see. The
+    fix exists, and the only thing between it and origin is a landing. Done means the invariant and both
+    tests are on origin, the finding is closed, and the closed-account wrong row can be marked corrected.
+  written_at: 1795437000.675
+- id: finish-the-coming-books-pre-flight-on-the-2016-2018-book
   lane: B_commercial
   side: supplier
-  what: 'The premise is RIPE NOW: it reads the book that already exists, not the coming one. On the published
-    20 Nov book (6a588a832f; docs/reports/run_output_latest.json and its desk states), score the live
-    renewal churn belief and the corrected ending-term belief (7a7ad95dc, default off) on desk states
-    from renewal years held back from the corrected belief''s fit. Report AUC per renewal year with a
-    bootstrap interval, and the number of leavers in each year. FIRST read grades 427e5f021 and 5cdb72eb3
-    and docs/staging/records/. If a record already gives per-year held-back ranking for both beliefs,
-    cite it, retire this with --premise-spent, and stop. Write docs/staging/records/SEAT_RECORD_THE_RENEWAL_BELIEFS_ON_HELD_BACK_YEARS_2026-11-23.md,
-    and point continuation read-the-ending-term-belief-grade-on-the-coming-book at it. The policy file
-    is read, never changed.'
-  why: Named last stretch and never drawn. The live belief ranks leavers backwards (AUC 0.333 on 2019
-    states), and the corrected one has twice graded with an interval straddling zero. Its third reading
-    arrives with the book after s.12g, about 07:00Z on 24 Nov, and a baseline written after that is not
-    a baseline. Done means the record is on origin with a commit time before any run_output descending
-    from 59cd5ebda exists, and the reader names it.
-  written_at: 1795425917.131
+  what: 'The premise is RIPE NOW: /var/tmp/preflight-2018-out/run_output_2018.json exists. Do section
+    4 (increment 2) of docs/staging/records/SEAT_RECORD_THE_COMING_BOOKS_GRADES_PRE_FLIGHTED_2026-11-23.md,
+    as the live continuation of the same id describes. Run each of B8''s five readers against that 2016-2018
+    output: the ending-term renewal belief, the dual-household answers, the supplied won switches, knife3
+    I1-I5, and the D48 blend. For each one, record whether it reads (finds its records, parses, and produces
+    a number) or name the missing record and its writer line. Fix any reader that fails on origin now,
+    while there is no book to wait for.'
+  why: The conditioned renewal belief beats the live one by +0.34 AUC on held-back years. Switching it
+    on (B8, 25 Nov) is gated on five grades that all read the coming book. A reader that fails on that
+    book costs another multi-day cycle. Done means the record's section 4 lists all five as reading on
+    the 2018 output, or as fixed on origin, and the item retires.
+  written_at: 1795437000.675
 - id: one-commit-gate-runs-at-a-time
   lane: H_harness
   side: other
-  what: 'Make tools/pre_commit_test_gate.py, when invoked under surgical_land or bounded_landing, take
-    a box-wide lock (an flock on one fixed path under /var/tmp) before running its test selection. While
-    it waits, it prints the holder''s pid and landing message, and the wait does not count against the
-    gate hour. Read docs/staging/SEAT_FINDING_THE_COMMIT_GATE_LOSES_ITS_HOUR_2026-11-22.md and commits
-    5a354ebcb and 1c9cd8195 first: the hour was proven for one gate alone. Test with two gate processes
-    started together: one runs and the other waits, the waiter''s 3600 s clock starts at acquisition,
-    and a dead holder''s lock is released by the kernel. Land it through the ordinary path. Do not kill
-    any gate running now.'
-  why: Four gates are running together right now, and the MSC gate died at 05:56Z by timing out beside
-    two others. Every landing lost to the hour is supplier work that has to gate again. Done means the
-    lock is on origin with its test, and the next stretch's launch register shows no gate refused on its
-    timeout while another gate was running.
-  written_at: 1795425917.131
+  what: surgical_land pid 819673 is landing the box-wide gate flock now; do not start a second copy. When
+    it ends, read its log. If it was refused, land it again from its own worktree. If it landed, confirm
+    that the MSC win's v4 landing (pid 644691, end marker /var/tmp/se-msc-land4-ended-20261123.txt) and
+    the next executor landing each gated alone. Then take the finding in 52dba1ade (docs/staging/SEAT_FINDING_A_LANDING_THAT_TOUCHES_THE_LEDGER_OUTRUNS_THE_GATE_DEADLINE_UNDER_ORDINARY_LOAD_2026-11-23.md)
+    to its first measurement. Time the 1,074-file selection with the flock held and the box otherwise
+    quiet. If it fits inside 3600 s, the finding is about concurrency and the flock closes it. If it does
+    not fit, make surgical_land print, BEFORE starting the gate, the selection's predicted duration from
+    test_execution_log.jsonl against the deadline. Do not raise the deadline and do not trim the selection.
+  why: Every supplier fix that touches the ledger (MSC, and the next money class) dies at the gate without
+    a red, and v2 and v3 were each an hour of gate time thrown away. Done means the flock is on origin,
+    MSC lands or fails with a named red, and the ledger-selection finding carries a measured duration.
+  written_at: 1795437000.675
 - id: the-shared-checkout-runs-the-promotion-fix-origin-already-has
   lane: H_harness
   side: other
-  what: 'The shared checkout is 0 ahead and 12 behind origin/main, and its working tree shows background/bounded_landing.py
-    and other tracked files modified. Find out why the reconciler (4d1aa34ab; H49 c42bae1174 clears a
-    shared-tree copy of an earlier origin revision like a twin) has not fast-forwarded it. Run git diff
-    origin/main -- <each modified tracked path>: a path whose bytes equal origin''s is a twin and should
-    be cleared. A path that differs from both HEAD and origin belongs to a lane; name its owner and do
-    not touch it. Fix the reconciler''s refusal in background/reconcile_watch.py or background/deploy_restart.py
-    so twins no longer block the fast-forward. Never stash, never check out a path, never reset. Then
-    confirm the next executor landing runs 0b4d8ae59''s retry: one register row, one outcome, and no empty
-    merge on origin.'
-  why: Named last stretch and never drawn, and it got worse (5 behind, now 12). Every daemon, including
-    the one that launches landings, runs code origin has replaced. Done means HEAD equals origin/main,
-    or there is a filed finding naming the lane bytes that prevent it, plus one clean executor landing
-    after that.
-  written_at: 1795425917.131
+  what: 'The landing door will say "nothing to land", and that is expected: the twins equal origin by
+    definition, and the change to land is the fix to background/reconcile_watch.py plus the fast-forward
+    itself. The shared checkout is 31 behind origin/main and cannot fast-forward. This orientation measured
+    why: origin changed 33 paths, and 17 of them are dirty here. EIGHT are byte-identical twins of origin
+    and must be cleared by background/reconcile_watch.py''s twin rule (H49 c42bae1174): background/bounded_landing.py,
+    tools/promote_worktree_landing.py, sim/forward_curve.py, simulation/gain_registration.py, docs/direction/decisions.jsonl,
+    docs/status/SEAT_STRETCH_LOG.md, site/data/delivery.json and docs/market_research/the_worlds_synthetic_forward_against_the_published_forward_2021_2025_2026-11-16.md.
+    Find why the reconciler did not clear them, read reconcile-watch-log.md first, and fix that in background/reconcile_watch.py.
+    NINE differ from both HEAD and origin (simulation/run_phase2b.py, tools/surgical_land.py, saas/reporting/annual_report.py,
+    tests/simulation/test_run_phase2b.py, tests/saas/reporting/test_a_grading_record_the_run_builds_reaches_the_published_book.py,
+    docs/market_research/switching_mechanics_2026-10-25.md, the gas-only finding, STARTUP_ANCHORS.md and
+    DIRECTION.yaml). For each, name the lane that holds it (pgrep -af surgical_land) and leave it alone.
+    FIVE untracked files collide with files origin added; for each, compare it to origin''s copy and treat
+    an identical one as a twin. Never stash, check out a path or reset.'
+  why: Named twice and never drawn, and it went from 5 behind to 31. Every daemon, including the one that
+    launches landings, is running code origin has replaced, and 0b4d8ae59's retry fix is still not live.
+    Done means HEAD equals origin/main and one executor landing afterwards leaves one register row and
+    no empty merge. If it cannot be done, a filed finding names the lane bytes that block it.
+  written_at: 1795437000.675
 not_now:
-  - what: Taking the 7527 Consent red on origin myself as a focus item.
+  - what: Raising surgical_land's 3600 s gate deadline, or trimming the MSC selection by hand, to get the MSC win landed.
     why: >-
-      The consent-controls-then-gas-only-win chain is queued to do exactly that, and close-gas-only-win-after-the-consent-gas-chain
-      holds its follow-on. A second writer on collections_journey.py is how landings die. Focus item 1 waits for the
-      chain and fixes the class behind the red, not the red itself.
-  - what: Letting the book share the box with s.12g on my own call.
+      Both weaken the one gate that most needs to be strong (it covers changes to the money modules) to land one
+      change. The flock and a measured selection duration come first. A slower MSC landing costs a day; a gate that
+      can be bypassed costs every later ledger change.
+  - what: Switching the conditioned renewal belief on now, on the strength of 0.857 against 0.452.
     why: >-
-      It is still the open concern s-12g-was-admitted-at-19-32, and I recommended waiting. About 21h remain. An OOM would
-      cost more than the wait, and silence is not a yes to the option I advised against.
-  - what: Following G15's published-forward hedge (4f9da2316) with grading or a further G15 slice.
+      The comparison was pre-registered as a baseline, and B8's pre-registration gates the switch-on on five grades
+      from the coming book (25 Nov). Flipping it before then would spend the blind holdout's evidence in order to
+      win two days. The pre-flight item makes those grades read the first time instead.
+  - what: Letting the book share the box with s.12g.
     why: >-
-      It is world work no supplier result asked for, landed under the correctness stretch's hold. It moves the treasury
-      line, not a per-customer decision. Its effect is read off the coming book like everything else, and nothing in
-      focus waits on it.
-  - what: The two world candidates the customer-voice evidence filed (6903ea3d8).
+      About 18h of s.12g remain. Running both together saves at most that, and it risks the run that measures the
+      thesis, which the director said not to kill. I withdraw the concern below for this reason.
+  - what: A heartbeat line in the mute worker-seat-manager.
     why: >-
-      They are fidelity candidates with no supplier result named as blocked. Under the supplier-first ruling they wait
-      for a supplier item that needs them.
-  - what: PB5 pounds-or-percent and PB4 (C29's two blockers).
+      Its cause is on file and its wait channel is still hrtimer_nanosleep. It is a behaviour change to the daemon
+      that seeds the worker seat, and no supplier result waits on it.
+  - what: Reaping the 11 worktrees that hold commits no remote keeps, and the stalled site atoms.
     why: >-
-      PB4's file_scope has had no commits in 7 days, and moving PB5 alone changes no draw. The leaver-Consent class and the
-      renewal baseline each change a supplier result this week.
-  - what: Reaping the at-risk worktrees, and the stalled site atoms (SITE1/12/15, OPS7, A45).
+      A reap cannot be undone, and each worktree except wt-closedacct is locked with a named owner. wt-closedacct is
+      focus item 1's source, and its branch goes only after that work is on origin. The site atoms are waiting on a
+      book to publish.
+  - what: PB4/PB5 (C29's blockers) and G15 follow-on grading.
     why: >-
-      A reap cannot be undone, and each worktree is locked with a named owner. There is no new book to publish, and the
-      site atoms land under other ids, which is a counter problem, not stalled work.
+      Neither changes a per-customer decision this week. Turning the better renewal belief on, through the pre-flight
+      and then B8, does.
 wrong:
   - what: >-
       THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333
-      on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 21:21 22 Nov -- its reader is live again
-      (80d11db93), re-armed on the first book descending from 59cd5ebda and c09847b7c. 06:20 23 Nov -- unchanged: no
-      qualifying book. 09:21 23 Nov -- unchanged; its baseline focus item was not drawn, so it is restated as ripe now.
+      on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 09:21 23 Nov -- unchanged; its baseline
+      focus item was not drawn, so it is restated as ripe now. 12:24 23 Nov -- measured on held-back years
+      (094429018): pooled 2019-2024 live 0.452, conditioned 0.857, paired lower bound +0.34. The company still acts
+      on the backwards belief. Not corrected until the conditioned belief is live (B8's gate, 25 Nov).
     corrected: false
   - what: >-
       THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median
-      same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 06:20 23 Nov --
-      unchanged, and it needs a book. 09:21 23 Nov -- unchanged.
+      same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 09:21 23 Nov --
+      unchanged. 12:24 23 Nov -- unchanged; it needs a book.
     corrected: false
   - what: >-
       THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one,
       so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account.
       Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on
       67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's
-      path. 06:20 23 Nov -- unchanged. 09:21 23 Nov -- unchanged.
+      path. 09:21 23 Nov -- unchanged. 12:24 23 Nov -- unchanged.
     corrected: false
   - what: >-
       THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin.
       The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the
-      same pair. [Earlier tails are in decisions.jsonl.] 06:20 23 Nov -- cut arm at 2025-03, and the A arm has not
-      started. The next lever for each outcome is on origin before the answer (e56d8b885). 09:21 23 Nov -- the cut arm
-      has written its member and control files; the twin child is running (pid 2243091), and A has not written. Not
-      corrected until s.12g publishes the advantage with its interval.
+      same pair. [Earlier tails are in decisions.jsonl.] 09:21 23 Nov -- the cut arm has written its member and
+      control files; the twin child is running (pid 2243091), and A has not written. 12:24 23 Nov -- unchanged; the
+      twin child is 5h23m in. Not corrected until s.12g publishes the advantage with its interval.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The book that every queued supplier grade reads has not been built for 30 hours (since 20
-      Nov 15:39). [Earlier tails are in decisions.jsonl.] 06:20 23 Nov -- worse: about 63 hours, and about 23h more to
-      come. 09:21 23 Nov -- worse: about 66 hours, and about 21h more of s.12g to come.
+      Nov 15:39). [Earlier tails are in decisions.jsonl.] 09:21 23 Nov -- worse: about 66 hours, and about 21h more
+      of s.12g to come. 12:24 23 Nov -- worse: about 69 hours, and about 18h to come.
     corrected: false
-  - what: >-
-      THE WORLD'S, NEW. A won switch is never put on supply: on the 20 Nov run 16 fresh acquisitions were won and 0
-      billed, because ACQUIRED_CUSTOMERS is not on the settlement roster (5ce811272). Two notes had said the world
-      "keeps the household on supply". 15:24 22 Nov -- b9ca3a24c closed the electricity half on f80fe3951. 06:20 23
-      Nov -- reg 6C is on origin (cc9f08ae3), and the gas-only build is gating. 09:21 23 Nov -- that gate was refused
-      by origin's own Consent red (773e2d9ba). The consent-controls-then-gas-only-win chain is queued to carry it.
-      Not corrected until it lands. 10:47 23 Nov -- CORRECTED: the gas-only win landed (a525847e9, on origin via
-      aed8817b2), after the Consent controls were re-keyed (017382851). Whether every win is supplied on a full book
-      is read off the next book (the finding page stays open for that).
-    corrected: true
-  - what: >-
-      THE MACHINE'S, NEW. Last stretch's first focus item was drawn at about 22:05Z, and the lane recorded it as
-      premise_not_yet_ripe on a date in the continuation's prose, though its premise (control_55555_66666.json) had
-      existed since 15:33Z. A direction item whose prose quotes another item's date can be walked past as unripe.
-      06:24 22 Nov -- this instance is closed (b1c7d76b1, 8aa5aa350). 09:21 23 Nov -- CORRECTED: no new instance in 36
-      hours, and both premise_not_yet_ripe rows this stretch were right (each names 07:00 on 24 Nov).
-    corrected: true
   - what: >-
       THE MACHINE'S, NEW. Two declared long jobs and the book queued one behind another with nobody choosing the
       order. From 16:26Z sim-runner deferred every book to the queued s.12g (2,100 minutes). 21:21 22 Nov -- the
       seat chose book-first at 18:22Z, but s.12g was admitted at 19:32:32Z, before any worker drew that decision. So
       the order was still made by whoever reached the queue first. Raised with the director as
-      s-12g-was-admitted-at-19-32. The admission path still reads no seat ordering. 06:20 23 Nov -- unchanged. 09:21
-      23 Nov -- unchanged.
+      s-12g-was-admitted-at-19-32. The admission path still reads no seat ordering. 09:21 23 Nov -- unchanged. 12:24
+      23 Nov -- the concern is withdrawn because s.12g nearly finished, but the admission path is unchanged.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The reg 6C re-landing (longjob-land-reg-6c-erroneous-gains-2) was refused at 01:25Z, 3
       seconds in, on a stale copy of simulation/run_phase2b.py. The refusal printed its remedy, and no lane ran it.
       Its continuation build-gas-supply-for-a-gas-only-win waits on a file that only success writes, so a refused
-      landing left its own follow-on held with no owner until this orientation. 06:20 23 Nov -- reg 6C instance
-      closed; a second instance (MSC) owned by focus. 09:21 23 Nov -- the MSC instance is re-landing as v2 under an
-      end-marker job (msc-land2-end-marker) that writes a file on ANY end, and the consent chain does the same. That is
-      the right per-instance shape, but the mechanism is still hand-built per landing.
+      landing left its own follow-on held with no owner until this orientation. 09:21 23 Nov -- the MSC instance is
+      re-landing as v2 under an end-marker job (msc-land2-end-marker) that writes a file on ANY end, and the consent
+      chain does the same. That is the right per-instance shape, but the mechanism is still hand-built per landing.
+      12:24 23 Nov -- v4 again carries a hand-built end marker. Unchanged.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z), but
@@ -197,14 +189,16 @@ wrong:
       merges that authored nothing (f68028b7f, 755536805, 965a59053). So the brief overstated lost work by three jobs.
       This is a new instance of a-landing-loses-its-race-to-origin. 06:20 23 Nov -- fixed on origin with a test
       (0b4d8ae59), but NOT LIVE. 09:21 23 Nov -- still not live; the checkout is now 12 behind, and its focus item was
-      not drawn.
+      not drawn. 12:24 23 Nov -- worse: 31 behind, and this stretch has 8 more empty merges. The blocking paths are
+      now named in focus.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The MSC replacement-win landing's gate timed out at 3600 s (land-msc-replacement-win, 04:55Z to
       05:56Z) while the reg 6C and executor gates ran beside it, and it printed three test failures before it was killed.
       The gate-hour fix (5a354ebcb, 1c9cd8195) was shown inside the hour for one landing at a time. Nothing stops three
       or four gates from starting together. 09:21 23 Nov -- worse: four gates are running together now. Owned by focus
-      item one-commit-gate-runs-at-a-time.
+      item one-commit-gate-runs-at-a-time. 12:24 23 Nov -- v2 and v3 both died on the timeout; v3 reached 88% with no
+      red (52dba1ade). The selection is 1,074 files. The flock is landing (pid 819673), and v4 is gating.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. 7527a2e36 reached origin with test_collections_journey.py red on the live Consent offer
@@ -218,7 +212,8 @@ wrong:
       THE COMPANY'S, NEW. The collections desk opened a debt journey for a household that had left (ACC-SYN-2016-005,
       closed June 2016) and offered it a prepayment meter by Consent on 2016-10-26, at a premise the company no longer
       supplied (813c99cca). 7527 hid the one instance. Nothing on the Consent path asks whether the account is still
-      supplied. Owned by focus item a-closed-account-is-never-offered-a-prepayment-meter.
+      supplied. Owned by focus item a-closed-account-is-never-offered-a-prepayment-meter. 12:24 23 Nov -- the fix is
+      built (salvage 1e0202e65 in /tmp/wt-closedacct) but not landed: the tick that built it timed out.
     corrected: false
 for_the_director:
 - id: s-12g-was-admitted-at-19-32
@@ -234,7 +229,16 @@ for_the_director:
     and co-residence risks exactly that, because the resident-yield rule exists after an undeclared worker OOM-killed
     a long job. Say ''go'' and I will land a one-unit exemption instead.'
   based_on: d48ffb3893
-  status: open
-  resolution: ''
+  status: withdrawn
+  resolution: >-
+    Withdrawn 23 Nov 12:24Z by the delivery seat. No answer came, and silence keeps the holding position, which was
+    my recommendation: the book follows s.12g. s.12g's declared end is about 06:30Z on 24 Nov, about 18h away, so
+    the one-off exemption would now save at most 18h, at the risk the recommendation named. The defect underneath
+    (job admission does not read the seat's ordering) stays listed in wrong. It is not a question for him.
+  resolved: "2026-11-23"
+  no_action: >-
+    The withdrawal keeps the current state: s.12g runs to its end and sim-runner's book follows under the existing
+    resident-yield rule. Nothing is built or changed. The queued grades (07:00 24 Nov onward) already wait for that
+    book.
   evidence: docs/staging/SEAT_FINDING_THE_BOOK_THE_FIVE_GRADES_WAIT_ON_WOULD_HAVE_DROPPED_THREE_OF_THEIR_RECORDS_AND_IS_STARVED_2026-11-21.md,
     section 'Re-read 22 Nov 19:37Z'
