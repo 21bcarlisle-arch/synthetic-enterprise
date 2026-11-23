@@ -96,3 +96,21 @@ Two answered 2016 runs on origin 6903ea3d86 (`plan_take_up_share` at `high`): A 
 So done-means 2 takes its second branch. The control is re-keyed to the property: some answered
 household **still supplied** is offered, and the gate decides both ways. It needs a window that holds such an
 offer. A 2016-2017 answered probe is measuring that now (`/tmp/seat_exec_e/probe/out_2017.json`).
+
+## Done (23 Nov 2026, claim `close-gas-only-win-after-the-consent-gas-chain`)
+
+The consent-then-gas chain ended `exit 0` at 10:47:48Z (`/var/tmp/se-consent-gas-chain-ended-20261123.txt`,
+`/tmp/seat_exec_e/chain/chain.log`).
+
+- **Done-means 2 (re-key, never loosen):** 017382851 moved the answered fixture to
+  `ANSWERED_WINDOW_END` 2017-12-31. That window holds 3 live offers (055, 099, 390) and withholds, so
+  both controls pass and are not vacuous. `test_every_live_consent_offer_goes_to_an_account_still_supplied`
+  names the defect underneath as `xfail(strict=True)`. It went to origin through merge 56d118ffc after two promotions
+  were refused because origin had moved.
+- **Done-means 3:** the gas-only win landed as a525847e9 (gate rc 0) and went to origin through merge aed8817b2
+  after one refused promotion. Both commits are ancestors of origin/main (checked 23 Nov).
+- The chain's worktrees `/var/tmp/se-reg6c-land` and `/var/tmp/se-consent-gas-land` were removed.
+
+Still open elsewhere: the class (`SEAT_FINDING_THE_DESK_OFFERS_A_PREPAYMENT_METER_TO_A_HOUSEHOLD_THAT_HAS_LEFT_2026-11-23.md`,
+direction focus `a-closed-account-is-never-offered-a-prepayment-meter`). Also still open is the question of how
+7527a2e36's gate passed while origin went red (the DIRECTION.yaml not_now entry).

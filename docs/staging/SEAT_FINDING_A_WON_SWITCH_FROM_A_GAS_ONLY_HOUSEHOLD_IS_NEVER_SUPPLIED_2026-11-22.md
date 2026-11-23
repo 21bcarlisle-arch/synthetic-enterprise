@@ -44,3 +44,11 @@ leaver's final month opens on any closure) had not yet put every book account th
 own-book method register. The salvage's reason for the `g` was "the seed book's id convention", and
 that was wrong: a drawn gas-only household is named bare (`SYN-2016-163`, commodity gas), and the `g`
 names only a DUAL household's gas leg. The landed build names a gas-only win bare.
+
+**23 Nov 2026, 11Z: the build is on origin, and the book half of done-means stays open.** a525847e9
+(on origin via aed8817b2) registers a gas-only win on a gas point at the same premise.
+Its control (`test_a_win_from_a_gas_only_household_is_supplied_as_gas`) shows the branch is taken on
+the 2016-2018 window. Direction row `supply-a-win-from-a-gas-only-household-as-gas` is closed as
+built. Done-means also needs `won_switches_not_supplied` empty on a FULL book, and no book has been
+built since 20 Nov (it waits behind s.12g). This page stays in the queue until a book after
+aed8817b2 is read for that.

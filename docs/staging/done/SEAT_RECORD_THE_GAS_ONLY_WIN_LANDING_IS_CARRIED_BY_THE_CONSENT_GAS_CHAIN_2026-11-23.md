@@ -43,3 +43,9 @@ Seat executor, 23 Nov 2026. Read, not built.
    remainder (gas-only landing, remove `/var/tmp/se-reg6c-land`) is the successor's above, whose
    chain `longjob-consent-controls-then-gas-only-win` was still `active (running)` at draw. Not
    re-run; released and dropped. Its WHAT is recoverable from this commit's git history if needed.
+
+## Done (23 Nov 2026)
+
+The chain this record tracked has ended. The consent-then-gas chain ended `exit 0` at 10:47:48Z: Consent
+re-key 017382851 (to origin via 56d118ffc), then the gas-only win a525847e9 (to origin via aed8817b2).
+Reg 6C was already on origin as 09ae79aa0c. Both landing worktrees were removed. Nothing is still in flight.

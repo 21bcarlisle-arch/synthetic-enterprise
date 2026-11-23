@@ -22,3 +22,9 @@ Seat executor, 23 Nov 2026 ~05:46 GMT. Read, not built.
    one. To reverse: rename it back.
    Class: a chain re-launched under the same end-marker name must clear the old marker first, or
    the handoff's hold is satisfied by the corpse of the attempt it replaces.
+
+## Done (23 Nov 2026)
+
+The chain this record tracked has ended. The consent-then-gas chain ended `exit 0` at 10:47:48Z: Consent
+re-key 017382851 (to origin via 56d118ffc), then the gas-only win a525847e9 (to origin via aed8817b2).
+Reg 6C was already on origin as 09ae79aa0c. Both landing worktrees were removed. Nothing is still in flight.

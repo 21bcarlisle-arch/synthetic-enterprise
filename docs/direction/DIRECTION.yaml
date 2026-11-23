@@ -163,8 +163,10 @@ wrong:
       "keeps the household on supply". 15:24 22 Nov -- b9ca3a24c closed the electricity half on f80fe3951. 06:20 23
       Nov -- reg 6C is on origin (cc9f08ae3), and the gas-only build is gating. 09:21 23 Nov -- that gate was refused
       by origin's own Consent red (773e2d9ba). The consent-controls-then-gas-only-win chain is queued to carry it.
-      Not corrected until it lands.
-    corrected: false
+      Not corrected until it lands. 10:47 23 Nov -- CORRECTED: the gas-only win landed (a525847e9, on origin via
+      aed8817b2), after the Consent controls were re-keyed (017382851). Whether every win is supplied on a full book
+      is read off the next book (the finding page stays open for that).
+    corrected: true
   - what: >-
       THE MACHINE'S, NEW. Last stretch's first focus item was drawn at about 22:05Z, and the lane recorded it as
       premise_not_yet_ripe on a date in the continuation's prose, though its premise (control_55555_66666.json) had
@@ -208,7 +210,9 @@ wrong:
       THE MACHINE'S, NEW. 7527a2e36 reached origin with test_collections_journey.py red on the live Consent offer
       (773e2d9ba), so origin itself refused the next landing on that path (the gas-only win). That means a landing's
       gate passed while origin was red on a test in its own path, or the red came from the merge with what moved
-      under it. Which of the two has not been established.
+      under it. Which of the two has not been established. 10:47 23 Nov -- the red itself is gone: 017382851
+      re-keyed both controls to the 2017 answered window (on origin via 56d118ffc). Which of the two caused it is
+      still not established.
     corrected: false
   - what: >-
       THE COMPANY'S, NEW. The collections desk opened a debt journey for a household that had left (ACC-SYN-2016-005,
