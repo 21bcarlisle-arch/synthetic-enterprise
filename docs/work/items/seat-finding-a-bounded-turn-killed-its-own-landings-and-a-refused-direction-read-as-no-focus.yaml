@@ -1,0 +1,27 @@
+id: seat-finding-a-bounded-turn-killed-its-own-landings-and-a-refused-direction-read-as-no-focus
+title: A bounded turn killed its own landings at teardown, and a refused direction
+  record read as "no focus"
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: BLOCKING
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_A_BOUNDED_TURN_KILLED_ITS_OWN_LANDINGS_AND_A_REFUSED_DIRECTION_READ_AS_NO_FOCUS_2026-11-22.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: done
+opened_at: '2026-11-22T00:00:00+00:00'
+chosen_at: null
+closed_at: '2026-11-23T00:50:31+00:00'
+chosen_by: null
+done_evidence: 8bd0092e80
+parked: null
+obsolete: null
+finding_lane: H_harness

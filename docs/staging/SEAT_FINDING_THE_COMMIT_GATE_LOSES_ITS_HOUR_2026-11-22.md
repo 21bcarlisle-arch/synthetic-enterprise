@@ -133,3 +133,92 @@ The fix reached origin at 22:20Z as 229618239 (the code commit is 5a354ebcb). It
 the fixed `surgical_land` in 14 minutes (22:03:53 to ~22:18). The landing that carries this
 section was started after the fix was on origin, while s.12g (`longjob-value-test-cut012-new-book`)
 was still running; its receipt is that proof.
+
+## Per-file measurement of reg 6C's selection (claim `the-largest-gate-selection-is-measured-per-file`)
+
+### Pre-registration (written 22:50Z, before the run)
+
+`select_targets` over reg 6C's 6 paths, re-derived now, returns 172 files (the hook saw 173; one
+billing test has since been deleted in the shared tree). By the rule that puts each one there:
+
+| rule | files |
+|---|---|
+| `billing_suite_tests` (triggered by `saas/reporting/annual_report.py` matching the `saas/` prefix) | 116 |
+| `CONTROL_TESTS` (any code path) | 46 |
+| `tests_for` (named for a changed module, or a changed test) | 10 |
+
+`importing_tests` adds nothing to the main run here: every importer it finds is already named.
+
+Run: the 172 files in one pytest, as the hook runs them, with `--durations=0`, in a worktree at
+origin/main with reg 6C's six frozen copies (`/tmp/seat_6c`) laid over it.
+
+Predictions, written before the answer:
+
+1. The 10 `tests_for` files carry more than 60% of the wall; `tests/simulation/test_run_phase2b.py`
+   alone takes over 15 minutes.
+2. The 116 billing files take at most 8 minutes together (183 s whole-suite on 3 Nov).
+3. The 46 control files take at most 5 minutes together.
+
+A reason I already doubt, independent of the timing: the billing trigger's own comment says `saas/`
+is on it "because billing imports it". `company/billing/` imports `saas.bill_generator`,
+`saas.customer_reaction` and `saas.ledger`, and nothing under `saas/reporting/`. If (2) is wrong
+and the billing files are heavy, that reason does not hold for `annual_report.py` and the trigger
+narrows to the `saas/` modules billing actually imports.
+
+### What it measured (run 22:48Z-23:44Z, `longjob-gate-selection-6c-durations`)
+
+2,916 passed, 2 skipped, **3,342 s (55:42)**, 4,570 s CPU, 3.0 GB peak, so the hook's ~55 minutes
+reproduces in isolation. Per-file time (setup + call + teardown), by the rule that selected it:
+
+| rule | files | minutes |
+|---|---|---|
+| `tests_for` | 10 | **34.9** |
+| `CONTROL_TESTS` | 46 | **11.7** |
+| `billing_suite_tests` | 116 | **7.9** |
+
+| file | s | rule | where the time goes |
+|---|---|---|---|
+| tests/simulation/test_run_phase2b.py | 1,551 | tests_for | two whole runs: the 2016-2018 fixture (1,017 s) and reg 6C's new every-win-erroneous 2016-2017 run (534 s) |
+| tests/simulation/test_run_phase2b_event_log.py | 534 | tests_for | its own 2016-2017 run |
+| tests/background/test_weekly_rhythm.py | 509 | CONTROL_TESTS | annotated 0.43 s when it joined; see below |
+| tests/company/billing/test_collections_journey.py | 357 | billing | two live-run fixtures |
+| tests/company/billing/test_the_share_of_dd_collections_..._belief.py | 101 | billing | |
+| everything else (167 files) | ~220 | | |
+
+Graded against the predictions: (1) **held**, `tests_for` is 64% and test_run_phase2b.py alone
+26 min. (2) **held, at the edge**: billing 7.9 min against "at most 8". (3) **wrong**: control
+files 11.7 min, not under 5, and 8.5 of it is one file.
+
+### Each heavy file's reason, and what changed
+
+- **billing suite, `saas/` prefix: the reason does not hold.** The trigger says `saas/` is on it
+  "because billing imports it". Walked by AST, `company/billing/` and the two billing tools reach
+  15 `saas/` modules, transitively, and nothing under `saas/reporting/`. Importing all 116 billing
+  test modules loads no `saas.reporting` module either. The prefix is now that derived set
+  (`billing_reached_saas`, 0.2 s; an unreadable file on the walk makes every `saas/` path a trigger
+  again). Control: `test_a_saas_module_billing_never_imports_does_not_select_the_billing_suite`.
+  It goes red under both mutations: restoring the prefix, and stopping the walk at billing's direct
+  imports. The old control named `saas/reporting.py`, a file that does not exist, as a trigger.
+  **reg 6C's selection: 172 -> 56 files.**
+- **test_weekly_rhythm.py, `CONTROL_TESTS`: the reason holds, and the file is slow by accident.**
+  Its fixture already stubs the step document's live reads (transcripts, the orphan index, the
+  director's note) because each has its own suite. Five sections added since then were never
+  stubbed: the map's mutation index (~25 s a step, AST over ~600 modules), the drawn world, the
+  draw history, git's merge log, the knowledge plan. Three tests called `_step_body` without the
+  fixture at all (155 s, 81 s, 35 s). Stubbed, with the fixture added to those three:
+  **509 s -> 21 s**, 40 passed. The Friday test's own stated mutation (drop the balance section)
+  still fires.
+- **test_run_phase2b.py and _event_log.py, `tests_for`: the reason holds** (each is named for the
+  module). The time is three whole runs, and one of them is wasted, and it is **not landed here**:
+  `test_run_phase2b_event_log.py` runs its own 2016-2017 run (534 s). By its sibling fixture's own
+  2026-08-31 measurement, that window now holds **no retention offers**, so four of its tests
+  (`..._entries_have_required_fields`, `..._cost_events_are_negative_amounts`,
+  `..._entries_above_threshold`, `..._entries_have_expected_margin`) loop over an empty list and
+  pass on nothing. Moving them onto the 2016-2018 run fixes both the time and the vacuity.
+  Not re-measured by me: it needs a 9-minute run. Handed on.
+- **test_collections_journey.py (357 s, billing)**: its reason holds for billing paths. It is no
+  longer selected for reg 6C. Not changed.
+
+Expected for reg 6C now, before re-measurement: 55.7 min, less 7.9 (billing) and ~8 (weekly
+rhythm), comes to **about 40 minutes**. That is inside the hour with about 20 minutes for the rest
+of the chain. Every code commit's gate is ~8 minutes faster from the weekly-rhythm stubs alone.
