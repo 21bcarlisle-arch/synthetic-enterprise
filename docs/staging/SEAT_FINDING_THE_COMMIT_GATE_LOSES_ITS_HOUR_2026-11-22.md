@@ -222,3 +222,19 @@ files 11.7 min, not under 5, and 8.5 of it is one file.
 Expected for reg 6C now, before re-measurement: 55.7 min, less 7.9 (billing) and ~8 (weekly
 rhythm), comes to **about 40 minutes**. That is inside the hour with about 20 minutes for the rest
 of the chain. Every code commit's gate is ~8 minutes faster from the weekly-rhythm stubs alone.
+
+## 2026-11-23: the event-log file reads the shared 2016-2018 run (worker; claim `the-event-log-tests-read-the-shared-2016-2018-run`)
+
+The hand-on above, done. `tests/simulation/conftest.py::phase2b_2016_2018` is one session-scoped
+2016-2018 run (with its `gap_ledger_path`), and both `test_run_phase2b.py` and
+`test_run_phase2b_event_log.py` read it. The gate runs its selection in one serial pytest, so the
+two files now pay for one run, not two. A new control,
+`test_every_log_these_tests_loop_over_has_entries`, refuses an empty company event log, retention
+log, retention cost list or no-offer log, and a window with no `uneconomical` no-offer. Under five
+mutations (each log emptied in turn, plus the no-offer reasons with no `uneconomical`), every leg
+goes red. Before this change, on 2016-2017, the retention legs held nothing.
+
+Predicted before the run: the two files would take about 1,050 s on origin's code. Measured at
+origin 8a52399b8: **45 passed, 972 s**. The 534 s event-log run is gone, and every per-entry loop
+in that file now runs over entries from the 2016-2018 window. reg 6C's extra 2016-2017 fixture is
+not on origin, so it is not in this figure.

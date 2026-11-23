@@ -1,21 +1,28 @@
 """Integration tests for run_phase2b company_event_log - Phase 12a.
 
-Uses a truncated window (2017-12-31) so tests run in reasonable time.
-Calls main() once via a session fixture to avoid 5 separate sim runs.
+Reads the 2016-2018 run shared with test_run_phase2b.py (`phase2b_2016_2018`,
+tests/simulation/conftest.py). This file ran its own 2016-2017 run until 2026-11-23: 534 s of the
+commit gate, and a window holding no retention offers, so every loop over the retention log below
+passed on nothing.
 """
 
 import pytest
 
-from simulation.run_phase2b import main as run_phase2b
-
 
 @pytest.fixture(scope="module")
-def sim_result_2017():
-    # No stub interface: run_phase2b's `sim_interface` parameter was deleted 2026-08-29.
-    # It was never passed on any production path, so the four tests that injected a stub
-    # were the only thing keeping five `notify_*` call sites alive -- a seam only tests
-    # satisfied. This fixture now runs the same shape every published figure runs.
-    return run_phase2b(report_end="2017-12-31")
+def sim_result_2017(phase2b_2016_2018):
+    return phase2b_2016_2018
+
+
+def test_every_log_these_tests_loop_over_has_entries(sim_result_2017):
+    """The loops below assert per entry, so an empty log passes them all. Defect named: a window
+    (or a world change) that leaves any of these logs empty, as 2016-2017 left the retention log."""
+    result = sim_result_2017
+    empty = [k for k in ("company_event_log", "retention_log", "retention_cost_events",
+                         "no_offer_churn_log") if not result[k]]
+    assert not empty, f"empty in the 2016-2018 window, so its tests pass on nothing: {empty}"
+    reasons = {e["no_offer_reason"] for e in result["no_offer_churn_log"]}
+    assert "uneconomical" in reasons, f"no uneconomical no-offer in the window: {sorted(reasons)}"
 
 
 def test_company_event_log_key_present(sim_result_2017):
@@ -210,7 +217,7 @@ def test_retention_discount_function_tiers():
 
 def test_retention_tiers_cover_threshold():
     """RETENTION_TIERS lower bound matches RETENTION_THRESHOLD."""
-    from simulation.run_phase2b import RETENTION_TIERS, RETENTION_THRESHOLD
+    from simulation.run_phase2b import RETENTION_THRESHOLD, RETENTION_TIERS
     min_tier_threshold = min(t for t, _ in RETENTION_TIERS)
     assert min_tier_threshold == RETENTION_THRESHOLD
 
