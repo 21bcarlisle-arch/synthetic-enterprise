@@ -39,3 +39,59 @@ hand. Both would weaken a gate in order to land one change. v4 was re-launched u
 **Done means:** a landing whose selection cannot finish inside `GATE_TIMEOUT_SECONDS` is either told
 so before it starts, or is given a gate that finishes. A test should show a 1,000-file selection
 under a recorded-duration model being refused with the named cause rather than killed.
+
+## 23 Nov 13:00–14:10Z: v4 timed out too, and remedy 2 was measured and refuted (delivery seat, claim `verify-msc-replacement-win-landing-v4`)
+
+v4 (11:56–12:56Z, `/tmp/msc_land/land4.log`) was killed at the hour at 88% with no red, like v3.
+So the cause is the selection's size, not the load on the machine.
+
+**Prediction, written before the run:** four round-robin shards of the 1,074 files would each
+finish in roughly a quarter of the ~68 serial minutes, worst shard ~30 min (bounded by
+`test_run_phase2b.py`'s ~26 min).
+
+**Measured** (`/tmp/msc_land/shard/`, 4 concurrent pytests in the MSC worktree, `-x`, 13:00Z on;
+the box also carried another lane's landing gate and an operational suite; box PSS peak of the
+shards 8.2 GB):
+
+| shard | tests run before stop | wall |
+|---|---|---|
+| 0 | 1,476, then a red | 3,397 s |
+| 1 | 2,040, then a red | 1,604 s (re-run after two census reds, now fixed) |
+| 3 | 1,687, then a red | 2,852 s |
+| 2 | still running at 14:05Z, 53% | >3,800 s |
+
+Together that is ~7,000 tests in ~55 minutes. The serial gate managed ~13,000 in 58. **The
+prediction is refuted. Sharding halved the throughput.** Each shard pays the whole-run fixtures
+again: one setup alone, `test_the_flat_supplier_policy_makes_no_retention_offer`'s, took 1,660 s.
+Four shards running together then contend for a box that is already loaded. The sharded gate was
+written and its control mutation-proven, and it is **not landed**. It is kept at
+`/tmp/seat_gate_shard/park/` as evidence only.
+
+**What the run found instead:** the selection is not green at origin, so v2–v4 would have been
+refused at the end even with a longer deadline. Four reds, each also red **at origin alone**
+(6613986bc9), none caused by MSC:
+
+1. `tests/background/test_an_empty_git_dir_made_scratch_immortal.py` (2 tests). They stubbed
+   `resource_headroom.admitted`, but the census has queued through `queued` since a285086483, so
+   they read the box's free memory. **Fixed, on origin as 9af8c4a14.**
+2. `tests/background/test_two_reader_review.py::test_the_tick_spawns_nothing_when_the_dial_holds_it`:
+   a wall-clock time bomb. Past `REVIEW_DATE` (11 Nov) the tick returns before it asks the dial.
+   **Fixed in this commit** by pinning `_now` inside the trial window.
+3. `tests/simulation/test_a_departure_rolls_on_exactly_one_named_leg.py::test_every_departure_booking_is_gated_on_the_resolved_decision_leg`:
+   reg 6C's erroneous-gain return (cc9f08ae3d, `simulation/run_phase2b.py` ~3715) books
+   `churned_billing_accounts.add` with no `commodity == _decision_leg` guard. Today a won switch
+   is one leg, so its own commodity is its decision leg, and the double-roll the control guards
+   cannot happen yet. A future dual-leg win would change that. **Not fixed: it is a world change
+   to `run_phase2b.py`, whose gate selection is this same hour-long one.** The candidate fix: gate
+   the booking on `commodity == _decision_leg`, and record a riding-leg return in
+   `erroneous_gains_not_returned` with a named reason rather than dropping it.
+4. `tests/company/test_the_per_account_engagement_estimate_ranks_better_than_the_channel_alone.py::test_both_arms_reach_their_own_branch_of_the_estimator`:
+   the null arm now returns a finite prior strength on the live roster, which has grown with the
+   gas-only wins. It is C29's lane, and it needs a judgement on the estimator. **Not fixed.**
+
+**Next remedy, by the measurement:** the selection's content, as was done for reg 6C's billing
+trigger. The slowest tests in three shards were dominated by `tests/background/` files
+(`test_supervisor.py`, about ten tests at 80–216 s each; `test_daily_self_note.py`, about seven at
+60–216 s). That is supervisor and self-note machinery. Ask, file by file, why a change to
+`saas/ledger.py` / `company/finance/*` selects it, and whether that reason holds. The MSC
+landing also still needs reds 3 and 4 settled first.
