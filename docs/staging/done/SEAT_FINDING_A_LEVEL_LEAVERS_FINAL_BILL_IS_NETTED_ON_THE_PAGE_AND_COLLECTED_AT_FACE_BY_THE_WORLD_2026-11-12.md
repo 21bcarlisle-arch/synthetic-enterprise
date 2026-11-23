@@ -36,3 +36,13 @@ unaffected: no hold rests on it.
 
 The s.9.6 fix is the other half: bills paid on receipt BEFORE the final bill keep their cash on the page,
 because the world collected them at face (choice 17).
+
+## Closed 23 Nov (claim `a-level-leavers-refund-is-paid-on-the-credit-it-held`)
+
+Traced on 6a588a832f. The company refunds exactly the closing credit the walk states, on every netted leg, so
+there is no company under-refund and no `company/billing` change. 37d934286 has since made the world net a
+**mover's** final bill (59 legs agree, and 8 net more than the page). A **switch-away** level leaver is never in its
+`final_month`, so its final bill is still collected at face. That is 149 legs, GBP 3,673.83, refunded short. The
+writer is `background/live_payment_triad.py:1557`. The count by year, the writer lines and the 8 reverse legs are in
+`SEAT_FINDING_A_SWITCHING_LEVEL_LEAVER_IS_REFUNDED_SHORT_BECAUSE_THE_WORLD_NETS_THE_FINAL_BILL_FOR_MOVERS_ONLY_2026-11-23.md`.
+The world half is pre-registered in `records/SEAT_PREREG_A_SWITCHING_LEVEL_LEAVERS_FINAL_BILL_NETTED_BY_THE_WORLD_2026-11-23.md`.

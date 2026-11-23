@@ -1106,6 +1106,11 @@ alone: 195 legs, GBP 4,715.67, on the 6fe7827ab2 book (`SEAT_FINDING_A_LEVEL_LEA
 *Correction, 16 Nov:* that open note is out of date in the code. Since 37d934286 (12 Nov), an ever-level
 leg's final month takes the larger of its waiting credit and its own ledger credit off the face. The
 G8.15 question about practice stays open.
+*Correction, 23 Nov:* the net reaches **home movers only**. `final_month` needs `moved_out_on`, and only a move sets
+it. A level leg that switches away has its final bill asked at face, while the page nets it and the refund pays
+the netted closing. On 6a588a832f that left 149 legs, GBP 3,673.83, refunded short
+(`SEAT_FINDING_A_SWITCHING_LEVEL_LEAVER_IS_REFUNDED_SHORT_BECAUSE_THE_WORLD_NETS_THE_FINAL_BILL_FOR_MOVERS_ONLY_2026-11-23.md`).
+SLC 27.17 and reg 6D bind a final bill on any closure, a switch included, so choice 14 applies to switch-aways too.
 
 **What the run records (added 16 Nov, before the build).** The 16 Nov book could not tell whether that
 net fired. The page builds a paid bill's payment from its face (`tools/generate_billing_ledger.py`), and

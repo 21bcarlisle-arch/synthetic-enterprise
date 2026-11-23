@@ -8,7 +8,7 @@ class: standard
 severity: LATENT
 source: finding
 evidence:
-- docs/staging/SEAT_FINDING_A_LEVEL_LEAVERS_FINAL_BILL_IS_NETTED_ON_THE_PAGE_AND_COLLECTED_AT_FACE_BY_THE_WORLD_2026-11-12.md
+- docs/staging/done/SEAT_FINDING_A_LEVEL_LEAVERS_FINAL_BILL_IS_NETTED_ON_THE_PAGE_AND_COLLECTED_AT_FACE_BY_THE_WORLD_2026-11-12.md
 knowledge_gap: null
 insight: null
 decider: machine
@@ -16,12 +16,12 @@ director_rank: null
 atom: null
 blocked_by: []
 occurrences: 1
-state: open
+state: done
 opened_at: '2026-11-12T00:00:00+00:00'
 chosen_at: null
-closed_at: null
+closed_at: '2026-11-23T00:12:47+00:00'
 chosen_by: null
-done_evidence: null
+done_evidence: docs/staging/SEAT_FINDING_A_SWITCHING_LEVEL_LEAVER_IS_REFUNDED_SHORT_BECAUSE_THE_WORLD_NETS_THE_FINAL_BILL_FOR_MOVERS_ONLY_2026-11-23.md
 parked: null
 obsolete: null
 finding_lane: D_billing_metering
