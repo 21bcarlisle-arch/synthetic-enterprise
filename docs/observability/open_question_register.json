@@ -1471,6 +1471,36 @@
       "question": "is it right?",
       "status": "answered",
       "disposition": "ANSWERED (2026-11-24, worker tick). This is the fourth field of the same check ('right' = the 22 Nov second view plus a practitioner read). It is placed in the same item: docs/staging/WORKER_FINDING_AN_ITEM_CARRIES_NO_KNOWLEDGE_CHECK_SO_A_FIX_CAN_BE_DRAWN_BEFORE_ITS_PAGE_EXISTS_2026-11-24.md."
+    },
+    "64ccb4c4cbaf": {
+      "disposition": "ANSWERED (2026-11-24, advisor, in the steer's signed text 452de5285). One or two clean books and one clean read, about 1-2 weeks, then the forward-years build in about 1-2 weeks: early to mid December. Since then, the record grade shows the price chain is itself a hold: it loses to a gas-only null at the month in every regime (docs/staging/records/WORKER_RESULT_THE_WEATHER_TO_PRICE_CHAIN_LOSES_TO_A_GAS_ONLY_NULL_AT_THE_MONTH_IN_EVERY_REGIME_2026-11-24.md). The work owed is carried in docs/staging/WORKER_FINDING_THE_WEATHER_TO_PRICE_CHAIN_STEER_IS_HALF_ANSWERED_AND_ITS_REST_HAD_NO_WORK_ITEM_2026-11-24.md.",
+      "question": "How far are we away from being stable and accurate enough to start simulating new years of weather and prices and not just history?",
+      "ruling": "DIRECTOR_STEER_GRADE_THE_WEATHER_TO_PRICE_CHAIN_ON_THE_RECORD_NOW_SO_FORWARD_YEARS_ARE_NOT_HELD_BY_IT_2026-11-24.md",
+      "status": "answered"
+    },
+    "766a92c09b9e": {
+      "disposition": "ANSWERED (2026-11-24, advisor, signed text). sim/weather_price_chain.py leaves carbon at 0.0; only flat CPS is priced (merit_order_reconstruction). A sourced series exists (eu_uk_ets_carbon_price_series_2026-08-03.md). The carbon arm, with and without, prediction first, is owed in docs/staging/WORKER_FINDING_THE_WEATHER_TO_PRICE_CHAIN_STEER_IS_HALF_ANSWERED_AND_ITS_REST_HAD_NO_WORK_ITEM_2026-11-24.md item 3.",
+      "question": "Carbon price?",
+      "ruling": "DIRECTOR_STEER_GRADE_THE_WEATHER_TO_PRICE_CHAIN_ON_THE_RECORD_NOW_SO_FORWARD_YEARS_ARE_NOT_HELD_BY_IT_2026-11-24.md",
+      "status": "answered"
+    },
+    "7fac2288757c": {
+      "disposition": "ANSWERED (2026-11-24, advisor, signed text). None exists. The five wholesale knowledge topics are about 75-115 words each and never mention interconnectors, CfDs or the merit order. The chain reached L4 without a page, which is a K8 breach on the world side. The pages and the learning-loop filing are owed in docs/staging/WORKER_FINDING_THE_WEATHER_TO_PRICE_CHAIN_STEER_IS_HALF_ANSWERED_AND_ITS_REST_HAD_NO_WORK_ITEM_2026-11-24.md items 1, 2 and 6.",
+      "question": "Why isn't the model drawing on a deep knowledge page?",
+      "ruling": "DIRECTOR_STEER_GRADE_THE_WEATHER_TO_PRICE_CHAIN_ON_THE_RECORD_NOW_SO_FORWARD_YEARS_ARE_NOT_HELD_BY_IT_2026-11-24.md",
+      "status": "answered"
+    },
+    "81e0072576a7": {
+      "disposition": "ANSWERED (2026-11-24, advisor, signed text). The CfD levy is a fixed historical table by year (simulation/policy_costs.py). That is right for the record and wrong for forward years. The endogenous levy, checked against LCCC's Interim Levy Rate, is owed in docs/staging/WORKER_FINDING_THE_WEATHER_TO_PRICE_CHAIN_STEER_IS_HALF_ANSWERED_AND_ITS_REST_HAD_NO_WORK_ITEM_2026-11-24.md item 5.",
+      "question": "Cfds?",
+      "ruling": "DIRECTOR_STEER_GRADE_THE_WEATHER_TO_PRICE_CHAIN_ON_THE_RECORD_NOW_SO_FORWARD_YEARS_ARE_NOT_HELD_BY_IT_2026-11-24.md",
+      "status": "answered"
+    },
+    "f347f7b40eb4": {
+      "disposition": "ANSWERED (2026-11-24, advisor, signed text). Interconnectors appear only in the grid-carbon modules, not in price formation. Coupling, or a stated reason not to, is owed in docs/staging/WORKER_FINDING_THE_WEATHER_TO_PRICE_CHAIN_STEER_IS_HALF_ANSWERED_AND_ITS_REST_HAD_NO_WORK_ITEM_2026-11-24.md items 2 and 4.",
+      "question": "Interconnection?",
+      "ruling": "DIRECTOR_STEER_GRADE_THE_WEATHER_TO_PRICE_CHAIN_ON_THE_RECORD_NOW_SO_FORWARD_YEARS_ARE_NOT_HELD_BY_IT_2026-11-24.md",
+      "status": "answered"
     }
   }
 }
