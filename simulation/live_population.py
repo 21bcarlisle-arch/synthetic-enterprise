@@ -1182,9 +1182,30 @@ def first_term_offer_fn(*, elec_daily, gas_daily):
         if quote.unit_rate_per_mwh is None or not market:
             return None
         return {"quoted": True,
-                "price_differential_pct": quote.unit_rate_per_mwh / market - 1.0}
+                "price_differential_pct": quote.unit_rate_per_mwh / market - 1.0,
+                # The ex-VAT strike the household was shown, kept so the won account's first term
+                # can be contracted on it (`CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE`). The
+                # funnel reads only the two keys above.
+                "unit_rate_per_mwh": quote.unit_rate_per_mwh}
 
     return offer
+
+
+#: ONE STRIKE FOR THE QUOTE AND THE CONTRACT (2026-11-24), OFF. A won account's first term was
+#: contracted through `renewals.price_fixed_term` -> `quote_renewal` at the notice date, a strike
+#: the household was never shown: up to x1.54 the cap in 2021, and 18-31% under the market's
+#: cheapest fix in 2023-24 where the quote sat 5% under
+#: (`docs/staging/SEAT_FINDING_A_WON_FIRST_TERM_IS_CONTRACTED_ON_A_STRIKE_IT_WAS_NOT_QUOTED_2026-11-24.md`).
+#: A domestic fixed contract is formed on the Principal Terms given before it is entered, and its
+#: price cannot rise during the fix (cheapest_fix_against_the_default_tariff_gb_2016_2025.md §13).
+#: Taken, the won electricity leg carries the quoted strike and its first term is contracted on it
+#: (`renewals.contracted_first_term`). Not taken before the post-s.12g book is read: B8's five
+#: grades read that book, and two changes in one book cannot be told apart. Predictions:
+#: `docs/staging/records/SEAT_PREREG_THE_FIRST_TERM_CONTRACTED_AT_ITS_QUOTE_2026-11-24.md`.
+CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE: bool = False
+
+#: The key a won electricity leg carries its quoted ex-VAT strike under, when the switch is taken.
+QUOTED_FIRST_TERM_RATE_KEY = "quoted_first_term_unit_rate_gbp_per_mwh"
 
 
 #: Whether the campaign was quoted before the win, and if not why: read by the record of the run.
@@ -1205,6 +1226,24 @@ def _campaign_offer_fn():
     except OSError:
         gas = None
     return first_term_offer_fn(elec_daily=elec, gas_daily=gas)
+
+
+def _quote_recorder(offer_fn, quoted_strikes: dict):
+    """`offer_fn`, unchanged in what it returns, writing each priced strike into `quoted_strikes`.
+
+    Keyed by prospect id: a prospect is quoted once, on the day it is in the market. None passes
+    through as None, which is the price-blind campaign with no quote to record.
+    """
+    if offer_fn is None:
+        return None
+
+    def offer(prospect, in_market):
+        result = offer_fn(prospect, in_market)
+        if result and result.get("quoted") and result.get("unit_rate_per_mwh") is not None:
+            quoted_strikes[prospect.customer_id] = result["unit_rate_per_mwh"]
+        return result
+
+    return offer
 
 
 def _resolve_campaign(book: List[dict], seed: int, *, persist: bool = True,
@@ -1234,6 +1273,7 @@ def _resolve_campaign(book: List[dict], seed: int, *, persist: bool = True,
     from tools.credit_adapters import get_credit_bureau_adapter
 
     horizon = _dt.date(2026, 1, 1)
+    quoted_strikes: dict = {}
     from simulation.net_new_acquisition import PROSPECTS_PER_YEAR
     existing_cy = sum(
         max(0.0, (horizon - _dt.date.fromisoformat(c["acquisition_date"])).days / 365.25)
@@ -1302,12 +1342,16 @@ def _resolve_campaign(book: List[dict], seed: int, *, persist: bool = True,
         # that prospect's position against the market's cheapest deal. Daily rows, never the
         # half-hourly file: 2 MB rather than 376 MB at import. No SSP cache means no quote, said
         # in the record below rather than priced off a stand-in.
-        first_term_offer_fn=_campaign_offer_fn(),
+        first_term_offer_fn=_quote_recorder(_campaign_offer_fn(), quoted_strikes),
     )
     # The seed the won homes' fuel coin is drawn on (`_won_customer_dicts`).
     outcome["base_seed"] = seed
+    # What each prospect was quoted, by id: read only by `_won_customer_dicts`, and only when
+    # `CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE` is taken.
+    outcome["quoted_strikes"] = quoted_strikes
     LAST_CAMPAIGN.clear()
-    LAST_CAMPAIGN.update({k: v for k, v in outcome.items() if k != "winners"})
+    LAST_CAMPAIGN.update({k: v for k, v in outcome.items()
+                          if k not in ("winners", "quoted_strikes")})
 
     # PERSISTED, because the site has to be able to say WHICH constraint stopped the book.
     # `LAST_CAMPAIGN` lives in the run's process and dies with it, so a generator running in a
@@ -1486,6 +1530,7 @@ def _won_customer_dicts(outcome: dict) -> List[dict]:
     then every won gas home was dual, which no published book is (fuel-split page §5a).
     """
     seed = outcome.get("base_seed", _DEFAULT_BASE_SEED)
+    quoted = (outcome.get("quoted_strikes") or {}) if CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE else {}
     won: List[dict] = []
     for prospect, won_on in outcome["winners"]:
         elec = {**prospect.to_customer_dict(),
@@ -1500,6 +1545,10 @@ def _won_customer_dicts(outcome: dict) -> List[dict]:
             continue
         # A gas coin whose band the published table cannot price keeps the electricity leg the
         # campaign quoted, the same fail-closed answer `_gas_leg_for` gives a dual home.
+        # THE STRIKE THE HOUSEHOLD WAS SHOWN goes on that leg only, set after `_gas_leg_for` has
+        # copied it: the gas leg was never quoted (§7), so it is struck as before.
+        if prospect.customer_id in quoted:
+            elec = {**elec, QUOTED_FIRST_TERM_RATE_KEY: quoted[prospect.customer_id]}
         won.append(elec)
         if gas is not None:
             won.append(gas)

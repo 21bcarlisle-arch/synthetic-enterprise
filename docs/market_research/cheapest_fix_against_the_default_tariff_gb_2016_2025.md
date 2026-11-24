@@ -249,6 +249,12 @@ Design choices, and why:
 - **The strike is the desk's base strike** (`strike_fixed_unit_rate`), not the full renewal chain.
   So the quote can differ from the rate the account is later contracted at, while
   `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES` still holds first terms at the cap.
+  *Amended 2026-11-24 (§13).* A real supplier contracts a won fixed first term at the price it
+  quoted: the contract is formed on the Principal Terms given before it is entered (SLC 23), and its
+  charges cannot rise during the fix (SLC 22C). The gap is now measured: the run contracts on a
+  notice-date re-strike that sat a median +28.2% over the cheapest fix in 2021, where the quote sat
+  −4.6% under it, and −31.3% / −18.1% in 2023 / 2024, where the quote sat −3.5% / −6.2%. Contracting
+  at the quote is built behind `live_population.CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE`, off.
 - **GAP, so no position is read for default-tariff prospects.** Their rate is the cap and there is
   no strike to price. The funnel stays at the run-level position for them, as before.
 
@@ -700,3 +706,74 @@ terms: 10 of 14 in 2021, at up to ×1.54 the cap, 1 in 2022 and 4 in 2025 Q1.
   first term at the strike quoted**
   (`docs/staging/SEAT_FINDING_A_WON_FIRST_TERM_IS_CONTRACTED_ON_A_STRIKE_IT_WAS_NOT_QUOTED_2026-11-24.md`),
   then flip the switch.
+
+## 13. What a won fixed first term is contracted at (K8, 2026-11-24)
+
+**The question.** The campaign quotes a prospect a fixed unit rate, and the household decides on it.
+What rate does a real GB supplier then bill that household's first fixed term at?
+
+**What the rules say** (Ofgem, *Licence guide: tariffs and contracts*, published 30 Nov 2017, updated
+21 Feb 2019, `https://www.ofgem.gov.uk/sites/default/files/docs/2019/02/licence_guide_tariffs_and_contracts_1.pdf`,
+read 2026-11-24. This is Ofgem's own summary of the conditions, not the licence text.):
+
+- **SLC 23** "Requires suppliers to take all reasonable steps to inform customers of the principal
+  terms of their supply contracts". The Charges are part of those terms, given before the contract is
+  entered into.
+- **SLC 22C** "sets out the general rule which prevents increases in charges and unilateral
+  variations during a fixed term contract, subject to specific exceptions, e.g. staggered tariffs and
+  tracker tariffs."
+- **SLC 23A**: a variation must be "explicitly agree[d]" with the customer and confirmed in writing
+  within five days.
+- **The switch** completes "within 5 working days" and the household "can cancel your switch within
+  14 days" (Ofgem, *Switch your home energy supplier*,
+  `https://www.ofgem.gov.uk/your-energy-supply/how-manage-your-energy-supply/switch-your-home-energy-supplier`,
+  read 2026-11-24).
+
+**What follows for the model [A].** The household is billed the fixed rate it accepted, for the
+length of the fix. A supplier whose costs move between the quote and the supply start can withdraw
+the tariff from sale to *new* quotes. It cannot re-strike a quote that has already been accepted. So
+the price decision the company makes per prospect is the quote, and the first year's margin is that
+quote's margin.
+
+**GAPs.**
+- **The licence text itself.** The clause wording of SLC 22C's no-increase rule and SLC 23's
+  pre-contract duty was not read: Ofgem's register (`epr.ofgem.gov.uk`) does not render to a
+  fetch. The guide above is Ofgem's own summary, so the rule is established, but the clause numbers
+  inside 22C/23 are not.
+- **"SLC 31E".** The brief named it as a source. Ofgem's guide puts the notice rules for 22C and 23
+  in **SLC 31I**, and no supply-licence SLC 31E bearing on this was found. The SLC 31E this repo
+  cites elsewhere is a DNO report (`vpps_and_local_flexibility_2026-10-25.md`). NOT ESTABLISHED.
+- **How long a quote is held before acceptance** (a supplier's quote validity, days). Not found. In
+  the run the gap is 0 days: every win is dated the day it was quoted.
+
+**The gap, measured** (seed `run_base_seed()`, origin ee7d60bbd5, 144 won fixed domestic electricity
+first terms, all quoted). The probe is `/var/tmp/se-ftq-probe/probe.py`. The contracted strike is the
+builder's own first term (`renewals.build_renewal_schedule`), before the renewal chain. The cheapest
+fix is read on the won day, and both sides are ex-VAT medians.
+
+| year | n | quoted strike | contracted now (notice-date re-strike) | cheapest fix | now vs cheapest | quote vs cheapest |
+|---|---|---|---|---|---|---|
+| 2016 | 10 | 112.7 | 100.5 | 92.9 | +7.7% | +21.2% |
+| 2017 | 15 | 119.0 | 114.2 | 113.5 | +0.6% | +9.1% |
+| 2018 | 9 | 152.0 | 136.0 | 108.4 | +25.2% | +37.3% |
+| 2019 | 17 | 141.3 | 120.9 | 124.1 | −0.6% | +14.4% |
+| 2020 | 15 | 134.0 | 112.8 | 118.6 | −4.9% | +13.0% |
+| 2021 | 12 | 175.6 | 195.4 | 198.1 | +28.2% | −4.6% |
+| 2022 | 1 | 256.5 | 290.2 | 269.9 | +7.5% | −5.0% |
+| 2023 | 15 | 260.7 | 190.0 | 273.0 | −31.3% | −3.5% |
+| 2024 | 36 | 196.7 | 174.0 | 212.6 | −18.1% | −6.2% |
+| 2025 | 14 | 209.6 | 225.2 | 221.8 | +1.6% | −5.5% |
+
+- **The re-strike runs both ways.** In 2016–20 it sits 4–21 £/MWh *under* the quote, so the household
+  was billed less than it agreed to. In 2021 and 2025 it sits over the quote, so the cap hold clamps
+  13 of the 144. In 2023–24 it sits 23–71 £/MWh under, which gives away margin nobody decided to give.
+- **Contracted at the quote**, no first term is above the cap, and the hold clamps 0 of 144. The
+  first-year billed revenue moves by +£30.9 per win across 242 wins: +£29–56 per leg in 2016–20,
+  +£183 in 2023 and +£73 in 2024, and −£21–24 in 2021, 2022 and 2025.
+
+**What it means for the order.** The cap hold binds only because of the re-strike. With the first
+term contracted at its quote, the hold holds nothing, so its deletion
+(`renewal_rate_chain.FIRST_TERM_CAP_HOLD_DELETED`) becomes a no-op. The order is: read the
+post-s.12g book, take `CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE` and score its pre-registration
+(`docs/staging/records/SEAT_PREREG_THE_FIRST_TERM_CONTRACTED_AT_ITS_QUOTE_2026-11-24.md`), then
+delete the hold.

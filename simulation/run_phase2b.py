@@ -274,6 +274,7 @@ from simulation.household_segments import (
 )
 from simulation.household_segments import tenure_for_customer as _tenure_of_household
 from simulation.live_population import (
+    QUOTED_FIRST_TERM_RATE_KEY,
     campaign_quotes_paid_for,
     founding_capital_gbp,
     live_drawn_households,
@@ -2385,6 +2386,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # determination said was owed, generated rather than asserted.
             tariff_type=resolved_tariff_type(c),
             deemed_gap_days=c.get("deemed_gap_days", 0),
+            # The strike the campaign quoted this household, present only on a won leg and only
+            # while `live_population.CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE` is taken.
+            quoted_first_term_unit_rate_gbp_per_mwh=c.get(QUOTED_FIRST_TERM_RATE_KEY),
         )
 
     # Phase 7e: pre-generate successor schedules (gated until activation).

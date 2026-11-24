@@ -29,3 +29,11 @@ quote's rate onto the won account's first term, or strike both through one funct
 `cheapest_fix_against_the_default_tariff_gb_2016_2025.md` §7, where "the quote can differ from the
 rate the account is later contracted at" is now measured. Then re-run the pre-registration's
 probe. P2 and P3 should fall towards 0.
+
+**Built off, 2026-11-24 (delivery seat).** The one strike is built behind
+`live_population.CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE`, which is off, and goes through
+`renewals.contracted_first_term`. The knowledge is §13 of the research page (SLC 23, SLC 22C). With the
+switch taken, 144 of 144 quoted first terms are contracted at their quote and the cap hold clamps 0 of
+them, down from 13. The per-year table and the predictions R1–R6 are in
+`docs/staging/records/SEAT_PREREG_THE_FIRST_TERM_CONTRACTED_AT_ITS_QUOTE_2026-11-24.md`. This stays
+open until the switch is taken on a book after the post-s.12g one, and graded there.
