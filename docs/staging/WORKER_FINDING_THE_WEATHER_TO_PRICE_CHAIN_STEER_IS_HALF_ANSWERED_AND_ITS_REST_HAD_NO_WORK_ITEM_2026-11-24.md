@@ -561,3 +561,17 @@ close it.
 - **Next, still item 4:** (1) the annual-mean arm: refit with net export replaced by its annual mean, to say how
   much of the gain is level and how much is shape, with its prediction filed first. (2) B1-B3 rerun on SAP plus
   net export. (3) R's 2025 residual against the AGWS windows finding.
+
+## Progress, 24 Nov (worker, item 4: the annual-mean arm, on the record)
+
+- **Pre-registered** in `1545ed8b0` and promoted to origin before the run. **Result** in
+  `docs/staging/records/WORKER_RESULT_THE_ANNUAL_NET_EXPORT_LEVEL_CARRIES_ALL_OF_2022S_BIAS_BUT_ONLY_HALF_THE_CRISIS_GAIN_2026-11-24.md`.
+  Six of eight predictions held. **Nothing in `sim/` changed.**
+- **Each year's mean net export, in place of the half-hourly series,** takes R L0's crisis MAE from 18.46 to 16.16,
+  not to ne's 13.29. That is a level share of 44% (W: 50%). The predicted share was at least two-thirds, and both
+  misses stay beside the outcomes. 2022's bias (−8.43), the post-crisis bias (−0.91) and 2025's bias (−7.64) match
+  ne's to within £0.7. The level carries the bias, and the shape carries the crisis spread.
+- **Rule (b) fires:** a forward build needs the FES annual level plus a within-year shape. Not predicted: outside
+  the crisis the level alone beats the real shape (R pre 4.45 against 4.62, post 5.58 against 5.99).
+- **Next, still item 4:** (1) the month-mean arm, to say whether the crisis shape is seasonal (month-level) or
+  day-level; (2) B1-B3 on SAP plus net export; (3) R's 2025 residual against the AGWS windows finding.
