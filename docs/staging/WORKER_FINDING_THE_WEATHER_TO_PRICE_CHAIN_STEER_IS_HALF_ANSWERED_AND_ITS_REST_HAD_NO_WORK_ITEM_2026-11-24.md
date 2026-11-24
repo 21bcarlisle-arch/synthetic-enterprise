@@ -478,3 +478,19 @@ close it.
 - **Next, still item 4:** (1) the §1b price-leg shape arm, unchanged. (2) Redo step 2 on a FUELHH-basis
   fleet with DUKES-capacity ratio as its control, not B-P4: 2016 on its own fleet, and 2025 held
   explicitly as "calm weather plus a clamped fleet", stated beside every 2025 figure.
+
+## Progress, 24 Nov (worker, item 4: the price leg's shape arm, on the record)
+
+- **Pre-registered** in `8e2faf1a3`, promoted before the run. **Result** in
+  `docs/staging/records/WORKER_RESULT_THE_PRICE_LEGS_POST_CRISIS_MISS_IS_A_LEVEL_NOT_A_SHAPE_A_NON_GAS_CONSTANT_HELPS_EVERY_REGIME_2026-11-24.md`.
+  Seven of seven predictions held. **Nothing ships.**
+- **The leg's post-crisis miss is a level, not a shape.** On real daily x, neither a constant that does not
+  scale with gas (b0 about £5-6) nor a floor-scaled low-x depth, nor both, brings the R post bias inside ±£3.
+  The best is −5.40, against −7.99.
+- **The constant lowers monthly MAE in every regime on both bases** (R: 5.48 / 14.62 / 9.84 → 4.82 / 13.62 / 8.36).
+  It is a build candidate only after the level gap is placed, because it would also absorb part of that gap.
+- **The level is not one level.** It sits in 2021 (−8.5), 2023 (−10.5) and 2025 (−15.3), with 2024 at −2.7.
+  2021 and 2023 are the years gas moved fastest. A lagging gas input is the candidate, not yet an attribution.
+- **Next, still item 4:** (1) the leg's inputs by year (the record's gas against the daily SAP splice, and
+  carbon) in 2021, 2023 and 2025, pre-registered with the by-year biases as its control. (2) Unchanged: the
+  end-year clamps on a FUELHH-basis fleet, then rerun B1-B3.
