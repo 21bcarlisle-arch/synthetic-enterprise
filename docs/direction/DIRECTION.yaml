@@ -261,3 +261,27 @@ for_the_director:
   resolution: ''
   evidence: docs/staging/WORKER_FINDING_A_WORLD_MODEL_CLOSED_AT_TARGET_WITH_NO_KNOWLEDGE_PAGE_BENEATH_IT_2026-11-24.md
     (census of 32 world modules under 20 L3+ atoms)
+- id: the-forward-world-has-bands-for-gas
+  raised: '2026-11-24'
+  kind: strategy
+  decision_kind: curriculum
+  what: The forward world has bands for gas and the renewable fleet only. The weather-to-price chain's
+    shippable form also needs forward levels for transmission demand, interconnector net flow and carbon,
+    and forward_years.json carries none of the three
+  proposal: 'Add three bands to docs/design/curriculum/forward_years.json, each labelled on every forward
+    figure. (1) Transmission demand (ND): hold it at its 2023-25 record level, about 25.4 GW, with embedded
+    solar growth taken from the renewable fleet band, so demand and fleet come from one capacity path
+    (electricity page s.8a). (2) Net flow: the FES 2025 ES1 annual interconnector level per case, uniform
+    across cases, starting from its 2025 column (s.5a; the 2030 spread is -23.8 to +8.1 TWh). (3) Carbon:
+    DESNZ''s 2025 traded carbon values, Low to High (2030: 25 / 50 / 66 GBP/t, real 2025), drawn jointly
+    with the gas case, because DESNZ''s low-carbon case is its high-fossil-price case, plus CPS at 18
+    GBP/t nominal to March 2028 and held nominal after that (s.2a)'
+  recommendation: I recommend yes to all three. Each is the published band, or, for ND, the default the
+    record supports. Until a band exists, every forward chain figure would carry a level nobody chose,
+    which K2 counts as asserting a value. Nothing forward is built until you answer, and the record-years
+    work carries on meanwhile.
+  based_on: 069ff7a75e
+  status: open
+  resolution: ''
+  evidence: docs/market_research/how_the_gb_electricity_price_forms_2026-11-24.md s.2a, s.5a, s.8a; docs/staging/WORKER_FINDING_THE_WEATHER_TO_PRICE_CHAIN_STEER_IS_HALF_ANSWERED_AND_ITS_REST_HAD_NO_WORK_ITEM_2026-11-24.md
+    (progress, 24 Nov)
