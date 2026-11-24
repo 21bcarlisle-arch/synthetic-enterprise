@@ -123,12 +123,18 @@ its imbalance. `sim/market_index_history.py` records this, and it is graded in �
   above most strikes, and CfD generators paid LCCC, which refunds suppliers (Ofgem, *Decision on the CfD
   allowance methodology*, June 2022). About £205m was paid back from September 2021 to March 2022, and
   £108.3m was returned to suppliers by a June 2022 parliamentary answer [press, low confidence].
+  **Corrected 24 Nov from LCCC's own data, beside the press figure:** the net CfD payment from
+  Sep 2021 to Mar 2022 was **−£273.4m**, and generator paybacks alone were −£448.0m (LCCC
+  `actual-cfd-generation-and-avoided-ghg-emissions`; result record
+  `WORKER_RESULT_THE_CFD_LEVY_BUILT_FROM_THE_WORLDS_PRICE_MATCHES_THE_RECORD_TO_A_FEW_PERCENT_2026-11-24.md`).
 - **Correction to the steer's wording.** Item 5 of the finding says "the negative 2022 rate". **The
   Interim Levy Rate cannot be set below £0/MWh** under the CfD regulations (Ofgem, same decision). LCCC
   forecast negative supplier payments for cap period nine, which "would imply a negative ILR", and Ofgem
   replaced the ILR in the cap's allowance with an expected levy payment that can be negative. An
   endogenous CfD levy in the world must therefore produce a negative NET payment through reconciliation,
-  not a negative ILR.
+  not a negative ILR. LCCC's **reconciled** daily levy rate (net payment over eligible demand) does go
+  negative: on 85 days of 2021 and 238 of 2022, with a low of −£22.68/MWh on 8 Mar 2022 (LCCC
+  `reconciled-daily-levy-rates`). That reconciled rate, not the ILR, is what the world should produce.
 - **Negative prices.** The first negative N2EX/EPEX day-ahead hour was on 9 Dec 2019 (Argus). Negative
   day-ahead hours were 29 in 2022, 107 in 2023 and 149 in 2024 (Modo), or 139 in 2024 and 149 in 2025
   (Montel, EPEX), or 141 and 190 (Electricity Maps) [press; counts differ by auction]. The mechanism
@@ -310,8 +316,10 @@ Fifteen of twenty-two predictions held. The seven misses stay beside the outcome
 1. ~~A UKA market price series 2021-2025 (§2).~~ Closed 24 Nov from the UK ETS Authority's auction tables (§2).
 2. Hourly GB-continent price spreads and flows by link, 2016-2025, and the size of the post-2021
    explicit-allocation loss (§5).
-3. The CfD Standard Terms' negative-price clauses by round, and LCCC's quarterly reconciliation
-   amounts for 2021-23 (§3). Item 5, the endogenous levy, needs them.
+3. The CfD Standard Terms' negative-price clauses by round (§3). ~~LCCC's reconciliation amounts for
+   2021-23~~ are held, as daily payments per unit and reconciled levy rates from the LCCC Data Portal (24 Nov).
+   Still open for item 5: the forward CfD fleet (`cfd-contract-portfolio-status`, `forecast-cfd-generation`,
+   not yet read).
 4. Marginal-technology shares by year and the marginal CCGT's efficiency (§1).
 5. Nuclear unit availability by month (§4).
 6. A published price response by residual-demand band (§6), and a de-rated margin series (§7).

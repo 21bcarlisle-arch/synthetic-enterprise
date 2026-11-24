@@ -115,3 +115,22 @@ close it.
   constants without carbon in the call are worse than either shipped arm, so the two land together. Forward
   carbon waits on item 5's curriculum band. (ii) The weather-coupling arm (wind first), with its
   prediction filed before it runs.
+
+## Progress, 24 Nov (worker, item 5 on the record)
+
+- **The on-the-record check ran.** It was pre-registered in
+  `docs/staging/records/WORKER_PREREG_THE_CFD_LEVY_FROM_STRIKE_AGAINST_THE_WORLDS_PRICE_ON_THE_RECORD_2026-11-24.md`.
+  The result is in `docs/staging/records/WORKER_RESULT_THE_CFD_LEVY_BUILT_FROM_THE_WORLDS_PRICE_MATCHES_THE_RECORD_TO_A_FEW_PERCENT_2026-11-24.md`.
+  The data is LCCC's own: per-unit daily CfD payments and reconciled levy rates, 2016-2026, OGL.
+- **(Strike − world's daily price) × real generation gives each year's net CfD cost within ±2%
+  outside the crisis.** 2021 is +3.3%, and 2022 is off by £33m (−£313m against −£346m). The
+  definition matches LCCC's reconciled rate in 46 of 46 quarters. Four of six predictions held. The
+  misses stay beside the outcomes.
+- **Correction to the earlier correction, beside it.** The ILR is floored at zero, but LCCC's
+  reconciled daily levy rate was negative on 238 days of 2022 (low −£22.68/MWh). So the steer's
+  "negative 2022 rate" is right of the reconciled rate. The world should produce that rate.
+- **What remains of item 5:** the forward CfD fleet and volumes (LCCC publishes them; not yet read,
+  so it is a GAP), and a forward price graded before a levy is built on it (item 4's). The
+  negative-hour rules wait on the Standard Terms (page GAP 3). Forward strikes and carbon are the
+  director's curriculum band.
+
