@@ -68,6 +68,7 @@ NATGAS_COMMONS = COMMONS_DIR / "desnz_natural_gas_conversion_factor.json"
 TD_LOSSES_COMMONS = COMMONS_DIR / "desnz_td_losses_conversion_factor.json"
 BREATHING_SPACE_COMMONS = COMMONS_DIR / "insolvency_service_breathing_space_registrations.json"
 INDEBTED_ACCOUNTS_COMMONS = COMMONS_DIR / "ofgem_domestic_electricity_indebted_accounts.json"
+ASHE_CALL_CENTRE_COMMONS = COMMONS_DIR / "ons_ashe_call_centre_median_hourly_pay.json"
 
 _MIN_YEAR, _MAX_YEAR = 1990, 2100
 _MIN_ENTRIES = 3
@@ -174,6 +175,11 @@ _PINNED: dict[str, str] = {
         "breathing_space_mhcm_annualised",
     "simulation/debt_respite_draw.py::_INDEBTED_ELECTRICITY_ACCOUNTS":
         "ofgem_electricity_arrears_plus_repaying",
+    # Landed unclassified by 93d1babc87, which red this census for every later commit that touched
+    # a module it imports. Pinned (2026-11-24), not charged to the ratchet: the five ONS editions
+    # were re-fetched and their zip hashes equal the K8 page's.
+    "company/crm/contact_centre_staffing.py::ASHE_CALL_CENTRE_MEDIAN_GBP_PER_HOUR":
+        "ons_ashe_soc7211_median_gbp_per_hour",
 }
 
 # status "published_unpinned": a real publication exists; no commons pin yet. RATCHETED DOWN.
@@ -543,6 +549,10 @@ def _expected_for(conversion: str, asserted_only: bool = True) -> tuple[dict[int
     if conversion == "ofgem_electricity_arrears_plus_repaying":
         return {int(e["year"]): e["in_arrears_no_plan"] + e["repaying_on_plan"]
                 for e in _load_commons(INDEBTED_ACCOUNTS_COMMONS, "accounts")
+                if not asserted_only or e["provenance"] == "primary"}, 0.0
+    if conversion == "ons_ashe_soc7211_median_gbp_per_hour":
+        return {int(e["year"]): float(e["median_gbp_per_hour"])
+                for e in _load_commons(ASHE_CALL_CENTRE_COMMONS, "editions")
                 if not asserted_only or e["provenance"] == "primary"}, 0.0
     raise ValueError(f"unknown conversion: {conversion!r}")
 

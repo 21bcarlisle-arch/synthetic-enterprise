@@ -378,3 +378,26 @@ Also landed: `tests/simulation/test_net_new_acquisition.py`'s campaign-size pins
 (§9). This gap is wider before 2021. (2) The MSC, in its own lane. (3) Pre-register, delete
 `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world. (4) The renewal chain still
 strikes on the spot-led forward, with no opex line.
+
+## 2026-11-24: §9's losses question is answered by the record and built off; shape is still open
+
+§9 asked whether the world should settle supplier volume grossed up for losses. It should: BSC
+settlement does, through LLF × TLM. The size was already on the knowledge page
+(`regional_supply_cost_under_one_national_price_2026-10-25.md` §3b, GB median 1.090–1.121 over the
+run). Its finding, `SEAT_FINDING_THE_WORLD_SETTLES_METERED_KWH_AND_NO_LOSSES_…_2026-10-25.md`, is
+now built behind `SETTLEMENT_LOSSES_APPLIED`, off and pre-registered
+(`docs/staging/records/SEAT_PREREG_THE_WORLD_SETTLES_ELECTRICITY_LOSSES_2026-11-24.md`). Taken, it
+adds about 9–11% to the world's electricity energy cost. **The strike does not price losses**, so on
+its own the switch widens the strike's undercut of cost; the company's loss line is owed beside it.
+
+**Shape is not addressed.** DF carries shape, imbalance and transaction cost; the strike carries a
+baseload ladder.
+
+**Still owed, in order:**
+1. Shape on the wholesale line.
+2. The company's loss line in the strike.
+3. The MSC, in its own lane.
+4. Contract the first term at the strike quoted.
+5. Flip the hold.
+6. The losses switch, alone, against the hold's book.
+

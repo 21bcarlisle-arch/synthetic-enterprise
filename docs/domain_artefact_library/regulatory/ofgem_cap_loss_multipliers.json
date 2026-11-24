@@ -1,0 +1,1478 @@
+{
+ "artefact": "ofgem_cap_loss_multipliers",
+ "version": 1,
+ "published_by": "Ofgem (Default Tariff Cap, Annex 3 network cost allowance methodology, electricity)",
+ "source": {
+  "url": "https://www.ofgem.gov.uk/sites/default/files/2026-08/Annex-3-network-cost-allowance-methodology-electricity-v1.25.xlsx",
+  "version": "v1.25",
+  "sha256": "36bced6c48cf6c63bd5b3d0cc892a855a51c0e588e01d11a0f82fc14552f5ff3",
+  "sheet": "3b Losses",
+  "rows": "section 2 'Transmission and distribution (BSUoS)': single rate rows 53-66, multi-register rows 67-80; header rows 50-52",
+  "read": "2026-11-24"
+ },
+ "source_check": {
+  "publication": "Ofgem Default Tariff Cap, Annex 3 network cost allowance methodology, electricity, Annex-3-network-cost-allowance-methodology-electricity-v1.25.xlsx, sheet '3b Losses'",
+  "url": "https://www.ofgem.gov.uk/energy-regulation/domestic-and-non-domestic/energy-pricing-rules/energy-price-cap/energy-price-cap-default-tariff-levels",
+  "fetched": "2026-11-24",
+  "version_token": "v1.25",
+  "version_token_is": "in_filename_only",
+  "derived": "2026-11-24, from the workbook at source.url (sha256 in source.sha256, matching the one docs/market_research/regional_supply_cost_under_one_national_price_2026-10-25.md recorded on 2026-10-25), section 2 rows 50-80, by /var/tmp/se-losses-probe/build_artefact.py (outside the repo). Cross-check: the GB medians reproduce that page's section 3b table (1.095 in 2016/17, 1.121 in Apr-Sep 2025).",
+  "how_to_recheck": "The URL above is the version-history page, not the workbook. GET it and take the HIGHEST v<major>.<minor> across every link matching Annex[-_]3[-_].*(elec|electricity).*\\.xlsx; the series is published under several stems (Network-cost-allowance-methodology-elec, network-cost-allowance-methodology-electricity, Annex_3_-_...). If the highest is above `version_token`, the loss multipliers here were read from a superseded workbook. A later edition adds columns and can restate the historical ones.",
+  "checked_for_supersession": {
+   "on": "2026-11-24",
+   "found": "current",
+   "note": "Asked 2026-11-24: the page lists electricity Annex 3 editions v1.15, v1.16, v1.20, v1.22, v1.23 and v1.25; the highest is v1.25, the one read."
+  }
+ },
+ "what_this_is": "The demand-weighted transmission-and-distribution loss multiplier per Charge Restriction Region and cap period: the energy a supplier is settled on, per unit recorded at a domestic meter. Settlement grosses metered volume up by the DNO's Line Loss Factor and the (zonal since BSC P350, 1 Apr 2018) Transmission Loss Multiplier; this is Ofgem's demand-weighted summary of the two for the cap's benchmark customer.",
+ "basis": {
+  "illustrative_only": "Columns before December 2018 sit under Ofgem's heading 'Historical examples. These are for historical periods, for illustration only.' They are Ofgem's own back-cast and the best published estimate for 2015-2018; a reader states that.",
+  "overlaps_trimmed": "Ofgem's columns overlap twice: 'October 2018 - March 2019' with 'December 2018 - March 2019', and 'April 2023 - September 2023' with 'July 2023 - September 2023'. Each overlap is cut so the later column governs from its own start; the overlapping values are identical in both cases.",
+  "gb_median": "The median of the 14 regions, computed here, not published by Ofgem. A national reader uses it until the world maps an address to a GSP group.",
+  "gcf": "From the November 2025 update Ofgem folds a GB-average two-year GSP Group Correction uplift into these multipliers (docs/market_research/regional_supply_cost_under_one_national_price_2026-10-25.md section 3b). Earlier columns carry LLF and TLM only.",
+  "not_covered": "Before April 2015 and after December 2026: no column. Non-domestic metering: not in the cap model (GAP)."
+ },
+ "knowledge": "docs/market_research/regional_supply_cost_under_one_national_price_2026-10-25.md",
+ "periods": [
+  {
+   "cap_period": "April 2015 – September 2015",
+   "starts": "2015-04-01",
+   "ends_before": "2015-10-01",
+   "workbook_column": 6,
+   "illustrative_only": true,
+   "single_rate": {
+    "gb_median": 1.094866,
+    "by_region": {
+     "Eastern": 1.108275,
+     "East Midlands": 1.083799,
+     "London": 1.094879,
+     "N Wales and Mersey": 1.10824,
+     "Midlands": 1.086078,
+     "Northern": 1.094852,
+     "North West": 1.099948,
+     "Southern": 1.080993,
+     "South East": 1.093463,
+     "South Wales": 1.087313,
+     "Southern Western": 1.069364,
+     "Yorkshire": 1.108997,
+     "Southern Scotland": 1.1016,
+     "Northern Scotland": 1.101989
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.092653,
+    "by_region": {
+     "Eastern": 1.106298,
+     "East Midlands": 1.083265,
+     "London": 1.092622,
+     "N Wales and Mersey": 1.105168,
+     "Midlands": 1.084872,
+     "Northern": 1.092685,
+     "North West": 1.098677,
+     "Southern": 1.080411,
+     "South East": 1.090592,
+     "South Wales": 1.086477,
+     "Southern Western": 1.069312,
+     "Yorkshire": 1.106364,
+     "Southern Scotland": 1.099061,
+     "Northern Scotland": 1.102284
+    }
+   }
+  },
+  {
+   "cap_period": "October 2015- March 2016",
+   "starts": "2015-10-01",
+   "ends_before": "2016-04-01",
+   "workbook_column": 7,
+   "illustrative_only": true,
+   "single_rate": {
+    "gb_median": 1.094866,
+    "by_region": {
+     "Eastern": 1.108275,
+     "East Midlands": 1.083799,
+     "London": 1.094879,
+     "N Wales and Mersey": 1.10824,
+     "Midlands": 1.086078,
+     "Northern": 1.094852,
+     "North West": 1.099948,
+     "Southern": 1.080993,
+     "South East": 1.093463,
+     "South Wales": 1.087313,
+     "Southern Western": 1.069364,
+     "Yorkshire": 1.108997,
+     "Southern Scotland": 1.1016,
+     "Northern Scotland": 1.101989
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.092653,
+    "by_region": {
+     "Eastern": 1.106298,
+     "East Midlands": 1.083265,
+     "London": 1.092622,
+     "N Wales and Mersey": 1.105168,
+     "Midlands": 1.084872,
+     "Northern": 1.092685,
+     "North West": 1.098677,
+     "Southern": 1.080411,
+     "South East": 1.090592,
+     "South Wales": 1.086477,
+     "Southern Western": 1.069312,
+     "Yorkshire": 1.106364,
+     "Southern Scotland": 1.099061,
+     "Northern Scotland": 1.102284
+    }
+   }
+  },
+  {
+   "cap_period": "April 2016-September 2016",
+   "starts": "2016-04-01",
+   "ends_before": "2016-10-01",
+   "workbook_column": 8,
+   "illustrative_only": true,
+   "single_rate": {
+    "gb_median": 1.094866,
+    "by_region": {
+     "Eastern": 1.108275,
+     "East Midlands": 1.083799,
+     "London": 1.094879,
+     "N Wales and Mersey": 1.10824,
+     "Midlands": 1.086078,
+     "Northern": 1.094852,
+     "North West": 1.099948,
+     "Southern": 1.080993,
+     "South East": 1.093463,
+     "South Wales": 1.087313,
+     "Southern Western": 1.069364,
+     "Yorkshire": 1.108997,
+     "Southern Scotland": 1.1016,
+     "Northern Scotland": 1.101989
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.092653,
+    "by_region": {
+     "Eastern": 1.106298,
+     "East Midlands": 1.083265,
+     "London": 1.092622,
+     "N Wales and Mersey": 1.105168,
+     "Midlands": 1.084872,
+     "Northern": 1.092685,
+     "North West": 1.098677,
+     "Southern": 1.080411,
+     "South East": 1.090592,
+     "South Wales": 1.086477,
+     "Southern Western": 1.069312,
+     "Yorkshire": 1.106364,
+     "Southern Scotland": 1.099061,
+     "Northern Scotland": 1.102284
+    }
+   }
+  },
+  {
+   "cap_period": "October 2016-March 2017",
+   "starts": "2016-10-01",
+   "ends_before": "2017-04-01",
+   "workbook_column": 9,
+   "illustrative_only": true,
+   "single_rate": {
+    "gb_median": 1.094866,
+    "by_region": {
+     "Eastern": 1.108275,
+     "East Midlands": 1.083799,
+     "London": 1.094879,
+     "N Wales and Mersey": 1.10824,
+     "Midlands": 1.086078,
+     "Northern": 1.094852,
+     "North West": 1.099948,
+     "Southern": 1.080993,
+     "South East": 1.093463,
+     "South Wales": 1.087313,
+     "Southern Western": 1.069364,
+     "Yorkshire": 1.108997,
+     "Southern Scotland": 1.1016,
+     "Northern Scotland": 1.101989
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.092653,
+    "by_region": {
+     "Eastern": 1.106298,
+     "East Midlands": 1.083265,
+     "London": 1.092622,
+     "N Wales and Mersey": 1.105168,
+     "Midlands": 1.084872,
+     "Northern": 1.092685,
+     "North West": 1.098677,
+     "Southern": 1.080411,
+     "South East": 1.090592,
+     "South Wales": 1.086477,
+     "Southern Western": 1.069312,
+     "Yorkshire": 1.106364,
+     "Southern Scotland": 1.099061,
+     "Northern Scotland": 1.102284
+    }
+   }
+  },
+  {
+   "cap_period": "April 2017 - September 2017",
+   "starts": "2017-04-01",
+   "ends_before": "2017-10-01",
+   "workbook_column": 10,
+   "illustrative_only": true,
+   "single_rate": {
+    "gb_median": 1.094866,
+    "by_region": {
+     "Eastern": 1.108275,
+     "East Midlands": 1.083799,
+     "London": 1.094879,
+     "N Wales and Mersey": 1.10824,
+     "Midlands": 1.086078,
+     "Northern": 1.094852,
+     "North West": 1.099948,
+     "Southern": 1.080993,
+     "South East": 1.093463,
+     "South Wales": 1.087313,
+     "Southern Western": 1.069364,
+     "Yorkshire": 1.108997,
+     "Southern Scotland": 1.1016,
+     "Northern Scotland": 1.101989
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.092653,
+    "by_region": {
+     "Eastern": 1.106298,
+     "East Midlands": 1.083265,
+     "London": 1.092622,
+     "N Wales and Mersey": 1.105168,
+     "Midlands": 1.084872,
+     "Northern": 1.092685,
+     "North West": 1.098677,
+     "Southern": 1.080411,
+     "South East": 1.090592,
+     "South Wales": 1.086477,
+     "Southern Western": 1.069312,
+     "Yorkshire": 1.106364,
+     "Southern Scotland": 1.099061,
+     "Northern Scotland": 1.102284
+    }
+   }
+  },
+  {
+   "cap_period": "October 2017 - March 2018",
+   "starts": "2017-10-01",
+   "ends_before": "2018-04-01",
+   "workbook_column": 11,
+   "illustrative_only": true,
+   "single_rate": {
+    "gb_median": 1.094866,
+    "by_region": {
+     "Eastern": 1.108275,
+     "East Midlands": 1.083799,
+     "London": 1.094879,
+     "N Wales and Mersey": 1.10824,
+     "Midlands": 1.086078,
+     "Northern": 1.094852,
+     "North West": 1.099948,
+     "Southern": 1.080993,
+     "South East": 1.093463,
+     "South Wales": 1.087313,
+     "Southern Western": 1.069364,
+     "Yorkshire": 1.108997,
+     "Southern Scotland": 1.1016,
+     "Northern Scotland": 1.101989
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.092653,
+    "by_region": {
+     "Eastern": 1.106298,
+     "East Midlands": 1.083265,
+     "London": 1.092622,
+     "N Wales and Mersey": 1.105168,
+     "Midlands": 1.084872,
+     "Northern": 1.092685,
+     "North West": 1.098677,
+     "Southern": 1.080411,
+     "South East": 1.090592,
+     "South Wales": 1.086477,
+     "Southern Western": 1.069312,
+     "Yorkshire": 1.106364,
+     "Southern Scotland": 1.099061,
+     "Northern Scotland": 1.102284
+    }
+   }
+  },
+  {
+   "cap_period": "April 2018 - September 2018",
+   "starts": "2018-04-01",
+   "ends_before": "2018-10-01",
+   "workbook_column": 12,
+   "illustrative_only": true,
+   "single_rate": {
+    "gb_median": 1.090099,
+    "by_region": {
+     "Eastern": 1.096294,
+     "East Midlands": 1.082613,
+     "London": 1.105705,
+     "N Wales and Mersey": 1.11373,
+     "Midlands": 1.090511,
+     "Northern": 1.077358,
+     "North West": 1.095638,
+     "Southern": 1.08723,
+     "South East": 1.089688,
+     "South Wales": 1.074696,
+     "Southern Western": 1.069907,
+     "Yorkshire": 1.091101,
+     "Southern Scotland": 1.091958,
+     "Northern Scotland": 1.079202
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.088299,
+    "by_region": {
+     "Eastern": 1.09438,
+     "East Midlands": 1.081932,
+     "London": 1.103202,
+     "N Wales and Mersey": 1.11011,
+     "Midlands": 1.089324,
+     "Northern": 1.075614,
+     "North West": 1.094034,
+     "Southern": 1.08678,
+     "South East": 1.088069,
+     "South Wales": 1.074046,
+     "Southern Western": 1.069946,
+     "Yorkshire": 1.088873,
+     "Southern Scotland": 1.08853,
+     "Northern Scotland": 1.079341
+    }
+   }
+  },
+  {
+   "cap_period": "October 2018 - March 2019",
+   "starts": "2018-10-01",
+   "ends_before": "2018-12-01",
+   "workbook_column": 13,
+   "illustrative_only": true,
+   "single_rate": {
+    "gb_median": 1.090099,
+    "by_region": {
+     "Eastern": 1.096294,
+     "East Midlands": 1.082613,
+     "London": 1.105705,
+     "N Wales and Mersey": 1.11373,
+     "Midlands": 1.090511,
+     "Northern": 1.077358,
+     "North West": 1.095638,
+     "Southern": 1.08723,
+     "South East": 1.089688,
+     "South Wales": 1.074696,
+     "Southern Western": 1.069907,
+     "Yorkshire": 1.091101,
+     "Southern Scotland": 1.091958,
+     "Northern Scotland": 1.079202
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.088299,
+    "by_region": {
+     "Eastern": 1.09438,
+     "East Midlands": 1.081932,
+     "London": 1.103202,
+     "N Wales and Mersey": 1.11011,
+     "Midlands": 1.089324,
+     "Northern": 1.075614,
+     "North West": 1.094034,
+     "Southern": 1.08678,
+     "South East": 1.088069,
+     "South Wales": 1.074046,
+     "Southern Western": 1.069946,
+     "Yorkshire": 1.088873,
+     "Southern Scotland": 1.08853,
+     "Northern Scotland": 1.079341
+    }
+   }
+  },
+  {
+   "cap_period": "December 2018 - March 2019",
+   "starts": "2018-12-01",
+   "ends_before": "2019-04-01",
+   "workbook_column": 15,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.090099,
+    "by_region": {
+     "Eastern": 1.096294,
+     "East Midlands": 1.082613,
+     "London": 1.105705,
+     "N Wales and Mersey": 1.11373,
+     "Midlands": 1.090511,
+     "Northern": 1.077358,
+     "North West": 1.095638,
+     "Southern": 1.08723,
+     "South East": 1.089688,
+     "South Wales": 1.074696,
+     "Southern Western": 1.069907,
+     "Yorkshire": 1.091101,
+     "Southern Scotland": 1.091958,
+     "Northern Scotland": 1.079202
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.088299,
+    "by_region": {
+     "Eastern": 1.09438,
+     "East Midlands": 1.081932,
+     "London": 1.103202,
+     "N Wales and Mersey": 1.11011,
+     "Midlands": 1.089324,
+     "Northern": 1.075614,
+     "North West": 1.094034,
+     "Southern": 1.08678,
+     "South East": 1.088069,
+     "South Wales": 1.074046,
+     "Southern Western": 1.069946,
+     "Yorkshire": 1.088873,
+     "Southern Scotland": 1.08853,
+     "Northern Scotland": 1.079341
+    }
+   }
+  },
+  {
+   "cap_period": "April 2019 - September 2019",
+   "starts": "2019-04-01",
+   "ends_before": "2019-10-01",
+   "workbook_column": 16,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.092211,
+    "by_region": {
+     "Eastern": 1.102088,
+     "East Midlands": 1.080746,
+     "London": 1.107757,
+     "N Wales and Mersey": 1.116123,
+     "Midlands": 1.092847,
+     "Northern": 1.072497,
+     "North West": 1.09679,
+     "Southern": 1.09102,
+     "South East": 1.093212,
+     "South Wales": 1.083265,
+     "Southern Western": 1.081756,
+     "Yorkshire": 1.091666,
+     "Southern Scotland": 1.092757,
+     "Northern Scotland": 1.068984
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.090172,
+    "by_region": {
+     "Eastern": 1.099405,
+     "East Midlands": 1.080068,
+     "London": 1.10442,
+     "N Wales and Mersey": 1.112076,
+     "Midlands": 1.091655,
+     "Northern": 1.071426,
+     "North West": 1.095019,
+     "Southern": 1.090616,
+     "South East": 1.090889,
+     "South Wales": 1.082881,
+     "Southern Western": 1.081939,
+     "Yorkshire": 1.089571,
+     "Southern Scotland": 1.089729,
+     "Northern Scotland": 1.069181
+    }
+   }
+  },
+  {
+   "cap_period": "October 2019 - March 2020",
+   "starts": "2019-10-01",
+   "ends_before": "2020-04-01",
+   "workbook_column": 17,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.09283,
+    "by_region": {
+     "Eastern": 1.102087,
+     "East Midlands": 1.080749,
+     "London": 1.107754,
+     "N Wales and Mersey": 1.116177,
+     "Midlands": 1.092852,
+     "Northern": 1.072513,
+     "North West": 1.09682,
+     "Southern": 1.095872,
+     "South East": 1.093208,
+     "South Wales": 1.083256,
+     "Southern Western": 1.081745,
+     "Yorkshire": 1.09169,
+     "Southern Scotland": 1.092809,
+     "Northern Scotland": 1.064014
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.090199,
+    "by_region": {
+     "Eastern": 1.099284,
+     "East Midlands": 1.080036,
+     "London": 1.104282,
+     "N Wales and Mersey": 1.111911,
+     "Midlands": 1.091609,
+     "Northern": 1.071386,
+     "North West": 1.094946,
+     "Southern": 1.095074,
+     "South East": 1.09079,
+     "South Wales": 1.082866,
+     "Southern Western": 1.081946,
+     "Yorkshire": 1.089482,
+     "Southern Scotland": 1.089608,
+     "Northern Scotland": 1.064393
+    }
+   }
+  },
+  {
+   "cap_period": "April 2020 - September 2020",
+   "starts": "2020-04-01",
+   "ends_before": "2020-10-01",
+   "workbook_column": 18,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.095341,
+    "by_region": {
+     "Eastern": 1.100809,
+     "East Midlands": 1.082559,
+     "London": 1.109937,
+     "N Wales and Mersey": 1.120105,
+     "Midlands": 1.10001,
+     "Northern": 1.069765,
+     "North West": 1.091819,
+     "Southern": 1.099069,
+     "South East": 1.09964,
+     "South Wales": 1.084254,
+     "Southern Western": 1.086068,
+     "Yorkshire": 1.098863,
+     "Southern Scotland": 1.089496,
+     "Northern Scotland": 1.055159
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.092869,
+    "by_region": {
+     "Eastern": 1.09809,
+     "East Midlands": 1.081793,
+     "London": 1.106407,
+     "N Wales and Mersey": 1.115649,
+     "Midlands": 1.098639,
+     "Northern": 1.068804,
+     "North West": 1.089494,
+     "Southern": 1.098042,
+     "South East": 1.096905,
+     "South Wales": 1.08425,
+     "Southern Western": 1.086033,
+     "Yorkshire": 1.096244,
+     "Southern Scotland": 1.086144,
+     "Northern Scotland": 1.055524
+    }
+   }
+  },
+  {
+   "cap_period": "October 2020 - March 2021",
+   "starts": "2020-10-01",
+   "ends_before": "2021-04-01",
+   "workbook_column": 19,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.095369,
+    "by_region": {
+     "Eastern": 1.100855,
+     "East Midlands": 1.082567,
+     "London": 1.109985,
+     "N Wales and Mersey": 1.120162,
+     "Midlands": 1.100025,
+     "Northern": 1.069771,
+     "North West": 1.091843,
+     "Southern": 1.102944,
+     "South East": 1.099691,
+     "South Wales": 1.084258,
+     "Southern Western": 1.086077,
+     "Yorkshire": 1.098896,
+     "Southern Scotland": 1.089535,
+     "Northern Scotland": 1.064028
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.092786,
+    "by_region": {
+     "Eastern": 1.098002,
+     "East Midlands": 1.081778,
+     "London": 1.106289,
+     "N Wales and Mersey": 1.11551,
+     "Midlands": 1.09861,
+     "Northern": 1.068767,
+     "North West": 1.089407,
+     "Southern": 1.101699,
+     "South East": 1.096816,
+     "South Wales": 1.084259,
+     "Southern Western": 1.086039,
+     "Yorkshire": 1.096165,
+     "Southern Scotland": 1.085989,
+     "Northern Scotland": 1.064735
+    }
+   }
+  },
+  {
+   "cap_period": "April 2021 - September 2021",
+   "starts": "2021-04-01",
+   "ends_before": "2021-10-01",
+   "workbook_column": 20,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.094895,
+    "by_region": {
+     "Eastern": 1.102371,
+     "East Midlands": 1.083585,
+     "London": 1.113608,
+     "N Wales and Mersey": 1.120658,
+     "Midlands": 1.103242,
+     "Northern": 1.066918,
+     "North West": 1.085817,
+     "Southern": 1.109938,
+     "South East": 1.103747,
+     "South Wales": 1.09201,
+     "Southern Western": 1.091421,
+     "Yorkshire": 1.094994,
+     "Southern Scotland": 1.094795,
+     "Northern Scotland": 1.063982
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.092411,
+    "by_region": {
+     "Eastern": 1.099756,
+     "East Midlands": 1.083001,
+     "London": 1.110341,
+     "N Wales and Mersey": 1.116322,
+     "Midlands": 1.101998,
+     "Northern": 1.065671,
+     "North West": 1.083992,
+     "Southern": 1.108951,
+     "South East": 1.101304,
+     "South Wales": 1.092353,
+     "Southern Western": 1.091664,
+     "Yorkshire": 1.09247,
+     "Southern Scotland": 1.090829,
+     "Northern Scotland": 1.064073
+    }
+   }
+  },
+  {
+   "cap_period": "October 2021 - March 2022",
+   "starts": "2021-10-01",
+   "ends_before": "2022-04-01",
+   "workbook_column": 21,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.09482,
+    "by_region": {
+     "Eastern": 1.10236,
+     "East Midlands": 1.083566,
+     "London": 1.113613,
+     "N Wales and Mersey": 1.120578,
+     "Midlands": 1.103206,
+     "Northern": 1.06688,
+     "North West": 1.085776,
+     "Southern": 1.107674,
+     "South East": 1.103738,
+     "South Wales": 1.092016,
+     "Southern Western": 1.091431,
+     "Yorkshire": 1.094933,
+     "Southern Scotland": 1.094707,
+     "Northern Scotland": 1.070601
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.092396,
+    "by_region": {
+     "Eastern": 1.099749,
+     "East Midlands": 1.082987,
+     "London": 1.110325,
+     "N Wales and Mersey": 1.116296,
+     "Midlands": 1.101957,
+     "Northern": 1.065679,
+     "North West": 1.084008,
+     "Southern": 1.106913,
+     "South East": 1.101267,
+     "South Wales": 1.092337,
+     "Southern Western": 1.091631,
+     "Yorkshire": 1.092456,
+     "Southern Scotland": 1.09085,
+     "Northern Scotland": 1.070878
+    }
+   }
+  },
+  {
+   "cap_period": "April 2022 - September 2022",
+   "starts": "2022-04-01",
+   "ends_before": "2022-10-01",
+   "workbook_column": 22,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.10009,
+    "by_region": {
+     "Eastern": 1.103643,
+     "East Midlands": 1.083655,
+     "London": 1.117728,
+     "N Wales and Mersey": 1.130391,
+     "Midlands": 1.10542,
+     "Northern": 1.07269,
+     "North West": 1.089959,
+     "Southern": 1.102288,
+     "South East": 1.104293,
+     "South Wales": 1.097892,
+     "Southern Western": 1.087174,
+     "Yorkshire": 1.096651,
+     "Southern Scotland": 1.10863,
+     "Northern Scotland": 1.082652
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.099588,
+    "by_region": {
+     "Eastern": 1.100912,
+     "East Midlands": 1.083059,
+     "London": 1.114038,
+     "N Wales and Mersey": 1.125368,
+     "Midlands": 1.104156,
+     "Northern": 1.071394,
+     "North West": 1.088051,
+     "Southern": 1.101718,
+     "South East": 1.101595,
+     "South Wales": 1.098264,
+     "Southern Western": 1.087795,
+     "Yorkshire": 1.093682,
+     "Southern Scotland": 1.104542,
+     "Northern Scotland": 1.082916
+    }
+   }
+  },
+  {
+   "cap_period": "October 2022 - March 2023",
+   "starts": "2022-10-01",
+   "ends_before": "2023-04-01",
+   "workbook_column": 23,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.099875,
+    "by_region": {
+     "Eastern": 1.103612,
+     "East Midlands": 1.083641,
+     "London": 1.117666,
+     "N Wales and Mersey": 1.130465,
+     "Midlands": 1.105414,
+     "Northern": 1.072718,
+     "North West": 1.088085,
+     "Southern": 1.101922,
+     "South East": 1.104224,
+     "South Wales": 1.097828,
+     "Southern Western": 1.087064,
+     "Yorkshire": 1.096676,
+     "Southern Scotland": 1.108671,
+     "Northern Scotland": 1.077393
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.099775,
+    "by_region": {
+     "Eastern": 1.101322,
+     "East Midlands": 1.083157,
+     "London": 1.114562,
+     "N Wales and Mersey": 1.126107,
+     "Midlands": 1.104381,
+     "Northern": 1.0716,
+     "North West": 1.086581,
+     "Southern": 1.101387,
+     "South East": 1.101991,
+     "South Wales": 1.098227,
+     "Southern Western": 1.087704,
+     "Yorkshire": 1.094126,
+     "Southern Scotland": 1.105113,
+     "Northern Scotland": 1.077209
+    }
+   }
+  },
+  {
+   "cap_period": "April 2023 - September 2023",
+   "starts": "2023-04-01",
+   "ends_before": "2023-07-01",
+   "workbook_column": 24,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.102673,
+    "by_region": {
+     "Eastern": 1.11108,
+     "East Midlands": 1.095438,
+     "London": 1.121061,
+     "N Wales and Mersey": 1.126412,
+     "Midlands": 1.103694,
+     "Northern": 1.077798,
+     "North West": 1.078183,
+     "Southern": 1.108769,
+     "South East": 1.111876,
+     "South Wales": 1.096499,
+     "Southern Western": 1.084839,
+     "Yorkshire": 1.101652,
+     "Southern Scotland": 1.104543,
+     "Northern Scotland": 1.068984
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.10014,
+    "by_region": {
+     "Eastern": 1.108094,
+     "East Midlands": 1.09468,
+     "London": 1.11808,
+     "N Wales and Mersey": 1.12226,
+     "Midlands": 1.102609,
+     "Northern": 1.076548,
+     "North West": 1.077623,
+     "Southern": 1.107965,
+     "South East": 1.109053,
+     "South Wales": 1.096667,
+     "Southern Western": 1.085061,
+     "Yorkshire": 1.099205,
+     "Southern Scotland": 1.101074,
+     "Northern Scotland": 1.069299
+    }
+   }
+  },
+  {
+   "cap_period": "July 2023 - September 2023",
+   "starts": "2023-07-01",
+   "ends_before": "2023-10-01",
+   "workbook_column": 25,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.102673,
+    "by_region": {
+     "Eastern": 1.11108,
+     "East Midlands": 1.095438,
+     "London": 1.121061,
+     "N Wales and Mersey": 1.126412,
+     "Midlands": 1.103694,
+     "Northern": 1.077798,
+     "North West": 1.078183,
+     "Southern": 1.108769,
+     "South East": 1.111876,
+     "South Wales": 1.096499,
+     "Southern Western": 1.084839,
+     "Yorkshire": 1.101652,
+     "Southern Scotland": 1.104543,
+     "Northern Scotland": 1.068984
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.10014,
+    "by_region": {
+     "Eastern": 1.108094,
+     "East Midlands": 1.09468,
+     "London": 1.11808,
+     "N Wales and Mersey": 1.12226,
+     "Midlands": 1.102609,
+     "Northern": 1.076548,
+     "North West": 1.077623,
+     "Southern": 1.107965,
+     "South East": 1.109053,
+     "South Wales": 1.096667,
+     "Southern Western": 1.085061,
+     "Yorkshire": 1.099205,
+     "Southern Scotland": 1.101074,
+     "Northern Scotland": 1.069299
+    }
+   }
+  },
+  {
+   "cap_period": "October 2023 - December 2023",
+   "starts": "2023-10-01",
+   "ends_before": "2024-01-01",
+   "workbook_column": 26,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.102581,
+    "by_region": {
+     "Eastern": 1.110905,
+     "East Midlands": 1.095404,
+     "London": 1.120889,
+     "N Wales and Mersey": 1.12617,
+     "Midlands": 1.103642,
+     "Northern": 1.077748,
+     "North West": 1.078154,
+     "Southern": 1.108716,
+     "South East": 1.111708,
+     "South Wales": 1.096504,
+     "Southern Western": 1.084832,
+     "Yorkshire": 1.10152,
+     "Southern Scotland": 1.104358,
+     "Northern Scotland": 1.069024
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.100371,
+    "by_region": {
+     "Eastern": 1.108415,
+     "East Midlands": 1.094741,
+     "London": 1.118406,
+     "N Wales and Mersey": 1.122606,
+     "Midlands": 1.102699,
+     "Northern": 1.076615,
+     "North West": 1.077635,
+     "Southern": 1.108106,
+     "South East": 1.109409,
+     "South Wales": 1.096636,
+     "Southern Western": 1.08507,
+     "Yorkshire": 1.099411,
+     "Southern Scotland": 1.101331,
+     "Northern Scotland": 1.069166
+    }
+   }
+  },
+  {
+   "cap_period": "January 2024 - March 2024",
+   "starts": "2024-01-01",
+   "ends_before": "2024-04-01",
+   "workbook_column": 27,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.102581,
+    "by_region": {
+     "Eastern": 1.110905,
+     "East Midlands": 1.095404,
+     "London": 1.120889,
+     "N Wales and Mersey": 1.12617,
+     "Midlands": 1.103642,
+     "Northern": 1.077748,
+     "North West": 1.078154,
+     "Southern": 1.108716,
+     "South East": 1.111708,
+     "South Wales": 1.096504,
+     "Southern Western": 1.084832,
+     "Yorkshire": 1.10152,
+     "Southern Scotland": 1.104358,
+     "Northern Scotland": 1.069024
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.100371,
+    "by_region": {
+     "Eastern": 1.108415,
+     "East Midlands": 1.094741,
+     "London": 1.118406,
+     "N Wales and Mersey": 1.122606,
+     "Midlands": 1.102699,
+     "Northern": 1.076615,
+     "North West": 1.077635,
+     "Southern": 1.108106,
+     "South East": 1.109409,
+     "South Wales": 1.096636,
+     "Southern Western": 1.08507,
+     "Yorkshire": 1.099411,
+     "Southern Scotland": 1.101331,
+     "Northern Scotland": 1.069166
+    }
+   }
+  },
+  {
+   "cap_period": "April 2024 - June 2024",
+   "starts": "2024-04-01",
+   "ends_before": "2024-07-01",
+   "workbook_column": 28,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.108094,
+    "by_region": {
+     "Eastern": 1.118496,
+     "East Midlands": 1.098444,
+     "London": 1.127758,
+     "N Wales and Mersey": 1.126148,
+     "Midlands": 1.110303,
+     "Northern": 1.077083,
+     "North West": 1.0803,
+     "Southern": 1.114203,
+     "South East": 1.112991,
+     "South Wales": 1.108312,
+     "Southern Western": 1.093921,
+     "Yorkshire": 1.103325,
+     "Southern Scotland": 1.107877,
+     "Northern Scotland": 1.073436
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.106514,
+    "by_region": {
+     "Eastern": 1.11581,
+     "East Midlands": 1.097728,
+     "London": 1.124894,
+     "N Wales and Mersey": 1.123394,
+     "Midlands": 1.109157,
+     "Northern": 1.075887,
+     "North West": 1.079733,
+     "Southern": 1.113533,
+     "South East": 1.110721,
+     "South Wales": 1.108406,
+     "Southern Western": 1.094162,
+     "Yorkshire": 1.101163,
+     "Southern Scotland": 1.104623,
+     "Northern Scotland": 1.073376
+    }
+   }
+  },
+  {
+   "cap_period": "July 2024 - September 2024",
+   "starts": "2024-07-01",
+   "ends_before": "2024-10-01",
+   "workbook_column": 29,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.108094,
+    "by_region": {
+     "Eastern": 1.118496,
+     "East Midlands": 1.098444,
+     "London": 1.127758,
+     "N Wales and Mersey": 1.126148,
+     "Midlands": 1.110303,
+     "Northern": 1.077083,
+     "North West": 1.0803,
+     "Southern": 1.114203,
+     "South East": 1.112991,
+     "South Wales": 1.108312,
+     "Southern Western": 1.093921,
+     "Yorkshire": 1.103325,
+     "Southern Scotland": 1.107877,
+     "Northern Scotland": 1.073436
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.106514,
+    "by_region": {
+     "Eastern": 1.11581,
+     "East Midlands": 1.097728,
+     "London": 1.124894,
+     "N Wales and Mersey": 1.123394,
+     "Midlands": 1.109157,
+     "Northern": 1.075887,
+     "North West": 1.079733,
+     "Southern": 1.113533,
+     "South East": 1.110721,
+     "South Wales": 1.108406,
+     "Southern Western": 1.094162,
+     "Yorkshire": 1.101163,
+     "Southern Scotland": 1.104623,
+     "Northern Scotland": 1.073376
+    }
+   }
+  },
+  {
+   "cap_period": "October 2024 - December 2024",
+   "starts": "2024-10-01",
+   "ends_before": "2025-01-01",
+   "workbook_column": 30,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.109269,
+    "by_region": {
+     "Eastern": 1.118274,
+     "East Midlands": 1.098411,
+     "London": 1.127537,
+     "N Wales and Mersey": 1.126042,
+     "Midlands": 1.110249,
+     "Northern": 1.064802,
+     "North West": 1.108016,
+     "Southern": 1.113259,
+     "South East": 1.112824,
+     "South Wales": 1.10829,
+     "Southern Western": 1.09391,
+     "Yorkshire": 1.11431,
+     "Southern Scotland": 1.107833,
+     "Northern Scotland": 1.073647
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.108742,
+    "by_region": {
+     "Eastern": 1.11559,
+     "East Midlands": 1.097701,
+     "London": 1.124631,
+     "N Wales and Mersey": 1.12332,
+     "Midlands": 1.109104,
+     "Northern": 1.064156,
+     "North West": 1.105801,
+     "Southern": 1.1126,
+     "South East": 1.110583,
+     "South Wales": 1.108379,
+     "Southern Western": 1.09417,
+     "Yorkshire": 1.111506,
+     "Southern Scotland": 1.104605,
+     "Northern Scotland": 1.073605
+    }
+   }
+  },
+  {
+   "cap_period": "January 2025 - March 2025",
+   "starts": "2025-01-01",
+   "ends_before": "2025-04-01",
+   "workbook_column": 31,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.109269,
+    "by_region": {
+     "Eastern": 1.118274,
+     "East Midlands": 1.098411,
+     "London": 1.127537,
+     "N Wales and Mersey": 1.126042,
+     "Midlands": 1.110249,
+     "Northern": 1.064802,
+     "North West": 1.108016,
+     "Southern": 1.113259,
+     "South East": 1.112824,
+     "South Wales": 1.10829,
+     "Southern Western": 1.09391,
+     "Yorkshire": 1.11431,
+     "Southern Scotland": 1.107833,
+     "Northern Scotland": 1.073647
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.108742,
+    "by_region": {
+     "Eastern": 1.11559,
+     "East Midlands": 1.097701,
+     "London": 1.124631,
+     "N Wales and Mersey": 1.12332,
+     "Midlands": 1.109104,
+     "Northern": 1.064156,
+     "North West": 1.105801,
+     "Southern": 1.1126,
+     "South East": 1.110583,
+     "South Wales": 1.108379,
+     "Southern Western": 1.09417,
+     "Yorkshire": 1.111506,
+     "Southern Scotland": 1.104605,
+     "Northern Scotland": 1.073605
+    }
+   }
+  },
+  {
+   "cap_period": "April 2025 - June 2025",
+   "starts": "2025-04-01",
+   "ends_before": "2025-07-01",
+   "workbook_column": 32,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.121173,
+    "by_region": {
+     "Eastern": 1.131855,
+     "East Midlands": 1.112644,
+     "London": 1.141667,
+     "N Wales and Mersey": 1.148303,
+     "Midlands": 1.121299,
+     "Northern": 1.099915,
+     "North West": 1.119593,
+     "Southern": 1.121046,
+     "South East": 1.123907,
+     "South Wales": 1.122171,
+     "Southern Western": 1.10775,
+     "Yorkshire": 1.137352,
+     "Southern Scotland": 1.070669,
+     "Northern Scotland": 1.028791
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.120535,
+    "by_region": {
+     "Eastern": 1.129344,
+     "East Midlands": 1.112151,
+     "London": 1.138757,
+     "N Wales and Mersey": 1.144808,
+     "Midlands": 1.120379,
+     "Northern": 1.098909,
+     "North West": 1.11766,
+     "Southern": 1.120692,
+     "South East": 1.121726,
+     "South Wales": 1.122464,
+     "Southern Western": 1.108252,
+     "Yorkshire": 1.134495,
+     "Southern Scotland": 1.065881,
+     "Northern Scotland": 1.02749
+    }
+   }
+  },
+  {
+   "cap_period": "July 2025 - September 2025",
+   "starts": "2025-07-01",
+   "ends_before": "2025-10-01",
+   "workbook_column": 33,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.121173,
+    "by_region": {
+     "Eastern": 1.131855,
+     "East Midlands": 1.112644,
+     "London": 1.141667,
+     "N Wales and Mersey": 1.148303,
+     "Midlands": 1.121299,
+     "Northern": 1.099915,
+     "North West": 1.119593,
+     "Southern": 1.121046,
+     "South East": 1.123907,
+     "South Wales": 1.122171,
+     "Southern Western": 1.10775,
+     "Yorkshire": 1.137352,
+     "Southern Scotland": 1.070669,
+     "Northern Scotland": 1.028791
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.120535,
+    "by_region": {
+     "Eastern": 1.129344,
+     "East Midlands": 1.112151,
+     "London": 1.138757,
+     "N Wales and Mersey": 1.144808,
+     "Midlands": 1.120379,
+     "Northern": 1.098909,
+     "North West": 1.11766,
+     "Southern": 1.120692,
+     "South East": 1.121726,
+     "South Wales": 1.122464,
+     "Southern Western": 1.108252,
+     "Yorkshire": 1.134495,
+     "Southern Scotland": 1.065881,
+     "Northern Scotland": 1.02749
+    }
+   }
+  },
+  {
+   "cap_period": "October 2025 - December 2025",
+   "starts": "2025-10-01",
+   "ends_before": "2026-01-01",
+   "workbook_column": 34,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.112614,
+    "by_region": {
+     "Eastern": 1.121177,
+     "East Midlands": 1.102176,
+     "London": 1.131118,
+     "N Wales and Mersey": 1.137835,
+     "Midlands": 1.110987,
+     "Northern": 1.088362,
+     "North West": 1.105138,
+     "Southern": 1.1142,
+     "South East": 1.113423,
+     "South Wales": 1.111805,
+     "Southern Western": 1.097579,
+     "Yorkshire": 1.126371,
+     "Southern Scotland": 1.115957,
+     "Northern Scotland": 1.074465
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.111474,
+    "by_region": {
+     "Eastern": 1.118537,
+     "East Midlands": 1.10147,
+     "London": 1.128102,
+     "N Wales and Mersey": 1.13425,
+     "Midlands": 1.109871,
+     "Northern": 1.087135,
+     "North West": 1.103623,
+     "Southern": 1.115333,
+     "South East": 1.1111,
+     "South Wales": 1.111849,
+     "Southern Western": 1.097826,
+     "Yorkshire": 1.123397,
+     "Southern Scotland": 1.112724,
+     "Northern Scotland": 1.07261
+    }
+   }
+  },
+  {
+   "cap_period": "January 2026 - March 2026",
+   "starts": "2026-01-01",
+   "ends_before": "2026-04-01",
+   "workbook_column": 35,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.131324,
+    "by_region": {
+     "Eastern": 1.139887,
+     "East Midlands": 1.120886,
+     "London": 1.149828,
+     "N Wales and Mersey": 1.156545,
+     "Midlands": 1.129698,
+     "Northern": 1.107072,
+     "North West": 1.123849,
+     "Southern": 1.13291,
+     "South East": 1.132133,
+     "South Wales": 1.130515,
+     "Southern Western": 1.116289,
+     "Yorkshire": 1.145082,
+     "Southern Scotland": 1.134667,
+     "Northern Scotland": 1.093175
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.130185,
+    "by_region": {
+     "Eastern": 1.137247,
+     "East Midlands": 1.12018,
+     "London": 1.146812,
+     "N Wales and Mersey": 1.15296,
+     "Midlands": 1.128582,
+     "Northern": 1.105845,
+     "North West": 1.122334,
+     "Southern": 1.134044,
+     "South East": 1.129811,
+     "South Wales": 1.130559,
+     "Southern Western": 1.116536,
+     "Yorkshire": 1.142107,
+     "Southern Scotland": 1.131434,
+     "Northern Scotland": 1.09132
+    }
+   }
+  },
+  {
+   "cap_period": "April 2026 - June 2026",
+   "starts": "2026-04-01",
+   "ends_before": "2026-07-01",
+   "workbook_column": 36,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.133557,
+    "by_region": {
+     "Eastern": 1.143424,
+     "East Midlands": 1.118808,
+     "London": 1.151289,
+     "N Wales and Mersey": 1.166797,
+     "Midlands": 1.13509,
+     "Northern": 1.107306,
+     "North West": 1.121024,
+     "Southern": 1.132024,
+     "South East": 1.138201,
+     "South Wales": 1.130236,
+     "Southern Western": 1.115049,
+     "Yorkshire": 1.154527,
+     "Southern Scotland": 1.14673,
+     "Northern Scotland": 1.090215
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.133838,
+    "by_region": {
+     "Eastern": 1.140919,
+     "East Midlands": 1.11817,
+     "London": 1.14833,
+     "N Wales and Mersey": 1.162632,
+     "Midlands": 1.13442,
+     "Northern": 1.105621,
+     "North West": 1.1195,
+     "Southern": 1.133256,
+     "South East": 1.13594,
+     "South Wales": 1.130456,
+     "Southern Western": 1.115354,
+     "Yorkshire": 1.150953,
+     "Southern Scotland": 1.142868,
+     "Northern Scotland": 1.087952
+    }
+   }
+  },
+  {
+   "cap_period": "July 2026 - September 2026",
+   "starts": "2026-07-01",
+   "ends_before": "2026-10-01",
+   "workbook_column": 37,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.133557,
+    "by_region": {
+     "Eastern": 1.143424,
+     "East Midlands": 1.118808,
+     "London": 1.151289,
+     "N Wales and Mersey": 1.166797,
+     "Midlands": 1.13509,
+     "Northern": 1.107306,
+     "North West": 1.121024,
+     "Southern": 1.132024,
+     "South East": 1.138201,
+     "South Wales": 1.130236,
+     "Southern Western": 1.115049,
+     "Yorkshire": 1.154527,
+     "Southern Scotland": 1.14673,
+     "Northern Scotland": 1.090215
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.133838,
+    "by_region": {
+     "Eastern": 1.140919,
+     "East Midlands": 1.11817,
+     "London": 1.14833,
+     "N Wales and Mersey": 1.162632,
+     "Midlands": 1.13442,
+     "Northern": 1.105621,
+     "North West": 1.1195,
+     "Southern": 1.133256,
+     "South East": 1.13594,
+     "South Wales": 1.130456,
+     "Southern Western": 1.115354,
+     "Yorkshire": 1.150953,
+     "Southern Scotland": 1.142868,
+     "Northern Scotland": 1.087952
+    }
+   }
+  },
+  {
+   "cap_period": "October 2026 - December 2026",
+   "starts": "2026-10-01",
+   "ends_before": "2027-01-01",
+   "workbook_column": 38,
+   "illustrative_only": false,
+   "single_rate": {
+    "gb_median": 1.132884,
+    "by_region": {
+     "Eastern": 1.143648,
+     "East Midlands": 1.119033,
+     "London": 1.151517,
+     "N Wales and Mersey": 1.166973,
+     "Midlands": 1.135299,
+     "Northern": 1.107527,
+     "North West": 1.130121,
+     "Southern": 1.121476,
+     "South East": 1.138429,
+     "South Wales": 1.130469,
+     "Southern Western": 1.115297,
+     "Yorkshire": 1.154707,
+     "Southern Scotland": 1.146921,
+     "Northern Scotland": 1.076429
+    }
+   },
+   "multi_register": {
+    "gb_median": 1.132667,
+    "by_region": {
+     "Eastern": 1.14115,
+     "East Midlands": 1.118401,
+     "London": 1.148568,
+     "N Wales and Mersey": 1.162819,
+     "Midlands": 1.134638,
+     "Northern": 1.105845,
+     "North West": 1.128165,
+     "Southern": 1.122952,
+     "South East": 1.13618,
+     "South Wales": 1.130696,
+     "Southern Western": 1.115611,
+     "Yorkshire": 1.151144,
+     "Southern Scotland": 1.143077,
+     "Northern Scotland": 1.076638
+    }
+   }
+  }
+ ]
+}

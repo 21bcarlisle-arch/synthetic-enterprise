@@ -1,0 +1,80 @@
+{
+ "artefact": "ons_ashe_call_centre_median_hourly_pay",
+ "version": 1,
+ "published_by": "Office for National Statistics, Annual Survey of Hours and Earnings (ASHE), Table 14",
+ "what_this_is": "Median gross hourly pay excluding overtime, UK, all employees, for SOC 7211 'Call and contact centre occupations', one revised edition per year fetched. The labour price a supplier's phone desk pays.",
+ "basis": {
+  "soc_break": "SOC 2010 to 2019, SOC 2020 from 2022. The two codes for 7211 are not identical populations; the series is not spliced here.",
+  "not_fetched": "2017, 2018, 2020, 2021, 2023. A reader interpolating between editions states it (company/crm/contact_centre_staffing.wage_gbp_per_hour does, as a SIMPLIFICATION)."
+ },
+ "provenance_legend": {
+  "primary": "read from the ONS workbook itself, zip hash recorded"
+ },
+ "knowledge": "docs/market_research/contact_centre_staffing_cost_and_call_wait_gb_energy_2026-11-21.md",
+ "editions": [
+  {
+   "year": 2016,
+   "median_gbp_per_hour": 8.72,
+   "soc_basis": "SOC 2010",
+   "edition": "2016 revised",
+   "zip": "2016revised/table142016revised.zip",
+   "zip_sha256": "5af3e966fcae730318a6f3fe9c4cdeede327b7d7cd28204ed1c36adf58b8a193",
+   "read_from": "Table 14.6a (hourly pay excluding overtime), sheet 'All', row code 7211, column 'Median'",
+   "provenance": "primary"
+  },
+  {
+   "year": 2019,
+   "median_gbp_per_hour": 9.38,
+   "soc_basis": "SOC 2010",
+   "edition": "2019 revised",
+   "zip": "2019revised/table142019revised.zip",
+   "zip_sha256": "97724cd9d30f74a824cf154ab6efc3567aff3d41a4ed749bbdb89006fb77d25b",
+   "read_from": "Table 14.6a (hourly pay excluding overtime), sheet 'All', row code 7211, column 'Median'",
+   "provenance": "primary"
+  },
+  {
+   "year": 2022,
+   "median_gbp_per_hour": 11.27,
+   "soc_basis": "SOC 2020",
+   "edition": "2022 revised",
+   "zip": "2022revised/ashetable142022revised.zip",
+   "zip_sha256": "5d300c5ba9709e16c4730829d83bf526bcbf32322f121646cdb026d2b2050c15",
+   "read_from": "Table 14.6a (hourly pay excluding overtime), sheet 'All', row code 7211, column 'Median'",
+   "provenance": "primary"
+  },
+  {
+   "year": 2024,
+   "median_gbp_per_hour": 13.11,
+   "soc_basis": "SOC 2020",
+   "edition": "2024 revised",
+   "zip": "2024revised/ashetable142024revised.zip",
+   "zip_sha256": "f071ed0347bc4b619f541554e8fbc763c77a1b0c0703d7200a2520bcaf69da45",
+   "read_from": "Table 14.6a (hourly pay excluding overtime), sheet 'All', row code 7211, column 'Median'",
+   "provenance": "primary"
+  },
+  {
+   "year": 2025,
+   "median_gbp_per_hour": 14.26,
+   "soc_basis": "SOC 2020",
+   "edition": "2025 revised",
+   "zip": "2025revised/ashetable142025revised.zip",
+   "zip_sha256": "adc021c5e7ded6fb8ca33361b4bf760061431d7de4c3a11e19358afa4277ab6c",
+   "read_from": "Table 14.6a (hourly pay excluding overtime), sheet 'All', row code 7211, column 'Median'",
+   "provenance": "primary"
+  }
+ ],
+ "source_check": {
+  "publication": "ONS ASHE Table 14 (occupation by 4-digit SOC), revised editions 2016, 2019, 2022, 2024 and 2025",
+  "url": "https://www.ons.gov.uk/file?uri=/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/occupation4digitsoc2010ashetable14/2025revised/ashetable142025revised.zip",
+  "fetched": "2026-11-24",
+  "version_token": "2025revised",
+  "version_token_is": "in_url",
+  "derived": "2026-11-24, re-fetched from the five zip URLs in `editions`; every zip's sha256 equals the one the knowledge page recorded on 2026-11-21, and every median equals company/crm/contact_centre_staffing.ASHE_CALL_CENTRE_MEDIAN_GBP_PER_HOUR.",
+  "how_to_recheck": "GET the dataset page https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/occupation4digitsoc2010ashetable14 and list every <year>(provisional|revised)/...zip link. ONS publishes each year provisional, then revised a year later. A year already held here appearing under a later revision than the one in `editions` means its median may have moved; a new year is outside 2016-2025 and changes nothing held.",
+  "checked_for_supersession": {
+   "on": "2026-11-24",
+   "found": "current",
+   "note": "Asked 2026-11-24 on the dataset page: the latest links are 2025revised and 2026provisional. No year held here has a later revision; 2026 provisional is a new year outside the run's 2016-2025 window."
+  }
+ }
+}
