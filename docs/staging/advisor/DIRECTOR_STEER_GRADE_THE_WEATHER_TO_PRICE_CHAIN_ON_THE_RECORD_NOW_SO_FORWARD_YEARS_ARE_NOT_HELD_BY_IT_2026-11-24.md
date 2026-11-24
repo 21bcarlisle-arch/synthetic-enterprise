@@ -28,3 +28,24 @@
 
    Fix the largest cause, or state plainly the error that forward figures will carry, beside every figure (§3, "known error").
 4. **Place it first in the feature third** in Sunday's weekly review, or earlier if the third has room this week. It must be done before the exit test is met, so that the price model is not the next hold.
+
+## Addendum, Tue 24 Nov 05:39 GMT: carbon price and CfDs
+
+The director's words: "Carbon price? Cfds?"
+
+What the advisor found on origin:
+
+- **Carbon.** `sim/weather_price_chain.py` leaves the carbon term at 0.0. Its docstring says "adding a real UK-ETS series is future work". `sim/price_engine.py` has the term but defaults it to 0.0 in every call. Only the flat Carbon Price Support (about £18/t) is priced, in `sim/merit_order_reconstruction.py`.
+  - A real series has been sourced since 3 Aug: `docs/market_research/eu_uk_ets_carbon_price_series_2026-08-03.md`. The EU ETS series and the FX are high confidence. The UK ETS series is medium, with a caveat: the civil-penalty price is not the market price.
+  - **At a gas plant's roughly 0.37 tCO2 per MWh, a carbon price of £50-80/t adds about £20-30/MWh.** That is the size of the chain's whole £24 MAE. And it moved from about €5 in 2017 to over €80 in 2022. **Missing carbon is a leading suspect for the error**, and it will bias forward prices low wherever carbon stays high.
+- **CfDs.** The CfD levy is in the supplier's policy costs (`simulation/policy_costs.py`) as a **fixed historical table by year**, including the negative 2022 rate. That is right for the record.
+  - **It is wrong for forward years.** The CfD levy is the gap between strike and market reference price. It goes negative when wholesale prices are high, as in 2022. It must be **computed from the simulated wholesale price** and the CfD fleet's strikes and volumes, not read from a table.
+  - The same applies to any policy cost whose size depends on price.
+  - CfD and other renewable output also bids near zero in the merit order. It shapes price formation through residual demand, which the chain already uses.
+
+What is asked, added to the steer above:
+
+1. **Put carbon into the record grading as a named candidate fix:** the Carbon Price Support plus the traded allowance price (UK ETS from 2021, EU ETS before). Grade the chain with and without it, with the predicted improvement filed first. Resolve the UK ETS caveat by finding a market price series for the UK allowance (UKA), not the civil-penalty price, or state the gap.
+2. **For forward years, carbon is a drawn input like gas**, in a sourced band: DESNZ carbon value or traded-price projections. Draw it jointly with gas where the evidence supports that. Set the band by curriculum, which is the director's.
+3. **The CfD levy (and any price-dependent policy cost) becomes endogenous for forward years:** strike against the simulated reference price, times the CfD fleet's volumes. Check it on the record against LCCC's published Interim Levy Rate, including the 2022 negative. The supplier still sees only the levy as a real supplier would, not the mechanism's inside.
+4. **K8 first:** a short page on carbon pricing and CfD levy mechanics with sources, GAPs labelled.
