@@ -575,3 +575,21 @@ close it.
   the crisis the level alone beats the real shape (R pre 4.45 against 4.62, post 5.58 against 5.99).
 - **Next, still item 4:** (1) the month-mean arm, to say whether the crisis shape is seasonal (month-level) or
   day-level; (2) B1-B3 on SAP plus net export; (3) R's 2025 residual against the AGWS windows finding.
+
+## Progress, 24 Nov (worker, item 4: the net-export timescale arm, on the record)
+
+- **Pre-registered** in `5a4be139d` and promoted to origin before the run. **Result** in
+  `docs/staging/records/WORKER_RESULT_THE_NET_EXPORT_SHAPE_THE_PRICE_LEG_NEEDS_IN_THE_CRISIS_IS_SEASONAL_AND_IT_IS_2022S_SUMMER_OF_EXPORT_2026-11-24.md`.
+  Nine of nine predictions held. **Nothing in `sim/` changed.**
+- **The £2.87 crisis gain the annual level leaves is seasonal.** With net export as a day mean, R L0's crisis MAE is
+  13.30, and as a month mean 13.53, against ne's 13.29 and am's 16.16. Within the day the part is £0.01, day to
+  day £0.23, and month to month £2.63 (92%; W 86%). The biases match ne in every arm.
+- **The season is one event.** GB exported 1.3-3.0 GW from April to November 2022. In every other month of the
+  record it imported, apart from one. Outside the crisis the monthly profile makes the leg worse (R post 5.58
+  under am against 6.16 under mm). This was seen after the run and is not yet attributed.
+- **For forward years:** the forward net-flow term is the FES annual level alone. Every forward figure states that a
+  2022-type neighbour shortfall (about £2.6/MWh of crisis monthly MAE here) is outside it, until a mechanism prices
+  a neighbour's shortfall.
+- **Next, still item 4:** (1) a leave-one-year-out monthly climatology, rule (a)'s arm. It is predicted in the result
+  record to carry under a quarter of the £2.63. (2) B1-B3 on SAP plus net export. (3) R's 2025 residual against the
+  AGWS windows finding.
