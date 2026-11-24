@@ -1,0 +1,27 @@
+id: worker-finding-d48-holds-no-weather-aware-belief-about-what-an-unread-month-used
+title: D48 holds no weather-aware belief about what an unread month used, so W1_14's
+  gap cannot be defined
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_D48_HOLDS_NO_WEATHER_AWARE_BELIEF_ABOUT_WHAT_AN_UNREAD_MONTH_USED_2026-11-24.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-24T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: D_billing_metering

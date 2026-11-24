@@ -372,6 +372,20 @@ def world_l3_blocked(world_atom: dict, atoms: list, ledger: dict):
         )
 
     if not gap_measured(world_id, ledger):
+        # A row with a null gap is not the same state as no row: its writer measured the
+        # pair and found the gap undefined (e.g. the twin holds no belief to grade). The
+        # wall still holds, but its reason must carry the row's own words, or it tells
+        # the reader to go and measure something already measured.
+        entry = ledger.get(world_id) if isinstance(ledger, dict) else None
+        if isinstance(entry, dict):
+            said = entry.get("baseline") or entry.get("note") or "no reason given"
+            return (
+                True,
+                f"{world_id} targets L3 but the gap ledger's row for pair "
+                f"({world_id} <-> {twin_id}) carries no gap: {said} -- binding "
+                "rule 1: a gap must exist and be measured before L3, so the twin "
+                "must first hold a belief that can be graded.",
+            )
         return (
             True,
             f"{world_id} targets L3 but the belief-vs-truth GAP for pair "

@@ -429,6 +429,56 @@ estimate SYN-2016-396g, E2 (b), from its own year. It is a route for the D48 est
 comparison, behind a switch, and graded on a fresh run before it is chosen. Whether British Gas's
 rule is industry practice or one supplier's is still a GAP.
 
+## 12. Does any published practice weather-correct what an unread month used? (2026-11-24, D48)
+
+**Why this is asked.** The coupled-triad wall holds W1_14 (the world's weather cells for heat load)
+at L2. The gap ledger's row for W1_14 against D48 reads "none: the company holds no belief to
+grade". The company's unread-month estimate is seasonal normal and holds no weather feed for
+billing (`company/billing/unread_month_estimate.py`). So the question is whether a real supplier
+holds a weather-aware belief about what a home used, and if it does, what that belief is built from.
+No new source was read for this section. It reads §3, §5 and §11 together.
+
+**Established, from the sources above:**
+- **The bill estimate is weather-blind in every published practice found.** British Gas estimates
+  gas from the same period a year earlier (§11). That carries last year's weather, not this year's.
+  It estimates electricity from the previous period. OVO bills from the settlement EAC on the class
+  profile (§5). Neither states any correction for the weather of the month being estimated. A
+  seasonal-normal bill estimate is therefore a real supplier's practice, and the error it carries in
+  a cold or mild month is a real supplier's error too.
+- **Settlement is weather-aware, and a supplier can see the weather it uses.** The gas AQ is
+  struck with "the impact of the actual weather experienced in that period" removed (Xoserve, §3).
+  The DAF moves the daily NDM allocation with actual weather. The approved ALP and DAF files are
+  public (§3 correction, licence "for your use only"). Regional weather is published. So the inputs
+  to a weather-corrected belief about what a home used are things a real supplier can observe: the
+  home's own reads, the AQ method's weather adjustment, and the weather itself.
+
+**What this means for D48.** The missing belief is not a billing route. It is a separate estimate,
+"what this home probably used in this unread month, given the weather that month", built from the
+home's reads and published weather. It would sit beside the billed estimate, not replace it. That
+is the form the gas AQ already takes in settlement (weather stripped out at calculation, then
+restored against actual weather). Grading it against W1_14's cell weather is the gap the ledger
+row cannot define today.
+
+**GAP: whether any GB supplier weather-corrects a domestic bill estimate.** §5's GAP stands. The
+two practices found do not do so, and none found does. Two suppliers are not the industry.
+
+**GAP: what a shipper receives per meter point.** Whether a supplier receives a daily NDM
+allocation for each domestic MPRN, or only the aggregate by LDZ and EUC, is not established here.
+If it receives one per MPRN, that allocation is already a weather-aware belief the supplier holds,
+and D48 could grade it directly.
+
+**GAP: the electricity side.** Whether Elexon's NHH profile coefficients respond to actual daily
+temperature is believed, not read here. Until it is read, the D48 weather belief is built for gas
+first, where §3 establishes the method from Xoserve's own text.
+
+**Design choices, made here and why.** (1) The belief is a diagnostic beside the bill, so the
+customer is never billed on a method no published supplier uses. (2) It is built from the AQ
+method's own form (a weather-normal annual figure re-expressed against actual weather), not from a
+fitted constant, because that form is published. (3) The heating sensitivity it needs comes from
+the home's own read history. Where the history cannot separate weather from use, the belief is
+`None` with that reason, not a class-average stand-in. Filed as its own item:
+`docs/staging/WORKER_FINDING_D48_HOLDS_NO_WEATHER_AWARE_BELIEF_ABOUT_WHAT_AN_UNREAD_MONTH_USED_2026-11-24.md`.
+
 ## Sources
 
 - DESNZ, *Energy Trends Table 4.2*: https://www.gov.uk/government/statistics/gas-section-4-energy-trends (retrieved 2026-10-06, "Domestic" column, 2023–2025)

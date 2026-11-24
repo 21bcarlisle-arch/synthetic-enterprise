@@ -245,3 +245,30 @@ def test_no_live_world_atom_stepping_to_l3_is_refused_for_want_of_a_twin():
         assert ct._twin_id_for(row, atoms) == d48["id"], short
         # The pair is declared on both rows, so the map and the gate's table say the same thing.
         assert d48["id"] in row["couples_with"] and row["id"] in d48["couples_with"], short
+
+
+def test_a_null_gap_row_is_quoted_not_called_unmeasured(tmp_path):
+    """Defect: the wall said "unmeasured" for W1_14 while the ledger's row said the gap is
+    UNDEFINED because the twin holds no belief to grade, so the reason sent the reader to
+    measure something already measured. Both branches are asserted reachable: a row with a
+    null gap quotes the row, and no row still says unmeasured. Both still block."""
+    atoms = _atoms(world_lc=2, twin_lc=2)
+    said = "none: the company holds no belief to grade"
+    with_row = {"W2_7_willingness_classification": {"gap": None, "baseline": said}}
+    blocked_row, reason_row = ct.world_l3_blocked(atoms[0], atoms, with_row)
+    blocked_none, reason_none = ct.world_l3_blocked(atoms[0], atoms, {})
+    assert blocked_row and blocked_none
+    assert said in reason_row and "unmeasured" not in reason_row
+    assert "unmeasured" in reason_none
+
+
+def test_the_live_wall_never_calls_a_pair_with_a_ledger_row_unmeasured():
+    """Keyed to the property, not to W1_14: across the live map and ledger, any world atom
+    the wall holds while the ledger carries its row must give that row's own words."""
+    ledger = ct.load_gap_ledger()
+    atoms = ct._load_map_atoms()
+    for atom in atoms:
+        if not isinstance(atom, dict) or not isinstance(ledger.get(atom.get("id")), dict):
+            continue
+        blocked, reason = ct.world_l3_blocked(atom, atoms, ledger)
+        assert not (blocked and "unmeasured" in reason), reason
