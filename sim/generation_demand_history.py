@@ -88,13 +88,32 @@ def get_wind_solar_generation_range(start_date: str, end_date: str) -> list[dict
     return records
 
 
+def latest_publish_per_key(wind_solar_records: list[dict]) -> list[dict]:
+    """One AGWS record per (settlementDate, settlementPeriod, psrType): the latest publishTime.
+
+    Elexon republishes AGWS half-hours, and the cache keeps every publish. Summing them all
+    counts one half-hour up to 564 times: 2022-03-26 period 45 read 1,480,896 MW, and the
+    window's mean wind 0.5% high (docs/calibration/price-engine.md, "Data-quality finding";
+    WORLD_POWER_PRICE_AREA_MAP_2026-11-24.md C3). The recalibration scripts already kept the
+    latest publish locally; this is the shared fix. A record with no publishTime keeps the first
+    seen, so hand-built test records behave as before.
+    """
+    latest: dict[tuple[str, int, str], dict] = {}
+    for record in wind_solar_records:
+        key = (record["settlementDate"], record["settlementPeriod"], record["psrType"])
+        existing = latest.get(key)
+        if existing is None or record.get("publishTime", "") > existing.get("publishTime", ""):
+            latest[key] = record
+    return list(latest.values())
+
+
 def aggregate_renewable_generation(wind_solar_records: list[dict]) -> dict[tuple[str, int], float]:
     """Sum AGWS quantity across psrTypes for each (settlementDate,
     settlementPeriod), returning a {(date, period): total_mw} lookup —
     the renewable_generation_mw input to sim.price_engine.system_margin_price.
     """
     totals: dict[tuple[str, int], float] = {}
-    for record in wind_solar_records:
+    for record in latest_publish_per_key(wind_solar_records):
         key = (record["settlementDate"], record["settlementPeriod"])
         totals[key] = totals.get(key, 0.0) + record["quantity"]
     return totals
@@ -106,7 +125,7 @@ def aggregate_wind_generation(wind_solar_records: list[dict]) -> dict[tuple[str,
     settlementPeriod), returning a {(date, period): wind_mw} lookup.
     """
     totals: dict[tuple[str, int], float] = {}
-    for record in wind_solar_records:
+    for record in latest_publish_per_key(wind_solar_records):
         if record["psrType"] not in ("Wind Onshore", "Wind Offshore"):
             continue
         key = (record["settlementDate"], record["settlementPeriod"])
@@ -120,7 +139,7 @@ def aggregate_solar_generation(wind_solar_records: list[dict]) -> dict[tuple[str
     generation INDO is already net of -- a consumption term, never a residual term.
     """
     totals: dict[tuple[str, int], float] = {}
-    for record in wind_solar_records:
+    for record in latest_publish_per_key(wind_solar_records):
         if record["psrType"] != "Solar":
             continue
         key = (record["settlementDate"], record["settlementPeriod"])

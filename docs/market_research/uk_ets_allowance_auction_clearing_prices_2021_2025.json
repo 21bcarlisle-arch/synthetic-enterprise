@@ -1,0 +1,632 @@
+{
+ "_note": "Every UK ETS primary auction (ICE Futures Europe, fortnightly) from the first on 19 May 2021 to 10 Dec 2025: date, allowances auctioned and clearing price, transcribed from the auction-outcome tables of the UK ETS Authority's annual 'Functioning of the UK carbon market' reports (gov.uk collection functioning-of-the-uk-carbon-market), fetched 2026-11-24. Knowledge page: docs/market_research/how_the_gb_electricity_price_forms_2026-11-24.md section 2. This is the primary-market clearing price; each report states the secondary (Dec futures) range beside it, and the 2025 table prints the prevailing secondary price per auction, within about 2 GBP of the clearing price at every auction.",
+ "source_reports_by_scheme_year": {
+  "2021": "https://assets.publishing.service.gov.uk/media/64c251a8331a650014934cbc/functioning-of-the-uk-carbon-market.pdf",
+  "2022": "https://assets.publishing.service.gov.uk/media/64c251a8331a650014934cbc/functioning-of-the-uk-carbon-market.pdf",
+  "2023": "https://assets.publishing.service.gov.uk/media/673b8ccffc572967fe66a9ca/functioning-of-uk-carbon-market-report-2023.pdf",
+  "2024": "https://assets.publishing.service.gov.uk/media/68ee0df182670806f9d5e00f/report-on-the-functioning-of-the-UK-carbon-market-for-2024.pdf",
+  "2025": "https://assets.publishing.service.gov.uk/media/6aeafe3419b57f95dc2b80d1/report-on-the-functioning-of-the-UK-carbon-market-for-2025.pdf"
+ },
+ "checks_against_the_reports_own_figures": {
+  "2021_vwap_1_jan_to_11_nov_equals_the_statutory_2021_carbon_price_47_96": 47.96,
+  "2024_revenue_equals_the_table_total_2564090000": 2564090000,
+  "min_max_by_year_match_each_reports_stated_range": {
+   "2021": [
+    42.01,
+    71.32
+   ],
+   "2022": [
+    62.21,
+    90.0
+   ],
+   "2023": [
+    33.1,
+    79.55
+   ],
+   "2024": [
+    32.1,
+    46.92
+   ],
+   "2025": [
+    31.2,
+    57.25
+   ]
+  },
+  "auctions_by_year": {
+   "2021": 16,
+   "2022": 25,
+   "2023": 25,
+   "2024": 25,
+   "2025": 25
+  }
+ },
+ "calendar_year_volume_weighted_clearing_price_gbp_per_t": {
+  "2021": 51.41,
+  "2022": 75.42,
+  "2023": 53.38,
+  "2024": 37.18,
+  "2025": 48.05
+ },
+ "auctions": [
+  {
+   "date": "2021-05-19",
+   "allowances": 6052000,
+   "clearing_gbp_per_t": 43.99
+  },
+  {
+   "date": "2021-06-02",
+   "allowances": 6052000,
+   "clearing_gbp_per_t": 44.75
+  },
+  {
+   "date": "2021-06-16",
+   "allowances": 6052000,
+   "clearing_gbp_per_t": 43.4
+  },
+  {
+   "date": "2021-06-30",
+   "allowances": 6052000,
+   "clearing_gbp_per_t": 45.05
+  },
+  {
+   "date": "2021-07-14",
+   "allowances": 6052000,
+   "clearing_gbp_per_t": 42.01
+  },
+  {
+   "date": "2021-07-28",
+   "allowances": 6052000,
+   "clearing_gbp_per_t": 42.29
+  },
+  {
+   "date": "2021-08-11",
+   "allowances": 2594000,
+   "clearing_gbp_per_t": 47.25
+  },
+  {
+   "date": "2021-08-25",
+   "allowances": 2594000,
+   "clearing_gbp_per_t": 48.75
+  },
+  {
+   "date": "2021-09-08",
+   "allowances": 5187500,
+   "clearing_gbp_per_t": 53.25
+  },
+  {
+   "date": "2021-09-22",
+   "allowances": 5187500,
+   "clearing_gbp_per_t": 55.21
+  },
+  {
+   "date": "2021-10-06",
+   "allowances": 4149000,
+   "clearing_gbp_per_t": 60.0
+  },
+  {
+   "date": "2021-10-20",
+   "allowances": 5447500,
+   "clearing_gbp_per_t": 51.39
+  },
+  {
+   "date": "2021-11-03",
+   "allowances": 5654000,
+   "clearing_gbp_per_t": 52.45
+  },
+  {
+   "date": "2021-11-17",
+   "allowances": 5654500,
+   "clearing_gbp_per_t": 59.0
+  },
+  {
+   "date": "2021-12-01",
+   "allowances": 5654000,
+   "clearing_gbp_per_t": 65.8
+  },
+  {
+   "date": "2021-12-15",
+   "allowances": 5394500,
+   "clearing_gbp_per_t": 71.32
+  },
+  {
+   "date": "2022-01-12",
+   "allowances": 3221500,
+   "clearing_gbp_per_t": 68.5
+  },
+  {
+   "date": "2022-01-26",
+   "allowances": 3221500,
+   "clearing_gbp_per_t": 81.0
+  },
+  {
+   "date": "2022-02-09",
+   "allowances": 3221500,
+   "clearing_gbp_per_t": 81.81
+  },
+  {
+   "date": "2022-02-23",
+   "allowances": 3221500,
+   "clearing_gbp_per_t": 82.0
+  },
+  {
+   "date": "2022-03-09",
+   "allowances": 3221500,
+   "clearing_gbp_per_t": 62.21
+  },
+  {
+   "date": "2022-03-23",
+   "allowances": 3221500,
+   "clearing_gbp_per_t": 72.6
+  },
+  {
+   "date": "2022-04-06",
+   "allowances": 3221500,
+   "clearing_gbp_per_t": 69.37
+  },
+  {
+   "date": "2022-04-20",
+   "allowances": 3221500,
+   "clearing_gbp_per_t": 74.5
+  },
+  {
+   "date": "2022-05-04",
+   "allowances": 3221500,
+   "clearing_gbp_per_t": 78.0
+  },
+  {
+   "date": "2022-05-18",
+   "allowances": 3221500,
+   "clearing_gbp_per_t": 82.2
+  },
+  {
+   "date": "2022-06-01",
+   "allowances": 3221500,
+   "clearing_gbp_per_t": 79.0
+  },
+  {
+   "date": "2022-06-15",
+   "allowances": 3221500,
+   "clearing_gbp_per_t": 79.25
+  },
+  {
+   "date": "2022-06-29",
+   "allowances": 3221500,
+   "clearing_gbp_per_t": 81.21
+  },
+  {
+   "date": "2022-07-13",
+   "allowances": 3221500,
+   "clearing_gbp_per_t": 80.67
+  },
+  {
+   "date": "2022-07-27",
+   "allowances": 3221500,
+   "clearing_gbp_per_t": 75.5
+  },
+  {
+   "date": "2022-08-10",
+   "allowances": 3221500,
+   "clearing_gbp_per_t": 79.75
+  },
+  {
+   "date": "2022-08-24",
+   "allowances": 3221500,
+   "clearing_gbp_per_t": 90.0
+  },
+  {
+   "date": "2022-09-07",
+   "allowances": 3221500,
+   "clearing_gbp_per_t": 80.0
+  },
+  {
+   "date": "2022-09-21",
+   "allowances": 3336500,
+   "clearing_gbp_per_t": 73.0
+  },
+  {
+   "date": "2022-10-05",
+   "allowances": 3336500,
+   "clearing_gbp_per_t": 72.37
+  },
+  {
+   "date": "2022-10-19",
+   "allowances": 3336000,
+   "clearing_gbp_per_t": 67.0
+  },
+  {
+   "date": "2022-11-02",
+   "allowances": 3336000,
+   "clearing_gbp_per_t": 71.65
+  },
+  {
+   "date": "2022-11-16",
+   "allowances": 3335500,
+   "clearing_gbp_per_t": 67.74
+  },
+  {
+   "date": "2022-11-30",
+   "allowances": 3335500,
+   "clearing_gbp_per_t": 69.5
+  },
+  {
+   "date": "2022-12-14",
+   "allowances": 3335500,
+   "clearing_gbp_per_t": 68.0
+  },
+  {
+   "date": "2023-01-11",
+   "allowances": 3154500,
+   "clearing_gbp_per_t": 62.5
+  },
+  {
+   "date": "2023-01-25",
+   "allowances": 3154500,
+   "clearing_gbp_per_t": 61.56
+  },
+  {
+   "date": "2023-02-08",
+   "allowances": 3154500,
+   "clearing_gbp_per_t": 78.0
+  },
+  {
+   "date": "2023-02-22",
+   "allowances": 3154500,
+   "clearing_gbp_per_t": 78.24
+  },
+  {
+   "date": "2023-03-08",
+   "allowances": 3154500,
+   "clearing_gbp_per_t": 79.55
+  },
+  {
+   "date": "2023-03-22",
+   "allowances": 3154500,
+   "clearing_gbp_per_t": 70.7
+  },
+  {
+   "date": "2023-04-05",
+   "allowances": 3154500,
+   "clearing_gbp_per_t": 69.51
+  },
+  {
+   "date": "2023-04-19",
+   "allowances": 3154500,
+   "clearing_gbp_per_t": 64.5
+  },
+  {
+   "date": "2023-05-03",
+   "allowances": 3154500,
+   "clearing_gbp_per_t": 55.22
+  },
+  {
+   "date": "2023-05-17",
+   "allowances": 3154500,
+   "clearing_gbp_per_t": 57.5
+  },
+  {
+   "date": "2023-05-31",
+   "allowances": 3154500,
+   "clearing_gbp_per_t": 50.05
+  },
+  {
+   "date": "2023-06-14",
+   "allowances": 3154500,
+   "clearing_gbp_per_t": 55.25
+  },
+  {
+   "date": "2023-06-28",
+   "allowances": 3154500,
+   "clearing_gbp_per_t": 51.12
+  },
+  {
+   "date": "2023-07-12",
+   "allowances": 3154500,
+   "clearing_gbp_per_t": 48.61
+  },
+  {
+   "date": "2023-07-26",
+   "allowances": 3154000,
+   "clearing_gbp_per_t": 46.62
+  },
+  {
+   "date": "2023-08-09",
+   "allowances": 3154000,
+   "clearing_gbp_per_t": 39.22
+  },
+  {
+   "date": "2023-08-23",
+   "allowances": 3154000,
+   "clearing_gbp_per_t": 48.03
+  },
+  {
+   "date": "2023-09-06",
+   "allowances": 3154000,
+   "clearing_gbp_per_t": 42.75
+  },
+  {
+   "date": "2023-09-20",
+   "allowances": 3137000,
+   "clearing_gbp_per_t": 35.0
+  },
+  {
+   "date": "2023-10-04",
+   "allowances": 3137000,
+   "clearing_gbp_per_t": 40.0
+  },
+  {
+   "date": "2023-10-18",
+   "allowances": 3137000,
+   "clearing_gbp_per_t": 46.12
+  },
+  {
+   "date": "2023-11-01",
+   "allowances": 3137000,
+   "clearing_gbp_per_t": 38.11
+  },
+  {
+   "date": "2023-11-15",
+   "allowances": 3137000,
+   "clearing_gbp_per_t": 41.52
+  },
+  {
+   "date": "2023-11-29",
+   "allowances": 3137000,
+   "clearing_gbp_per_t": 41.12
+  },
+  {
+   "date": "2023-12-13",
+   "allowances": 3136500,
+   "clearing_gbp_per_t": 33.1
+  },
+  {
+   "date": "2024-01-10",
+   "allowances": 2759000,
+   "clearing_gbp_per_t": 37.02
+  },
+  {
+   "date": "2024-01-24",
+   "allowances": 2759000,
+   "clearing_gbp_per_t": 32.61
+  },
+  {
+   "date": "2024-02-07",
+   "allowances": 2759000,
+   "clearing_gbp_per_t": 32.75
+  },
+  {
+   "date": "2024-02-21",
+   "allowances": 2759000,
+   "clearing_gbp_per_t": 32.1
+  },
+  {
+   "date": "2024-03-06",
+   "allowances": 2759000,
+   "clearing_gbp_per_t": 34.7
+  },
+  {
+   "date": "2024-03-20",
+   "allowances": 2759000,
+   "clearing_gbp_per_t": 34.65
+  },
+  {
+   "date": "2024-04-03",
+   "allowances": 2759000,
+   "clearing_gbp_per_t": 32.7
+  },
+  {
+   "date": "2024-04-17",
+   "allowances": 2759000,
+   "clearing_gbp_per_t": 33.5
+  },
+  {
+   "date": "2024-05-01",
+   "allowances": 2759000,
+   "clearing_gbp_per_t": 35.15
+  },
+  {
+   "date": "2024-05-15",
+   "allowances": 2759000,
+   "clearing_gbp_per_t": 37.0
+  },
+  {
+   "date": "2024-05-29",
+   "allowances": 2759000,
+   "clearing_gbp_per_t": 43.75
+  },
+  {
+   "date": "2024-06-12",
+   "allowances": 2759000,
+   "clearing_gbp_per_t": 46.92
+  },
+  {
+   "date": "2024-06-26",
+   "allowances": 2759000,
+   "clearing_gbp_per_t": 45.0
+  },
+  {
+   "date": "2024-07-10",
+   "allowances": 2759000,
+   "clearing_gbp_per_t": 40.35
+  },
+  {
+   "date": "2024-07-24",
+   "allowances": 2759000,
+   "clearing_gbp_per_t": 38.62
+  },
+  {
+   "date": "2024-08-07",
+   "allowances": 2759000,
+   "clearing_gbp_per_t": 36.1
+  },
+  {
+   "date": "2024-08-21",
+   "allowances": 2759000,
+   "clearing_gbp_per_t": 39.25
+  },
+  {
+   "date": "2024-09-04",
+   "allowances": 2759000,
+   "clearing_gbp_per_t": 40.9
+  },
+  {
+   "date": "2024-09-18",
+   "allowances": 2758000,
+   "clearing_gbp_per_t": 39.2
+  },
+  {
+   "date": "2024-10-02",
+   "allowances": 2758000,
+   "clearing_gbp_per_t": 34.91
+  },
+  {
+   "date": "2024-10-16",
+   "allowances": 2758000,
+   "clearing_gbp_per_t": 38.25
+  },
+  {
+   "date": "2024-10-30",
+   "allowances": 2757000,
+   "clearing_gbp_per_t": 36.72
+  },
+  {
+   "date": "2024-11-13",
+   "allowances": 2757000,
+   "clearing_gbp_per_t": 37.3
+  },
+  {
+   "date": "2024-11-27",
+   "allowances": 2757000,
+   "clearing_gbp_per_t": 35.5
+  },
+  {
+   "date": "2024-12-11",
+   "allowances": 2757000,
+   "clearing_gbp_per_t": 34.55
+  },
+  {
+   "date": "2025-01-08",
+   "allowances": 2239000,
+   "clearing_gbp_per_t": 32.8
+  },
+  {
+   "date": "2025-01-22",
+   "allowances": 2239000,
+   "clearing_gbp_per_t": 31.2
+  },
+  {
+   "date": "2025-02-05",
+   "allowances": 2239000,
+   "clearing_gbp_per_t": 44.5
+  },
+  {
+   "date": "2025-02-19",
+   "allowances": 2239000,
+   "clearing_gbp_per_t": 41.25
+  },
+  {
+   "date": "2025-03-05",
+   "allowances": 2239000,
+   "clearing_gbp_per_t": 38.03
+  },
+  {
+   "date": "2025-03-19",
+   "allowances": 2239000,
+   "clearing_gbp_per_t": 44.55
+  },
+  {
+   "date": "2025-04-02",
+   "allowances": 2238500,
+   "clearing_gbp_per_t": 43.25
+  },
+  {
+   "date": "2025-04-16",
+   "allowances": 2238500,
+   "clearing_gbp_per_t": 46.01
+  },
+  {
+   "date": "2025-04-30",
+   "allowances": 2238500,
+   "clearing_gbp_per_t": 45.0
+  },
+  {
+   "date": "2025-05-14",
+   "allowances": 2238500,
+   "clearing_gbp_per_t": 47.44
+  },
+  {
+   "date": "2025-05-28",
+   "allowances": 2238500,
+   "clearing_gbp_per_t": 50.37
+  },
+  {
+   "date": "2025-06-11",
+   "allowances": 2238500,
+   "clearing_gbp_per_t": 51.63
+  },
+  {
+   "date": "2025-06-25",
+   "allowances": 2238500,
+   "clearing_gbp_per_t": 48.11
+  },
+  {
+   "date": "2025-07-09",
+   "allowances": 2238500,
+   "clearing_gbp_per_t": 45.6
+  },
+  {
+   "date": "2025-07-23",
+   "allowances": 2238500,
+   "clearing_gbp_per_t": 48.5
+  },
+  {
+   "date": "2025-08-06",
+   "allowances": 2238500,
+   "clearing_gbp_per_t": 49.75
+  },
+  {
+   "date": "2025-08-20",
+   "allowances": 2238500,
+   "clearing_gbp_per_t": 49.95
+  },
+  {
+   "date": "2025-09-03",
+   "allowances": 2238500,
+   "clearing_gbp_per_t": 53.55
+  },
+  {
+   "date": "2025-09-17",
+   "allowances": 2238500,
+   "clearing_gbp_per_t": 57.25
+  },
+  {
+   "date": "2025-10-01",
+   "allowances": 2238500,
+   "clearing_gbp_per_t": 53.5
+  },
+  {
+   "date": "2025-10-15",
+   "allowances": 2238500,
+   "clearing_gbp_per_t": 54.4
+  },
+  {
+   "date": "2025-10-29",
+   "allowances": 2238500,
+   "clearing_gbp_per_t": 55.5
+  },
+  {
+   "date": "2025-11-12",
+   "allowances": 2238500,
+   "clearing_gbp_per_t": 57.1
+  },
+  {
+   "date": "2025-11-26",
+   "allowances": 2238000,
+   "clearing_gbp_per_t": 57.03
+  },
+  {
+   "date": "2025-12-10",
+   "allowances": 2238000,
+   "clearing_gbp_per_t": 55.11
+  }
+ ]
+}

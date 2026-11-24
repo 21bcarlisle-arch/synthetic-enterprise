@@ -868,6 +868,7 @@ def decide_margin(
     billed_last_year_gbp: float | None = None,
     default_belief_rate: float | None = None,
     stayer_default_rate_gbp_per_mwh: float | None = None,
+    discount_rate: float = DISCOUNT_RATE_ANNUAL,
 ) -> MarginDecision:
     """The offered margin for ONE customer, under ONE arm.
 
@@ -958,6 +959,7 @@ def decide_margin(
             annual_revenue_gbp=observed_revenue + (margin - current_margin) * eac_mwh,
             credit_risk=credit_risk,
             payment_delay_days=payment_delay_days,
+            cost_of_capital_annual=discount_rate,
             collections_gbp_per_year=collections_gbp_per_year,
             fixed_revenue_gbp_per_year=fixed_revenue_gbp_per_year,
         )
@@ -1011,6 +1013,7 @@ def decide_margin(
             cost_to_serve_gbp_per_year=costs.total_gbp,
             p_retain=p_stay, expected_periods=periods,
             departure_cost_gbp=departure_cost,
+            discount_rate=discount_rate,
             fixed_revenue_gbp_per_year=costs.fixed_revenue_gbp,
         ) - _stock_loss(p_stay), costs
 
@@ -1483,6 +1486,7 @@ def renewal_margin_uplift(
     default_belief_rate: float | None = None,
     stayer_default_rate_gbp_per_mwh: float | None = None,
     pre_margin_rate_gbp_per_mwh: float | None = None,
+    discount_rate: float = DISCOUNT_RATE_ANNUAL,
 ) -> MarginArmUplift:
     """The £/MWh this renewal moves by, under ONE arm, from the supplier's own settled book.
 
@@ -1622,6 +1626,7 @@ def renewal_margin_uplift(
             billed_last_year_gbp=billed_last_year_gbp,
             default_belief_rate=default_belief_rate,
             stayer_default_rate_gbp_per_mwh=stayer_default_rate_gbp_per_mwh,
+            discount_rate=discount_rate,
         )
     except MarginDecisionUnavailable as exc:
         # "NO OFFER" IS AN ANSWER, AND A LIVE PRICING CHAIN MUST BE ABLE TO HEAR IT (2026-08-26).

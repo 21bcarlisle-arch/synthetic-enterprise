@@ -154,7 +154,9 @@ def test_trajectory_is_deterministic():
 # A cold, genuinely WINDY draw: high demand AND real wind output, so a bigger fleet
 # scales to materially more renewable MW and the per-year capacity trend actually bites
 # (a still draw would scale ~0 by any fleet and hide the mechanism).
-_DRAW = dict(temp_c=-2.0, wind_speed_ms=9.0, cloud_pct=90.0, day_of_year=15, gas_price=60.0)
+# carbon is a test input (the chain's price leg requires one), not a domain value.
+_DRAW = dict(temp_c=-2.0, wind_speed_ms=9.0, cloud_pct=90.0, day_of_year=15, gas_price=60.0,
+             carbon_price_gbp_per_tonne=40.0)
 
 
 def test_same_weather_prices_differently_across_years():
@@ -178,7 +180,7 @@ def test_year_none_is_backward_compatible():
     """year=None must reproduce the pre-W1_7 whole-window scalar path byte-for-byte —
     proving the SSP calibration gate is untouched."""
     p = wpc.fit_chain()
-    frac = np.array([wpc.wind_power_output_fraction(_DRAW["wind_speed_ms"])])
+    frac = wpc.fleet_wind_fraction(_DRAW["wind_speed_ms"])
     expected_wind = float(p.wind_fleet_mw * frac[0])
     got_wind = wpc.wind_output_from_speed(_DRAW["wind_speed_ms"])
     assert got_wind == pytest.approx(expected_wind)
@@ -208,7 +210,10 @@ def test_derive_price_threads_year_into_the_dispatchable_denominator_too():
             _DRAW["wind_speed_ms"], p, year=year))[0])
         solar = float(np.ravel(wpc.solar_output_from_weather(
             _DRAW["day_of_year"], _DRAW["cloud_pct"], p, year=year))[0])
-        expected = engine_synthetic_price(_DRAW["gas_price"], demand, wind + solar, year=year)
+        leg = wpc.fit_price_leg()
+        expected = engine_synthetic_price(_DRAW["gas_price"], demand, wind + solar, year=year,
+                                          carbon_price_gbp_per_tonne=_DRAW["carbon_price_gbp_per_tonne"],
+                                          coefficients=(leg.a0, leg.a1, leg.a2))
         got = wpc.derive_price(**_DRAW, year=year)
         assert got == pytest.approx(expected)
 
@@ -245,10 +250,13 @@ def test_derive_price_on_record_year_aware_layers_dispatchable_capacity_too():
     years = [rct._year_of(d) for d in out["dates"]]
     # Spot-check a handful of rows spanning the window (not all ~3000+, for speed).
     idxs = [0, len(years) // 4, len(years) // 2, 3 * len(years) // 4, len(years) - 1]
+    leg = wpc.fit_price_leg()
     for i in idxs:
         expected = engine_synthetic_price(
             float(out["gas_price"][i]), float(out["demand_mw"][i]),
-            float(out["renewable_mw"][i]), year=years[i])
+            float(out["renewable_mw"][i]), year=years[i],
+            carbon_price_gbp_per_tonne=float(out["carbon_gbp_per_t"][i]),
+            coefficients=(leg.a0, leg.a1, leg.a2))
         assert out["derived_price"][i] == pytest.approx(expected)
 
 
@@ -430,8 +438,8 @@ def test_mix_share_validator_default_source_now_exists_and_is_real_data():
     assert rct.DESNZ_MIX_SHARE_PATH.exists()
     result = rct.check_mix_share_against_independent_source()
     assert result is True, (
-        "real result as of 2026-08-03: sim wind-share runs ~5-8pp above the "
-        "independent DESNZ series but within the pre-stated 0.15 tolerance -- if "
+        "real result as of 2026-11-24: the record's AGWS wind share of wind+solar runs "
+        "1.5-3.5pp below the independent DESNZ series, within the 0.15 tolerance -- if "
         "this ever flips False, re-check the market-research doc's per-year gaps "
         "before assuming regression"
     )
@@ -448,7 +456,7 @@ def test_mix_share_validator_FIRES_on_a_diverging_mutation():
     compliant = {"onshore_share_pct": {}, "offshore_share_pct": {}, "solar_share_pct": {}}
     for y in years:
         cell = traj[y]
-        wind_frac = cell["wind_fleet_mw"] / (cell["wind_fleet_mw"] + cell["solar_fleet_mw"])
+        wind_frac = cell["wind_gen_mean_mw"] / (cell["wind_gen_mean_mw"] + cell["solar_gen_mean_mw"])
         compliant["onshore_share_pct"][str(y)] = wind_frac * 100 * 0.6
         compliant["offshore_share_pct"][str(y)] = wind_frac * 100 * 0.4
         compliant["solar_share_pct"][str(y)] = (1 - wind_frac) * 100
@@ -582,9 +590,11 @@ def test_magnitude_bearing_rule_FIRES_on_the_partial_year_artifact():
     unguarded = mutant[rct._clamped_year(worst, mutant)]["wind_fleet_mw"]
 
     assert unguarded != guarded
-    assert unguarded / guarded > 2.0, (
-        "the part-year artifact should be a large distortion (~3.6x for 2025 in this "
-        "cache) -- if it is not, this mutation no longer reproduces the real defect"
+    # 3.6x on the single-turbine curve; 1.97x on the fleet curve (24 Nov 2026), whose shape
+    # fits the season better, so a Jan-Jun mean-match is less wrong. Still a material error.
+    assert unguarded / guarded > 1.5, (
+        "the part-year artifact should be a material distortion (1.97x for 2025 in this "
+        "cache on the fleet curve) -- if it is not, this mutation no longer reproduces the defect"
     )
 
 

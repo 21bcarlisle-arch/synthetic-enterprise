@@ -145,3 +145,21 @@ mapped: the grader exits non-zero, or prints no interval. Then no branch is take
 on the same files, and nothing here is revised.
 
 **Reverse:** nothing to reverse. This is a record, and it launches nothing.
+
+## Graded (24 Nov 2026, read at 05:47Z)
+
+- **Outcome: STRADDLE.** P1 = −£0.140 (−£1.389 to +£1.025). P1's own verdict is REFUTED, because the point is
+  below zero. The full publication is in §12g, under "s.12g graded".
+- **Decomposition:** (cut − A) +£0.721 = P3 +£0.916 − P3b +£0.195, plus (A − twin) −£0.861.
+- **Measured-first:** q = 0.7563 (211 of 279 twin value-arm renewals offered). 0.12 sits at the 16.2nd
+  percentile of the cut run's value-arm renewal beliefs, against the rank-at-q threshold at the 24.4th: a gap
+  of 8.2 points, beyond ±5. The other readings of the rule's wording also pass.
+- **Branch taken: STRADDLE. Grade: held.** The step-5 reading allows the named run: rank-at-q on the pinned
+  tree, book 61118, 13131/14141, A's belief on, graded against the twin and cut files on disk. Its build and
+  launch are recorded in §12g.
+- **Corrected 24 Nov 06:00Z, beside the line above and not over it.** The measured-first figures above were
+  read on the decision record's rolled-event subset (279 renewals). The gate acts on every renewal where the
+  desk is asked: 777 for the twin. On that population, q = 215/777 = **0.2767**, and 0.12 sits at the
+  **51.7th** percentile of the cut's asked beliefs against the threshold at the 72.3rd, a gap of 20.6 points,
+  beyond ±5. The branch and the grade (`held`) are unchanged. The run is armed as `s12g-rankq-watch`, and its
+  predictions R1–R4 were filed before it ran (§12g, "The rank-at-q run").

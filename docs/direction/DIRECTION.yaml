@@ -1,259 +1,263 @@
 version: 1
-oriented_at: "2026-11-23T03:22:44.727556+00:00"
+oriented_at: "2026-11-24T18:21:23.158001+00:00"
 thesis_read: >-
-  This stretch had 18 commits, 8 of them substantive. By side: supplier 0, world 2, both 1, other 15. This is
-  the third stretch in a row with no supplier-side commit. Measured against the thesis, the supplier did not
-  move. The one change that touched supplier code (f3c6a45cb: the growth campaign asks the company's first-term
-  quote before the win, 210 -> 230 wins) was counted as both sides. What did move is the machinery that loses
-  finished work, and this time the fixes held. The bounded-landing hand-off was lost last stretch and was rebuilt
-  and landed (8bd0092e8, 23:23Z). Since then every executor landing has run in its own longjob-land-* unit, and none
-  was killed at teardown. The commit gate's hour is fixed at the cause (5a354ebcb re-gates only what a lost race
-  brought; 1c9cd8195 stops billing riding a saas/ path it never imports, and weekly-rhythm drops from 509 s to 21 s).
-  After 00:37Z, landings gated inside the hour while s.12g held the box. 7527a2e36 gated in 41 minutes and is on
-  origin, and the 01:20Z landing took 4.5 minutes. So the gate row and the bounded-turn row are corrected. So is the
-  14:15Z-15:26Z stand-down row: 8bd0092e8 names its cause, a refused direction record read as "no focus", and
-  fixes it. Billing accuracy at home moves got a real result. The level leaver's short refund was traced to the
-  world netting the final bill for movers only (f1a01411f: 149 legs, GBP 3,673.83 on 6a588a832f), and the world
-  now nets it on any closure (7527a2e36). Last stretch's focus: three of four items were drawn. The gate and the
-  leaver refund are done. Gas-only supply was drawn and did not land. Its second landing was refused at 01:25Z, 3
-  seconds in, because its copy of simulation/run_phase2b.py predates 7527a2e36. The refusal printed the remedy
-  (isolate_hunks), and nothing has run it. Its continuation build-gas-supply-for-a-gas-only-win waits on a file that
-  only a successful landing writes, so the handoff back to focus that its own prose promised is mine to make. B8's
-  switch-on pre-registration was NEVER DRAWN. I named it by its atom id, and an atom id only biases the ordinary
-  draw: B8 is at 140 unchanged draws and was not drawn this stretch. That steer drifted because of how I wrote it.
-  It goes back in as a Lane 0 item. The thesis test is still running. s.12g's cut arm was at 2020-09-29 at 03:22Z
-  (7h50m in), and the A arm has not started (/var/tmp/vtn-out/A/ is empty). The 24 Nov ~05:30Z end still holds.
-  No book has been written for about 60 hours, and the five supplier grades still wait on the one after s.12g. So
-  the supplier work that can move now is work that needs no book: the B8 pre-registration, and a decision recorded
-  before s.12g publishes on what the supplier does for each outcome. A decision written after the number is known
-  is a post-registration, and that is the cost of leaving it.
+  The steer bit this stretch, and the supplier moved. All three of its focus items reached Lane 0 and landed. It
+  is still not ahead of the baseline, and the thesis test it is waiting on has, as of this orientation, no reader.
+  Of 20 commits, 19 carried work. About three were supplier work and about twelve were the weather-to-price
+  chain's arms and records, which run on the director's 24 Nov steer through their own BLOCKING finding.
+  ed62c5b28 graded B11 M7 honestly: all six fresh books are GAP, because no run on seeds 61113-61118 carries
+  per-customer monthly records. They are armed in b11m7-watch behind rankq and the owed book, and B11's park now
+  names that live wait. 63f7faeba dated the CLV discount rate (0.10, then Ofgem's 12.3% from 1 Oct 2023). Every
+  published aggregate is also stated at 9.3% and 12.3%, and at real inputs that moves 2023-2025 year-end value
+  per account by about -10%. Decisions take the dated rate only behind a switch that is off. 971dc9738 named
+  both of land9's deaths. The 07:18Z death was a cgroup kill when its parent worker-tick unit ended (setsid does
+  not leave a cgroup). The 13:29Z death was tools/wait_for.py --pattern, whose '.' matches '/', so any shell that
+  merely names tools/run_annual_report.py reads as FINISHED. land10 is armed on artefacts. So the B11 Lane 0 row
+  and the land9 row are CORRECTED. That is the good half. The bad half is that every supplier result is now
+  parked on box time. rankq (s.12g rank-at-q) is on its fourth Phase 2b pass, in mid-2019, 8h43m into an
+  800-minute estimate, so it is running long. The book every queued grade reads is about 99 hours unbuilt. B12,
+  C34, D48, B11 and EP1's next slice all wait on books, and about six default-off supplier switches are each
+  pre-registered to be the only change in "the next book". At one book per 13+ hours, that queue serialises the
+  supplier for a week, so the order of those flips is now the supplier's binding decision (focus 3). WORSE, and
+  found only by reading the store: the continuation that grades rankq (s12g-rankq-is-graded-when-it-ends) fell
+  out of seat_continuation.live() at about 09:26Z. live() expires a row 6 h after it is written unless its
+  embargo is a DATE, and a hold on a FILE gets no window, so the reader of the thesis's live test expired while
+  its run was still going. b11-m7-grade-the-six-fresh-books-readout and land10-outcome-is-read expire the same
+  way tonight (about 21:54Z and 22:22Z), hours before their files can exist. My 15:22 record named that rankq
+  continuation as its reader without checking it was live. The per-customer arm still reads -GBP 0.14 (-1.39 to
+  +1.03) against the flat-rules twin, a straddle and not a beat. There is a second interconnection defect: land10
+  and b11m7's first wave both fire on the same artefact (the first post-rankq book), and land10's busy check does
+  not see seed_family runs. So a full gate would start beside three parallel Phase 2b runs, which is the very
+  co-residence that timed the MSC gate out at 3600 s. The shared checkout is 165 behind origin, and every daemon
+  runs 18-20 commits old.
 stretch_reviewed:
-  since: "2026-11-22T21:20:43.517479+00:00"
-  commits: 18
-  substantive: 8
+  since: "2026-11-24T15:22:35.953633+00:00"
+  commits: 20
+  substantive: 19
 focus:
-- id: reg-6c-and-gas-only-supply-re-land-on-the-current-run-phase2b
-  what: 'Land reg 6C (erroneous-gain return) and then gas supply for a gas-only win. The second landing
-    (longjob-land-reg-6c-erroneous-gains-2, script /tmp/seat_6c/land6c_2.sh) was refused at 01:25Z by
-    the stale-copy gate, because /tmp/seat_6c/run_phase2b.py predates 7527a2e36 (it lacks `closing=left,`).
-    The other five --content files were not faulted. FIRST check nobody is already doing this. Run pgrep
-    -af surgical_land and launch_long_job. A pytest over tests/simulation/test_run_phase2b.py was running
-    at 03:19Z, so read whose it is. If a live holder names reg 6C, stand down and say so. Otherwise run
-    `python3 -m tools.isolate_hunks --survey simulation/run_phase2b.py` against /tmp/seat_6c/run_phase2b.py,
-    keep only the reg 6C hunks (the erroneous_gain_returned_on name), and build HEAD-plus-those into a
-    fresh file. Re-check the other five against origin/main the same way. Then land them once through
-    background/launch_long_job.py with surgical_land --content, writing /var/tmp/se-reg-6c-landed-20261123.txt
-    on success as land6c_2.sh does. That file releases continuation build-gas-supply-for-a-gas-only-win.
-    If this tick has room, do that continuation next: the gas build is in salvage eccf3dc756, not in the
-    reg 6C bytes (7c4c3f1e4).'
-  why: This work is finished, and it has been refused or killed three times since 07:15Z on 22 Nov. A
-    won customer the supplier never supplies makes CLV against acquisition cost unreadable, and the won-switch
-    P2-P5 grade opens at 09:00Z today. Done means reg 6C is on origin with 7527a2e36's closing=left intact,
-    /var/tmp/se-reg-6c-landed-20261123.txt exists, and the gas-only build is either landed or released
-    to its continuation with the salvage sha named.
-  lane: C_customer_ops
-  side: world
-  unblocks: the P2-P5 grade of SEAT_PREREG_A_WON_SWITCH_IS_SUPPLIED_FROM_ITS_WIN_2026-11-21 (09:00Z today),
-    and CLV against acquisition cost for the two gas-only wins
-  written_at: 1795404488.668
-- id: b8-holdout-switch-on-is-pre-registered-before-its-book
-  what: 'Write and land the pre-registration for switching B8''s blind retention holdout ON in the standing
-    policy, as docs/staging/records/SEAT_PREREG_B8_THE_HOLDOUT_SWITCHED_ON_IN_THE_STANDING_POLICY_2026-11-23.md.
-    It must land before any book that carries the switch exists. The holdout is default-off on origin
-    (318d042e7e). It was shown taken in a 2017 run (e2515972e: 16 of 72 considered renewals held out),
-    and the director ruled holdouts yes on 22 Nov (a87572556c). State five things. (1) The holdout count
-    per renewal year, with an interval. (2) The price-sensitivity estimate it should let the company discover,
-    and its expected width at that count, from the earlier B8 records in docs/staging/records/SEAT_PREREG_B8_*.
-    (3) The renewal margin it costs on the held-out households. (4) Which of the five pending book grades
-    (D48, KNIFE3 I1-I5, dual-household answers, won-switch P2-P5, ending-term belief) it would disturb
-    if it were on in the same book. (5) The rule that turns it back off. Add the switch-on as a named
-    flag that is ready but off, and arm one continuation through seat_continuation that reads it on the
-    first book after those five grades.'
-  why: The thesis says advantage comes from inference. The holdout is how the company learns each customer's
-    price sensitivity from its own renewals instead of being told it. It needs no book, and the box will
-    be held for about 26 more hours. Last stretch this was named only by the atom B8_discovered_price_sensitivity_holdout
-    and was never drawn. Done means the pre-registration and the default-off flag are on origin with a
-    commit time earlier than any run_output that carries the flag, and the reader is in seat_continuation.live().
-  lane: B_commercial
-  side: supplier
-  written_at: 1795404488.668
-- id: s12g-outcome-decision-is-recorded-before-it-publishes
-  what: 'Before /var/tmp/vtn-out/A/member_13131_14141.json exists, write docs/staging/records/SEAT_PREREG_WHAT_THE_SUPPLIER_DOES_ON_EACH_S12G_OUTCOME_2026-11-23.md.
-    Do not open anything under /var/tmp/vtn-out/. For each of three outcomes of the per-customer arm''s
-    advantage over the flat-rules twin, name the next supplier lever and the one-variable run that would
-    test it. The three outcomes: the interval sits wholly above zero; it straddles zero; it sits wholly
-    below zero. Read the candidates from docs/design/THE_VALUE_TEST_REDESIGN.md (s.12c to s.12g, and the
-    lever s.12e names) and from the open renewal-belief row in docs/direction/wrong_triage.yaml (the-live-renewal-belief-ranks-leavers-backwards,
-    owner company/policy/decision_policy.py). Also state what each outcome means for the 0.12 cut having
-    been fitted on the same pair it is now tested on. Then amend continuation s12g-has-a-reader-when-it-ends
-    so that its reader grades against this record and opens the chosen lever''s run.'
-  why: s.12g is the thesis's live test, and it ends about 05:30Z on 24 Nov. A choice of next lever made
-    after the number is read cannot be told apart from fitting to it. That already happened once, when
-    the 0.12 cut was fitted on the pair it was then graded on. Done means the record is on origin with
-    a commit time earlier than member_13131_14141.json's mtime, and the reader continuation names it.
-  lane: G_data_learning
-  side: supplier
-  written_at: 1795404488.668
-- id: a-promotion-that-loses-its-race-is-one-job-not-three-died-ones
-  what: 'Three executor landings were registered as DIED with exit 2 between 01:14Z and 01:20Z (land-se-seat-executor-1795394035,
-    -1795396520, -1795396769), each with "origin/main has moved ... not a fast-forward" (see /var/tmp/longjob-land-se-seat-executor-1795394035.log).
-    Their work reached origin anyway, through three merges that authored nothing (f68028b7f, 755536805,
-    965a59053). Trace the promote step in background/bounded_landing.py and tools/surgical_land.py. Then
-    make a lost promotion race retry inside the same job, re-gating only what the move brought (5a354ebcb).
-    It should end success or refused once, not leave a died row per retry. Also make it stop folding a
-    disjoint origin move with an empty merge, if a replay of the landed commit onto the new origin passes
-    the same gate. Key the control to the property: a landing whose content is on origin is never registered
-    as died.'
-  why: The launch register is what every orientation reads to decide whether work was lost. This stretch
-    it said 6 jobs died when 3 of them had landed, and the brief's NO_WORK alarm is the same event seen
-    from git. Done means a test reproduces a promotion race and shows one register row with the true outcome,
-    and the next stretch's brief has no empty-merge run caused by promotion.
+- id: a-continuation-held-on-a-file-stays-live-until-the-file-exists
   lane: H_harness
   side: other
-  written_at: 1795404488.668
+  what: 'background/seat_continuation.py::_window_opens gives a dated embargo its own window but gives
+    a file hold ("DO NOT DRAW BEFORE <path> EXISTS", which delivery_lane.embargoed_until reads only without
+    dated_only) none. So live() drops it STALE_AFTER_SECONDS (6 h) after written_at, whether or not the
+    file exists. s12g-rankq-is-graded-when-it-ends (written about 03:26Z 24 Nov, held on /var/tmp/vtn-driver/grade_rankq.out)
+    has already gone: it is in expired(), drawn_at 0. b11-m7-grade-the-six-fresh-books-readout and land10-outcome-is-read-and-msc-lands-or-is-re-cut
+    go at about 21:54Z and 22:22Z tonight. FIRST, before any code: re-stamp those three rows into the
+    live queue with their text unchanged, so that none expires while this is built. Then make a file-held
+    row''s window open when its file appears. Bound it with an outer limit you can source from the store''s
+    own history, or a named one, and make expired() report "held on <path>, never appeared" as its own
+    reason. Print live() and expired() on the real store before and after. Test it: a row written 7 h
+    ago, held on an absent file, is live; it is drawable once the file exists; and a dated row is unchanged.
+    Show that reverting the fix reds the test.'
+  why: rankq is the thesis's live test, the one run that says whether the per-customer arm beats the flat-rules
+    twin, and its reader has silently fallen off the queue. The same defect drops B11 M7's grade and the
+    MSC landing's reader tonight. Done means all three rows are in live() at this orientation's successor,
+    the fix is on origin with its mutation shown, and expired() names a file hold that never fired.
+  written_at: 1795544909.764
+- id: land10-gates-before-b11m7s-first-wave-not-beside-it
+  lane: E_finance_treasury
+  side: supplier
+  what: 'Two armed jobs fire on the SAME artefact, the first docs/reports/run_output_*.json written after
+    rankq ends. They are land10 (/var/tmp/se-msc-keep/land10.sh, the MSC landing, a full pre-commit gate)
+    and b11m7-watch (/var/tmp/box-plan/b11m7/arm.sh step 3, two waves of three 80-minute seed_family runs).
+    land10''s busy() checks only the rankq unit and "-m tools[.]run_annual_report", so it will not see
+    b11m7''s waves. Read both scripts and the launch register, and decide the order (my recommendation:
+    land10 gates first, because one gate is short and MSC has failed nine times on co-residence and races).
+    Make the second one wait on the first''s artefact: b11m7 waits for /var/tmp/se-msc-land10-ended.txt
+    with a bound, or land10 waits for b11m7, whichever you choose. Make land10''s busy() see seed_family
+    runs. Do not stop or re-arm either unit without recording how to reverse it, and keep the pinned tree
+    and pinned sha unchanged. Dry-run the changed wait on a fake artefact in /tmp. Record the post-rankq
+    box order (rankq, book, land10 gate, b11m7 waves, census) in one place a later tick can read.'
+  why: MSC books the market stabilisation charge in the supplier's ledger, and B11 M7 is the held-back
+    forward value grade. Started together, they reproduce the 3600 s gate timeout and can corrupt the
+    six books' timing. Done means exactly one of the two keys on the other's artefact, land10 sees the
+    waves, and the order is written down before rankq ends.
+  written_at: 1795544909.764
+- id: the-default-off-supplier-switches-flip-in-a-chosen-order
+  lane: B_commercial
+  side: supplier
+  what: 'Census every default-off supplier decision switch now built and waiting, with its pre-registration
+    on origin. At least: EP1_DATED_DISCOUNT_RATE_IN_THE_STANDING_POLICY (63f7faeba); B8''s holdout (SEAT_PREREG_B8_THE_HOLDOUT_SWITCHED_ON_IN_THE_STANDING_POLICY_2026-11-23);
+    the first term at its quote and the first-term cap hold deleted (both SEAT_PREREG_THE_FIRST_TERM_*_2026-11-24);
+    the ending-term renewal belief (SEAT_PREREG_THE_ENDING_TERM_BELIEF_ON_THE_COMING_BOOK_2026-11-22,
+    the fix for the AUC 0.333 row); the expected-tenure value; SMART_METER_EXCHANGE for D48 (SEAT_PREREG_THE_SMART_METER_EXCHANGE_SWITCH_FOR_D48_2026-11-15);
+    and any others company/policy/decision_policy.py holds off. For each, quote its "one change per book"
+    clause, and say what it grades and on which book. Then answer the one question the queue turns on:
+    is that clause about ATTRIBUTION, so that separate arms on the same seeds, each with one switch against
+    the same standing baseline, satisfy it, or does it need a standing-policy book? Choose the flip order
+    by which switch the evidence says most narrows the arm-versus-twin gap, with e56d8b8858''s s.12g branches
+    as the first input, and write it as one record in docs/staging/records/. Make the continuation queue
+    match it. Flip nothing.'
+  why: About six pre-registered supplier levers each claim "the next book", books take 13+ hours, and
+    the last was built 99 hours ago, so the order is being set by whichever continuation is drawn first
+    rather than by value. That is the priority order's "levers in merit order", and it decides how fast
+    the supplier can test whether it beats the baseline. Done means the record is on origin with every
+    switch, its grading book or arm, and the order, and the live continuation queue carries them in that
+    order.
+  written_at: 1795544909.764
 not_now:
-  - what: Letting the book share the box with s.12g on my own call, now that it is 60 hours since the last book.
+  - what: Fix tools/wait_for.py --pattern, whose '.' matches '/' so a shell that names a module reads as the module having run.
     why: >-
-      It is still the open director concern s-12g-was-admitted-at-19-32, and I recommended waiting. About 26 hours
-      remain, and an OOM would cost the thesis test far more than that. Silence is not a yes to the option I advised
-      against.
-  - what: Wiring the Market Stabilisation Charge into the company's acquisition value (a supplier-side MSC item).
+      It is filed (SEAT_FINDING_A_PATTERN_WAITER_IS_SATISFIED_BY_ANY_COMMAND_LINE_THAT_NAMES_ITS_PATTERN_2026-11-24),
+      and no armed job depends on it now: land10 waits on artefacts, and b11m7 waits on a pid and a file.
+      Focus 1 is the same lane and loses a reader tonight if it is not done first. It stays in the work-items
+      queue at its own severity.
+  - what: Build the s.12g branch lever (expected-tenure value, or the rank-gate variant) before rankq reads.
     why: >-
-      The world does not charge it yet: simulation/market_stabilisation_charge.py has no caller on origin, and
-      the-world-charges-the-market-stabilisation-charge-to-the-gainer is already a live continuation. If the company
-      priced a cost the world never charges, it would distort the 2023 first-term position that e9744505f is
-      attributing. The world charge comes first, then the supplier side.
-  - what: Peeking at s.12g's partial cut-arm log (treasury at 2020-09) to get ahead on the next lever.
+      e56d8b8858 pre-commits a different lever for each outcome, so building now spends work on branches that
+      will not happen. Focus 3 orders the switches that ARE built, which is the work that does not depend on the read.
+  - what: Put the weather-to-price chain's next arm (the leave-one-year-out monthly climatology) in focus, or throttle it.
     why: >-
-      That would turn focus item 3 into a post-registration. Erring against our own thesis means writing the decision
-      blind.
-  - what: Re-arming the stale premise_not_yet_ripe mechanism (a direction item that quotes another item's date is walked past).
+      It is the director's 24 Nov steer, carried by its own BLOCKING finding, so it needs no focus to be drawn.
+      This stretch also showed that supplier work reaches Lane 0 beside it when the items are Lane 0 items,
+      about three supplier commits against none last stretch. Throttling his steer to make room is not mine to do.
+  - what: Restart the full-suite census so that cd8b7d81c's live-run arm gets its net.
     why: >-
-      It fired correctly this stretch (grade-dual-household... was correctly unripe), and the instance that hurt was
-      closed. It stays a listed wrong row with no focus slot. Landing finished work and the two supplier items move
-      the thesis, and this does not.
-  - what: The stalled site atoms (SITE1, SITE12, SITE15, OPS7) and A45's 1617-draw streak.
+      It needs about 12 GB beside rankq, and then beside the book and b11m7's waves. Focus 2 writes the box order,
+      and the census goes last in it.
+  - what: Flip any default-off supplier switch now, starting with the corrected renewal belief, whose live twin still ranks leavers backwards.
     why: >-
-      There is no new book to publish, and none of them changes a supplier result. A45 is landing under other ids
-      (30 commits on its file_scope). That is a counter problem, not stalled work.
-  - what: Reaping the at-risk worktrees, including the two fresh /tmp/seat_msc salvage trees.
+      Each pre-registration refuses a second change in the book it grades, and rankq is still running. Flipping
+      before focus 3 orders them spends the next book on whichever switch was nearest, rather than on the most valuable.
+  - what: Reap the 10 worktrees whose commits no remote ref keeps.
     why: >-
-      /var/tmp/value-test-cut012 is s.12g's pin. The /tmp/seat_msc trees were salvaged at 03:16Z by a lane that
-      may still be working, and the MSC landed at 01:48Z. A reap cannot be undone, and none of them blocks a result.
+      rankq runs in /var/tmp/value-test-cut012, b11m7 runs from a pinned tree, and a reap cannot be undone. Nothing
+      is reaped until rankq has been graded.
+  - what: Raise the supplier's dependence on box time (one switch per 13-hour book) with the director as a strategy concern.
+    why: >-
+      Sequencing the box and the levers is the delivery seat's job, and focus 3 decides it with evidence. It goes
+      to him only if focus 3 finds that the attribution clause cannot be met by arms, and the queue really is a
+      week long.
 wrong:
   - what: >-
+      THE SEAT'S OWN, NEW. My 12:22 focus 1, the supplier item I ranked first, was named by the atom id
+      B11_forward_clv_backtested_on_held_back_history. An atom id in focus only biases the ordinary draw, and the
+      draw does not take a parked atom. B11 was parked, so the item went unworked for the whole stretch (22 unchanged
+      draws, not drawn), and the supplier got 0 of 16 commits. The brief's stalled-atoms block showed
+      "director_gate: blocked_on=None" against B11 before I wrote it. Lesson: give a parked atom's work a kebab
+      id and a lane so that it reaches Lane 0. This record does that for B11, and for EP1, whose unpark the stale
+      shared map cannot see. 18:21 24 Nov -- CORRECTED: issued as Lane 0 items, both landed (ed62c5b28 B11 M7,
+      63f7faeba EP1), 3 of 3 focus items drawn.
+    corrected: true
+  - what: >-
       THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333
-      on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:22 22 Nov -- WORSE: the grade that
-      would switch it on was not in the live queue. 21:21 22 Nov -- its reader is live again (80d11db93), re-armed
-      on the first book descending from 59cd5ebda and c09847b7c. No such book exists, and none will start before
-      s.12g ends (about 33h). 03:22 23 Nov -- unchanged. The reader re-checked at 02:46Z and still found no qualifying
-      book.
+      on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 06:21 24 Nov -- unchanged. If rankq
+      reads below zero, the pre-registration makes this a finding against the corrected belief's money grade.
+      12:22 24 Nov -- unchanged; rankq is on its second pass. 15:22 24 Nov -- unchanged; rankq is on its third pass.
+      18:21 24 Nov -- unchanged; rankq is on its fourth pass. The ending-term belief's flip is one of the switches
+      focus 3 orders.
     corrected: false
   - what: >-
       THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median
-      same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:22 22 Nov --
-      unchanged; the 23 Nov recheck stands. 21:21 22 Nov -- unchanged. 03:22 23 Nov -- unchanged; the recheck is
-      due today and has not run.
+      same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 12:22 24 Nov --
+      unchanged; the triage recheck is due 26 Nov. 15:22 24 Nov -- unchanged. 18:21 24 Nov -- unchanged.
     corrected: false
   - what: >-
-      THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one,
-      so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account.
-      Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on
-      67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's
-      path. 21:21 22 Nov -- unchanged. 03:22 23 Nov -- unchanged.
+      THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one.
+      [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- GBP 0.00 per domestic account-day;
+      voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 12:22 24 Nov -- unchanged. 15:22 24 Nov --
+      unchanged. 18:21 24 Nov -- unchanged.
     corrected: false
   - what: >-
       THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin.
       The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the
-      same pair. [Earlier tails are in decisions.jsonl.] 18:22 22 Nov -- re-queued with the dunning port, no reader.
-      21:21 22 Nov -- s.12g has been running since 19:32:32Z, and its cut arm is at the end of 2017. Its reader is
-      armed (5ee17f514). Not corrected until it publishes the advantage with its interval. 03:22 23 Nov -- cut arm at
-      2020-09-29; the A arm has not started. Focus item s12g-outcome-decision-is-recorded-before-it-publishes writes
-      the next lever down before the answer arrives.
+      same pair. [Earlier tails are in decisions.jsonl.] 06:21 24 Nov -- graded out of sample (78962a574): -GBP 0.14
+      (-1.39 to +1.03), a STRADDLE, P1 refuted. Still not beating the baseline. 15:22 24 Nov -- rankq is on its third
+      Phase 2b pass (late 2021) and grades itself into grade_rankq.out, which continuation s12g-rankq-is-graded-when-it-ends reads.
+      18:21 24 Nov -- rankq is on its fourth pass (mid-2019, 8h43m in). The continuation I named as its reader had
+      already expired from live() at about 09:26Z (see the new row); focus 1 restores it.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The book that every queued supplier grade reads has not been built for 30 hours (since 20
-      Nov 15:39). [Earlier tails are in decisions.jsonl.] 18:22 22 Nov -- worse: 51 hours. 21:21 22 Nov -- worse:
-      54 hours. sim-runner yields every cycle to s.12g and the reg 6C landing, and the book is about 33h more away
-      unless the director says go on s-12g-was-admitted-at-19-32. 03:22 23 Nov -- worse: about 60 hours, and about
-      26h more of s.12g to come.
+      Nov 15:39). [Earlier tails are in decisions.jsonl.] 12:22 24 Nov -- about 93 hours. 15:22 24 Nov -- about 96
+      hours. It queues behind rankq by choice, and it builds at origin/main, so it will carry 59cd5ebda, c09847b7c,
+      f80fe3951 and c41e70832. 18:21 24 Nov -- about 99 hours; it now also carries 63f7faeba (rate reporting only).
     corrected: false
-  - what: >-
-      THE WORLD'S, NEW. A won switch is never put on supply: on the 20 Nov run 16 fresh acquisitions were won and 0
-      billed, because ACQUIRED_CUSTOMERS is not on the settlement roster (5ce811272). Two notes had said the world
-      "keeps the household on supply". 15:24 22 Nov -- b9ca3a24c closed the electricity half on f80fe3951. 21:21 22
-      Nov -- reg 6C and gas-only supply are in surgical_land (pid 134360) since 19:40Z, at 1.7x their declared hour.
-      Not landed; the 2 gas-only wins are still off supply. 03:22 23 Nov -- still not landed. The first landing timed
-      out at the gate (22:34Z), and the second was refused at 01:25Z on a stale copy of run_phase2b.py. The gas build
-      is in salvage eccf3dc756 (7c4c3f1e4). Owned by focus item reg-6c-and-gas-only-supply-re-land-on-the-current-run-phase2b.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, NEW. Last stretch's first focus item was drawn at about 22:05Z, and the lane recorded it as
-      premise_not_yet_ripe on a date in the continuation's prose, though its premise (control_55555_66666.json) had
-      existed since 15:33Z. A direction item whose prose quotes another item's date can be walked past as unripe.
-      06:24 22 Nov -- this instance is closed (b1c7d76b1, 8aa5aa350). 21:21 22 Nov -- unchanged. The mechanism has
-      not been touched. 03:22 23 Nov -- unchanged, and no new instance this stretch.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, NEW. The GSOP turn (01:15Z to 02:45Z) spent its 5400 s on a 2016-2017 probe. Its
-      surgical_land, started at the end, was SIGKILLed with the unit's cgroup at teardown. The executor warned
-      DOOMED-AT-TEARDOWN and killed the process anyway: a bounded turn can start a landing it cannot outlive. 06:24
-      22 Nov -- the lost work was redone and landed as 20a58061f. 15:24 22 Nov -- pid 945604 (reg 6C) was a second
-      instance. 21:21 22 Nov -- WORSE, a third instance and it hit the fix itself (background/bounded_landing.py
-      lost). 03:22 23 Nov -- CORRECTED: the hand-off was rebuilt and landed as 8bd0092e8 (23:23Z). Since then every
-      executor landing has run in its own longjob-land-se-seat-executor-* unit, and none was killed at teardown.
-    corrected: true
-  - what: >-
-      THE MACHINE'S, NEW. From 14:15Z to 15:26Z on 22 Nov the seat executor stood down every tick with "nothing to
-      do: no continuation and no unclaimed focus item". Origin's direction still named
-      supply-a-win-from-a-gas-only-household-as-gas and a-bounded-turn-cannot-start-a-landing-it-cannot-outlive,
-      and neither had landed. Whether a stale claim held them, or the stand-down reads something else, is not
-      established, and the log line does not say which claim it saw. 03:22 23 Nov -- CORRECTED: 8bd0092e8 names the
-      cause, a refused direction record read as "no focus", and fixes it.
-    corrected: true
   - what: >-
       THE MACHINE'S, NEW. Two declared long jobs and the book queued one behind another with nobody choosing the
-      order. From 16:26Z sim-runner deferred every book to the queued s.12g (2,100 minutes). 21:21 22 Nov -- the
-      seat chose book-first at 18:22Z, but s.12g was admitted at 19:32:32Z, before any worker drew that decision. So
-      the order was still made by whoever reached the queue first. Raised with the director as
-      s-12g-was-admitted-at-19-32. The admission path still reads no seat ordering. 03:22 23 Nov -- unchanged.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, NEW. The commit gate ran past 3600 s and refused land-se-seat-executor-1795372804 at 19:40Z.
-      From 19:40Z the reg 6C landing stayed in surgical_land for 1h40m+ while origin moved five times. Landing,
-      not building, is now what loses finished work. 03:22 23 Nov -- CORRECTED at the cause: 5a354ebcb and 1c9cd8195.
-      The reg 6C gate that started before them still timed out (22:34Z). Every landing gated after 00:37Z finished
-      inside the hour with s.12g resident (7527a2e36 in 41 minutes, the 01:20Z landing in 4.5 minutes).
-    corrected: true
-  - what: >-
-      THE MACHINE'S, NEW. The reg 6C re-landing (longjob-land-reg-6c-erroneous-gains-2) was refused at 01:25Z, 3
-      seconds in, on a stale copy of simulation/run_phase2b.py. The refusal printed its remedy, and no lane ran it.
-      Its continuation build-gas-supply-for-a-gas-only-win waits on a file that only success writes, so a refused
-      landing left its own follow-on held with no owner until this orientation. Owned by focus item
-      reg-6c-and-gas-only-supply-re-land-on-the-current-run-phase2b.
+      order. [Earlier tails are in decisions.jsonl.] 12:22 24 Nov -- the class is filed with owner H_harness
+      (58606770c). The census's resource_headroom door and the long-job co_residence door have no order between
+      them, and each memory refusal deletes the long job's FIFO row. Nothing is fixed yet. 15:22 24 Nov -- unchanged.
+      The census stays stopped, and cd8b7d81c's live-run arm now depends on it. 18:21 24 Nov -- a new instance is
+      already armed: land10 and b11m7's first wave both fire on the first post-rankq book. Focus 2 orders them.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z), but
-      their work reached origin: each was refused at promotion because origin had moved, and the retries left three
-      merges that authored nothing (f68028b7f, 755536805, 965a59053). So the brief overstated lost work by three jobs.
-      This is a new instance of a-landing-loses-its-race-to-origin. Owned by focus item
-      a-promotion-that-loses-its-race-is-one-job-not-three-died-ones.
+      their work reached origin. This is a new instance of a-landing-loses-its-race-to-origin. [Earlier tails are in
+      decisions.jsonl.] 12:22 24 Nov -- no no-work merge this stretch, but the shared tree is now 129 behind, with 6 of
+      56 paths not provably lossless. 15:22 24 Nov -- no new instance. The tree is 145 behind, and 3878ac59f named its
+      six holders with dates. 18:21 24 Nov -- two more executor landings are DIED in the register (15:51Z, 16:46Z),
+      unread. The tree is 165 behind, and its recheck is due 25 Nov 06:30Z.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. The MSC replacement-win landing's gate timed out at 3600 s (land-msc-replacement-win, 04:55Z
+      to 05:56Z) while other gates ran beside it. [Earlier tails are in decisions.jsonl.] 12:22 24 Nov -- unchanged;
+      land9 waits up to 48 h for the book. 15:22 24 Nov -- land9 never reached a gate. It died at 13:31Z (see the land9
+      row), so no MSC landing is armed. Focus 3. 18:21 24 Nov -- land10 is armed on artefacts, but its busy check does
+      not see b11m7's waves, which fire on the same book. Focus 2.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. 7527a2e36 reached origin with test_collections_journey.py red on the live Consent offer, so
+      origin itself refused the next landing on that path. [Earlier tails are in decisions.jsonl.] 12:22 24 Nov -- two
+      more instances. 15:22 24 Nov -- EXPLAINED (cd8b7d81c): for all three, the gate never selected the guard the
+      commit turned red. The selection now includes folder-scanning guards, and each of three mutations goes red.
+      Origin is green on all three tests. The live-run arm has no net until a full-suite census completes on a
+      descendant, and none has completed since 22 Nov, so the triage row stays fix/open. 18:21 24 Nov -- unchanged;
+      the census is last in focus 2's order.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. The closed-account landing was relaunched at 14:35Z unchanged after two refusals on the
+      same three reds, and it was refused a third time. [Earlier tails are in decisions.jsonl.] 21:22 23 Nov -- the
+      instance is over (1d1059350), but nothing stops an unchanged relaunch after a named refusal; still open as a
+      class. 15:22 24 Nov -- unchanged. 18:21 24 Nov -- unchanged.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. The MSC chain's worktree, /var/tmp/se-msc-wt, was removed while the chain still depended
+      on it. [Earlier tails are in decisions.jsonl.] 06:21 24 Nov -- the path exists again, UNLOCKED, with an
+      owner undeclared, holding a 06:01Z salvage (49be21d8) that no remote ref keeps. Who removed it, and who
+      recreated it, are both still unestablished. 15:22 24 Nov -- unchanged. land9 builds in se-msc-wt9 and
+      does not depend on it. 18:21 24 Nov -- unchanged; land10 does not depend on it either.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. land9's first arming ended at 07:18Z with only "armed" in its log, so the MSC landing was
+      silently not waiting for two hours. The cause is not established (639b924a9). It was re-armed at 09:52Z as
+      longjob-land9-msc-replacement-win-fire-refresh. 15:22 24 Nov -- A SECOND DEATH: at 13:29:24Z its wait_for
+      returned FINISHED on 'tools.run_annual_report', but no book had run. FINISHED requires one poll that matched,
+      so a transient process naming the pattern satisfied it. At 13:31Z land9 refused to gate beside rankq (exit 7).
+      Nothing is waiting to land MSC now. Focus 3 names the matching process and re-arms it on artefacts.
+      18:21 24 Nov -- CORRECTED (971dc9738). 07:18Z was a cgroup kill when the parent worker-tick unit ended. At
+      13:29Z, wait_for's regex '.' matched '/', and that was reproduced with a no-op shell. land10 is armed through
+      launch_long_job on artefact waits. The wait_for defect is filed separately.
+    corrected: true
+  - what: >-
+      THE MACHINE'S, NEW. The continuation that reads the thesis's live test, s12g-rankq-is-graded-when-it-ends, fell
+      out of seat_continuation.live() at about 09:26Z 24 Nov, 6 h after it was written and while rankq was still
+      running. _window_opens extends a row's window for a dated embargo but not for a hold on a file. The B11 M7
+      readout and land10 readers expire the same way tonight, before their files can exist. Focus 1.
+    corrected: false
+  - what: >-
+      THE SEAT'S OWN, NEW. My 15:22 record named s12g-rankq-is-graded-when-it-ends as rankq's reader, and that
+      continuation was not in the live queue. The brief I was handed listed the queue without it. I wrote the
+      handoff from the raw store's memory rather than from live(). Lesson: a reader cited in this record is checked
+      against seat_continuation.live() before it is written.
     corrected: false
 for_the_director:
-- id: s-12g-was-admitted-at-19-32
-  raised: '2026-11-22'
-  kind: strategy
+- id: k8-knowledge-before-build-covers-supplier-capabilities
+  raised: '2026-11-24'
+  kind: canon_intent
   decision_kind: harness
-  what: s.12g was admitted at 19:32:32Z, before the book-first decision could act, so the next book now waits ~35h
-    behind it (~86h since the last book) unless it shares the box.
-  proposal: 'One-off: let sim-runner''s next book (descending from 59cd5ebda) skip the resident-long-job yield for
-    s.12g only, since the declared arithmetic fits (11.8+~6+2.6 < 23.0 GB). Otherwise leave s.12g alone and the
-    book runs after it.'
-  recommendation: 'I recommend we wait: leave s.12g running and let the book follow it. You said not to kill s.12g,
-    and co-residence risks exactly that, because the resident-yield rule exists after an undeclared worker OOM-killed
-    a long job. Say ''go'' and I will land a one-unit exemption instead.'
-  based_on: d48ffb3893
+  what: K8 (knowledge before build) covers supplier capabilities only; two world models were closed at
+    target with no knowledge page beneath them, the weather-to-price chain and the cold-and-still tail
+    demo
+  proposal: 'Extend K8 to the world: a world model reproduces a published mechanism, so the page naming
+    that mechanism comes before the build and the module''s docstring cites it (or a named Knowledge:
+    GAP). One-leg test over L3+ world modules, no baseline list.'
+  recommendation: 'I recommend adopting the one-sentence extension: the chain loses to a gas-only null
+    in every regime, and a page would have named its missing carbon and interconnector terms before the
+    first arm ran.'
+  based_on: bfad11e9fa
   status: open
   resolution: ''
-  evidence: docs/staging/SEAT_FINDING_THE_BOOK_THE_FIVE_GRADES_WAIT_ON_WOULD_HAVE_DROPPED_THREE_OF_THEIR_RECORDS_AND_IS_STARVED_2026-11-21.md,
-    section 'Re-read 22 Nov 19:37Z'
+  evidence: docs/staging/WORKER_FINDING_A_WORLD_MODEL_CLOSED_AT_TARGET_WITH_NO_KNOWLEDGE_PAGE_BENEATH_IT_2026-11-24.md
+    (census of 32 world modules under 20 L3+ atoms)

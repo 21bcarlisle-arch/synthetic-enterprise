@@ -2556,3 +2556,189 @@ alive. This run is the one the item meant.)
     member to empty.
   - Reverse: `systemctl --user stop s12g-reader-deathwatch` and
     `python3 -m background.seat_continuation --drop s12g-has-a-reader-when-it-ends`.
+
+#### s.12g graded: P1 is −£0.14 (−£1.39 to +£1.03). Refuted by its own rule, and the interval straddles zero (24 Nov, read at 05:47Z)
+
+**What was read.** The job `longjob-value-test-cut012-new-book` ended at about 05:38Z on 24 Nov
+(result=success; the death watch logged it at 05:40Z). The A member and the chained grader output were
+both written at 05:38Z. The grader `/var/tmp/vtn-driver/grade_new_book.py` re-hashed to `3cb5f92d5f10b00d…`
+and ended `rc=0`. The pin re-hashed to `030f8d16c8fc2aee…`, which equals `cut012.patch.sha256`, so the tree
+the run read is the e09f1640a port and nothing else. No prediction below is revised, and no other book was
+looked at. Every number is quoted from `/var/tmp/vtn-driver/grade_new_book.out`, apart from P4's count, which
+`/var/tmp/vtn-driver/s12g-reader/p4.py` computes with the grader's own unit and arithmetic.
+
+**The book.** 61118 has 1,027 accounts at import, 698 of them founders. The twin's control-arm household-years
+are 5,723 (13131) and 5,666 (14141). Of §12c's in-sample nine, SYN-2016-557 and SYN-2016-498 recur by id
+as re-drawn households, as filed. Neither one appears among P1's or P3's top movers.
+
+**P1, the thesis test out of sample.** The per-customer arm (the 0.12 cut) against the flat-rules twin is
+measured as (cut value arm − flat book) − (twin value arm − flat book), in £ per household-year:
+
+| | 13131 | 14141 | Mean | 95% interval (2,000 household resamples, seed 20261117) |
+|---|---|---|---|---|
+| **P1: cut − twin, advantage over the flat book** | −0.896 | +0.617 | **−£0.140** | **−£1.389 to +£1.025** |
+| Predicted (21 Nov) | | | −£0.40 | −£2.00 to +£1.20 |
+
+- **P1's verdict by its own rule: REFUTED.** The point is below zero. ("Refuted below zero. Held only above
+  zero with an interval that excludes zero.")
+- **The outcome by the interval, as the 23 Nov pre-registration defines it: STRADDLE.** The interval contains
+  zero.
+- Both labels are printed side by side, as that record requires. On households it was not fitted on, the
+  per-customer arm does not beat flat rules. The sign is against it, but the size cannot be told from zero.
+  The in-sample read was −£0.33 (−£1.77 to +£0.96), so out of sample the point moved toward zero and the
+  interval kept its width.
+- Movers: 484 (seed, household) units moved, 178 up and 306 down, totalling −£1,632. The largest is
+  SYN-2016-382 on 14141 (+£2,534), and the smallest is SYN-2016-241 on 13131 (−£3,456).
+
+**The decomposition (the pre-registration's step, printed before the branch).** P1 = (cut − A) + (A − twin)
+on the advantage measure:
+- (cut − A) = P3 − P3b = +£0.916 − £0.195 = **+£0.721**.
+- (A − twin) = P2 = **−£0.861**.
+- Sum: −£0.140, which equals P1.
+
+As in sample, the cut wins back most of A's loss against the twin, and no more.
+
+| | Measure | Predicted | Read | Verdict |
+|---|---|---|---|---|
+| P2 | Advantage, A − twin | −£1.10 (−£2.80 to +£0.60) | **−£0.861** (−£2.095 to +£0.320); per seed −1.365 / −0.358 | **In range** |
+| P3 | Value arm, cut − A | +£0.70 (−£0.30 to +£1.70) | **+£0.916** (+£0.222 to +£1.790); per seed +0.882 / +0.951 | **In range** |
+| P3b | Flat book, cut − A | moves by less than £0.10 either way | **+£0.195** (−£0.026 to +£0.626); per seed +0.412 / −0.023 | **Out of range** |
+| P4 | Where P3's gain sits | 15 or fewer units carry ≥80%, all up-movers | **4 units carry 82%** (£8,576 of £10,434), all up-movers | **Holds** |
+
+- **P4's four units:** SYN-2016-382 on 14141 (+£2,534), SYN-2016-383 on 13131 (+£2,533), PROS-2020-0287 on 14141
+  (+£1,786) and PROS-2018-0053 on 13131 (+£1,723). P3 has 38 up-movers summing +£10,692 and 108 down-movers summing
+  −£258. Its gain is as concentrated out of sample as in sample, on different households.
+- **P3b missed.** The flat book is not fixed across configurations: the control arm runs inside each child, and
+  its households see a different run history. Here the flat book moved by +£0.195 between cut and A, and by
+  +£0.329 (−£0.144 to +£1.063) between cut and twin. P1 differences each run against its own flat book, so P1
+  carries this by construction. That is the measure as filed, and it is not revised here. It means a
+  flat-book shift of this size sits inside every "advantage" number on this page.
+
+**The founder/win split** (the director's 10 Oct condition 1; it carries no prediction):
+
+| Cut − twin, advantage | Households | Mean | 95% interval |
+|---|---|---|---|
+| Founders only | 391 | +£0.087 | −£0.767 to +£0.841 |
+| Campaign and trickle wins only | 371 | −£0.227 | −£1.086 to +£0.727 |
+
+Neither side can be told from zero. The founders' point is above zero and the won households' point is below.
+
+**Also printed by the grader (cut − twin, no prediction):**
+- value arm +£0.189 (−£0.955 to +£1.370)
+- level arm −£0.225 (−£1.317 to +£0.772)
+- choosing leg +£0.414 (−£1.151 to +£2.065)
+
+The levels against each run's own flat book are cut +£5.795, twin +£5.934 and A +£5.073.
+
+**The pre-registered branch: STRADDLE.** The branch is
+`docs/staging/records/SEAT_PREREG_WHAT_THE_SUPPLIER_DOES_ON_EACH_S12G_OUTCOME_2026-11-23.md`, section
+"STRADDLE: the interval contains zero". Its next lever is "the cut on rank at the twin's volume, so that no
+fitted number is left": offer at a renewal when A's conditioned belief is in the top q share of the desk's own
+beliefs on the previous 12 months' renewals. q is the twin's value-arm share of renewals offered on 61118,
+pooled over 13131/14141.
+
+**The measured-first step, done** (`/var/tmp/vtn-driver/s12g-reader/measure_first.py`):
+- **q = 0.7563.** The twin offered at 211 of its 279 value-arm renewals.
+- **Where 0.12 sits.** In the cut run's value-arm desk churn belief on the 278 renewals that carry an offer
+  decision, 0.12 is at the **16.2nd percentile**. The rank-at-q threshold is the (1 − q) = **24.4th percentile**.
+- **The gap is 8.2 points, outside the ±5 rule, so the run is launched.** The rule's literal wording ("the
+  q-quantile", the 75.6th percentile) gives a gap of 59 points, and the desk's whole value-arm belief
+  population (1,036 asks, where 0.12 is at the 63.9th percentile) gives 40 or 12. Every reading passes, so the
+  rule's wording does not decide the outcome.
+- **Not a selection, recorded because it bounds what the run can show.** The cut already offered at 215 of
+  278 value-arm renewals (77.3%), within 1.7 points of the twin. A offered at 169 of 278 (60.8%). No cut
+  renewal at or below 0.12 was offered, and 18 above it were refused by the value test. So at realised
+  volume, the cut already matches the twin. The rank-at-q gate moves the gate's own threshold, from the
+  16th percentile to the 24th, and the value test still runs after it. If rank-at-q reads like the cut, the
+  difference between A and the twin is not mostly volume at the gate.
+
+#### Correction: q is read on the population the gate acts on. It is 0.2767, not 0.7563, and the run is still owed (24 Nov, 06:00Z)
+
+**What was wrong, beside the claim and not over it.** The paragraph above reads q and the 0.12 percentile
+from the decision record's `renewals` lists. Those hold only renewals that carry a world roll: 279 pooled,
+against **777** renewals where the twin's desk was asked. That subset is skewed toward offered renewals (211
+of 279). The offer gate (`run_phase2b.py:4336` at the pin) is evaluated at every renewal where the desk is
+asked, which is exactly the `desk_asked` rows of `desk_belief_by_arm`. The "share of renewals offered" that
+the switch must match therefore has those rows as its denominator.
+(`/var/tmp/vtn-driver/s12g-reader/measure_first_gate.py`.)
+
+**Re-measured on the gate's population:**
+
+| Run | Value-arm asked renewals | Offers | Offered share | Belief > 0.12 | Belief > 0.30 |
+|---|---|---|---|---|---|
+| twin | 777 | 215 | **0.2767** | 99.7% | 89.5% |
+| cut | 774 | 218 | 0.2817 | 48.3% | 37.2% |
+| A | 771 | 172 | 0.2231 | 50.5% | 38.7% |
+
+- **q = 215/777 = 0.2767.**
+- **The threshold.** The rank-at-q threshold is the 72.3rd percentile. 0.12 sits at the **51.7th** in the cut
+  run's value-arm asked beliefs. **The gap is 20.6 points, beyond ±5, so the run is launched.** The literal
+  "q-quantile" reading (27.7th) gives a gap of 24.0. The branch and the grade (`held`) are unchanged.
+- **The volume finding, re-stated on this population.** The cut already offered at 28.2% against the twin's
+  27.7%, and A at 22.3%. The earlier 77.3% / 75.6% figures were on the rolled-event subset and are withdrawn.
+- **The landed commit message carries the withdrawn figures.** This correction is the record.
+
+#### The rank-at-q run: built, pinned, predicted and armed (24 Nov)
+
+**Stated deviation, the second on this tree.** The rank switch is added to `/var/tmp/value-test-cut012`.
+No configuration of it has produced output. The knowledge page came first:
+`docs/market_research/a_retention_gate_set_by_volume_on_the_desks_own_ranked_beliefs_2026-11-24.md`.
+
+**The switch.** `DecisionPolicy.retention_rank_at_share` (default `None`) and
+`growth_desk.retention_gate_at_rank_share`:
+- **The gate.** The belief at index ⌊(1 − q)·n⌋ of the desk's own sorted beliefs at renewals in the 365 days
+  before the day.
+- **Warm-up.** Below 20 beliefs, the gate falls back to the standing 0.30. That is a design constant of this
+  test, not a domain value.
+- **The cut.** A belief at or above the gate takes its tier's cut, or the lowest tier's where it is under the
+  lowest tier. This is the 0.12 cut's own rule.
+- **Logging.** Every gate is logged to `rank_gate_log`.
+- **Switch off.** Every path is unchanged, so the twin, cut and A files on disk remain the comparators.
+
+**The pin.** The diff from `870201d1e7` is now `0cc0a709cab10509…` (`/var/tmp/vtn-driver/rankq.patch`, `.sha256`).
+It touches four files: the three cut012 files plus `collections_journey.py`. `cut012.patch.sha256`
+(`030f8d16…`) is kept as s.12g's own pin.
+
+**The run.**
+- **Configuration.** One: `rankq`, with A's belief on, the cut off and `retention_rank_at_share = 215/777`.
+- **Book and seeds.** Book 61118, churn pair 13131/14141.
+- **Driver.** `/var/tmp/vtn-driver/driver_rankq.py` (sha256 `16f15aa39689ea52…`), which is s.12g's driver
+  with only its configuration set, pin and output directory changed. It also keeps `rank_gate_log`.
+- **Dry check.** Seed 61118, 1,027 accounts, 698 founders, and the switch on both policies.
+
+**The grader.** `/var/tmp/vtn-driver/grade_rankq.py` (sha256 `86f84b177e1ca351…`) uses grade_new_book's unit,
+resampling and divisor. It prints:
+- rankq − twin (P1's measure; HOLDS only ABOVE, REFUTED when the point is below zero);
+- rankq − cut (0.12 replaced by the volume match);
+- rankq − A;
+- the realised offered share and the gate's own path.
+
+Validated on a fixture with A's files posing as rankq: it reproduces P2 (−0.861, −2.095 to +0.320) and −P3,
+and rankq − A reads exactly zero. (`s12g-reader/grade_rankq_fixture_A_as_rankq.out`.)
+
+**Read before the run, and why it shapes the predictions.** The value test still refuses after the gate. At
+A's 0.30 gate, 298 asks pass and 172 are offered, 58%. On A's whole-run beliefs, the rank-at-q threshold is
+about **0.437**, which is *stricter* than A's own gate. So as registered, the rank gate does not raise A to
+the twin's volume: it lowers it. It is the lever the pre-registration named, and it is run as named. What it
+can still answer: A's ranking at a stricter, volume-set bar, against the twin and against A's own gate.
+
+**Predictions (£ per household-year), filed before rankq has run:**
+
+| | Measure | Predicted | Rule |
+|---|---|---|---|
+| **R1** | rankq − twin, advantage over the flat book | **−£1.20 (−£2.60 to +£0.20)** | **Holds only ABOVE. Refuted below zero. Otherwise "cannot tell".** |
+| R2 | Realised value-arm offered share | 0.13 to 0.19 (offers 100 to 150 of about 775) | In range or not |
+| R3 | rankq − A, advantage | −£0.30 (−£1.00 to +£0.40) | In range or not |
+| R4 | rankq − cut, advantage | −£1.00 (−£2.10 to +£0.10) | In range or not |
+
+**Armed.** User unit `s12g-rankq-watch` runs `/var/tmp/box-plan/s12g-rankq/arm_rankq.sh` (sha256
+`520d192764253d04…`):
+1. It waits for `box_free.py`.
+2. It refuses if the job is already running or on disk.
+3. It checks the rankq pin, with the same mixed-reset repair as the earlier arm scripts.
+4. It runs `launch_rankq.sh` (sha256 `ef15968c5fb93060…`) once.
+
+That script goes through `launch_long_job` as `longjob-value-test-s12g-rankq` (11,800 MB, 800 min), and the
+grader is chained after it into `/var/tmp/vtn-driver/grade_rankq.out`. The deadline is 8 Dec.
+
+**Reverse:** `systemctl --user stop s12g-rankq-watch longjob-value-test-s12g-rankq`.

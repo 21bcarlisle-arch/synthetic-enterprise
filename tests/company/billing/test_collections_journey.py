@@ -340,6 +340,25 @@ def test_the_order_check_refuses_an_unlawful_walk(stages, exit, why):
 #: cutoff and so the book, which is why the reaching ends are not nested.
 LIVE_WINDOW_END = "2016-12-31"
 
+#: The answered run's window, apart from the shipped run's since 2026-11-23. 7527a2e36 collects a
+#: leaving level household's schedule debit on its final bill, and the one 2016 offer
+#: (ACC-SYN-2016-005, 2016-10-26) was to a household that had closed in June: once its debit was
+#: collected, the 2016 window held no offer. 2017 holds three, ACC-SYN-2016-055, -099 and -390, and
+#: each is dated three to four months after that household's final bill. So these controls are
+#: non-vacuous here only because of a defect: the desk offers a prepayment meter to a household that
+#: has left (SEAT_FINDING_THE_DESK_OFFERS_A_PREPAYMENT_METER_TO_A_HOUSEHOLD_THAT_HAS_LEFT_2026-11-23.md).
+#: Fixed 2026-11-23 (the gate's `account_still_supplied` column): all three are now withheld, so this
+#: window holds NO Consent offer and the two answered controls below are vacuous here. They are held
+#: open strictly until a window with an offer to a SUPPLIED account is measured; that measurement
+#: could not be admitted in the fixing turn (the box was full), so it runs as a long job and the
+#: re-key is handed on. `test_every_live_consent_offer_goes_to_an_account_still_supplied` is live.
+ANSWERED_WINDOW_END = "2017-12-31"
+_NO_SUPPLIED_OFFER_IN_WINDOW = (
+    "OPEN: the answered window to 2017-12-31 holds no Consent offer once a closed account is refused "
+    "(its three offers were all to leavers, SEAT_FINDING_THE_DESK_OFFERS_A_PREPAYMENT_METER_TO_A_"
+    "HOUSEHOLD_THAT_HAS_LEFT_2026-11-23.md). Re-key ANSWERED_WINDOW_END to a measured window with an "
+    "offer to a supplied account, then drop this mark.")
+
 
 @pytest.fixture(scope="module")
 def live_run():
@@ -365,7 +384,7 @@ def answered_live_run():
     shipped = por.BASIS
     por.BASIS = por.basis_at("high")
     try:
-        return main(report_end=LIVE_WINDOW_END)
+        return main(report_end=ANSWERED_WINDOW_END)
     finally:
         por.BASIS = shipped
 
@@ -427,17 +446,20 @@ def _consent_rung(journeys):
             if s["stage"] in (PREPAYMENT_OFFERED, PREPAYMENT_WITHHELD)]
 
 
-def test_a_live_run_withholds_the_prepayment_offer_at_the_ninety_day_rung(live_journeys,
-                                                                         answered_live_run):
-    """W2_42's rung is reached by the run, and the gate decides it both ways in operation. On the
-    shipped basis no plan offer is answered, so every live withhold names the 27.8 ground (C32
-    tenth pass, item 5: before, 5 of 6 were permitted on unanswered offers). With the world's
-    answers on, some household is offered, and no withhold says "never asked" or "no watch"
-    (W2_43): the desk asks the S&RP questions and holds its own 27A watch."""
+def test_a_live_run_withholds_the_prepayment_offer_at_the_ninety_day_rung(live_journeys):
+    """W2_42's rung is reached by the run. On the shipped basis no plan offer is answered, so every
+    live withhold names the 27.8 ground (C32 tenth pass, item 5: before, 5 of 6 were permitted on
+    unanswered offers)."""
     shipped = _consent_rung(live_journeys)
     assert shipped, "no live journey reached the 90-day rung -- the prepayment route is unreached"
     assert all(s["stage"] == PREPAYMENT_WITHHELD and NO_ARRANGEMENT_OFFERED in s["decision"]
                for s in shipped), [s["decision"][:80] for s in shipped]
+
+
+@pytest.mark.xfail(strict=True, reason=_NO_SUPPLIED_OFFER_IN_WINDOW)
+def test_an_answered_live_run_decides_the_consent_offer_both_ways(answered_live_run):
+    """With the world's answers on, some household is offered, and no withhold says "never asked"
+    or "no watch" (W2_43): the desk asks the S&RP questions and holds its own 27A watch."""
     answered = _consent_rung(answered_live_run["collections_journeys"])
     assert {s["stage"] for s in answered} == {PREPAYMENT_OFFERED, PREPAYMENT_WITHHELD}, (
         "the gate does not decide the live Consent offer both ways")
@@ -447,6 +469,7 @@ def test_a_live_run_withholds_the_prepayment_offer_at_the_ninety_day_rung(live_j
             assert NO_SELF_DISCONNECTION_WATCH not in s["decision"], s["decision"]
 
 
+@pytest.mark.xfail(strict=True, reason=_NO_SUPPLIED_OFFER_IN_WINDOW)
 def test_the_world_counts_every_consent_offer_the_company_made(answered_live_run):
     """The world-side concealing count is over every offer the desk made, the end-of-run advance's
     included: taken before the journeys' last advance it counted 4 of 5 (C32 tenth pass). Defect:
@@ -455,6 +478,35 @@ def test_the_world_counts_every_consent_offer_the_company_made(answered_live_run
                for j in answered_live_run["collections_journeys"] for s in j["stages"])
     assert made, "no live Consent offer -- the count's agreement is untested"
     assert answered_live_run["consent_offers_to_concealing_households"]["offers"] == made
+
+
+def _offers_after_the_household_left(run):
+    """Every live Consent offer dated after the offered account's final bill month: the world's own
+    record of each leaver's final month (`final_month_nets`, a harness reading; nothing here crosses
+    the seam). A household that has left is supplied by someone else, and a prepayment meter is
+    fitted at a supplied premise."""
+    closed_through = {}
+    for row in run["final_month_nets"]["rows"]:
+        month = row["bill_month"]
+        closed_through[row["account_id"]] = max(closed_through.get(row["account_id"], month), month)
+    return [(j["account_id"], s["on"], closed_through[j["account_id"]])
+            for j in run["collections_journeys"] for s in j["stages"]
+            if s["stage"] == PREPAYMENT_OFFERED and j["account_id"] in closed_through
+            and s["on"][:7] > closed_through[j["account_id"]]]
+
+
+def test_every_live_consent_offer_goes_to_an_account_still_supplied(answered_live_run):
+    """Defect: the desk asks a household that has left, by Consent, to take a prepayment meter at a
+    premise the company no longer supplies (ACC-SYN-2016-005 on 2016-10-26, closed in June). The
+    branch it guards is reached: some leaver's journey stands at the 90-day rung in this window."""
+    assert answered_live_run["final_month_nets"]["rows"], "no leaver's final month -- untested"
+    leavers = {r["account_id"] for r in answered_live_run["final_month_nets"]["rows"]}
+    assert any(j["account_id"] in leavers and any(s["stage"] == PREPAYMENT_WITHHELD
+                                                  for s in j["stages"])
+               for j in answered_live_run["collections_journeys"]), (
+        "no leaver reached the Consent rung -- the closed-account refusal is untested here")
+    gone = _offers_after_the_household_left(answered_live_run)
+    assert not gone, f"Consent offers to households that had left: {gone}"
 
 
 class _World:

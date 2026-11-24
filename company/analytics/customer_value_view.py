@@ -75,6 +75,7 @@ from company.analytics.clv_three_horizon import (
     Horizon,
     RenewalPoint,
     TenureYearHazard,
+    discount_rate_at,
     estimate_book,
 )
 from saas.churn_model import (
@@ -171,6 +172,11 @@ def build_customer_value_view(
     cost_to_serve_ledger_events = build_cost_to_serve_ledger_events(
         settlement_records, customers
     )
+    # THE RATE IN FORCE ON THE DAY THE BOOK IS VALUED, which is the newest settlement the
+    # supplier has observed: its own records, never the run's clock.
+    valued_on = (
+        max(r["settlement_date"] for r in settlement_records) if settlement_records else None
+    )
     three_horizon_clv = estimate_book(
         _clv_observables(
             churn_risk, enterprise_value, customers, ceased,
@@ -179,6 +185,7 @@ def build_customer_value_view(
         ),
         book_exits=observed_book_exits(settlement_records, ceased, customers),
         book_renewals=observed_book_renewals(settlement_records, customers, ceased),
+        discount_rate=discount_rate_at(valued_on),
     )
     return CustomerValueView(
         cost_to_serve=cost_to_serve,
@@ -600,6 +607,9 @@ def build_three_horizon_clv_snapshots(
             "cutoff": cutoff,
             "observation_edge": edge,
             "covers_full_year": edge is not None and edge >= cutoff,
+            # The rate this year's belief was discounted at: the one in force at its edge.
+            "discount_rate": book.discount_rate,
+            "at_reported_rates": book.as_published_dict()["at_reported_rates"],
             # The n behind H2's hazard at this cutoff, so a reader can see a year
             # valued on three account-years apart from one valued on ninety.
             "book_exits": (
@@ -640,6 +650,8 @@ def build_three_horizon_clv_snapshots(
     # exactly that rather than naming a horizon nothing was computed on. This is the
     # empty branch, so it is where a fail-open would hide: a consumer must refuse an
     # unlabelled series, and `tools/couple_clv.py` does.
+    # The top-level rate is the LAST year's. Since the rate was dated (EP1, 24 Nov) the years
+    # can differ, and each year carries its own `discount_rate`.
     return {
         "discount_rate": basis.discount_rate if basis is not None else None,
         "aggregate_horizon": (

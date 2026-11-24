@@ -788,6 +788,57 @@ def get_gas_uig_uplift(date_str: str, prepayment: bool = False) -> float:
     return (_CAP_UIG_PPM if prepayment else _CAP_UIG_NON_PPM)[i]
 
 
+# Settlement grosses a supplier's metered electricity up by the DNO's Line Loss Factor and the
+# Transmission Loss Multiplier (zonal since BSC P350, 1 Apr 2018): the supplier buys about 9-13%
+# more energy than its domestic meters record. The cap's demand-weighted multiplier per region and
+# cap period, read off Annex 3 v1.25 `3b Losses`, section 2. Knowledge:
+# docs/market_research/regional_supply_cost_under_one_national_price_2026-10-25.md section 3b.
+_CAP_LOSS_ARTEFACT = (
+    Path(__file__).resolve().parents[1]
+    / "docs" / "domain_artefact_library" / "regulatory"
+    / "ofgem_cap_loss_multipliers.json"
+)
+
+
+def _load_cap_loss_multipliers() -> tuple[tuple[str, ...], str, tuple[float, ...], tuple[float, ...]]:
+    """`(period starts ascending, last period's end, single-rate GB median, multi-register GB
+    median)` from the regulation commons. Raises at import on a gap or overlap between periods."""
+    periods = sorted(json.loads(_CAP_LOSS_ARTEFACT.read_text())["periods"], key=lambda r: r["starts"])
+    for prev, nxt in zip(periods, periods[1:]):
+        if nxt["starts"] != prev["ends_before"]:
+            raise ValueError(
+                f"cap loss multipliers have a gap or overlap: {prev['cap_period']!r} ends before "
+                f"{prev['ends_before']}, {nxt['cap_period']!r} starts {nxt['starts']}"
+            )
+    return (
+        tuple(r["starts"] for r in periods),
+        periods[-1]["ends_before"],
+        tuple(float(r["single_rate"]["gb_median"]) for r in periods),
+        tuple(float(r["multi_register"]["gb_median"]) for r in periods),
+    )
+
+
+_CAP_LOSS_STARTS, _CAP_LOSS_END, _CAP_LOSS_SINGLE, _CAP_LOSS_MULTI = _load_cap_loss_multipliers()
+
+
+@lru_cache(maxsize=8192)
+def get_electricity_loss_multiplier(date_str: str, multi_register: bool = False) -> float | None:
+    """Energy settled per unit recorded at a domestic meter, on `date_str`: the cap period's
+    GB-median transmission-and-distribution loss multiplier (about 1.09-1.13).
+
+    The GB median, because the world does not yet map an address to a GSP group; the regions span
+    4-12 percentage points (GAP, the knowledge page's section 5). Before April 2015 and after the
+    artefact's last period: None, because no column covers it, and a caller must refuse rather
+    than settle as if there were no losses. Columns before December 2018 are Ofgem's own back-cast
+    ("for illustration only").
+    """
+    day = date_str[:10]
+    if day < _CAP_LOSS_STARTS[0] or day >= _CAP_LOSS_END:
+        return None
+    i = bisect_right(_CAP_LOSS_STARTS, day) - 1
+    return (_CAP_LOSS_MULTI if multi_register else _CAP_LOSS_SINGLE)[i]
+
+
 # ─── Year-key basis registry ─────────────────────────────────────────────────
 # Every year-keyed rate table in this module is keyed on ONE of two year conventions,
 # and its reader must derive the key the same way. Getting this wrong is silent and

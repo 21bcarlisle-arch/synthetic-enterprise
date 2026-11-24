@@ -46,6 +46,7 @@ from simulation.policy_costs import (
     get_ccl_per_mwh,
     get_cfd_levy_per_mwh,
     get_cm_levy_per_mwh,
+    get_electricity_loss_multiplier,
     get_electricity_network_cost_per_mwh,
     get_electricity_network_fixed_per_day,
     get_electricity_standing_charge_per_day,
@@ -58,6 +59,34 @@ from simulation.tou_periods import is_peak_period
 
 #: The Economy 7 Night register's half hours, [first, last) zero-indexed: 00:30-07:30.
 _NIGHT_FIRST, _NIGHT_END = OFF_PEAK_WINDOW_PERIODS
+
+#: Settlement grosses a domestic supplier's metered electricity up for line and transmission
+#: losses, so it pays for about 9-13% more energy than its customers' meters record. The cap's
+#: wholesale allowance carries the uplift, so a world without it hands the supplier a cost line
+#: about a tenth light. The loss energy is bought at the same prices as the metered energy, as the
+#: gas leg buys its Unidentified Gas (`gas_settlement`). Revenue, levies and network stay on the
+#: meter. Pre-registered before any book carries it, with its predictions and its off-rule:
+#: `docs/staging/records/SEAT_PREREG_THE_WORLD_SETTLES_ELECTRICITY_LOSSES_2026-11-24.md`. It stays
+#: False until the first-term cap hold's one-variable book has been read, so the two changes are
+#: not read off one book. Flipping it reds the off-by-default leg of
+#: `tests/simulation/test_the_world_settles_electricity_losses_by_one_switch.py`; amend that leg
+#: in the same commit, then delete this switch.
+SETTLEMENT_LOSSES_APPLIED: bool = False
+
+
+def _loss_multiplier(date_str: str, segment: str, multi_register: bool) -> float:
+    """The uplift on energy bought for this half hour: 1.0 when the switch is off or the supply
+    is not domestic (Ofgem's table is the cap's domestic benchmark; SME and I&C losses are a GAP,
+    and an HV site's are lower). Refuses a domestic date no published column covers."""
+    if not SETTLEMENT_LOSSES_APPLIED or segment != "resi":
+        return 1.0
+    multiplier = get_electricity_loss_multiplier(date_str, multi_register=multi_register)
+    if multiplier is None:
+        raise ValueError(
+            f"no published loss multiplier covers {date_str}: the cap's Annex 3 `3b Losses` "
+            "runs Apr 2015 - Dec 2026, and settling without losses would assert they are zero"
+        )
+    return multiplier
 
 
 def _settled_volumes(start, end, consumption_shape, settled_shape, price_lookup):
@@ -218,6 +247,12 @@ def run_hedged_term(
                 own_revenue = consumption_kwh / 1000 * period_rate
                 settled = dict(settled, revenue_gbp=own_revenue,
                                margin_gbp=own_revenue - settled["wholesale_cost_gbp"])
+            loss_multiplier = _loss_multiplier(date_str, segment, economy_7)
+            loss_cost_gbp = settled["wholesale_cost_gbp"] * (loss_multiplier - 1.0)
+            if loss_multiplier != 1.0:
+                settled = dict(settled,
+                               wholesale_cost_gbp=settled["wholesale_cost_gbp"] + loss_cost_gbp,
+                               margin_gbp=settled["margin_gbp"] - loss_cost_gbp)
 
             # Phase 21a: RO + CfD levy for this settlement date's year.
             # Uses actual settlement year, not term-start year, so cross-year
@@ -307,6 +342,8 @@ def run_hedged_term(
             })
             if settled_kwh_at is not None:
                 records[-1]["settled_kwh"] = settled_kwh
+            if loss_multiplier != 1.0:
+                records[-1]["loss_cost_gbp"] = loss_cost_gbp
             if tou_rates is not None:
                 # The band this half-hour was charged in, as two sums the daily fold adds up, so a
                 # month's bill can print each register's kWh and charge (SLC 22A.3) instead of one
@@ -433,6 +470,10 @@ def run_deemed_term(
                            else settled_kwh_at[(date_str, period)])
             revenue_gbp = billed_rate_gbp_per_mwh * consumption_mwh
             wholesale_cost_gbp = spot_price * settled_kwh / 1000.0
+            loss_multiplier = (_loss_multiplier(date_str, segment, False)
+                               if commodity == "electricity" else 1.0)
+            loss_cost_gbp = wholesale_cost_gbp * (loss_multiplier - 1.0)
+            wholesale_cost_gbp += loss_cost_gbp
             margin_gbp = revenue_gbp - wholesale_cost_gbp
 
             ro_levy = get_ro_cost_per_mwh(date_str) * consumption_mwh
@@ -486,6 +527,8 @@ def run_deemed_term(
             })
             if settled_kwh_at is not None:
                 records[-1]["settled_kwh"] = settled_kwh
+            if loss_multiplier != 1.0:
+                records[-1]["loss_cost_gbp"] = loss_cost_gbp
 
         current_date += timedelta(days=1)
 

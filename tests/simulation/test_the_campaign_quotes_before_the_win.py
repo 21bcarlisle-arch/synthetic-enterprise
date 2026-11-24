@@ -73,3 +73,66 @@ def test_the_market_reference_sits_below_the_default_by_the_published_gap(day):
     default_ex_vat = get_svt_elec_rate_charged_to_household_gbp_per_mwh(day) / (1 + DOMESTIC_VAT_RATE)
     assert market_cheapest_ex_vat("electricity", day) == pytest.approx(
         default_ex_vat * (1 - best_deal_gap_share(day)))
+
+
+def _weekly_forward(price: float, first: str = "2021-02-08", last: str = "2025-06-02"):
+    """One published row a week, `(knowable_from, GBP/MWh)`, at a flat price."""
+    d, stop, rows = dt.date.fromisoformat(first), dt.date.fromisoformat(last), []
+    while d <= stop:
+        rows.append((d.isoformat(), price))
+        d += dt.timedelta(days=7)
+    return rows
+
+
+def test_the_ladder_prices_only_where_it_is_whole_and_current():
+    """The partition first: a ladder is struck, refused for a short series, refused for a stale one.
+    A ladder that refuses everything passes every refusal test, so the priced leg is asserted too."""
+    from company.pricing.renewal_desk import laddered_forward
+
+    rows = _weekly_forward(80.0)
+    whole = laddered_forward(rows, "2023-07-15")
+    too_early = laddered_forward(rows, "2021-05-01")  # the series is under three months old
+    ended = laddered_forward(rows, "2025-07-01")  # newest row four weeks stale
+    assert whole == pytest.approx(80.0)
+    assert too_early is None and ended is None
+
+
+def test_the_ladder_is_the_mean_of_the_window_and_reads_nothing_after_the_day():
+    from company.pricing.renewal_desk import laddered_forward
+
+    rows = [(k, 100.0 if k > "2023-07-15" else (60.0 if k > "2023-04-15" else 40.0))
+            for k, _ in _weekly_forward(0.0)]
+    ladder = laddered_forward(rows, "2023-07-15", months=6)
+    in_window = [p for k, p in rows if "2023-01-14" < k <= "2023-07-15"]
+    assert ladder == pytest.approx(sum(in_window) / len(in_window))
+    assert 40.0 < ladder < 60.0  # both halves weigh in; the later 100s do not
+
+
+def test_a_fixed_first_term_is_struck_on_the_ladder_where_one_exists():
+    """The same spot history, with and without the published forward: the strike moves with the
+    ladder where it covers, and is untouched before the series does."""
+    spot = _flat_history(60.0)
+
+    def strike(day, forward):
+        return quote_first_term(
+            segment="resi", commodity="electricity", tariff_type="fixed", eac_kwh=2900,
+            term_start=day, observable_daily_prices=spot,
+            published_policy_cost_per_mwh=20.0, published_network_cost_per_mwh=30.0,
+            observable_published_forward=forward,
+        ).unit_rate_per_mwh
+
+    cheap, dear = _weekly_forward(40.0), _weekly_forward(120.0)
+    assert strike("2023-07-15", cheap) < strike("2023-07-15", None) < strike("2023-07-15", dear)
+    assert strike("2018-07-15", dear) == strike("2018-07-15", None)
+
+
+def test_the_world_hands_over_no_published_week_a_trader_could_not_yet_read():
+    from sim.forward_curve import published_forward_knowable_by, published_forward_quote
+
+    for day in ("2021-02-07", "2021-02-08", "2023-07-15", "2024-01-01"):
+        rows = published_forward_knowable_by(day)
+        assert all(k <= day for k, _ in rows)
+        if published_forward_quote(day) is not None:
+            assert rows and rows[-1][1] == published_forward_quote(day)
+    assert published_forward_knowable_by("2021-02-07") == []
+    assert len(published_forward_knowable_by("2023-07-15")) > 100

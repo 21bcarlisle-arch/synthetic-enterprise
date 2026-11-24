@@ -280,3 +280,124 @@ counts. It stays above, beside this result.
 own settlement. The knowledge page now exists. (2) Test the hedge-cost candidate: strike on the cost
 of the company's own book against strike on spot-EWMA, at the same dates. (3) Only then
 pre-register, delete `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world.
+
+## 2026-11-23 (later): the hedge-cost candidate is tested, and a lagged forward explains 2023 H2 – 2024
+
+The table is on the knowledge page, §7, "The hedge-cost candidate, tested 2026-11-23". The
+predictions were filed before computing. The only thing changed is the forward handed to
+`strike_fixed_unit_rate`, at the same eight dates. The spot-EWMA reproduces the attribution table
+exactly.
+
+- **A trailing six-month mean of Ofgem's dealable 12-month forward strikes within ±3.2% of the
+  cheapest deal at every date from 2023-07 to 2024-07.** On spot-EWMA the same dates sat between −18%
+  and +4%. Pricing on the dealable forward at the quote date alone does not close it (−14% at
+  2023-04). A twelve-month ladder overshoots (+24% to +39% in 2023).
+- **This does not separate own-hedge cost from the cap's lagged index.** Both are trailing averages
+  of the same forward. It does establish that real fixes were priced off a lagged forward cost and
+  our strike is not.
+- **2023-04 is still open.** The instruments span −25% to +13% there. The MSC and the EPG floor are
+  the candidates. I cannot yet say which carries it.
+
+All four predictions held (P1–P4 on the page).
+
+**Still owed, in order:** (1) The MSC is charged to the gainer. This is in flight in its own lane, as
+the child item. (2) The company strikes a first term off the cost of its own hedge ladder, not
+spot-EWMA, reading the published forward through the seam. This is a company build, and it needs a
+K8 page section first. The ladder length is the company's choice; 6 months is what the market's fixes
+matched, not a value to hard-code. (3) Only then: pre-register, delete
+`ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world.
+
+## 2026-11-23 (later): the first term is struck on a six-month ladder, and the ±3.2% result was wrong
+
+**Correction first.** The hedge-cost probe above passed the segment as `"domestic"`.
+`get_electricity_network_cost_per_mwh` does not know that label and fell through to the SME
+volume table (75 against 42.4 £/MWh in 2023-07), so every strike in it was 30–40 £/MWh too dear.
+Re-run with `"resi"`, the six-month ladder sits 10–18% under the cheapest deal from 2023-07 to
+2024-07, not within ±3.2%. The attribution table carries the same defect. Its directions stand;
+its positions are 8–12 points too high. Both are corrected on the knowledge page, beside the
+claims (§7).
+
+**Landed.** The company strikes a fixed first term on `laddered_forward`: the trailing six-month
+mean of the published 12-month forward, counting only weeks knowable on the quote day, which the
+world hands over through `published_forward_knowable_by`. Six months is the cap's own observation
+window. Where no whole ladder exists (before about August 2021), the spot-led forward stands in.
+K8 section: knowledge page §8. At the run's seed, 2016–20 positions are unchanged. 2021 declines
+fall from 150 to 60. The 2023 median moves from −27.5% to −12.5%, and 2024 from −20.3% to −15.5%.
+Wins go from 230 to 225, and withheld quotes from 235 to 159. This is the new baseline. P2 was
+refuted, and it stays on the page.
+
+**Still owed, in order:** (1) Find what carries the remaining 25–40 £/MWh in 2023 Q2 – 2025 by
+comparing the strike line by line against the cap's published unit-rate build at one date. The
+candidates are operating cost, the smart, bad-debt, EBIT and headroom allowances, and the per-fuel
+gap belief. The MSC is in its own lane. (2) Only then pre-register, delete
+`ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world. (3) The renewal chain
+still strikes on the spot-led forward; a first term and its renewal are priced on different bases
+until it moves.
+
+## 2026-11-23 (later again): the strike against the cap's unit-rate build, line by line
+
+The table is on the knowledge page, §9. Predictions were filed first. At 2023-07 and 2024-04 the
+strike sits 46.6 and 53.5 £/MWh under the cap, and 34.2 and 32.5 under the cheapest fix. What
+carries it:
+
+- **No operating-cost line.** OC is 15.3–15.9 £/MWh of the cap's unit rate; smart and the payment
+  adjustment add 2.7–3.1 more. `price_fixed_tariff` has no line for either.
+- **Wholesale is 18.3 and 33.1 £/MWh under the cap's DF + CM.** That is baseload with no shape and no
+  losses, against the delivered commodity. Neither the strike nor the world's settlement carries line
+  losses. GAP.
+- **The margin is £2 against EBIT + headroom of 6.6–8.9.**
+- **Policy runs the other way**, at +5.8 and +9.7 (the term-ahead price against the period's allowance).
+
+P1, P3 and P4 held. P2 was refuted on policy.
+
+**Still owed, in order:** (1) An operating-cost line on the first-term strike, from the company's own
+cost to serve (K8: §9 states why the line belongs there). Re-measure the position at §9's dates.
+(2) The world question: should supplier volume settle grossed up for losses? Then shape on the
+wholesale line. (3) The MSC, in its own lane. (4) Only then pre-register, delete
+`ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world. (5) The renewal chain still
+strikes on the spot-led forward.
+
+## 2026-11-23 (late): before 2021 the forward is not what over-prices; the cheapest fix left nothing for cost to serve
+
+The table is on the knowledge page, §11. Predictions were filed first. At 2019-07, 2020-01 and 2020-07:
+
+- **The spot-led wholesale line sits 46–59% under the cap's DF + CM.** That refutes P1, in the
+  opposite direction from what I predicted.
+- **The market's cheapest fix sits £28–36/MWh below the cap's direct costs** (DF + CM + PC + NC).
+- **Without its opex line, the strike matches the cheapest fix to within ±7%.** So the cheapest fix
+  recovered at most baseload commodity, policy and network, and left nothing for cost to serve.
+
+The +10–20% position the opex line opened before 2021 is therefore the right one, not a defect to
+price away: winning that shopper meant selling below cost (M2, F11). Nothing is built from this.
+2016–18 are not covered, because the cap has no build before 2019.
+
+Also landed: `tests/simulation/test_net_new_acquisition.py`'s campaign-size pins, re-measured at
+3089 quotes and £67,372.63. They had been red on origin since the ladder.
+
+**Still owed, unchanged in order:** (1) the world question of shape and losses on the wholesale line
+(§9). This gap is wider before 2021. (2) The MSC, in its own lane. (3) Pre-register, delete
+`ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`, and run one variable in one world. (4) The renewal chain still
+strikes on the spot-led forward, with no opex line.
+
+## 2026-11-24: §9's losses question is answered by the record and built off; shape is still open
+
+§9 asked whether the world should settle supplier volume grossed up for losses. It should: BSC
+settlement does, through LLF × TLM. The size was already on the knowledge page
+(`regional_supply_cost_under_one_national_price_2026-10-25.md` §3b, GB median 1.090–1.121 over the
+run). Its finding, `SEAT_FINDING_THE_WORLD_SETTLES_METERED_KWH_AND_NO_LOSSES_…_2026-10-25.md`, is
+now built behind `SETTLEMENT_LOSSES_APPLIED`, off and pre-registered
+(`docs/staging/records/SEAT_PREREG_THE_WORLD_SETTLES_ELECTRICITY_LOSSES_2026-11-24.md`). Taken, it
+adds about 9–11% to the world's electricity energy cost. **The strike does not price losses**, so on
+its own the switch widens the strike's undercut of cost; the company's loss line is owed beside it.
+
+**Shape is not addressed.** DF carries shape, imbalance and transaction cost; the strike carries a
+baseload ladder.
+
+**Still owed, in order:**
+1. Shape on the wholesale line.
+2. The company's loss line in the strike.
+3. The MSC, in its own lane.
+4. Contract the first term at the strike quoted.
+5. Flip the hold.
+6. The losses switch, alone, against the hold's book.
+

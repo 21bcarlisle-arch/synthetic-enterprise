@@ -41,11 +41,30 @@ def null():
 
 
 def test_both_arms_reach_their_own_branch_of_the_estimator(planted, null):
-    """The partition first: a planted world must yield a finite prior strength (the estimate moves
-    off the channel) and a null world must yield none (it collapses onto the channel). An estimator
-    that always collapsed, or never did, would pass one arm's threshold for the wrong reason."""
-    assert {e.prior_strength is None for e in planted[0].values()} == {False}
-    assert {e.prior_strength is None for e in null[0].values()} == {True}
+    """The partition first. A planted world must yield a finite prior strength, so the estimate
+    moves off the channel. A book with no spread within a channel must yield none, so it collapses
+    onto the channel. An estimator that always collapsed, or never did, would pass one arm's
+    threshold for the wrong reason.
+
+    The live null arm is NOT asked to collapse. Its moment excess is noise centred on zero, so it is
+    positive about half the time at any roster size. On the 628-household roster it gave strength 65,
+    where the planted arm gave 9.5. What a null must show is that it carries less evidence of spread
+    than the planted world on the same book. So the prior is weaker (larger), or absent.
+    """
+    planted_strengths = {e.prior_strength for e in planted[0].values()}
+    assert None not in planted_strengths and len(planted_strengths) == 1
+    (planted_strength,) = planted_strengths
+
+    null_strengths = {e.prior_strength for e in null[0].values()}
+    assert len(null_strengths) == 1
+    (null_strength,) = null_strengths
+    assert null_strength is None or null_strength > planted_strength, (null_strength, planted_strength)
+
+    flat = {f"a{i}": [CHOSE, ROLLED] for i in range(6)} | {f"b{i}": [ROLLED] * 3 for i in range(3)}
+    flat_channel = {a: ("dd" if a.startswith("a") else "pp") for a in flat}
+    collapsed = estimate_engagement(flat, flat_channel)
+    assert {e.prior_strength for e in collapsed.values()} == {None}
+    assert all(e.estimate == e.channel_rate for e in collapsed.values())
 
 
 def test_the_estimate_ranks_the_worlds_trait_better_than_the_channel_when_the_trait_is_there(planted, null):

@@ -332,6 +332,12 @@ class DecisionPolicy:
     #: `docs/market_research/retention_slope_per_pound_of_renewal_cut.md` §3.5.
     retention_holdout_drawn_blind_before_treatment: bool = False
 
+    #: (2026-11-24, EP1) Whether the renewal margin arm discounts at the rate in force on the
+    #: term's start (`clv_three_horizon.discount_rate_at`: 0.10, then Ofgem's 12.3% from
+    #: 1 Oct 2023) rather than the flat 0.10. False keeps every decision byte-identical. The
+    #: standing policy takes it only through `EP1_DATED_DISCOUNT_RATE_IN_THE_STANDING_POLICY`.
+    renewal_discount_rate_dated: bool = False
+
     #: (2026-10-22) The guard offers only where the belief x the LOWER bound of the holdout save
     #: rate's 95% interval x the value protected beats the offer's cost
     #: (`growth_desk.save_rate_lower_bound_decides`). No offer while the rate is unlearned or its
@@ -424,6 +430,14 @@ class DecisionPolicy:
 #: that leg in the same commit.
 B8_BLIND_HOLDOUT_ON_IN_THE_STANDING_POLICY: bool = False
 
+#: (2026-11-24, EP1) The dated discount rate's switch-on, ready and off. It is off because the
+#: rankq, B8 and first-term pre-registrations each refuse a second decision change in the book
+#: they grade. The published CLV already carries the dated rate and the 9.3%/12.3% band; only
+#: pricing decisions wait. Flipping it reds
+#: `test_the_dated_rate_reaches_decisions_only_through_the_named_switch`; amend that leg in the
+#: same commit.
+EP1_DATED_DISCOUNT_RATE_IN_THE_STANDING_POLICY: bool = False
+
 # Mirrors RETENTION_TIERS in simulation/run_phase2b.py exactly -- kept as a
 # separate literal (not imported) so this module has no import-time
 # dependency on the sim entry point.
@@ -441,6 +455,7 @@ CURRENT_POLICY = DecisionPolicy(
     framing_mode="ab_test",
     tone_mode="ab_test",
     retention_holdout_drawn_blind_before_treatment=B8_BLIND_HOLDOUT_ON_IN_THE_STANDING_POLICY,
+    renewal_discount_rate_dated=EP1_DATED_DISCOUNT_RATE_IN_THE_STANDING_POLICY,
 )
 
 # Pre-Phase-14a/15b/43b state: naive flat-discount retention with a

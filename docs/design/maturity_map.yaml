@@ -551,7 +551,7 @@
   file_scope: ['company/analytics/clv_three_horizon.py', 'tests/company/analytics/test_clv_three_horizon.py', 'company/analytics/customer_value_view.py', 'tools/couple_clv.py', 'tests/tools/test_couple_clv.py']
   simplifications_count: 19   # 2026-10-01 LEVEL STAYS 2. Ledger row landed 7a8e651cd: gap 1.081 n=69 (H2 on the book's tenure-year life table). Best single scale leaves 0.991: no per-account information left to recover company-side. Tenure is unrankable because the world holds no tenure signal (world lane); the margin ranking is the fuel split. See SEAT_FINDING_EP1_LEGS_THEN_RATE_*.
   blocked_on: null
-  block_reason: "PARKED by the worker 2026-10-17: no worker work left before L3. Level and margin are fixed on the fixed draw (7e2503507, 127c007f0, 9d6ad4551); what is left is the legs-then-rate ranking replication, which needs EP17 to vary (after the 10-19 publish) on seeds only the director lists (for_the_director ep17-s-flat-against-per-customer-comparison). The rate change waits on his open row the-clv-discount-rate-and-terminal-value. Unpark when either is answered."
+  block_reason: "DATED RATE BUILT 2026-11-24: published CLV discounts at the rate in force on its valuation date (0.10, then 0.123 from 1 Oct 2023) and states every aggregate at 9.3%/12.3%; decisions take it only via EP1_DATED_DISCOUNT_RATE_IN_THE_STANDING_POLICY, off until the rankq/B8/first-term books are graded. NEXT SLICE: the ranking replication reads B11's M7 books on seeds 61113-61118 (7036dcbd5)."
 - id: EP2_variance_learning_loop
   title: "Expected minus realised, fed back into belief"
   notes_rehomed: [gain, name, origin_note]
@@ -1763,7 +1763,7 @@
   # then the save is re-graded. Save-offer page section 8. The world half is W3_3.
   dial_inherited: 90
   provenance: director_ruling
-  block_reason: "PARKED 2026-11-21: no build left. The leg is a6de6f977c; L2 is graded on the first published book at or after it (prediction in that commit). Unpark then."
+  block_reason: "PARKED, re-read 2026-11-24: no build left; the wait is live. L2 is graded on the first book descending from the leg a6de6f977c (prediction in that commit). None exists: the newest book is 6a588a832f (20 Nov), which predates it. The post-s.12g book was admitted by 31bf40e039 (24 Nov) and has not run. Publishing has been paused since 23 Nov, so grade on that run's output. Unpark when it exists."
   depends_on: [W3_3_the_network_charge_splits_per_unit_and_per_day]  # 2026-11-08: the L2 note above, made drawable
   couples_with: [B8_discovered_price_sensitivity_holdout, W3_3_the_network_charge_splits_per_unit_and_per_day]
   file_scope: ['company/pricing/renewal_rate_chain.py',
@@ -1786,7 +1786,7 @@
   # L1 2026-10-06. Slice 5 (2026-10-11): moves reach the backtest (61 held back), so B7 dropped.
   # Both rules over-predict departure (0.79/0.67 vs 0.43) and rank nobody (AUC ~0.52).
   # L2 2026-10-11: production caller is the annual report's held-back grade (door test on the saved run).
-  block_reason: "PARKED, re-read 2026-11-14 (simplification record): no director question remains. The 26 Oct advisor steer (s.1 item 5) made seeds 61113-61118 the seat's own call, but they were never listed. The redesign takes the eighteen-member run's money legs, so L3 is prereg M7 alone (the held-back grade on fresh books). It waits for the machine: the churn_roll family (s.8) and then candidate A (s.9)."
+  block_reason: "PARKED, re-read 2026-11-24: L3 is prereg M7 alone, none of its six books (61113-61118) has a readable run, and the user unit b11m7-watch (/var/tmp/box-plan/b11m7/arm.sh) runs them after rankq (pid 1718464) ends and sim-runner's owed book lands, writing /var/tmp/b11m7/readout.json."
   blocked_on: null
   dial_inherited: 90
   provenance: director_ruling
@@ -1903,7 +1903,7 @@
   dial_inherited: 75
   provenance: director_ruling
   blocked_on: null
-  block_reason: "PARKED by the seat 2026-10-17: no build left before a book that can decide. The published run holds 681 default-tariff accounts in a decade (about 6,000 needed); at 12 months a 50% holdout decides only 8.3 points (research 6.2). Debt waits on a world that answers a plan offer. Unpark when either exists."
+  block_reason: "PARKED, re-read 2026-11-24: both waits are live. (1) No book can decide: the newest has 1,306 accounts (6af7fd0bfd) and holds about 681 default-tariff accounts in a decade, against about 6,000 needed (at 12 months a 50% holdout decides only 8.3 points; research 6.2). (2) Debt: simulation.plan_offer_response.PUBLISHED_BASIS still answers every plan offer None, because no published GB take-up rate exists. Unpark on a book or a pooled family of about 6,000 default-tariff accounts, or a sourced take-up band in that basis."
   depends_on: [B11_forward_clv_backtested_on_held_back_history]
   couples_with: [W2_39_households_respond_to_contact_including_badly, B8_discovered_price_sensitivity_holdout]
   file_scope: ['company/crm/next_best_action.py', 'tests/company/crm/test_next_best_action.py',

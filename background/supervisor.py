@@ -2336,14 +2336,24 @@ def _is_site_atom(a: dict) -> bool:
     ...]). `site/**` is disjoint by construction from `sim/**`/`company/**`,
     so this lane is ungated and runs alongside BUILD permanently. An atom
     with no `file_scope` (undeclared) is never a SITE atom -- membership is a
-    positive property, never assumed."""
+    positive property, never assumed.
+
+    The lane is ungated only because it is disjoint from the world and the
+    supplier, so an atom that ALSO writes `sim/`, `simulation/`, `company/` or
+    `saas/` is not a SITE atom whatever else it names: W2_18 (population_draw.py
+    plus `site/knowledge/`) was drawn here as "ungated, disjoint by construction"
+    and handed to a fork with no BUILD gate or scope scan. `tools/` and `tests/`
+    beside `site/` stay in the lane (a page's generator and its tests)."""
     if not isinstance(a, dict):
         return False
-    for path in a.get("file_scope") or []:
-        p = str(path)
-        if p == "site" or p.startswith("site/"):
-            return True
-    return False
+    scope = [str(p) for p in a.get("file_scope") or []]
+    if any(p == root or p.startswith(root + "/") for p in scope for root in _GATED_ROOTS):
+        return False
+    return any(p == "site" or p.startswith("site/") for p in scope)
+
+
+#: THREE_LANES.md Lane 2: what `site/**` is disjoint from by construction.
+_GATED_ROOTS = ("sim", "simulation", "company", "saas")
 
 
 def _site_lane_draw_concurrent(

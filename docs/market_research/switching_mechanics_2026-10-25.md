@@ -281,11 +281,39 @@ on its paid day as a credit bill does, discharging the oldest outstanding bill f
 default, as every other credit in `simulation/arrears_engine.py`); with nothing outstanding it waits and
 comes off the next bill collected (SLC 31H.12), and what is left at close is refunded with the rest of the
 closing credit (reg 6D). (2) It is not a payment by the debtor, so it does not restart the limitation
-clock. (3) A payment owed to a win that is not on supply (won from a gas-only household, so registered
-electricity with no premise to supply) or to a leg with no issued bill has no ledger to net against: it is
+clock. (3) A payment owed to a win that is not on supply (until 22 Nov 2026, a win from a gas-only
+household, registered electricity with no premise to supply) or to a leg with no issued bill has no ledger to net against: it is
 REFUSED with its reason and published, never booked as a bare P&L line, because a cost with no account
-behind it cannot be reconciled to any customer. Not yet built: the erroneously transferred household
-returned to its old supplier within 21 working days of the agreement (reg 6C, the OLD supplier's duty;
-the gaining supplier's supply ends on that re-registration). Until it is, an erroneous gain stays on
-supply and the book OVERSTATES its revenue by its remaining months; the expected count is under one
-erroneous transfer on today's acquisition volume.
+behind it cannot be reconciled to any customer.
+
+**Returning an erroneous gain, from 22 Nov 2026.** Reg 6C puts the duty on the OLD supplier: it
+"must within 21 working days of the agreement ... re-register the customer". The gaining supplier's
+supply ends on that re-registration, and it hears of it as any other registration loss. Choices the
+design makes: (1) A STATED BELIEF on the day: the old supplier re-registers on the 21st working day
+after the agreement, the last day 6C allows, as the agreement itself is taken on the last day 6A allows.
+The true day lies in [agreement, that day]. The gainer's last day supplied is the day before. (2) The
+world ends supply on the won household only. A won switch is its own household in the world
+(`household_of("SYN-2016-144_3")` is `SYN-2016-144_3`), registered electricity alone, so ending the
+household ends the one leg and touches no predecessor. (3) The loss notice crosses as a CoS loss with
+no Invitation to Intervene: a re-registration the two suppliers agreed is not a switch the loser may
+try to save. (4) The return lands inside the won leg's opening fixed term (about 41 working days from
+the win), where no renewal decision runs; a return that falls in any later term is REFUSED with its
+reason and the gain stays on supply, published in `erroneous_gains_not_returned`. (5) The leg's final
+bill and the 6ZB credit close on one balance through the existing walk (choice 1 above).
+Unknown (GAP): how quickly old suppliers actually re-registered in practice; no published count was
+found, so the latest day the regulation allows is taken.
+
+**A win from a gas-only household is supplied as gas, from 22 Nov 2026.** Until then the win was
+registered electricity (`make_acquired_customer` stamped every win so), and a gas-only premise
+holds no electricity data, so the world refused to supply it: 2 of 16 wins on the 20 Nov run
+(SYN-2016-163_3, SYN-2016-585_3) carried their funnel cost and never a bill. Choices the design
+makes: (1) The win is registered on the fuel its predecessor was: a gas point at the same premise,
+named `<household>_<n>` with no trailing `g`, as a drawn gas-only household is named (`SYN-2016-163`,
+commodity gas); the `g` names the gas leg of a DUAL household, and the account `ACC-<id>` must find
+the win's own row. (2) Its record is cloned from the predecessor's gas record as an
+electricity win's is from its electricity record ("it IS the same property"): the AQ, the
+calorific-value and correction factors. No quantity is drawn or chosen. (3) Its opening term is a
+fix struck by the gas renewal builder (NBP), as for every gas leg; each boundary after that is the
+household's own engagement roll. (4) Its seasonal heating split is the premise's, carried as for an
+incoming occupant. (5) A win whose deciding leg is electricity still wins electricity alone: winning
+both fuels of a household lost is not built (GAP).

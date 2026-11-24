@@ -59,6 +59,7 @@ def build_renewal_schedule(
     price_records: list[dict], eac_kwh: int, lookback_temps_fn=None,
     segment: str = "resi", tariff_type: str = "fixed",
     deemed_gap_days: int = 0,
+    quoted_first_term_unit_rate_gbp_per_mwh: float | None = None,
 ) -> list[dict]:
     """Build a chronological sequence of contiguous 1-year contract terms
     for one customer, covering [original_acquisition_date, report_end_date].
@@ -89,6 +90,10 @@ def build_renewal_schedule(
     `generate_forward_price`'s `lookback_daily_mean_temps_c` for its
     weather-sensitivity multiplier. Defaults to None (no adjustment),
     fully backward compatible.
+
+    `quoted_first_term_unit_rate_gbp_per_mwh` (default None) is the ex-VAT strike the campaign
+    quoted this household before it was won. Given, the first fixed term is contracted on it
+    (`contracted_first_term`); None strikes it at the notice date as every term always was.
     """
     # A STANDARD VARIABLE TARIFF IS NOT A TERM, so it is not built by a loop over terms.
     # Everything below this line assumes a contract that ends: a 42-day notice date, a price
@@ -261,6 +266,7 @@ def build_renewal_schedule(
             if term_start >= report_end:
                 break
 
+        is_first_term = first_term
         first_term = False
         # Phase 34a: company prices 42 days before term start; observable data lags by NOTICE_DAYS.
         notice_date = term_start - timedelta(days=NOTICE_DAYS)
@@ -273,6 +279,8 @@ def build_renewal_schedule(
             lookback_temps_fn=lookback_temps_fn, segment=segment, tariff_type=tariff_type,
             prior_fixed_unit_rate=prev_fixed_unit_rate,
         )
+        if is_first_term and tariff_type == "fixed":
+            term_dict = contracted_first_term(term_dict, quoted_first_term_unit_rate_gbp_per_mwh)
         if tariff_type != "flex":
             prev_fixed_unit_rate = term_dict["unit_rate_gbp_per_mwh"]
         else:
@@ -281,6 +289,28 @@ def build_renewal_schedule(
         term_start = next_start
 
     return terms
+
+
+def contracted_first_term(term_dict: dict, quoted_unit_rate_gbp_per_mwh: float | None) -> dict:
+    """A won account's first fixed term, contracted on the strike it was quoted (2026-11-24).
+
+    A domestic fixed contract is formed on the Principal Terms the household was given before it
+    entered it (SLC 23), and its charges cannot rise during the fix (SLC 22C); the switch completes
+    within five working days and the household may cancel within 14 (cheapest_fix_against_the_
+    default_tariff_gb_2016_2025.md §13). So the unit rate is the quote's, and the term records that
+    it was. None, which is every term while
+    `live_population.CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE` is off and every account the
+    campaign did not quote, returns the notice-date strike unchanged, the same dict.
+
+    What the notice-date offer locked (the company forward, the policy and network lines) is kept:
+    the quote was struck over the same published schedules, and the save-offer floor reads them.
+    """
+    if quoted_unit_rate_gbp_per_mwh is None:
+        return term_dict
+    return {**term_dict,
+            "unit_rate_gbp_per_mwh": quoted_unit_rate_gbp_per_mwh,
+            "notice_date_unit_rate_gbp_per_mwh": term_dict["unit_rate_gbp_per_mwh"],
+            "struck_by": "first_term_quote"}
 
 
 def price_fixed_term(

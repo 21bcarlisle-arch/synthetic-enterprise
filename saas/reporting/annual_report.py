@@ -1309,6 +1309,10 @@ def extract_report_data(run_output: dict) -> dict:
         # The reg 6ZA switching payments, which the billing ledger credits on the won leg's own
         # ledger (tools/generate_billing_ledger.py). Default empty: a run without switching pays none.
         "switching_gsop_payments": phase2b.get("switching_gsop_payments", []),
+        # Reg 6C: the erroneous gains the old supplier re-registered, and those the world could not
+        # return, each with its reason. No default: absent means a run built before the return.
+        "erroneous_gains_returned": phase2b.get("erroneous_gains_returned"),
+        "erroneous_gains_not_returned": phase2b.get("erroneous_gains_not_returned"),
         "churned_billing_accounts": phase2b.get("churned_billing_accounts", []),
         # The home movers, forwarded for the same reason as `svt_departures` above, with NO default:
         # absent means moves are off. Dropped here until 2026-10-10, so the ledger could not see a
@@ -2353,6 +2357,17 @@ def _three_horizon_clv_section(data: dict) -> str:
             f"median {_fmt_gbp(portfolio.get('median_value_gbp'))}; "
             f"total {_fmt_gbp(portfolio.get('total_value_gbp'))}."
         )
+    # THE SAME BOOK AT THE PUBLISHED LOW AND HIGH COST OF CAPITAL (CMA 9.3%, Ofgem 12.3%),
+    # read from the artefact so the band can never be worked out a second time here.
+    for band in (book.get("at_reported_rates") or {}).values():
+        band_mean = (band.get("portfolio") or {}).get("mean_value_gbp")
+        band_rate = band.get("discount_rate")
+        if isinstance(band_rate, (int, float)):
+            lines.append(
+                f"- At a {band_rate:.1%} discount rate: portfolio mean "
+                + (_fmt_gbp(band_mean) if band_mean is not None else "not estimable")
+                + "."
+            )
     reasons = population.get("reasons") or {}
     why = (
         " Excluded: " + ", ".join(f"{k}={v}" for k, v in sorted(reasons.items())) + "."

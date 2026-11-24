@@ -105,3 +105,12 @@ The knowledge page is `docs/market_research/do_homes_without_gas_switch_less_202
 
 **Done means now:** the campaign's entry weight carries the gas-connection gap, the route reads
 `gas_home_share` within the band (prediction: above 84.9%), and the gap entry is removed.
+
+**Re-read 2026-11-24 (delivery seat, at ee7d60bbd5).** The campaign's wins have moved since 22 Nov, as
+the first-term quote decides them. On the eight seeds the share now reads **82.08%**, inside the band
+(floor 81.5%). That turned `test_each_other_route_into_the_book_fails_only_its_named_gaps[campaign]`
+red at HEAD as "a fixed gap still listed", and the red refused every landing that touches the campaign.
+Over the 24 seeds the share is **81.10% of 5,116 homes**, and 80.58% on the 16 new seeds alone, so the
+gap is still real. The control now reads "fixed" on the wider sample before redding
+(`world_claims.fixed_known_gaps`, `CONFIRMING_SEEDS`). A new gap still reds on the eight seeds alone.
+The entry stays listed.

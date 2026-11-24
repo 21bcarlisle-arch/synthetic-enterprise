@@ -87,6 +87,28 @@ def route_gaps(route: str, results: list[dict]) -> set:
     return {r["id"] for r in results if r["verdict"] != "holds"}
 
 
+#: The wider sample a listed gap is re-read on before it is called fixed: the eight seeds plus 61108
+#: to 61123, the 24 the 13 Nov finding measured the campaign's gas shortfall over (79.8% of 4,354
+#: homes). A known gap sits near its band's edge by nature, so on the eight seeds alone it can read
+#: as holding by sampling. Re-read 2026-11-24 at ee7d60bbd5: 82.08% on the eight (band floor 81.5%),
+#: 81.10% of 5,116 homes on the 24, still a gap.
+CONFIRMING_SEEDS = SEEDS + tuple(range(61108, 61124))
+
+
+def fixed_known_gaps(route: str, results: list[dict], rows: list[dict] | None = None,
+                     seeds=CONFIRMING_SEEDS) -> set:
+    """Listed gaps on `route` that hold on `results` AND on the wider `seeds`: the ones that are
+    really fixed and should leave `KNOWN_ROUTE_GAPS`. Only those claims are re-read, and only when
+    one reads as holding, so a route whose gaps still fail costs no second draw."""
+    known = {cid for (r, cid) in KNOWN_ROUTE_GAPS if r == route}
+    candidates = known - route_gaps(route, results)
+    if not candidates:
+        return set()
+    rows = claims() if rows is None else rows
+    wide = check(drawn_book(seeds=seeds, route=route), [c for c in rows if c["id"] in candidates])
+    return {r["id"] for r in wide if r["verdict"] == "holds"}
+
+
 def _route_pairs(route: str, seed: int, lp) -> list:
     """`(record, premise)` for one route and seed, as the production book assembles it."""
     if route == "founders":

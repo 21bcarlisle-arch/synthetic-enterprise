@@ -80,11 +80,26 @@ def test_the_table_names_a_red_claim_first(book):
 def test_each_other_route_into_the_book_fails_only_its_named_gaps(route):
     """The founders are not the only way a home arrives. Each route is measured on its own, and
     the claims it fails must be exactly the ones `KNOWN_ROUTE_GAPS` names: a new gap reds, and so
-    does a fixed one that is still listed."""
+    does a fixed one that is still listed. "Fixed" is read on the wider `CONFIRMING_SEEDS` too, since
+    a listed gap sits at its band's edge and can hold on the eight seeds by sampling alone."""
     results = wc.check(wc.drawn_book(route=route))
     assert {r["verdict"] for r in results} <= {"holds", "GAP"}, wc.failures(results)
     known = {cid for (r, cid) in wc.KNOWN_ROUTE_GAPS if r == route}
-    assert wc.route_gaps(route, results) == known, wc.failures(results)
+    assert wc.route_gaps(route, results) <= known, wc.failures(results)
+    assert not wc.fixed_known_gaps(route, results), "listed as a gap but holds on both samples"
+
+
+def test_a_listed_gap_that_holds_on_both_samples_is_called_fixed():
+    """Assert the 'fixed' branch CAN be taken: with the band widened to [0, 1] the campaign's
+    listed gap holds on the eight seeds and on the wider sample, and is reported. A confirmation
+    that never re-read, or never returned, would let every listed gap stay listed forever."""
+    (route, cid), = [k for k in wc.KNOWN_ROUTE_GAPS if k[0] == "campaign"]
+    rows = [{**c, "band": [0.0, 1.0]} for c in wc.claims() if c["id"] == cid]
+    seeds = wc.SEEDS[:2]
+    results = wc.check(wc.drawn_book(seeds=seeds, route=route), rows)
+    assert wc.fixed_known_gaps(route, results, rows, seeds=seeds) == {cid}
+    rows_tight = [{**rows[0], "band": [2.0, 3.0]}]
+    assert wc.fixed_known_gaps(route, results, rows_tight, seeds=seeds) == set()
 
 
 def test_every_route_is_a_route_drawn_book_can_assemble():

@@ -158,6 +158,7 @@ from sim.forward_curve import (
     WINTER_MONTHS,
     WINTER_MULTIPLIER,
     generate_forward_price,
+    published_forward_quote,
     short_first_term_lookbacks,
 )
 from sim.gas_prices_history import RECORD_START as NBP_RECORD_START
@@ -243,7 +244,7 @@ from simulation.feedback_survey import (
     dispatch_dd_shock_complaint,
     dispatch_nps_survey,
 )
-from simulation.gain_registration import draw_gain_registration
+from simulation.gain_registration import draw_gain_registration, erroneous_gain_returned_on
 from simulation.gas_settlement import _GAS_BOILER_HEATING_FRACTION, run_gas_term
 from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
 from simulation.hh_consumption import (
@@ -273,6 +274,7 @@ from simulation.household_segments import (
 )
 from simulation.household_segments import tenure_for_customer as _tenure_of_household
 from simulation.live_population import (
+    QUOTED_FIRST_TERM_RATE_KEY,
     campaign_quotes_paid_for,
     founding_capital_gbp,
     live_drawn_households,
@@ -2384,6 +2386,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # determination said was owed, generated rather than asserted.
             tariff_type=resolved_tariff_type(c),
             deemed_gap_days=c.get("deemed_gap_days", 0),
+            # The strike the campaign quoted this household, present only on a won leg and only
+            # while `live_population.CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE` is taken.
+            quoted_first_term_unit_rate_gbp_per_mwh=c.get(QUOTED_FIRST_TERM_RATE_KEY),
         )
 
     # Phase 7e: pre-generate successor schedules (gated until activation).
@@ -3227,16 +3232,6 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         leg, premise = record["customer_id"], predecessor["customer_id"]
         if get_customer(leg) is None or leg in term_indices:
             return
-        if predecessor.get("commodity", "electricity") != "electricity":
-            # `register_acquired_point` stamps every win electricity. Won from a gas-only household,
-            # there is no electricity premise to read and supplying it as gas is not built: 2 of the
-            # 16 wins on the 20 Nov run (SYN-2016-163_3, SYN-2016-585_3). Named, not filled in.
-            won_switches_not_supplied.append({
-                "customer_id": leg, "won_on": record["acquisition_date"], "predecessor": premise,
-                "reason": ("won from a gas-only household: the win is registered electricity and "
-                           "the premise holds no electricity data; supplying it as gas is not built"),
-            })
-            return
         _supplied_wins.append(record)
         if record.get("segment", "resi") == "resi":
             _admitted_resi_ids.add(leg)
@@ -3247,7 +3242,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _by_point[leg] = _by_point[premise]
         if premise in _WORLD_BASE_EAC_KWH:
             _WORLD_BASE_EAC_KWH[leg] = _WORLD_BASE_EAC_KWH[premise]
-        EFFECTIVE_EAC_KWH[leg] = EFFECTIVE_EAC_KWH.get(premise, record["eac_kwh"])
+        if "eac_kwh" in record:
+            EFFECTIVE_EAC_KWH[leg] = EFFECTIVE_EAC_KWH.get(premise, record["eac_kwh"])
         fabric_eligibility_verdicts.extend(
             FabricEligibility(leg, _v.is_eligible, _v.reason)
             for _v in list(fabric_eligibility_verdicts) if _v.customer_id == premise
@@ -3255,15 +3251,27 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         next_hf[leg] = current_hf[leg] = RESET_HEDGE_FRACTION
         term_indices[leg] = 0
         evolution_logs[leg] = []
-        _accounts_with_an_electricity_leg.add(household_of(leg))
-        _fuels_of_household.setdefault(household_of(leg), set()).add("electricity")
-        for _term in build_renewal_schedule(
+        commodity = record.get("commodity", "electricity")
+        _fuels_of_household.setdefault(household_of(leg), set()).add(commodity)
+        if commodity == "gas":
+            # WON FROM A GAS-ONLY HOUSEHOLD (from 22 Nov 2026; 2 of 16 wins on the 20 Nov run were
+            # refused before): a gas point at the same premise, its seasonal split the premise's as
+            # for an incoming occupant, its terms struck by the gas builder as every gas leg's are.
+            carry_premise_split_to_occupier(
+                premise, leg, gas_heating_fraction_by_customer, gas_shape_refusals)
+            _schedule = _build_gas_renewal_schedule(
+                record, gas_records, lookback_temps_fn=_lookback_temps_fn(leg),
+                report_end=effective_end, tariff_type=resolved_tariff_type(record))
+        else:
+            _accounts_with_an_electricity_leg.add(household_of(leg))
+            _schedule = build_renewal_schedule(
                 leg, record["acquisition_date"], effective_end, elec_records,
                 EFFECTIVE_EAC_KWH[leg], lookback_temps_fn=_lookback_temps_fn(leg),
                 segment=record.get("segment", "resi"),
                 # A win took the quote the gate priced, so its opening term is a fix.
-                tariff_type=resolved_tariff_type(record)):
-            _push_term(_term["acquisition_date"], leg, "electricity", _term)
+                tariff_type=resolved_tariff_type(record))
+        for _term in _schedule:
+            _push_term(_term["acquisition_date"], leg, commodity, _term)
 
     def _supply_at_new_home(cid: str, commodity: str, household: str, move_end: date,
                             carried_to: str) -> tuple[dict, str | None]:
@@ -3368,9 +3376,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _change_of_supplier_register = open_change_of_supplier_register()
 
     def _notify_registration_loss(household: str, effective_from: str,
-                                  pending_already_sent: bool = False) -> None:
-        _points = supply_points_on_supply(household, effective_from, elec_schedules, gas_schedules,
-                                          _moved_out_on_by_leg)
+                                  pending_already_sent: bool = False,
+                                  points: list[tuple[str, str]] | None = None) -> None:
+        # `points` names them where the schedules cannot: a won switch is pushed straight into the
+        # heap and is in neither `elec_schedules` nor `gas_schedules`.
+        _points = points if points is not None else supply_points_on_supply(
+            household, effective_from, elec_schedules, gas_schedules, _moved_out_on_by_leg)
         _departed_on[household] = effective_from
         # EACH LEG'S OWN DEPARTURE, for readers that count per supply point. Not
         # `customer_events_log`: its churned rows are counted as households leaving, and a second
@@ -3382,8 +3393,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             })
         # The account closes today, so its final bill is the month of the last day supplied: told
         # now, before the next reader forces a crossing (`close_account`).
-        _payment_triad.close_account(household, _final_bill_due(
-            household, date.fromisoformat(effective_from[:10]) - timedelta(days=1)))
+        _last_supplied = date.fromisoformat(effective_from[:10]) - timedelta(days=1)
+        _payment_triad.close_account(household, _final_bill_due(household, _last_supplied),
+                                     last_supplied=_last_supplied)
         _pending = [] if pending_already_sent else (
             _registration_loss_feed.wire_pending_notices_for_departure(_points, effective_from))
         for _wire in (
@@ -3456,6 +3468,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # What the registration service and the losing supplier tell the gainer about each won switch
     # (`simulation/gain_registration.py`): the company owes regs 6ZA and 6ZB on these facts.
     gain_registration_log: list[dict] = []
+    # Reg 6C: per supplied won leg agreed erroneous, the day its old supplier re-registers it; and
+    # what happened to each (both published).
+    _erroneous_return_on: dict[str, date] = {}
+    erroneous_gains_returned: list[dict] = []
+    erroneous_gains_not_returned: list[dict] = []
     # Phase 12b: retention cost events and log
     retention_cost_events: list[dict] = []
     retention_log: list[dict] = []
@@ -3678,6 +3695,42 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         term_end_str = _next_renewal_str
                         # Choice 7: a follower is not an exit, so its bills are not final bills.
                         _moved_out_on_by_leg.pop(cid, None)
+
+        # REG 6C: AN ERRONEOUS GAIN GOES BACK TO ITS OLD SUPPLIER on the day it re-registers it
+        # (switching_mechanics_2026-10-25.md s.6, "Returning an erroneous gain"). A won switch is its
+        # own single-fuel household (electricity, or gas when won from a gas-only one), so the loss
+        # ends the one leg and no predecessor. It lands
+        # inside the opening fixed term, where neither departure roll below runs; anything else is
+        # refused by name, never forced, so the leg cannot leave twice in one term.
+        if cid in _erroneous_return_on:
+            _back = _erroneous_return_on[cid]
+            _cut, _back_in_term = term_window_under_move(
+                date.fromisoformat(term_start_str[:10]), date.fromisoformat(term_end_str[:10]), _back)
+            if _back_in_term or _cut is None:
+                del _erroneous_return_on[cid]
+                _why_kept = (
+                    "the household had already left" if billing_account in churned_billing_accounts
+                    else "the return falls after the term it should cut began" if _cut is None
+                    else "the return falls outside the opening fixed term, where a renewal "
+                         "decision could also end supply; not built"
+                    if (term_indices[cid] != 0 or _spliced
+                        or term.get("tariff_type", "fixed") == SVT_TARIFF_TYPE) else None)
+                if _why_kept is None:
+                    term_end_str = _cut.isoformat()
+                    churned_billing_accounts.add(billing_account)
+                    _notify_registration_loss(billing_account, term_end_str,
+                                              pending_already_sent=True,
+                                              points=[(cid, commodity)])
+                    erroneous_gains_returned.append({
+                        "customer_id": cid, "returned_on": term_end_str,
+                        "agreed_on": next(g["erroneous_transfer_agreed_on"]
+                                          for g in gain_registration_log
+                                          if g["customer_id"] == cid),
+                        "basis": "stated belief: the last day reg 6C allows",
+                    })
+                else:
+                    erroneous_gains_not_returned.append({
+                        "customer_id": cid, "due_on": _back.isoformat(), "reason": _why_kept})
 
         # A DEFAULT TARIFF IS PRICED AT ITS PAYMENT METHOD'S CAP COLUMN (SLC 28AD), read from the
         # method the company's own register holds on the segment's first day. The schedule was
@@ -5314,6 +5367,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         if acq_won:
                             suffix = _acquisition_counter.get(billing_account, 3)
                             _acquisition_counter[billing_account] = suffix + 1
+                            # A gas win is named bare, as a drawn gas-only household is
+                            # (`SYN-2016-163`, commodity gas): the trailing `g` names a DUAL
+                            # household's gas leg, and its account `ACC-<id>` must find this row.
                             new_cid = f"{billing_account}_{suffix}"
                             new_customer = make_acquired_customer(new_cid, customer_data, term_start_str)
                             ACQUIRED_CUSTOMERS.append(new_customer)
@@ -5325,6 +5381,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             })
                             gain_registration_log.append(draw_gain_registration(
                                 new_cid, date.fromisoformat(term_start_str), acq_seed))
+                            _agreed = gain_registration_log[-1]["erroneous_transfer_agreed_on"]
+                            if _agreed is not None and new_cid in term_indices:
+                                _erroneous_return_on[new_cid] = erroneous_gain_returned_on(
+                                    date.fromisoformat(_agreed))
                             print(
                                 f"  [ACQUIRE] Fresh acquisition won: {new_cid} at {term_start_str} "
                                 f"(£{acq_cost:.0f}, {segment})"
@@ -5564,7 +5624,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         if (_home_moves_on and _moved_in_term
                 and (billing_account, _move_end) not in _followed_moves):
             _payment_triad.close_account(billing_account, _final_bill_due(
-                billing_account, _move_end - timedelta(days=1)))
+                billing_account, _move_end - timedelta(days=1)),
+                last_supplied=_move_end - timedelta(days=1))
 
         # SLC 22C.4(a): THE END-OF-FIXED-TERM STATEMENT, 42-49 days before the fixed term ends, to
         # every domestic fixed term still supplied that day. Here, once the term's supplied end is
@@ -5644,6 +5705,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     _carried_from)
 
             cust_segment = customer.get("segment", "resi") if customer else "resi"
+            hedge_price = forward_price  # the fixed branch below swaps in the market's quote
             if term_tariff_type == "deemed":
                 # Phase 40c: out-of-contract period — spot + deemed_premium, no forward hedge.
                 # Phase 47a/MARGIN_REALISM Step 5: cap-bound 2019+ for resi (W3_1_price_cap_binding).
@@ -5741,8 +5803,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 else:
                     effective_shape_fn = shape_fn
 
+                # G15 (2026-11-23): the hedge EXECUTES at the market's traded 12-month forward as of
+                # the term's start where Ofgem published one (Feb 2021 on), not at the world's
+                # spot-EWMA model, which sat 0.51x to 1.65x the dealable price in 2021-22
+                # (`sim.forward_curve.published_forward_quote`). Before the series, the model.
+                _published_hedge = published_forward_quote(term_start_str, "electricity")
+                hedge_price = forward_price if _published_hedge is None else _published_hedge
                 term_records = run_hedged_term(
-                    cid, term_start_str, term_end_str, unit_rate, forward_price, hf,
+                    cid, term_start_str, term_end_str, unit_rate, hedge_price, hf,
                     risk["monthly_cost_of_capital_gbp"], effective_shape_fn, elec_records,
                     tou_rates=tou_rates, segment=cust_segment,
                     pass_through=(term_tariff_type == "pass_through"),
@@ -5752,7 +5820,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     economy_7=_economy_7,
                 )
                 # Phase 43a: open a forward contract in the company trading book.
-                # agreed_price = forward_price, the market's own PIT forward quote
+                # agreed_price = hedge_price, the market's own PIT forward quote
                 # (docs/market_research/a_hedge_executes_at_the_markets_quote_not_the_companys_own_forward_estimate_2026-10-12.md):
                 # a counterparty prices the trade, not the company's own belief --
                 # company_fwd stays the sizing input (decide_term_hedge, above) and
@@ -5768,7 +5836,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         term_start=term_start_str,
                         term_end=term_end_str,
                         volume_kwh=eac_kwh,
-                        forward_price_gbp_per_mwh=forward_price,
+                        forward_price_gbp_per_mwh=hedge_price,
                         hedge_fraction=hf,
                         term_days=term_days_count,
                     )
@@ -5797,7 +5865,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     if actual_term_kwh > 0 else 0.0
                 )
                 vt = compute_term_volume_tolerance(
-                    actual_term_kwh, contracted_term_kwh, avg_spot, forward_price, hf
+                    actual_term_kwh, contracted_term_kwh, avg_spot, hedge_price, hf
                 )
                 volume_tolerance_log.append({
                     "customer_id": cid,
@@ -5873,9 +5941,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             _gas_split = gas_heating_fraction_by_customer.get(cid)
             if cust_segment == "resi":
                 _gas_settled_resi[cid] = None
+            # G15: the gas hedge executes at the published NBP forward too, where there is one.
+            _published_gas_hedge = published_forward_quote(term_start_str, "gas")
             term_records = run_gas_term(
                 cid, term_start_str, term_end_str, aq_kwh,
-                unit_rate, hf, forward_price,
+                unit_rate, hf,
+                forward_price if _published_gas_hedge is None else _published_gas_hedge,
                 risk["monthly_cost_of_capital_gbp"], gas_records,
                 segment=cust_segment,
                 pass_through=(term_tariff_type == "pass_through"),
@@ -6783,6 +6854,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # SUPPLY_SO_THE_SWITCHING_GSOP_HAS_NO_ACCOUNT_TO_CREDIT_2026-11-21).
         "gain_registration_log": gain_registration_log,
         "switching_gsop_payments": switching_payments_on_gains(gain_registration_log),
+        # Reg 6C: each erroneous gain the old supplier re-registered, and any the world could not.
+        "erroneous_gains_returned": erroneous_gains_returned,
+        "erroneous_gains_not_returned": erroneous_gains_not_returned
+            + [{"customer_id": _c, "due_on": _d.isoformat(),
+                "reason": "the return falls after the run's window"}
+               for _c, _d in sorted(_erroneous_return_on.items())],
         "fixed_cost_events": fixed_cost_events,
         "acquired_customers": [c["customer_id"] for c in ACQUIRED_CUSTOMERS],
         # Of those, the wins `_supply_won_switch` refused to put on supply, each with its reason.

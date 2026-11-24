@@ -5006,6 +5006,33 @@ _EMBARGO_PATH = re.compile(
     re.IGNORECASE)
 
 
+def held_paths(item: dict) -> list[str]:
+    """Every absolute path this item says it must not be drawn before, present or not.
+
+    `awaited_paths` is this list less the files that exist. The continuation store needs the
+    whole list: a file hold's offer window opens when its file APPEARS, so once the file is
+    there the store still has to know which file to date the window from
+    (`seat_continuation._window_opens`). Same exclusions, same fail-open: quoted, templated and
+    producer-declared-dead paths are not holds.
+    """
+    try:
+        text = " ".join(v for v in item.values() if isinstance(v, str))
+        dead = item.get("awaits_unwritten_run")
+        dead_path = dead.get("path") if isinstance(dead, dict) else None
+        held = []
+        for m in _EMBARGO_PATH.finditer(text):
+            if m.start() > 0 and text[m.start() - 1] == "`":
+                continue
+            path = m.group("path").rstrip(".,;:)")
+            if "<" in path or "{" in path or path == dead_path:
+                continue
+            if path not in held:
+                held.append(path)
+        return held
+    except Exception:
+        return []
+
+
 def awaited_paths(item: dict) -> list[str]:
     """The absolute paths this item says it must not be drawn before, that do not exist yet.
 
@@ -5015,8 +5042,9 @@ def awaited_paths(item: dict) -> list[str]:
     to read quotations; this one cannot.
 
     NEVER RAISES, and an unreadable item awaits nothing -- `embargoed_until`'s fail-open argument.
-    A path that never appears does not hold the work for ever: the continuation store's own expiry
-    (`seat_continuation.STALE_AFTER_SECONDS`) still drops it into `expired()`, where it is reported.
+    A path that never appears does not hold the work for ever: the continuation store keeps a
+    file-held row live until its file appears, but only up to `seat_continuation.FILE_HOLD_LIMIT_SECONDS`
+    after it was written, and then `expired()` reports it as "held on <path>, never appeared".
 
     A PLACEHOLDER IS AN INSTRUCTION, NOT A PATH (2026-11-22). The re-arm rule tells the tick to
     re-hand the row off "with DO NOT DRAW BEFORE /…/docs/reports/<name> EXISTS" once the book's
@@ -5029,19 +5057,7 @@ def awaited_paths(item: dict) -> list[str]:
     exist.
     """
     try:
-        text = " ".join(v for v in item.values() if isinstance(v, str))
-        dead = item.get("awaits_unwritten_run")
-        dead_path = dead.get("path") if isinstance(dead, dict) else None
-        waiting = []
-        for m in _EMBARGO_PATH.finditer(text):
-            if m.start() > 0 and text[m.start() - 1] == "`":
-                continue
-            path = m.group("path").rstrip(".,;:)")
-            if "<" in path or "{" in path or path == dead_path:
-                continue
-            if not os.path.exists(path) and path not in waiting:
-                waiting.append(path)
-        return waiting
+        return [p for p in held_paths(item) if not os.path.exists(p)]
     except Exception:
         return []
 

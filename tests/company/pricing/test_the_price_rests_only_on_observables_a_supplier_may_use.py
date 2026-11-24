@@ -83,6 +83,10 @@ ACCOUNT_OBSERVABLES = {
 MECHANISM_PARAMETERS = {
     "arm", "candidates", "max_offered_rate_gbp_per_mwh", "book_general_margin_gbp_per_mwh",
     "ladder_multiplier", "flat_level_gbp_per_mwh",
+    # The company's own cost of capital, dated by its valuation day
+    # (`clv_three_horizon.discount_rate_at`: the published CMA/Ofgem figures). It describes no
+    # one, so it sits with the knobs and not with the observables.
+    "discount_rate",
 }
 
 #: WHAT THE PRICE RESTS ON THAT IS NOT ABOUT THIS ACCOUNT — published market facts, readable by

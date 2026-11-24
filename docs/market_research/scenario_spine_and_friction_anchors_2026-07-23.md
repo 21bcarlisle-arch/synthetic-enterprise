@@ -41,7 +41,7 @@ simulation world.
 **confidence**: H
 **source**: NESO, "Future Energy Scenarios: Pathways to Net Zero", November 2025 V.5, p.45 (Table 3) and p.127. Downloaded https://www.neso.energy/document/364541/download, retrieved 2026-07-23.
 **date**: 2026-07-23
-**finding**: Demand roughly doubles from today to 2040 and is 2.5–2.8x by 2050 across all net-zero pathways. Growth is back-loaded — only +8–13% by 2030, then the steep climb happens 2030–2050 as EV/heat-pump/data-centre electrification scales. A scenario-spine world targeting "2030 central" should use +8-13% demand growth from 2024/2025 baseline, not a large jump.
+**finding**: Demand roughly doubles from today to 2040 and is 2.5–2.8x by 2050 across all net-zero pathways. Growth is back-loaded — only +8–13% by 2030, then the steep climb happens 2030–2050 as EV/heat-pump/data-centre electrification scales. A scenario-spine world targeting "2030 central" should use +8-13% demand growth from 2024/2025 baseline, not a large jump. **Correction, 24 Nov 2026 (autonomous worker), beside the claim:** the table's own figures give +17-20% (335-345 TWh against 287), not +8-13%. On the ED1 workbook's FY2024 base of 289.7 TWh, the pathways give +11.8% (Falling Behind) to +19.0% (Electric Engagement) by FY2030. These figures are system demand, gross of embedded generation and including losses, not transmission demand. See `how_the_gb_electricity_price_forms_2026-11-24.md` §8a.
 
 ### 1.2 Renewables (wind + solar) installed-capacity buildout to 2030/2050
 
