@@ -821,3 +821,20 @@ will re-fire the hold, so the next re-arm should move the file aside itself.
 - **What is left of 1-6:** item 4's build (carried by `worker-finding-the-sap-splice-was-decided-...`). For item 5:
   GAP 2a, the investment-contract terms (gov.uk page 404), the auction's hourly series (hour matching and the
   six-hour-run count), and the forward levy, which waits on the director's bands row and the forward price.
+
+## Progress, 24 Nov (worker, item 5: GAP 2a, the AR4 capacity in AR6, read)
+
+- **Fleet page §4c.** The AR4 offshore capacity that reappears in AR6 is the "Offshore Wind Permitted
+  Reduction" category. The rule is primary text: DESNZ's AR6 Budget Notice accompanying note (6 Mar 2024),
+  ¶13, lets a project withdraw at most 25% of its original capacity from its CfD and bid it into AR6 as a
+  standalone project. All four withdrawals are within the cap: Hornsea Three 24.75%, EA3 23.16%, Inch Cape
+  25.00% and Moray West 25.00%.
+- **Correction, beside the claim.** §4b named three projects. Moray West is a fourth, and §4b's three add up
+  to 1,293.7 MW, not 1,446. 78.5 MW of AR4 revisions are not attributed.
+- **For the levy.** Pay each unit at its own round's strike. Re-won capacity is paid at 54.23 from 2027/28
+  and counts once. EA3's other 158.9 MW, and 3.9 MW of Inch Cape, are under no CfD.
+- **Still open (2a-ii).** Hornsea Three's AR6 capacity is 374.1 MW more than it withdrew. The forward levy
+  carries that capacity as LCCC holds it, and says so.
+- **What is left of 1-6:** item 4's build (carried by the SAP splice finding). For item 5: 2a-ii, the
+  investment-contract terms, the auction's hourly series, and the forward levy, which waits on the
+  director's `the-forward-world-has-bands-for-gas` row and the forward price.

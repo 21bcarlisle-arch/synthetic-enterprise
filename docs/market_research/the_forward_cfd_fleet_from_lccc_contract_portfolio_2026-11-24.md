@@ -234,7 +234,7 @@ built unit by unit, with no averaged strike.
 | AR7 | 14,669.6 | −47.5 | −285.7 | 0 | 14,336.4 |
 
 The gap is mostly capacity revised on contracts that were signed. Offers that were never signed in the
-portfolio are a small part of it. AR4's −1,446 MW is three offshore projects: Hornsea Three −705.9, EA3
+portfolio are a small part of it. AR4's −1,446 MW is three offshore projects *(corrected in §4c: four, and they add up to 1,367.2 MW)*: Hornsea Three −705.9, EA3
 −317.8 and Inch Cape −270.0. The same three appear in AR6 as new units at 54.23: Hornsea Three AR6 A-C
 (1,080 MW), EA3B (158.9) and Inch Cape A-B (266.1). **This is observed, not attributed.** Whether these are
 the same turbines re-contracted at a higher strike, extensions, or both is not read here. It is a GAP
@@ -245,15 +245,62 @@ Bockingfold, Eastgate and Rainsbrook; AR6 Maisemore, Great House and Trinity) ar
 The probe is `join.py` and `split.py` (sha256 `b7ad0568…`, `55038c7f…`), run with `python3 -I` against the
 saved responses outside the repository. Nothing in `sim/` or `company/` reads any of this.
 
+## 4c. The AR4 capacity in AR6 is the Permitted Reduction route (GAP 2a, read)
+
+Added by the worker, 2026-11-24.
+
+**Rule (primary text).** DESNZ, *Accompanying Note to the Budget Notice for the Sixth Contracts for
+Difference Allocation Round, 2024* (6 March 2024, OGL), ¶13: "Permitted Reduction projects are defined
+as those that formed part of projects awarded a CfD in a previous Allocation Round and where these
+projects have since gone through the Permitted Reduction process in the contract terms. This process
+has allowed projects to withdraw a maximum of 25% of their original total project capacity from their
+CfD contract and now use that reduced capacity to bid into AR6 as a standalone project." The Budget
+Notice of the same date sets a separate Pot 3 Maximum of £800 million for "Offshore Wind Permitted
+Reduction" projects. DESNZ's *AR6 results* (3 September 2024) list the category at 1,578.51 MW, £54.23
+(2012 prices), delivery year 2027/28. New offshore wind cleared at £58.87 for 2028/29.
+
+**Neither text says where the Permitted Reduction clause sits in the contract terms.** The AR6
+Allocation Framework (March 2024), the July 2023 future-rounds response and the March 2024 AR6
+contract-changes response were all searched as text, and none contains the phrase.
+
+**The four projects, LCCC offered MW against held MW [calc]:**
+
+| Project | AR4 offered | AR4 held | Withdrawn | % of offered | AR6 won at 54.23 | AR6 − withdrawn |
+|---|---:|---:|---:|---:|---:|---:|
+| Hornsea Three | 2,852.00 | 2,146.10 | 705.90 | 24.75% | 1,080.00 | +374.10 |
+| EA3 | 1,372.34 | 1,054.53 | 317.81 | 23.16% | 158.90 | −158.91 |
+| Inch Cape | 1,080.00 | 810.00 | 270.00 | 25.00% | 266.11 | −3.89 |
+| Moray West | 294.00 | 220.50 | 73.50 | 25.00% | 73.50 | 0 |
+
+Every withdrawal is within the 25% cap. Two of them sit exactly on it.
+
+**Correction to §4b, beside the claim.** §4b says AR4's −1,445.7 MW of capacity revised "is three
+offshore projects". The three it names add up to 1,293.7 MW. Moray West's −73.5 MW is a fourth
+Permitted Reduction, and it took the same route into AR6 (String 9). That leaves 78.5 MW of AR4
+revisions not attributed here.
+
+**What it settles for a forward levy.** A unit's MW is paid at its own round's strike. The AR4
+contracts are paid on what they now hold. Capacity re-won in AR6 is paid at 54.23 from 2027/28. It
+counts once, because it left the AR4 contract. Some withdrawn capacity won nothing in AR6: EA3's
+158.9 MW is exactly half of its withdrawal, and Inch Cape is 3.9 MW short. That capacity is not
+under any CfD on this record (GAP 4).
+
+**Still open (2a-ii).** Hornsea Three's AR6 units are 374.1 MW more than it withdrew. The note's text
+("that reduced capacity") does not allow for that. Two readings fit: the project grew after AR4, or
+the AR6 bid included capacity that was never under the AR4 contract. Neither is read. The candidate
+source is the AR6 application rules on Permitted Reduction applicants: the 2024 Allocation
+Regulations amendment, or the AR6 Round Notice. Until it is read, the forward levy carries the 374.1 MW
+at 54.23, as LCCC holds it, and says so.
+
 ## 5. GAPs
 
 1. **Slippage history.** Expected start dates as at each earlier date. Candidates are LCCC's own
    earlier publications and the Wayback Machine. Neither was read.
 2. **Strikes for AR4-AR7 units.** Read in §4a, and the join is made in §4b (24 Nov, worker). Every
    AR4-AR7 portfolio unit has one strike. **Closed.**
-   2a. **AR4 offshore capacity that reappears in AR6** (Hornsea Three, EA3, Inch Cape, §4b): whether it is
-   re-contracted or extension capacity, and under what rule. The candidate source is DESNZ's AR6
-   allocation framework on permitted reductions. Not read.
+   2a. **AR4 offshore capacity that reappears in AR6.** Read in §4c (24 Nov, worker). It is AR6's
+   "Offshore Wind Permitted Reduction" category, and the rule is primary text. **Narrowed, not closed.**
+   Hornsea Three's AR6 capacity is 374.1 MW more than it withdrew, and that is still unexplained (2a-ii).
 3. **First power against CfD start for each phased offshore unit,** and the AR4 rule that allows
    deferral. This decides how far the two fleets of §0 differ in 2022-2026.
 4. **Capacity not under any CfD** (RO, merchant, FiT). This is needed to split the curriculum's one
