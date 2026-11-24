@@ -428,3 +428,15 @@ close it.
   running (+5.79).
 - **Next, still item 4:** the build of the wind fleet mean-matched to FUELHH, solar out and the demand year
   term on the record, with predictions filed first. Then 2025, and the price-leg shape arm.
+
+## Progress, 24 Nov (worker, gas page GAP 4 measured)
+
+- **§6a of the gas page** measures how far GB SAP moves with the weather on the record. A day colder
+  than its month prices 0.24-1.15% higher per °C in calm years and about 3% higher in 2018 (Beast
+  from the East) and 2022. The sign holds in both halves of every year. The summer slope matches the
+  winter one in five of eight years, so this is the weather of a cold day (wind, gas-for-power), not
+  heating alone. It is not attributed. Temperature explains under a fifth of SAP's daily deviation.
+  SAP's winter volatility premium is not stable (ratio 0.52-3.5).
+- **For item 4.** A forward daily gas price needs a small persistent cold-day premium that switches
+  with the regime. Today's world record and forward draw both have a slope of 0. The page's GAP 4
+  stays open: no published response was found, so this is a measurement and not a source.

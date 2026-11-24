@@ -160,7 +160,83 @@ and, through LNG, the Asian price JKM, rather than any GB cost of production.
   continent. Gas-for-power also couples gas to wind: a still week raises gas burn and NBP.
 - **GAP.** No published price response per degree or per mcm of demand has been found. The world
   derives household gas from weather, but its gas PRICE does not respond to its own weather at all
-  (see the grade in §8).
+  (see the grade in §8). §6a measures the record's own response; it is not a published one.
+
+## 6a. Measured on the record: how far GB SAP moves with temperature (worker, 24 Nov)
+
+Measured, not published, so it does not close the GAP above. It does give the rebuild an order of
+magnitude. Method: on each day, take the log of SAP over its centred 31-day median, and the national
+temperature (`sim.weather_tail_demonstration.load_national_daily`, the world's four-town Open-Meteo
+mean) minus its own centred 31-day median. Then regress the first on the second, by year and by half
+of the year. Taking deviations from a centred median removes the level and the season, so the slope
+is the response to a cold spell *relative to its month*. The record ends 2025-06-07, where the
+weather ends. The probe is reproduced below, and it is read-only.
+
+| Year | Nov-Mar %/°C (r) | Apr-Oct %/°C (r) | SAP monthly realised vol, mean · winter · rest · max |
+|---|---|---|---|
+| 2018 | **−3.69** (−0.41) | −0.42 (−0.31) | 29.9 · 51.4 · 14.5 · 144.7% |
+| 2019 | −0.27 (−0.15) | −0.96 (−0.19) | 31.1 · 20.9 · 38.3 · 61.5% |
+| 2020 | −0.36 (−0.15) | −0.69 (−0.18) | 30.1 · 25.4 · 33.5 · 54.6% |
+| 2021 | −0.93 (−0.25) | −0.57 (−0.18) | 29.2 · 34.5 · 25.3 · 63.2% |
+| 2022 | **−3.11** (−0.36) | **−3.18** (−0.19) | 106.2 · 68.6 · 133.0 · 273.1% |
+| 2023 | −0.66 (−0.32) | −0.82 (−0.18) | 25.6 · 21.1 · 28.8 · 42.8% |
+| 2024 | −0.56 (−0.27) | −0.24 (−0.13) | 14.5 · 16.2 · 13.2 · 23.0% |
+| 2025 H1 | −0.37 (−0.25) | −1.15 (−0.52, 53 days) | 14.4 · 13.6 · 15.1 · 28.0% |
+
+Monthly realised vol is the SD of daily log returns × √(days), the OIES method from the 2026-10-25
+page. It is computed on SAP, a within-day price.
+
+- **The sign holds every year and in both halves: a colder day than its month prices higher.** In
+  calm years the size is small: 0.24-1.15% per °C, so a cold spell 5 °C below its month moves SAP
+  about 1-6%. Two years are large, at about 3% per °C. In 2018 the large slope comes from the Beast
+  from the East alone (§4). In 2022 it holds in both halves, which fits a tight system, where every
+  marginal mcm was dear.
+- **It is not a heating-season effect.** The summer slope is as large as the winter one in five of
+  eight years. Temperature here also carries the wind and the gas-for-power burn that come with
+  the same weather (§6), so the slope is the response to *the weather of a cold day*, not to
+  heating demand alone. **Not attributed.** Separating it needs daily NTS demand by sector, and
+  that has not been downloaded.
+- **The winter volatility premium is not stable in SAP.** Winter/rest ratios run 3.5, 0.55, 0.76,
+  1.36, 0.52, 0.73, 1.23 and 0.90. The OIES ≈1.3 ratio is for front-month NBP, 1997-2011, so it is
+  not contradicted. It does not carry over to the within-day series either, and a forward generator
+  should not impose a fixed winter volatility multiplier on a daily price.
+- **For the rebuild (item 4 of the steer).** A forward daily gas price has to show both a small
+  persistent cold-day premium and the regime switch (calm about 0.5%/°C, tight about 3%/°C). The
+  world's record and its forward draw show neither: their slope is 0 by construction (§8).
+  Correlations of −0.15 to −0.41 mean temperature explains under a fifth of SAP's daily deviation
+  in any year, so most of the daily structure is supply-side (§2-5).
+
+```python
+"""Re-runnable from the repo root, read-only: SAP's response to temperature and its monthly vol."""
+import csv, math, statistics as st, sys, collections
+sys.path.insert(0, ".")
+from sim.weather_tail_demonstration import load_national_daily
+sap = {r["settlementDate"]: float(r["systemAveragePrice"]) for r in csv.DictReader(open("sim/gas_data/sap_daily.csv"))}
+nat, _doy, dates = load_national_daily()
+T = {d.strftime("%Y-%m-%d"): float(nat["temperature_mean_c"][i]) for i, d in enumerate(dates)}
+ds = sorted(d for d in sap if d in T)
+WINTER = (11, 12, 1, 2, 3)
+def slope(y, months):
+    xs, ys = [], []
+    for i in range(15, len(ds) - 15):
+        d = ds[i]
+        if not d.startswith(str(y)) or int(d[5:7]) not in months: continue
+        w = ds[i-15:i+16]
+        xs.append(T[d] - st.median(T[k] for k in w))
+        ys.append(math.log(sap[d] / st.median(sap[k] for k in w)))
+    mx, my = st.mean(xs), st.mean(ys)
+    b = sum((x-mx)*(v-my) for x, v in zip(xs, ys)) / sum((x-mx)**2 for x in xs)
+    return len(xs), 100*b, st.correlation(xs, ys)
+by = collections.defaultdict(list)
+for d in ds: by[d[:7]].append(sap[d])
+vol = {m: 100 * st.pstdev([math.log(v[i]/v[i-1]) for i in range(1, len(v))]) * math.sqrt(len(v) - 1)
+       for m, v in by.items()}
+for y in range(2018, 2026):
+    w = slope(y, WINTER); s = slope(y, tuple(m for m in range(1, 13) if m not in WINTER))
+    ym = {m: v for m, v in vol.items() if m.startswith(str(y))}
+    vw = [v for m, v in ym.items() if int(m[5:]) in WINTER]; vr = [v for m, v in ym.items() if int(m[5:]) not in WINTER]
+    print(y, w, s, round(st.mean(ym.values()), 1), round(st.mean(vw), 1), round(st.mean(vr), 1), round(max(ym.values()), 1))
+```
 
 ## 7. The 2021-23 shock: every driver at once
 
@@ -213,6 +289,7 @@ and *Anatomy of a natural gas crisis*):
 1. Daily NBP-TTF basis 2016-2025, and daily IUK/BBL flows (§5).
 2. Ofgem's NBP summer-winter spread series (§4).
 3. A JKM series and the NBP-JKM-TTF relationship (§3).
-4. A published price response to demand or temperature for GB gas (§6).
+4. A published price response to demand or temperature for GB gas (§6). The record's own response
+   is measured in §6a; it is not attributed between heating, wind and gas-for-power.
 5. Daily Norwegian flows and outages (§2).
 6. Pre-2018 daily SAP (18 Nov page; the NGT series needs a login).
