@@ -678,3 +678,25 @@ wins fewer cheapest-fix shoppers in 2016–20 than a below-cost seller would, an
 those years is earned at cost. The remaining order is unchanged: the wholesale shape-and-losses world
 question (§9), the MSC in its own lane, then pre-register and delete
 `ACQUISITION_HELD_AT_CAP_TARIFF_TYPES`.
+
+## 12. Pre-registering the deletion of the hold: the campaign does not read it (2026-11-24)
+
+The deletion is built behind `FIRST_TERM_CAP_HOLD_DELETED` (`company/pricing/renewal_rate_chain.py`),
+off. The per-year table and the predictions are in
+`docs/staging/records/SEAT_PREREG_THE_FIRST_TERM_CAP_HOLD_DELETED_2026-11-24.md`.
+
+**Measured at real inputs** (seed `run_base_seed()`). With the hold on and off, the campaign is
+identical: 3,089 quotes and 242 wins, the same ids on the same dates. The quote never reads the
+hold. What the hold binds is the **contracted** first term. The run strikes that term through
+`quote_renewal`, not through the quote. It clamps 15 of 151 won fixed domestic electricity first
+terms: 10 of 14 in 2021, at up to ×1.54 the cap, 1 in 2022 and 4 in 2025 Q1.
+
+**What it means for the order.**
+- §7's "the quote can differ from the rate the account is later contracted at" is now measured, in
+  both directions. In 2021 the contracted strike sits above the cap the quote was gated under. In
+  2023–24 it sits 18–31% under the cheapest fix, where the quote was 5% under.
+- Deleting the hold now would bill households above the price they were quoted. **The order gains a
+  step:** the wholesale shape-and-losses question (§9), the MSC in its own lane, then **contract the
+  first term at the strike quoted**
+  (`docs/staging/SEAT_FINDING_A_WON_FIRST_TERM_IS_CONTRACTED_ON_A_STRIKE_IT_WAS_NOT_QUOTED_2026-11-24.md`),
+  then flip the switch.
