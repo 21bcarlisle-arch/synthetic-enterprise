@@ -234,6 +234,7 @@ rows in the four weeks to 22 Dec. More than 2 refutes the first leg as enough.
 | 2026-11-21 | director | Bill shock framed as one number; he supplied the structure (two families, three SVT moments, payment method) | no mechanism |
 | before 2026-11-22 | director | Renewal belief with AUC 0.52 produced a margin gain the site led with | implausible number |
 | 2026-11-14 | director | "Nothing is waiting on you" from a stale read (W3) | missed obvious source |
+| 2026-11-24 | director | The weather-to-price chain (`sim/weather_price_chain.py`, docstring "L4", map L3) was built to its ceiling with no page on how gas or power prices form: no LNG, storage, interconnector, CfD or nuclear mechanism anywhere. Census of other world models: `docs/staging/SEAT_FINDING_WORLD_MODELS_BUILT_TO_THEIR_CEILING_WITH_NO_MECHANISM_PAGE_BENEATH_THEM_2026-11-24.md` | no mechanism |
 
 *The rows marked "before 2026-11-22" carry the steer's account. Their exact dates are not yet traced
 to the commits, so they are the baseline and not graded rows. The prediction counts only rows dated

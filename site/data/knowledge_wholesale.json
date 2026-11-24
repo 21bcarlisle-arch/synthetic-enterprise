@@ -946,24 +946,23 @@
       "title": "GB gas wholesale",
       "kind": "page",
       "class": "fast",
-      "blurb": "The GB gas market whose price sets the marginal plant's bid for most hours -- a market in its own right, not a driver-stub of electricity.",
+      "blurb": "How the GB gas price forms: North Sea, Norway, LNG against Asia, thin storage since Rough, the pipes to the continent that tie NBP to TTF until they fill, and weather-driven demand.",
       "scope": "A complete treatment covers the GB gas market as a market in its own right: how the National Balancing Point price is set by the balance of supply (Norwegian pipeline imports, LNG send-out, UKCS production, storage withdrawal, interconnector flows) against demand (heat, power-station burn, industry); the contract curve from within-day through month and season to annual; the role of seasonal storage arbitrage and LNG-cargo optionality; and why GB, as a price-taker on a globally traded fuel, tracks TTF and Asian LNG rather than any domestic cost stack. It drives the electricity price because a gas plant is marginal for most GB hours -- that coupling is one typed edge, never a shared page.",
       "rate_of_change": "medium",
       "reviewed": {
-        "last_verified": "2026-09-10",
-        "checked_by": "delivery seat",
-        "source": "National Gas / UNC published NBP and daily balancing arrangements (virtual hub, gas-day balancing, cash-out at system marginal buy and sell prices); DESNZ on GB gas storage capacity -- around 1.7 bcm, roughly seven days of average winter demand; OIES NG201, UK Gas: Volatility of Demand and Flexibility of Supply (October 2025)",
-        "route": "Body feed read directly and each assertion checked against the published source. The pages are JS-rendered and the static HTML holds no claims, so no page was rendered.",
-        "found": "SHARPENED. The market-mechanism claims all hold -- the NBP as a virtual point, daily rather than half-hourly balancing with linepack absorbing the intraday mismatch, cash-out against system marginal buy and sell prices, and the ~50% CCGT efficiency giving a ~2:1 gas-to-power slope. The correction is an omission that cut against the page's own conclusion: it rested the whole shape-of-the-market argument on gas being storable without saying that GB stores very little of it. Around 1.7 bcm, about seven days of average winter demand, among the thinnest in Europe, and thinner since Rough closed in 2017. Storage here smooths days, not seasons -- which is exactly why GB competes for LNG cargoes rather than drawing down a buffer, the thing the page asserted but did not ground.",
-        "written": "2026-08-24",
+        "last_verified": null,
+        "written": "2026-11-24",
+        "not_checked_note": "Body rewritten 2026-11-24 as the deep K8 gas page (director, 24 Nov 05:40: 'Start with gas'). Writing is not checking, so it renders as awaiting check.",
         "superseded_check": {
-          "last_verified": "2026-08-19",
-          "source": "National Gas Transmission; DESNZ gas storage & flexibility (2023); HoC Library",
-          "why_void": "Recorded against the body this page served from knowledge_topics.json, which it stopped serving on 2026-08-24 and which was deleted at 2a33bfa4f. The body served today was written 2026-08-24 to replace a stub and has never been checked against a published source, so the date it inherited described text no reader can reach."
+          "last_verified": "2026-09-10",
+          "source": "National Gas / UNC published NBP and daily balancing arrangements (virtual hub, gas-day balancing, cash-out at system marginal buy and sell prices); DESNZ on GB gas storage capacity -- around 1.7 bcm, roughly seven days of average winter demand; OIES NG201, UK Gas: Volatility of Demand and Flexibility of Supply (October 2025)",
+          "why_void": "It checked the 2026-08-24 body, which this one replaces. Its finding (storage 'around 1.7 bcm, seven days') is itself corrected in the new body from DUKES 2026 table 4.4a."
         }
       },
       "atoms": [
-        "SPINE_3_gas_storage_crisis_regime"
+        "SPINE_3_gas_storage_crisis_regime",
+        "W1_2_generate_futures",
+        "W1_6_physics_price_signal"
       ],
       "theme": "markets",
       "why": "Gas sets the price of the marginal power station in most hours and is most of a gas-heated home's bill, so the 2021-22 crisis cannot be reproduced without it."

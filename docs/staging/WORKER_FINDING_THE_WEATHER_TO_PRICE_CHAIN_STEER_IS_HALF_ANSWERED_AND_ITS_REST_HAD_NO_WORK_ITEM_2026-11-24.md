@@ -53,3 +53,16 @@ null at the month and the quarter in every regime, and forward years will price 
 
 Close this when 1-6 have landed or been ruled out with a reason. Moving this document does not
 close it.
+
+## Progress, 24 Nov (delivery seat)
+
+- **Item 1 landed.** The gas page is `docs/market_research/how_the_gb_gas_price_forms_nbp_and_sap_2026-11-24.md`,
+  served from `site/data/knowledge_gas_wholesale.json`. The grade was pre-registered in `4abe9cf16`, with
+  the result in `docs/staging/records/SEAT_RESULT_GRADING_THE_WORLDS_GAS_PRICE_RECORD_AGAINST_THE_GAS_PAGE_BY_REGIME_2026-11-24.md`.
+  The world's level is right outside the crisis (monthly MAE £0.58 and £1.27). The crisis error
+  (£16.40) is the interconnector decoupling of 2022. Within a month the world's gas price does not
+  move at all. The forward gas draw is independent daily noise:
+  `docs/staging/SEAT_FINDING_THE_FORWARD_GAS_DRAW_IS_INDEPENDENT_DAILY_NOISE_WITH_NO_SEASON_OR_PERSISTENCE_2026-11-24.md`.
+- **Item 6 landed.** The learning-loop row is in `docs/institutional/ways_of_working.md` W5. The census is
+  `docs/staging/SEAT_FINDING_WORLD_MODELS_BUILT_TO_THEIR_CEILING_WITH_NO_MECHANISM_PAGE_BENEATH_THEM_2026-11-24.md`.
+- **Next: item 2**, the electricity page. Items 3-5 follow it.

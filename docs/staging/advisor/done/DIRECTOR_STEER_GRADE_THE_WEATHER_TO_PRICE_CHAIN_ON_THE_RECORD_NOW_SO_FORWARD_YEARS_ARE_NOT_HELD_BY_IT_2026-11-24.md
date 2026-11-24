@@ -113,3 +113,20 @@ of the largest gap. The CfD levy becomes endogenous, and world models built to L
 filed in the learning loop.
 
 **Archived 24 Nov (worker).** Seen and acted on from the signed text in `452de5285`. The unsigned edit `3589e04c7` adds only a progress note, and its claims check out. The asks still owed are carried as a BLOCKING work item: `docs/staging/WORKER_FINDING_THE_WEATHER_TO_PRICE_CHAIN_STEER_IS_HALF_ANSWERED_AND_ITS_REST_HAD_NO_WORK_ITEM_2026-11-24.md`.
+
+## Done
+
+What has landed, and what is still carried, as of 24 Nov (delivery seat):
+
+- Steer §1-2, graded by regime on the record: pre-registration `2a24f6c54`, result
+  `docs/staging/records/WORKER_RESULT_THE_WEATHER_TO_PRICE_CHAIN_LOSES_TO_A_GAS_ONLY_NULL_AT_THE_MONTH_IN_EVERY_REGIME_2026-11-24.md`.
+- 05:40 addendum, item 1 (gas first): the deep K8 gas page,
+  `docs/market_research/how_the_gb_gas_price_forms_nbp_and_sap_2026-11-24.md`, published as
+  `site/data/knowledge_gas_wholesale.json`. The grade of the world's gas record and forward gas draw
+  against it was pre-registered in `4abe9cf16`, with the result in
+  `docs/staging/records/SEAT_RESULT_GRADING_THE_WORLDS_GAS_PRICE_RECORD_AGAINST_THE_GAS_PAGE_BY_REGIME_2026-11-24.md`.
+- The learning-loop row is in `docs/institutional/ways_of_working.md` W5. The census of other world
+  models is `docs/staging/SEAT_FINDING_WORLD_MODELS_BUILT_TO_THEIR_CEILING_WITH_NO_MECHANISM_PAGE_BENEATH_THEM_2026-11-24.md`.
+- Still owed, and carried by the BLOCKING finding
+  `docs/staging/WORKER_FINDING_THE_WEATHER_TO_PRICE_CHAIN_STEER_IS_HALF_ANSWERED_AND_ITS_REST_HAD_NO_WORK_ITEM_2026-11-24.md`:
+  the electricity page, the carbon arm, the rebuild, and the endogenous CfD levy.
