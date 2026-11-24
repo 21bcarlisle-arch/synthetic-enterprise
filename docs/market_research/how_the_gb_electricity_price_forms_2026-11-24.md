@@ -568,8 +568,13 @@ section sources it. It sets no forward number.*
   often, is a curriculum choice and the director's, like the forward bands in §2a, §5a and §8a.
 - **GAP.** (13a) The causes of the Nov 2017 and Jul 2020 runs. (13b) French nuclear output by month 2016-2025
   from RTE eco2mix or EDF, so that a run is matched to an availability series rather than to press dates.
-  (13c) Whether a run moved GB's power price against SAP in the pre-crisis years. The chain's pre-crisis
-  residual in Oct 2016-Jan 2017 has not been read for it. (13d) EDF's forward output guidance by year.
+  (13c) **Measured, partly closed (`docs/staging/records/WORKER_RESULT_THE_PRE_CRISIS_FRANCE_SHORTFALL_RUNS_PRICED_AGAINST_SAP_AND_NET_EXPORT_CARRIES_39_PERCENT_2026-11-24.md`).** Yes, at the month,
+  in two of the three pre-crisis runs. GB SSP over the gas-plus-carbon floor was 1.48 in Oct 2016-Jan 2017
+  against 1.11 in the same calendar months of other pre-crisis years, and 1.19 against 1.11 in Jul 2020. Nov
+  2017 did not move (1.09 against 1.05). The chain's shippable form runs £5.24 low in those six months against
+  its own calendar-month control, and Nov 2016 alone is −£22.7. Each month's own GB net export takes out 39% of
+  that gap, so the net-flow level is not the whole mechanism. The rest is not attributed. GB's own winter margin
+  that month is a candidate, and it has not been checked. (13d) EDF's forward output guidance by year.
 
 ## 6. Wind and solar: what moves residual demand
 
@@ -881,4 +886,4 @@ Fifteen of twenty-two predictions held. The seven misses stay beside the outcome
 12. Forward carbon (§2a): CPS after 31 Mar 2028, a UK-EU linking path and date, and the CPI path that puts the
     DESNZ band (real 2025) on the gas band's real-2024 base.
 13. A neighbour's shortfall (§5b): the causes of the Nov 2017 and Jul 2020 runs, French nuclear output by
-    month, whether the pre-crisis runs moved GB power against SAP, and EDF's forward output guidance.
+    month, what beyond net flow carried Oct 2016-Jan 2017's price (13c remainder), and EDF's forward output guidance.

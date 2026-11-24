@@ -681,3 +681,17 @@ will re-fire the hold, so the next re-arm should move the file aside itself.
 - **Next, still item 4:** (1) read the chain's pre-crisis residual in Oct 2016-Jan 2017 for the event (page GAP
   13c), with a prediction filed first; (2) R's 2025 residual against the AGWS windows finding. The record-years
   build is carried by the SAP splice finding, and its placement in the switch order is the seat's.
+
+## Progress, 24 Nov (worker, item 4: GAP 13c, the pre-crisis shortfall runs on the record)
+
+- **Pre-registered** in `b981dbbcf` and pushed to origin before the run. **Result** in
+  `docs/staging/records/WORKER_RESULT_THE_PRE_CRISIS_FRANCE_SHORTFALL_RUNS_PRICED_AGAINST_SAP_AND_NET_EXPORT_CARRIES_39_PERCENT_2026-11-24.md`.
+  Five of seven predictions held. **Nothing in `sim/` changed.**
+- **Two of the three pre-crisis runs priced.** Record SSP over the floor was 1.48 against 1.11 in Oct 2016-Jan 2017,
+  and 1.19 against 1.11 in Jul 2020. Nov 2017 did not price. C3 (the shippable form) runs £5.24 low in the six months
+  against its own calendar months, and Nov 2016 alone is −£22.7.
+- **Rule (c) fires.** Each month's own net export takes out 39% of the gap, not half. The rest is not attributed.
+  §5b's GAP 13c is updated. For the director row: the record shows a neighbour shortfall pricing in 2016, 2020 and
+  2022, not only 2022.
+- **Next, still item 4:** R's 2025 residual against the AGWS windows finding. The record-years build is carried by
+  the SAP splice finding.
