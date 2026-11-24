@@ -64,3 +64,16 @@ in its topic's `atoms`, or file the missing page as a K8 item before that model 
 The proposal for the class: a world model's level may not move above 2 without a Knowledge topic
 naming it whose body states the mechanism. That is a rule change and goes to the weekly review,
 not into a gate here.
+
+## Addendum (worker, 24 Nov 07:50Z): the knowledge plan cannot see any of these
+
+`tools/knowledge_plan.py` is the tool meant to keep knowledge one step ahead of builds. It ranks an
+atom only if the atom is on `docs/direction/priority_order.yaml` (steps 2 onward, `_priority_atoms`).
+Of the 13 atoms in the tables above, **12 are on no step**. The exception is `G14_…`. The 12
+include `W1_6_physics_price_signal` itself. So the plan has never listed a row for them, and its
+"builds before knowledge" lag counts only priority-order atoms, so it is blind to every built world
+model off the order (measured against origin's `priority_order.yaml`, 28 atoms on steps 2+). Whatever
+the weekly review rules on the level-above-2 proposal, the smallest mechanism that makes this class
+visible is the same: widen `knowledge_plan`'s atom source to every world model at level ≥ 2, and let
+`atoms_with_a_page` keep reporting the bare-name result it reports today. A plan row is not a gate.
+It is a cost on a list the seat already reads.
