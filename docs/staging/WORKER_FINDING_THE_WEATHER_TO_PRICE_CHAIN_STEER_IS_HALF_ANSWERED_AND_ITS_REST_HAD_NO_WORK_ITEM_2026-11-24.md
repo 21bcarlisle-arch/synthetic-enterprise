@@ -95,3 +95,23 @@ close it.
 - **Next: item 4.** Its first step is the refit that tests that explanation, with its prediction already
   filed in the result record. The same step fills `merit_order_reconstruction`'s 2022-2024 allowance gap
   years, which can now be sourced.
+
+## Progress, 24 Nov (worker, item 4 step 1)
+
+- **The refit ran.** The result is in
+  `docs/staging/records/WORKER_RESULT_REFITTED_WITH_CARBON_IN_ITS_FLOOR_THE_CHAIN_STOPS_DOUBLE_COUNTING_CARBON_AFTER_2021_2026-11-24.md`.
+  It changes one variable: A0/A1/A2 are refitted with carbon in the floor, on the shipped window and
+  grid point. The constants go from 0.327 / 1.335 / 3.828 to 0.292 / 1.079 / 2.824. Monthly MAE by
+  regime moves from 12.4 / 31.5 / 10.3 to 6.75 / 24.3 / 9.29. Post-crisis ≤ £11 **held**. Pre-crisis
+  bias within ±£5 **missed**, at −£5.43. Explanation (a), that the multiplier already carries carbon,
+  is not refuted.
+- **The chain ties the gas-only null in the crisis (24.3 against 24.5) and still loses either side**
+  (6.75 against 5.4, and 9.29 against 6.7). Carbon was one gap. Weather coupling is next.
+- **Correction, beside the previous note.** That note said this step would also fill
+  `merit_order_reconstruction`'s 2022-2024 allowance gap years. It did not. That belongs with the
+  carbon series the sim will read, so that one table holds the allowance price.
+- **Next, still item 4.** (i) Ship the refit. The sim needs a time-indexed historical carbon series,
+  built from the UKA auction file, the EUA table and CPS, and the chain must pass it. The refitted
+  constants without carbon in the call are worse than either shipped arm, so the two land together. Forward
+  carbon waits on item 5's curriculum band. (ii) The weather-coupling arm (wind first), with its
+  prediction filed before it runs.
