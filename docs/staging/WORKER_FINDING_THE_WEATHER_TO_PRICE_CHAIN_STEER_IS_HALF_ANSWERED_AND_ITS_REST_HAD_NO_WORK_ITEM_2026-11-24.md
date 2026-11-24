@@ -134,3 +134,21 @@ close it.
   negative-hour rules wait on the Standard Terms (page GAP 3). Forward strikes and carbon are the
   director's curriculum band.
 
+
+## Progress, 24 Nov (worker, item 4 step ii: the weather-coupling arm)
+
+- **Pre-registered** in `docs/staging/records/WORKER_PREREG_WHICH_LEG_OF_THE_WEATHER_TO_PRICE_CHAIN_CARRIES_ITS_OVER_COUPLING_TO_WIND_2026-11-24.md`
+  (`8e8790de4`, before the run). **Result** in
+  `docs/staging/records/WORKER_RESULT_THE_CHAINS_OVER_COUPLING_TO_WIND_IS_IN_ITS_POWER_CURVE_NOT_ITS_PRICE_LEG_2026-11-24.md`.
+  Four of five predictions held.
+- **Coupling is now measured as a slope, not a correlation.** The chain's wind slope is 4.6× the
+  record's before the crisis and 1.6× after it. Nearly all of the excess is in wind speed → wind
+  output: the chain's renewable MW moves 2.3–3.9× the real fleet's per m/s. Swapping in real
+  renewable output brings the slope to within 0.75–1.4× of the record. The price leg, given real
+  inputs, is 0.92–1.35× the record per GW.
+- **Interconnectors: why not, for now.** The price leg is not the over-coupled link. A damping term
+  is the smaller gap.
+- **Next, still item 4.** A K8 section on the GB fleet's aggregate power curve, with a per-year
+  fleet. Then the arm with its prediction filed first. Separately, the post-crisis −£8 level gap the
+  price leg shows with real inputs. Shipping the step-1 refit with a sim carbon series ((i) above)
+  is still owed.
