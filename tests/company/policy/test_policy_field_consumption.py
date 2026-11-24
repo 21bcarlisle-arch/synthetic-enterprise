@@ -257,6 +257,16 @@ FIELD_CONSUMPTION = {
         "probe": lambda: _renewal_rate_under_the_active_arm(is_domestic=True, struck=140.0),
         "arms": (VALUE_ARM_POLICY, VALUE_ARM_CAPPED_POLICY),
     },
+    # EP1 (2026-11-24): the value arm discounts at the rate in force on the term's start. Resolved
+    # from `active_policy()` in the rate chain beside the arm. Probed on a 2024 term, after Ofgem's
+    # 12.3% took effect, because before 1 Oct 2023 both arms discount at 0.10 and must agree.
+    # Probed on the arm's believed value: see `_believed_value_under_the_active_arm`.
+    "renewal_discount_rate_dated": {
+        "via": "active_scope",
+        "probe": lambda: _believed_value_under_the_active_arm(),
+        "arms": (VALUE_ARM_POLICY, dataclasses.replace(
+            VALUE_ARM_POLICY, name="value_arm_dated_rate", renewal_discount_rate_dated=True)),
+    },
 }
 
 
@@ -279,6 +289,27 @@ def _churn_belief_against_learned_evidence() -> float:
 def _renewal_rate_under_the_active_arm(default_belief_rate: float | None = None,
                                        is_domestic: bool = False,
                                        struck: float = 200.0) -> float | None:
+    return _renewal_chain_under_the_active_arm(
+        default_belief_rate, is_domestic, struck).unit_rate_gbp_per_mwh
+
+
+def _believed_value_under_the_active_arm() -> float:
+    """The arm's believed expected value on a 2024 renewal, as the chain records it.
+
+    THE VALUE, NOT THE RATE, on purpose. On this SME account a departure costs nothing and no
+    carrying cost is counted, so the discount rate scales the whole objective and the chosen
+    margin cannot move (74.0 at both 0.10 and 0.123; the value moves from 60.52 to 59.28). The
+    rate moves the price only where an undiscounted term sits beside the annuity.
+    """
+    entries = _renewal_chain_under_the_active_arm(term_year=2024).value_arm_entries
+    assert entries, "the arm priced nothing, so this probe cannot witness the rate"
+    return entries[-1]["believed_expected_value_gbp"]
+
+
+def _renewal_chain_under_the_active_arm(default_belief_rate: float | None = None,
+                                        is_domestic: bool = False,
+                                        struck: float = 200.0,
+                                        term_year: int = 2021):
     """Drive the renewal rate chain on one account and return the rate it decided.
 
     Deliberately an SME account (`is_domestic=False`) so the domestic price cap -- writer 4, the
@@ -291,8 +322,8 @@ def _renewal_rate_under_the_active_arm(default_belief_rate: float | None = None,
         {
             "customer_id": "C0001",
             "commodity": "electricity",
-            "settlement_date": f"2020-{m:02d}-15",
-            "term_start": "2020-01-01",
+            "settlement_date": f"{term_year - 1}-{m:02d}-15",
+            "term_start": f"{term_year - 1}-01-01",
             "consumption_kwh": 250.0,
             "revenue_gbp": 45.0,
             "net_margin_gbp": 1.0,
@@ -305,7 +336,7 @@ def _renewal_rate_under_the_active_arm(default_belief_rate: float | None = None,
         customer_id="C0001",
         billing_account="C0001",
         commodity="electricity",
-        term_start="2021-01-01",
+        term_start=f"{term_year}-01-01",
         tariff_type="fixed",
         term_index=2,
         struck_unit_rate_gbp_per_mwh=struck,
@@ -316,7 +347,7 @@ def _renewal_rate_under_the_active_arm(default_belief_rate: float | None = None,
         settled_records=settled,
         customer={"metering": "NHH", "smart_meter": False},
         default_belief_rate=default_belief_rate,
-    ).unit_rate_gbp_per_mwh
+    )
 
 
 def _production_files() -> list[Path]:

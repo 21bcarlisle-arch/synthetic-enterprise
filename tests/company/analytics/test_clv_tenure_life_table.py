@@ -213,7 +213,7 @@ def test_the_production_view_passes_the_table_and_each_accounts_position():
     )
     assert s.value_gbp == pytest.approx(
         survival_discounted_value_by_year_gbp(
-            margin, book.book_exits.forward_hazards(6), DISCOUNT_RATE
+            margin, book.book_exits.forward_hazards(6), book.discount_rate
         )
     )
 

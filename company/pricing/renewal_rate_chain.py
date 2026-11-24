@@ -83,6 +83,7 @@ import heapq
 from dataclasses import dataclass, field
 from datetime import date
 
+from company.analytics.clv_three_horizon import DISCOUNT_RATE, discount_rate_at
 from company.compliance.domain_invariants import (
     refuse_discretionary_rate_below_own_cost_floor,
     vat_rate_for_segment,
@@ -653,6 +654,12 @@ def decide_renewal_rate(
         # measuring from a floor that already carries it would charge the loss twice (B12).
         pre_margin_rate_gbp_per_mwh=(
             cost_floor - bad_debt_allowance if cost_floor is not None else None),
+        # THE RATE IN FORCE AT THE TERM'S START, from the same active policy at the same site.
+        # Off on the standing policy (`EP1_DATED_DISCOUNT_RATE_IN_THE_STANDING_POLICY`), so the
+        # arm keeps the flat rate it has always used.
+        discount_rate=(
+            discount_rate_at(term_start) if active_policy().renewal_discount_rate_dated
+            else DISCOUNT_RATE),
     )
     # THE DENOMINATOR, WRITTEN AT THE SAME SITE AS THE DECISION. Unconditional and before the two
     # branches below, so a renewal cannot reach the funnel through one path and miss it through

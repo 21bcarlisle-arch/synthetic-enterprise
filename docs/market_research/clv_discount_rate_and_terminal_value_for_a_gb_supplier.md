@@ -1,4 +1,4 @@
-**Knowledge:** none -- a design reference for company/analytics/clv_three_horizon.py, pending the director's ruling
+**Knowledge:** none -- a design reference for company/analytics/clv_three_horizon.py; the director rows it waited on were withdrawn 26 Oct, and the dated rate it sources is built (section 5)
 
 # CLV discount rate and terminal-value method for a GB domestic energy supplier, 2016-2025
 
@@ -123,3 +123,43 @@ treatment (decaying to a long or infinite horizon) over either an arbitrary fini
 (Gupta & Lehmann's own finding: overestimates) or a single flat/pooled retention rate run to infinity
 (Fader & Hardie's finding: underestimates, if the book is heterogeneous — which a mixed-tenure
 domestic energy book plausibly is).
+
+## 5. The design choices taken (EP1, 2026-11-24)
+
+What is sourced, from the table in section 1:
+
+- **0.10 to 30 Sep 2023.** This is inside both the CMA's 9.3%-11.5% range (2016) and CEPA's
+  9.28%-10.88% "normal conditions" range (2022).
+- **0.123 from 1 Oct 2023.** Ofgem's EBIT decision of 25 Aug 2023 took effect from cap period 11a,
+  which starts on 1 Oct 2023. The switch point is the decision's own effective date, not a choice
+  made here.
+- **9.3% and 12.3% as the reported band.** These are the CMA's floor and Ofgem's adopted figure.
+
+The choices the design makes, and why:
+
+1. **The rate is the one in force on the valuation date, not a rate path along the projection.**
+   A 2021 valuation discounts every future year at 0.10, because a supplier in 2021 could not
+   know about the 2023 decision. A path rate would hand a past belief a fact from its future.
+   For the published book, the valuation date is the newest settlement the supplier has
+   observed.
+2. **Every published CLV aggregate is also stated at 9.3% and 12.3%.** This covers the
+   portfolio and each cohort, and it is done because of the GAP in section 3: whether a
+   regulatory allowance is a commercial CLV's discount rate at all. Accounts are not
+   re-valued, because doing so would triple the artefact without answering a new question.
+3. **Pricing decisions take the dated rate only behind
+   `EP1_DATED_DISCOUNT_RATE_IN_THE_STANDING_POLICY`, which is off.** The rankq, B8 and first-term
+   pre-registrations each refuse a second decision change in the book they grade. When the
+   switch is on, the renewal margin arm discounts both the customer's value and the carrying
+   cost of late payment at the rate in force on the term's start.
+   Measured on one SME renewal in 2024, the switch moves the arm's believed value (GBP 60.52 to
+   59.28) but not its chosen margin (74.0 at both rates). With no departure cost and no carrying
+   cost, the rate only scales the objective. It can move a price only through those two
+   undiscounted terms.
+
+What stays GAP: everything in section 3. In particular, nothing here establishes a 2019-2022
+figure, so the crisis years are discounted at the pre-2023 rate, and the 12.3% is carried to the
+end of 2025 without a source confirming that it was re-affirmed.
+
+At real inputs (run 6a588a832f, year-end H2 mean per counted account), the dated rate moves
+2023-2025 by about -10%: from GBP 516 to 467, 790 to 704, and 655 to 589. It leaves 2017-2022
+unchanged. The 9.3%-12.3% band is about +3% / -7% of the headline before Oct 2023.

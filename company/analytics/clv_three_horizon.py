@@ -77,12 +77,18 @@ import math
 import re
 from collections import Counter
 from dataclasses import dataclass, field
+from datetime import date
 from enum import Enum
 from pathlib import Path
 from typing import Iterable, Mapping, Sequence
 
 __all__ = [
     "DISCOUNT_RATE",
+    "OFGEM_COST_OF_CAPITAL_FROM_OCT_2023",
+    "OFGEM_COST_OF_CAPITAL_EFFECTIVE_FROM",
+    "CMA_2016_WACC_FLOOR",
+    "REPORTED_DISCOUNT_RATES",
+    "discount_rate_at",
     "Horizon",
     "TimeModel",
     "Exclusion",
@@ -121,19 +127,51 @@ __all__ = [
 # failure with the halves swapped -- and it stayed invisible until the question was asked the other
 # way round.
 #
-# NAMED SIMPLIFICATION, and the published record does not say 10%. Ofgem's default tariff cap
-# methodology sets an implicit allowed EBIT of 1.9% of revenue, raised post-2023 to reflect a
-# **12.3% cost of capital** (`docs/market_research/CSS_BENCHMARKS.md`). That is a REGULATORY
-# ALLOWANCE for a notional efficient supplier, not this company's cost of capital, and it is a
-# 2023+ figure while these models discount lifetimes spanning 2016-2025.
+# THE RATE IS DATED (2026-11-24, EP1). Every figure below is sourced in
+# `docs/market_research/clv_discount_rate_and_terminal_value_for_a_gb_supplier.md`:
 #
-# To do it properly needs three things none of these modules has: a time-varying rate across the
-# record, a decision about whether a regulatory EBIT allowance is the right discount rate for a
-# commercial CLV at all, and the pre-2023 series. Swapping 0.10 for 0.123 without those would move
-# every published CLV and cite a source that does not say what the swap claims.
+#   - to 30 Sep 2023, 0.10: inside the CMA's 9.3%-11.5% pre-tax WACC for a stand-alone GB retail
+#     supplier (EMI Appendix 10.4, 2016) and CEPA's 9.28%-10.88% "normal conditions" range (2022).
+#   - from 1 Oct 2023, 0.123: the cost of capital Ofgem adopted in its EBIT allowance decision of
+#     25 Aug 2023, effective from cap period 11a.
+#
+# The rate is the one IN FORCE ON THE VALUATION DATE, and is not a path along the projection. A
+# supplier valuing its book in 2021 did not know Ofgem would move in 2023, so a 2021 valuation
+# discounts every future year at 0.10. A path rate would hand that valuation a fact from its
+# future.
+#
+# A 12.3% regulatory allowance for a notional efficient supplier is not this company's own cost of
+# capital, and the page carries that as a GAP. That is why every published CLV also prints at
+# REPORTED_DISCOUNT_RATES: the low end (the CMA's 9.3% floor) and the high end (Ofgem's 12.3%).
+# Then a reader can see how far the figure moves with the rate.
 #
 # It is a company parameter, not a world constant.
 DISCOUNT_RATE = 0.10
+
+#: Ofgem's adopted cost of capital in the EBIT allowance from cap period 11a.
+OFGEM_COST_OF_CAPITAL_FROM_OCT_2023 = 0.123
+#: First day 12.3% applies (cap period 11a, Ofgem decision 25 Aug 2023).
+OFGEM_COST_OF_CAPITAL_EFFECTIVE_FROM = date(2023, 10, 1)
+#: The CMA's 2016 pre-tax WACC floor for a stand-alone GB retail supplier (EMI App. 10.4).
+CMA_2016_WACC_FLOOR = 0.093
+#: The two rates every published CLV is ALSO stated at, low end first.
+REPORTED_DISCOUNT_RATES: tuple[float, float] = (
+    CMA_2016_WACC_FLOOR, OFGEM_COST_OF_CAPITAL_FROM_OCT_2023)
+
+
+def discount_rate_at(valued_on: date | str | None) -> float:
+    """The rate in force on `valued_on`: 0.10 before 1 Oct 2023, Ofgem's 0.123 from it.
+
+    `None` (no valuation date observed) answers the pre-Oct-2023 rate, the one the book used
+    before the date existed, and is never a guess at today.
+    """
+    if valued_on is None:
+        return DISCOUNT_RATE
+    if isinstance(valued_on, str):
+        valued_on = date.fromisoformat(valued_on[:10])
+    if valued_on >= OFGEM_COST_OF_CAPITAL_EFFECTIVE_FROM:
+        return OFGEM_COST_OF_CAPITAL_FROM_OCT_2023
+    return DISCOUNT_RATE
 
 # A retention rate that exactly offsets the discount rate makes every period contribute
 # the same present value; below this tolerance the closed form is replaced by its own
@@ -636,6 +674,11 @@ class BookCLV:
     book_exits: BookExitRecord | None = None
     #: The per-anniversary renewal record: a DIAGNOSTIC, published, never valued on.
     book_renewals: BookRenewalRecord | None = None
+    #: The SAME book's portfolio and cohort aggregates re-valued at each of
+    #: REPORTED_DISCOUNT_RATES, keyed by the rate to three places ("0.093", "0.123"). Published
+    #: beside the headline so a reader sees how far a CLV moves with the rate. Accounts are not
+    #: re-valued: three copies of every account would triple the artefact for no new question.
+    at_reported_rates: Mapping[str, Mapping[str, object]] = field(default_factory=dict)
 
     def cohort(self, key: str) -> CohortValue | None:
         """The cohort, or None if no such cohort exists in this book.
@@ -673,6 +716,16 @@ class BookCLV:
         return {
             "aggregate_horizon": self.aggregate_horizon.value,
             "discount_rate": self.discount_rate,
+            "at_reported_rates": {
+                key: {
+                    "discount_rate": band["discount_rate"],
+                    "portfolio": band["portfolio"].as_published_dict(),
+                    "cohorts": {
+                        k: c.as_published_dict() for k, c in sorted(band["cohorts"].items())
+                    },
+                }
+                for key, band in sorted(self.at_reported_rates.items())
+            },
             "book_exits": (
                 None if self.book_exits is None else self.book_exits.as_published_dict()
             ),
@@ -1078,8 +1131,12 @@ def estimate_book(
     discount_rate: float = DISCOUNT_RATE,
     book_exits: BookExitRecord | None = None,
     book_renewals: BookRenewalRecord | None = None,
+    report_at: Sequence[float] = REPORTED_DISCOUNT_RATES,
 ) -> BookCLV:
     """Value a whole book, cohorting by segment.
+
+    `report_at` re-values the aggregates at each of those rates as well (`at_reported_rates`).
+    The headline stays at `discount_rate`, and the caller picks that with `discount_rate_at`.
 
     `horizon` selects which of the three the COHORT AGGREGATES are built from; all three
     are computed for every account regardless. Defaulting the aggregate to
@@ -1138,6 +1195,15 @@ def estimate_book(
 
     cohorts = {seg: _aggregate(seg, group) for seg, group in by_segment.items()}
     portfolio = _aggregate("portfolio", members)
+    at_reported_rates: dict[str, Mapping[str, object]] = {}
+    for rate in report_at:
+        band = estimate_book(
+            members, horizon=horizon, discount_rate=rate,
+            book_exits=book_exits, book_renewals=book_renewals, report_at=(),
+        )
+        at_reported_rates[f"{rate:.3f}"] = {
+            "discount_rate": rate, "portfolio": band.portfolio, "cohorts": band.cohorts,
+        }
     return BookCLV(
         accounts=tuple(accounts),
         cohorts=cohorts,
@@ -1152,6 +1218,7 @@ def estimate_book(
         discount_rate=discount_rate,
         book_exits=book_exits,
         book_renewals=book_renewals,
+        at_reported_rates=at_reported_rates,
     )
 
 

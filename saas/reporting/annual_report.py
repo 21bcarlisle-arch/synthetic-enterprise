@@ -2357,6 +2357,17 @@ def _three_horizon_clv_section(data: dict) -> str:
             f"median {_fmt_gbp(portfolio.get('median_value_gbp'))}; "
             f"total {_fmt_gbp(portfolio.get('total_value_gbp'))}."
         )
+    # THE SAME BOOK AT THE PUBLISHED LOW AND HIGH COST OF CAPITAL (CMA 9.3%, Ofgem 12.3%),
+    # read from the artefact so the band can never be worked out a second time here.
+    for band in (book.get("at_reported_rates") or {}).values():
+        band_mean = (band.get("portfolio") or {}).get("mean_value_gbp")
+        band_rate = band.get("discount_rate")
+        if isinstance(band_rate, (int, float)):
+            lines.append(
+                f"- At a {band_rate:.1%} discount rate: portfolio mean "
+                + (_fmt_gbp(band_mean) if band_mean is not None else "not estimable")
+                + "."
+            )
     reasons = population.get("reasons") or {}
     why = (
         " Excluded: " + ", ".join(f"{k}={v}" for k, v in sorted(reasons.items())) + "."

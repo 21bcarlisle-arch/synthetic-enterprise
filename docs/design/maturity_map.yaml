@@ -551,7 +551,7 @@
   file_scope: ['company/analytics/clv_three_horizon.py', 'tests/company/analytics/test_clv_three_horizon.py', 'company/analytics/customer_value_view.py', 'tools/couple_clv.py', 'tests/tools/test_couple_clv.py']
   simplifications_count: 19   # 2026-10-01 LEVEL STAYS 2. Ledger row landed 7a8e651cd: gap 1.081 n=69 (H2 on the book's tenure-year life table). Best single scale leaves 0.991: no per-account information left to recover company-side. Tenure is unrankable because the world holds no tenure signal (world lane); the margin ranking is the fuel split. See SEAT_FINDING_EP1_LEGS_THEN_RATE_*.
   blocked_on: null
-  block_reason: "UNPARKED 2026-11-24: both director rows it waited on were withdrawn on 26 Oct and closed on the seat's own recommendation. Seeds 61113-61118 were listed by 7036dcbd5. NEXT SLICE: build the dated discount rate that the-clv-discount-rate-and-terminal-value resolved: 0.10 to Sep 2023, then Ofgem's 12.3%, with every published CLV at 9.3% and 12.3% (docs/market_research/clv_discount_rate_and_terminal_value_for_a_gb_supplier.md). The ranking replication then reads B11's M7 books on those seeds."
+  block_reason: "DATED RATE BUILT 2026-11-24: published CLV discounts at the rate in force on its valuation date (0.10, then 0.123 from 1 Oct 2023) and states every aggregate at 9.3%/12.3%; decisions take it only via EP1_DATED_DISCOUNT_RATE_IN_THE_STANDING_POLICY, off until the rankq/B8/first-term books are graded. NEXT SLICE: the ranking replication reads B11's M7 books on seeds 61113-61118 (7036dcbd5)."
 - id: EP2_variance_learning_loop
   title: "Expected minus realised, fed back into belief"
   notes_rehomed: [gain, name, origin_note]
