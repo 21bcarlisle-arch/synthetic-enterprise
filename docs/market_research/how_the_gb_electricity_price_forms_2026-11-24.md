@@ -279,8 +279,14 @@ section covers the years after it.*
   rule on SSP would zero too many hours for AR4+ units and find too many six-hour runs for older ones.
   An endogenous levy needs an hourly day-ahead price, or the rule applied to a stated proxy with its
   error measured. The nearest series the world holds is Elexon's MID (`sim/market_index_history`), a
-  half-hourly short-term traded price, not the day-ahead hourly auction. How often its negative
-  half-hours match the auction's negative hours has not been measured (GAP 3).
+  half-hourly short-term traded price, not the day-ahead hourly auction. **Measured 24 Nov at the count
+  level:** built into hours, MID goes negative in 1.6-2.3 times the auction's published negative hours
+  (67 against 29 in 2022, 203 against 107 in 2023, 233 against 139-149 in 2024; 1.25-1.59× in 2025), and
+  in 29 hours of 2017-18 when the auction had none. So MID is not an unadjusted proxy: a forward levy
+  must source the auction or carry that ratio as its error (result record
+  `WORKER_RESULT_THE_TRADED_PRICE_GOES_NEGATIVE_IN_1_6_TO_2_3_TIMES_THE_DAY_AHEAD_AUCTIONS_HOURS_SO_IT_IS_NOT_AN_UNADJUSTED_PROXY_FOR_THE_CFD_RULE_2026-11-24.md`).
+  Still GAP 3: which hours match (the auction's hourly series is not held), and the six-hour-run count
+  the pre-AR4 rule needs.
 - **When reference is above strike, generators pay.** In late 2021 and 2022 the reference price was
   above most strikes, and CfD generators paid LCCC, which refunds suppliers (Ofgem, *Decision on the CfD
   allowance methodology*, June 2022). About £205m was paid back from September 2021 to March 2022, and

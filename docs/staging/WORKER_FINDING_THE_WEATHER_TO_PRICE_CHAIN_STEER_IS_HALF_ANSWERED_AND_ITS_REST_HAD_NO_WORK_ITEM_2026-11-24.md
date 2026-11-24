@@ -792,3 +792,15 @@ will re-fire the hold, so the next re-arm should move the file aside itself.
 - **What is left of 1-6:** item 4's build (carried by the SAP splice finding). For item 5: GAP 2a, AR1's
   rule, a day-ahead proxy measured against the auction, and the forward levy, which waits on the
   director's bands row and the forward price.
+
+## Progress, 24 Nov (worker, item 5: the day-ahead proxy, measured at the count level)
+
+- **Pre-registered** (hashed at 21:23 UTC, not landed first, and the record says so). **Result** in
+  `docs/staging/records/WORKER_RESULT_THE_TRADED_PRICE_GOES_NEGATIVE_IN_1_6_TO_2_3_TIMES_THE_DAY_AHEAD_AUCTIONS_HOURS_SO_IT_IS_NOT_AN_UNADJUSTED_PROXY_FOR_THE_CFD_RULE_2026-11-24.md`.
+  Four of five predictions held. The miss is cache coverage (1-6% of hours absent in 2017-2021), not MID.
+- **MID, built into hours, goes negative in 1.6-2.3× the auction's published hours in 2022-24**, and in 29
+  hours of 2017-18 when the auction had none. Rule (a) fires: the forward levy must source the auction or
+  carry the ratio as its stated error. The ratio narrows to 1.25-1.59 in 2025, which is not attributed.
+- **What is left of 1-6:** item 4's build (carried by the SAP splice finding). For item 5: GAP 2a, AR1's
+  rule, hour matching and the six-hour-run count against the auction (GAP 3, both need the auction's hourly
+  series), and the forward levy, which waits on the director's bands row and the forward price.

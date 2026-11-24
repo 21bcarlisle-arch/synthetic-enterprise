@@ -108,7 +108,8 @@ each factor needs a source:
 5. **The negative-hour rules by round:** read 24 Nov (electricity page §3). From AR4, no difference in
    any hour the day-ahead reference is below £0. Before AR4, none only from six consecutive negative
    hours. AR1 and the investment contracts are not read. The world has no hourly day-ahead price to
-   test the rule on (GAP 3).
+   test the rule on (GAP 3). Its nearest series, MID, goes negative in 1.6-2.3 times the auction's
+   hours in 2022-24 (measured 24 Nov, electricity page §3), so it cannot stand in unadjusted.
 
 **The interconnection that matters most.** `sim/renewable_capacity_trend` holds the world's fleet
 flat after 2025 by design: "the forward window is CURRICULUM (a director-authored buildout scenario)".
