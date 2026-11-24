@@ -60,3 +60,20 @@ HEAD equals `origin/main` at one reading, and the next reconcile-watch line read
 is not reachable this turn without moving another lane's bytes (a wall) or bytes the reconciler's
 age line protects. So this finding is the deliverable, and the check is handed on with a
 DO-NOT-DRAW-BEFORE date.
+
+## Re-read 24 Nov 12:45Z (worker, claim `the-shared-tree-rejoins-origin`): six holders, and the age lines do not release them all
+
+The shared tree is 131 behind origin. The 12:25Z advance names **six** held paths. The age lines
+cannot release all six by construction: three of them are rewritten every three hours, and one was
+already over its line and still held.
+
+| Path | Holder | Disposition | Date |
+|---|---|---|---|
+| `docs/direction/DIRECTION.yaml`, `docs/direction/decisions.jsonl`, `docs/status/SEAT_STRETCH_LOG.md` | **`delivery-seat.service`**, the orientation seat. It writes its record into the shared tree on every run (12:22Z today), and its own landing has not reached origin since `cf1df676fe` (06:51Z). At 09:20 it was refused **because origin itself was red**: `test_no_advisor_steer_or_ruling_reaches_done_uncoded_since_the_gate`, after the weather-to-price steer was archived (`7fe0e91d2d`) with no `Decision:` line. That was reproduced in an origin/main worktree. At 12:30 the refusal was a transient `index.lock` in `/var/tmp/se-direction-seat` during its reset, and the lock was gone by 12:40. | **Root cause fixed:** the steer's `Decision: fidelity yes` line was landed in `2440b5e048`. These copies are live and not touched. They never age out, because they are rewritten every run. | The seat's next run, **24 Nov 15:22Z**. If its landing goes through, these three are no longer held. |
+| `tests/simulation/test_run_phase2b.py` | None, an orphan. It was untouched for 51h and was **already over its 48h line, but the lines leg still held it** (the predates-landing defect above). Its blob `bbbe8b8b` is identical in salvage commits `a00ac96e63` and `5fd13f5f66`. All 28 lines not on origin are in `83570bd1c0^`, the lines origin deliberately removed. No process had it open. | **Released:** `refresh_to_head --base origin/main --base-wins --discard-prose --write`, preserved at `refs/preserved/refresh-to-head/orphan-6c-test-draft-2026-11-24` (`449e21ada`). | Done, 24 Nov 12:50Z. |
+| `saas/reporting/annual_report.py` | None, the orphaned 6C pre-landing draft. | **Not moved.** `refresh_to_head` refuses it as an ordinary edit with no stale-copy complaint, and that refusal is the rule. The reconciler's age line preserves it on a ref. | **~25 Nov 05:32Z**. |
+| `simulation/run_phase2b.py` | **A live lane:** the MSC landing `land9`, pid 1894068 (`/var/tmp/se-msc-keep/land9.sh`). It is waiting on the post-s.12g book (`wait_for` pid 1894075). | **Not touched.** A live process holds it. | Whichever comes first: land9 lands, or its age line passes, **~25 Nov 06:00Z**. |
+
+**The earliest the advance can happen** is about **25 Nov 06:00Z**, and only if the seat's 15:22Z
+landing (or a later one) goes through. If the seat is refused again, the three direction paths hold
+past every age line, because they stay under 3h old. That is the thing to check at the recheck.
