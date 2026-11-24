@@ -817,6 +817,7 @@ items:
     problem: "With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year where the flat book gains GBP 0.14, so the advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13)."
     # 2026-11-24 03:2xZ orientation: the 0.12-cut row (first listed 20 Nov) is the same problem on the next lever, folded into this one fate ahead of its 27 Nov line. Owner now: continuation s12g-has-a-reader-when-it-ends.
     # 2026-11-24 06:2xZ orientation: that reader is spent (78962a574 graded s.12g out of sample, -GBP 0.14 (-1.39 to +1.03), STRADDLE). Re-owned to continuation s12g-rankq-is-graded-when-it-ends (the rank-at-q run d6af317e7 armed, held on /var/tmp/vtn-driver/grade_rankq.out).
+    # 2026-11-24 21:2xZ orientation: that reader is spent too (5cf54da43 graded rankq: -GBP 2.45 (-4.76 to -0.47), BELOW, offers 0.109 vs the twin's 0.277). Re-owned to focus item rankq-below-is-split-into-ranking-and-volume-from-its-own-records. The question of another retention lever is the director's open row s-12g-rank-at-q-run-graded.
     match: ["the per-customer value arm loses GBP 1.21 per", "With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin"]
     first_seen: "2026-11-17"
     fate: fix
