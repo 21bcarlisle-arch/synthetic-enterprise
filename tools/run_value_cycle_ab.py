@@ -562,11 +562,75 @@ def retention_offer_fields(event: dict) -> dict:
             "offer_held": held}
 
 
+#: The routes by which a household's supply with us ends, as `account_exits` names them.
+EXIT_ROUTES = ("priced_renewal", "default_tariff", "erroneous_gain_returned", "move_out",
+               "registration_loss_unattributed")
+
+
+def account_exits(phase2b: dict) -> dict[str, dict]:
+    """The date each billing account CEASED supply, whatever ended it, and the route and cause.
+
+    `left_at` below is only the priced-renewal departure. A household that left from the default
+    tariff (an `svt_decisions` row, never a `customer_events` one) or moved out had no exit date in
+    the sidecar, so a kept household's realised tenure was only a bracket
+    (`what_a_kept_household_is_worth_beyond_one_term_2026-11-24.md` s.4-5).
+
+    THE DATE IS THE RUN'S OWN: `leg_departures` is written at every registration loss with the
+    date no leg supplies on or after, and `home_move_outs` carries each move date. A move the
+    household took us with (`followed_household`) is not an exit. The route is read by matching
+    the loss to the decision row that made it; a loss no row explains is kept, dated, as
+    `registration_loss_unattributed` rather than dropped. A household leaves once: the earliest
+    exit is its exit. An account absent here was on supply at the run's end (censored)."""
+    priced = {(_billing_account_id(e["customer_id"]), e["event_date"][:10]): e.get("departure_cause")
+              for e in (phase2b.get("customer_events") or [])
+              if isinstance(e, dict) and e.get("event_type") == "churned"}
+    svt = {(d["customer_id"], d["event_date"][:10]): d.get("departure_cause")
+           for d in (phase2b.get("svt_decisions") or [])
+           if isinstance(d, dict) and d.get("event_type") == "churned"}
+    returned = {(_billing_account_id(g["customer_id"]), g["returned_on"][:10])
+                for g in (phase2b.get("erroneous_gains_returned") or [])
+                if isinstance(g, dict) and g.get("returned_on")}
+    candidates: list[tuple[str, str, str, str | None]] = []
+    losses = phase2b.get("leg_departures")
+    if losses is None:
+        # A run from before `leg_departures` was returned: its two rolled routes still date.
+        candidates += [(a, d, "priced_renewal", c) for (a, d), c in priced.items()]
+        candidates += [(a, d, "default_tariff", c) for (a, d), c in svt.items()]
+    for loss in losses or []:
+        key = (loss["household"], loss["event_date"][:10])
+        if key in priced:
+            candidates.append((*key, "priced_renewal", priced[key]))
+        elif key in svt:
+            candidates.append((*key, "default_tariff", svt[key]))
+        elif key in returned:
+            candidates.append((*key, "erroneous_gain_returned", None))
+        else:
+            candidates.append((*key, "registration_loss_unattributed", None))
+    followed = {(m["billing_account"], m["move_out_date"][:10])
+                for m in (phase2b.get("move_with_us_log") or [])
+                if m.get("moves_with_us") and m.get("not_supplied_reason") is None}
+    # Per HOUSEHOLD and date, not per leg: a gas leg that could not follow a household that did is
+    # still a household on supply with us.
+    followed |= {(m["household"], m["move_date"][:10]) for m in phase2b.get("home_move_outs") or []
+                 if m.get("followed_household")}
+    for move in phase2b.get("home_move_outs") or []:
+        key = (move["household"], move["move_date"][:10])
+        if key in followed:
+            continue
+        candidates.append((*key, "move_out", None))
+    out: dict[str, dict] = {}
+    for account, day, route, cause in sorted(candidates, key=lambda c: c[1]):
+        out.setdefault(account, {"date": day, "route": route, "cause": cause})
+    return out
+
+
 def _decisions_by_billing_account(result: dict) -> dict[str, dict]:
     """The per-account facts `SEAT_RESULT_PROS_2016_0098S_4218_...` had to read out of a log:
     when the account left, its first renewal's `p_retain` against its roll, how many renewals
     the world decided for it, how many bills the supplier issued it, and -- for a home-move
-    successor tenure -- the predecessor whose churn activated it (`home_move_successor_of`)."""
+    successor tenure -- the predecessor whose churn activated it (`home_move_successor_of`).
+    `ceased` is the date supply ended by ANY route (`account_exits`); `left_at` stays the
+    priced-renewal departure alone, as earlier sidecars read it."""
     from company.interfaces.bill_assembly import issued_bills
 
     out: dict[str, dict] = {}
@@ -611,6 +675,11 @@ def _decisions_by_billing_account(result: dict) -> dict[str, dict]:
         if isinstance(decision, dict) and decision.get("customer_id"):
             r = row(_billing_account_id(decision["customer_id"]))
             r["svt_segment_decisions"] = r.get("svt_segment_decisions", 0) + 1
+    exits = account_exits(result["phase2b"])
+    for account, exit_ in exits.items():
+        row(account)["ceased"] = exit_
+    for r in out.values():
+        r.setdefault("ceased", None)
     return out
 
 
