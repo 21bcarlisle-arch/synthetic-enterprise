@@ -111,3 +111,44 @@ and §8 puts the read at about 09:00Z on 15 Nov. Candidate A has not launched (�
 1.5 h, twelve about 19 h). No member on 61113–61118 exists, so the predictions above remain filed
 blind. **Earliest launch:** after candidate A's driver exits, on one pinned origin commit,
 `tools.seed_family launch --policy value_arm` over the six seeds in waves within `--parallel`.
+
+## Not graded, 24 Nov 15:50Z: all six members are GAP, and the six are declared behind rankq and the owed book
+
+The launch gate above is now met: churn_roll was graded in redesign s.10 on 15 Nov, and candidate A
+was run and graded through s.12. Drawn as `b11-m7-held-back-grade-on-the-six-fresh-books`, at
+origin `16e8323701`. The question was whether a run output already on disk can feed this grade. The
+grade's reader is `tools.seed_family` `b11_ranking`, which goes through `forward_clv.book_from_run_output`.
+That reader needs `years[*].per_customer_monthly` and `per_customer_lifetime`, or a member's stamp.
+
+| seed | grade | why |
+|---|---|---|
+| 61113 | **GAP** | No member, run output or launch record exists under any arm. Searched: `/var/tmp` (depth 4, with `vtn-out/rankq` pruned), the seed stamps in `docs/reports/**/*.json`, and the 499 rows of `docs/observability/.launch_records.json`. |
+| 61114 | **GAP** | Same: no output anywhere. |
+| 61115 | **GAP** | Same: no output anywhere. |
+| 61116 | **GAP** | Same: no output anywhere. |
+| 61117 | **GAP** | Same. The only files on disk are `/var/tmp/vtn-driver/ids{,2}_61117.json`. These are population probes (customer traits at import), not runs. |
+| 61118 | **GAP** | **Correction to this record's opening line.** Redesign s.12g (21 Nov) and rankq (running now) use **population seed 61118**, with churn pair 13131/14141. So `/var/tmp/vtn-out/{A,cut,twin}/*_13131_14141.json` are 61118 outputs. They cannot feed M7 for three reasons. (1) They hold per-account net totals and decisions, but no `years` / `per_customer_monthly` and no `b11_ranking`, so the grade's reader cannot rebuild a held-back book from them. (2) They are the 698-founder production shape, not this record's 40-founder `all_wins` shape. (3) They pair a value arm with a control, which is not a `value_arm` member. Nothing in them is a departure ranking, so no M7 prediction has been exposed to them, and the predictions stay blind. `rankq/` was not opened. |
+
+**Pooled M7: cannot tell, 0 of 6 books.** No prediction is revised.
+
+**Declared, not run now.** User unit `b11m7-watch` runs `/var/tmp/box-plan/b11m7/arm.sh` (sha256
+`d60d685c…`), from the pinned worktree `/var/tmp/b11m7-tree` at `16e8323701`. It refuses if that
+tree is not at the pin or is dirty. It does four things, in order:
+1. It waits for rankq (`longjob-value-test-s12g-rankq`, pid 1718464) to exit.
+2. It waits up to 6 h for sim-runner's owed book: the first dated `run_output_*` after rankq. It
+   logs which book that was, or "none".
+3. It runs `tools.seed_family launch --policy value_arm --shape all_wins --out /var/tmp/b11m7
+   --tag m7` in two waves of three (61113–61115, then 61116–61118). Each member declares itself
+   through `launch_long_job` at the seed-family default peak of 3,500 MB. The order is logged to
+   `/var/tmp/b11m7/order.log`.
+4. It runs `seed_family readout /var/tmp/b11m7/m7`, which writes `/var/tmp/b11m7/readout.json`.
+
+Unlike what the drawing item asked, the waiting unit is not a `launch_long_job` unit.
+`resource_headroom.running_long_jobs` makes sim-runner yield to any declared long job with a live
+process, and `sim_runner.queued_long_jobs` makes it yield to any queued one. So a long job waiting
+here would hold off the very book it waits behind until the 6 h fallback. This is the same pattern
+as `s12g-rankq-watch`.
+
+**Reverse:** `systemctl --user stop b11m7-watch`, then stop any `longjob-seed-family-m7-*`.
+**Next read:** grade `readout.json`'s `b11_within_segment` under the 19 Oct rule. Append the result
+at the end of this file under `## Grade, read <date>`, without editing any line above it.
