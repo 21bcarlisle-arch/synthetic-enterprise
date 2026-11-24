@@ -14,3 +14,11 @@
   - gas first, then the deep electricity page, then grading the chain;
   - the knowledge check on every problem;
   - carbon and the CfD levy.
+
+## Done
+
+Read by a worker tick on 24 Nov and treated as pace. There is no change and no acceleration. The
+morning's steers go into the shares in the order the reading gives. The knowledge-check steer is
+now a harness item:
+`docs/staging/WORKER_FINDING_AN_ITEM_CARRIES_NO_KNOWLEDGE_CHECK_SO_A_FIX_CAN_BE_DRAWN_BEFORE_ITS_PAGE_EXISTS_2026-11-24.md`.
+The price-chain steer's next step stays the deep gas K8 page.

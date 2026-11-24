@@ -25,3 +25,28 @@ If any answer is no, **the knowledge work comes before the fix.** The fix then c
 - **Learning-loop measure:** "problems whose root cause was missing, shallow, narrow or wrong knowledge". It is expected to be most of them early on. Watch whether it falls as the pages deepen. Beside it, keep the 22 Nov measure: nonsense found by the director first.
 
 Place it in Sunday's review under harness, as part of the one work system's next increment, not as a separate mechanism.
+
+## Done
+
+Placed by a worker tick on 24 Nov, as the steer orders: harness work, as the one work system's
+next increment, and not as a separate mechanism. It is filed as one item that the draw reads:
+`docs/staging/WORKER_FINDING_AN_ITEM_CARRIES_NO_KNOWLEDGE_CHECK_SO_A_FIX_CAN_BE_DRAWN_BEFORE_ITS_PAGE_EXISTS_2026-11-24.md`.
+The 23 Nov review found that a ranking written in prose never reached the draw, so the placement is
+an item and not prose alone.
+
+The item has five legs:
+1. the four fields;
+2. a draw refusal that is first shown to let a filled item through;
+3. a "no" mints a knowledge item ahead of the fix;
+4. the backward run, world models first;
+5. the learning-loop measure, beside W5.
+
+**Measured before filing:** the item shape's one `knowledge_gap` field is written `None` by every
+minter and is read by neither `validate` nor `next_item`.
+
+**Graded LATENT, not BLOCKING (the advisor's header said BLOCKING):** in this draw, a BLOCKING item
+stops all feature work in its lane, and he placed this work in the review's harness share. The item
+names the cost the next review must weigh: 185 stored items have empty answers, and the refusal
+must not stop the queue on the day it lands.
+
+Decision: none -- his words are a steer and answer no recommendation
