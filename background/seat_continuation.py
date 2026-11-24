@@ -138,6 +138,17 @@ STORE = shared_tree_dir() / "docs" / "observability" / ".seat_continuation.json"
 #: judgement rather than sit at the head of the queue forever.
 STALE_AFTER_SECONDS = 6 * 3600
 
+#: How long a FILE-HELD continuation (`DO NOT DRAW BEFORE /abs/path EXISTS`) waits for its file.
+#: Until the file appears the row is live whatever its age; once it appears it gets the ordinary
+#: `STALE_AFTER_SECONDS` from the file's mtime. ORIGIN, measured on this store 2026-11-24: of 55
+#: file holds, 38 had their file on disk; the latest single-write file landed 28.0 h after its row
+#: was written (`the-0-12-cut-replication-grade`), and the two later ones are not appearances (a
+#: directory, and a status log rewritten every pass, 104 h and 233 h by mtime). 72 h is that 28 h
+#: tail with room for one more overnight queue; past it the producer is presumed dead and
+#: `expired()` says so by name rather than letting the hold stand for ever. A stated belief,
+#: range 28-104 h on this evidence; re-measure if a real run's file ever lands later.
+FILE_HOLD_LIMIT_SECONDS = 72 * 3600
+
 #: A continuation must say what DONE means, because a focus item has no exit test — that is what
 #: makes it direction rather than an atom (`delivery_lane` §"DONE IS DERIVED"). The seat holding
 #: the context is the only one that can say it, and if it will not, the item is not ready to hand
@@ -411,21 +422,64 @@ def hand_off(
     return items[-1]
 
 
-def _window_opens(item: Mapping) -> float:
-    """When this continuation's offer window starts: when it was written, or its dated embargo if later.
+def _file_hold(item: Mapping) -> tuple[list[str], float]:
+    """(held paths still absent, when the hold was last satisfied or lifted -- 0.0 if never).
+
+    Satisfied means every held file exists, dated by the newest mtime. Lifted means sim-runner
+    declared the file will never come (`awaits_unwritten_run`), dated by that flag. Never raises.
+    """
+    try:
+        from background import delivery_lane  # lazily: delivery_lane imports this module
+        held = delivery_lane.held_paths(dict(item))
+        absent = [p for p in held if not os.path.exists(p)]
+        opened = 0.0
+        if held and not absent:
+            opened = max(os.path.getmtime(p) for p in held)
+        dead = item.get("awaits_unwritten_run")
+        if isinstance(dead, Mapping):
+            opened = max(opened, float(dead.get("at") or 0.0))
+        return absent, opened
+    except Exception:
+        return [], 0.0
+
+
+def _window_opens(item: Mapping, now: float | None = None) -> float:
+    """When this continuation's offer window starts: when it was written, or a later embargo.
 
     An item embargoed past its own six hours could never be drawn (2026-11-08): `read-the-monday-
     status-line-against-the-gate` was written at 23:53 Sat for the 04:00 Mon publish, had no stamp,
     and was drawn 28 hours early; with a stamp it would have expired 22 hours before it lifted.
     The window measures freshness of judgement, and judgement about Monday is fresh on Monday.
+
+    A FILE HOLD HAD NO WINDOW OF ITS OWN (2026-11-24). `DO NOT DRAW BEFORE /path EXISTS` kept a
+    row from being drawn but not from expiring, so `s12g-rankq-is-graded-when-it-ends` -- the
+    reader of the thesis's live test -- fell off the queue six hours after it was written with its
+    run still going. Now: while the file is absent the window is open NOW (live, held), up to
+    `FILE_HOLD_LIMIT_SECONDS` after writing; once it appears the window opens at its mtime.
     """
     written = float(item.get("written_at") or 0.0)
+    at = time.time() if now is None else now
     try:
         from background import delivery_lane  # lazily: delivery_lane imports this module
         until = delivery_lane.embargoed_until(dict(item), dated_only=True)
     except Exception:
         until = None
-    return max(written, until or 0.0)
+    opens = max(written, until or 0.0)
+    absent, satisfied = _file_hold(item)
+    if absent and at - written < FILE_HOLD_LIMIT_SECONDS:
+        return max(opens, at)
+    # An mtime is the LAST write, not the appearance: a held directory or a rewritten log keeps
+    # moving it (`launch-the-retention-netting-pair-when-m7-exits`, held on /var/tmp/b11m7, read
+    # 236 h old and "fresh"). So a satisfaction dated past the outer limit counts as at the limit.
+    return max(opens, min(satisfied, written + FILE_HOLD_LIMIT_SECONDS))
+
+
+def expiry_reason(item: Mapping, now: float | None = None) -> str:
+    """Why an expired row expired: a file hold that never fired, or its window simply closed."""
+    absent, _ = _file_hold(item)
+    if absent:
+        return f"held on {absent[0]}, never appeared"
+    return "window closed"
 
 
 def live(now: float | None = None, path: Path | None = None) -> list[dict]:
@@ -448,12 +502,13 @@ def live(now: float | None = None, path: Path | None = None) -> list[dict]:
     inside the window on an entry nobody has replaced, which is the commonest finished-continuation
     shape there is -- see `retire`.
     """
-    cutoff = (time.time() if now is None else now) - STALE_AFTER_SECONDS
+    at = time.time() if now is None else now
+    cutoff = at - STALE_AFTER_SECONDS
     items = _load(path)
     dead = _superseded_ids(items)
     return [
         i for i in items
-        if _window_opens(i) >= cutoff
+        if _window_opens(i, at) >= cutoff
         and i.get("id") not in dead
         and not i.get("retired_at")
     ]
@@ -482,16 +537,18 @@ def expired(now: float | None = None, path: Path | None = None) -> list[dict]:
     the seat had already replaced it, so printing it as "written and never taken" would report a
     correction as a drag. `superseded()` is where it goes instead.
     """
-    cutoff = (time.time() if now is None else now) - STALE_AFTER_SECONDS
+    at = time.time() if now is None else now
+    cutoff = at - STALE_AFTER_SECONDS
     items = _load(path)
     dead = _superseded_ids(items)
     stale = [
         i for i in items
-        if _window_opens(i) < cutoff
+        if _window_opens(i, at) < cutoff
         and i.get("id") not in dead
         and not i.get("retired_at")
     ]
-    return [dict(i, drawn_at=_first_drawn(i.get("id"))) for i in stale]
+    return [dict(i, drawn_at=_first_drawn(i.get("id")), expiry_reason=expiry_reason(i, at))
+            for i in stale]
 
 
 def superseded(path: Path | None = None) -> list[dict]:
@@ -1034,7 +1091,8 @@ def main(argv=None) -> int:  # pragma: no cover - operator surface
             print(f"  DONE     {item['id']}  — drawn by a tick {age:.1f}h ago and aged out; "
                   "the handoff worked")
         else:
-            print(f"  EXPIRED  {item['id']}  — written and never taken; that is the drag, visible")
+            print(f"  EXPIRED  {item['id']}  — written and never taken ({item['expiry_reason']}); "
+                  "that is the drag, visible")
     return 0
 
 
