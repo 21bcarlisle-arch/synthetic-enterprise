@@ -413,3 +413,18 @@ close it.
 - **Nothing in `sim/` changed.** **Next, still item 4:** the wind-target arm (the chain's wind mean-matched to
   FUELHH instead of AGWS, on G4's inputs), pre-registered first. Shipping the demand year term waits on the
   curriculum's joint demand and fleet band.
+
+## Progress, 24 Nov (worker, item 4: the wind-target arm, on the record)
+
+- **Pre-registered** in `5b1589639` and promoted to origin before the run. **Result** in
+  `docs/staging/records/WORKER_RESULT_MEAN_MATCHED_TO_FUELHH_THE_CHAINS_WIND_CLOSES_ITS_POST_CRISIS_GAS_RUNNING_MISS_OUTSIDE_2025_2026-11-24.md`.
+  Six of seven predictions held. The W0 control reproduced G4 exactly.
+- **The wind leg's target was the rest of the gas-running miss.** With the chain's wind mean-matched to FUELHH
+  instead of AGWS, and everything else as in G4, the post-crisis miss falls from +1.86 to +0.71 GW, and to
+  −0.02 GW without 2025. The crisis miss is −0.12 GW, and pre-crisis R² improves.
+- **2025 (part year) carries about +3.25 GW**, and with it all of the +0.71. AGWS runs above FUELHH that year
+  and the fleet is clamped. Not attributed.
+- **What is left is the price leg.** Outside 2025 the composite post bias (+5.83) is leg P's own on real gas
+  running (+5.79).
+- **Next, still item 4:** the build of the wind fleet mean-matched to FUELHH, solar out and the demand year
+  term on the record, with predictions filed first. Then 2025, and the price-leg shape arm.
