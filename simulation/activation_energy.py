@@ -178,7 +178,9 @@ _MEDIA_BASELINE_GAP_WEEKS = 1
 _MEDIA_BASELINE_MIN_COMPLETE = 3
 
 # How a unit of excess coverage moves a household's switching hazard, given that
-# its own price moves. Measured on 21 Nov 2026 (bill-shock page §8): 59 calm months
+# its own price moves. Measured on 21 Nov 2026, in §8 of
+# docs/market_research/how_households_respond_to_bill_shock_by_family_moment_and_payment_method_2026-11-21.md:
+# 59 calm months
 # (2016-2020 and Jul 2023 - Dec 2025), whole-market QEP 2.7.1 switching against its
 # year and season, regressed on the month's mean weekly media ratio. Slope -0.014,
 # bootstrap 95% interval -0.057 to +0.040, Spearman -0.003. The central value is

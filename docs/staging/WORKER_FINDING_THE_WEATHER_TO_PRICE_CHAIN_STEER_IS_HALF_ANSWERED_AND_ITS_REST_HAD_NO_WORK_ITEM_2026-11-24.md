@@ -303,3 +303,20 @@ close it.
 - **Next, still item 4:** a K8 note on what sets price when gas is not marginal, then a price-leg shape arm. The
   shape needs a low-x depth that scales with the floor and a top that can flatten, with the pre-crisis band fit
   held as a control. Still owed: the forward-flow K8 section (§5) and item 5's forward CfD fleet.
+
+## Progress, 24 Nov (worker, item 5: the forward CfD fleet, read)
+
+- **Read, so it is no longer a GAP.** The page is `docs/market_research/the_forward_cfd_fleet_from_lccc_contract_portfolio_2026-11-24.md`,
+  from LCCC's `cfd-contract-portfolio-status` (612 units). The live CfD fleet is 11.1 GW. The forward
+  pipeline is 38.7 GW, and 23.5 GW of it is expected to start by the end of 2028.
+- **Attrition comes in lumps, not at a rate.** 4-7% of the capacity awarded in AR1-3 and AR5 was
+  terminated, against 26% in AR4 (Norfolk Boreas) and AR6 (Hornsea Four). The forward fleet is a band,
+  not a percentage. Slippage cannot be measured from one snapshot (page GAP 1).
+- **Two things downstream now disagree.** `sim/renewable_capacity_trend` holds the physical fleet flat
+  after 2025 (curriculum), so a forward levy built from this pipeline would add CfD volumes that the
+  world's price never sees. They must come from one capacity path. Also, the CfD start date is not first
+  power. AR3-4 offshore phases carry 2027-29 CfD starts, so the paying fleet and the physical fleet are
+  two sets.
+- **Still owed under item 5:** strikes for AR4-AR7 (page GAP 2), and the forward price graded first
+  (item 4). The capacity path is the director's curriculum, so this page sources the band and does
+  not pick a value.
