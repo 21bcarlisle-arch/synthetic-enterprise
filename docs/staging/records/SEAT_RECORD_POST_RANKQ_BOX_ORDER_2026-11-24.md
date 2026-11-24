@@ -17,6 +17,7 @@ co-residence failure MSC has already hit nine times, and they skew the six M7 bo
 | 3 | **land10 gate** | rankq's unit inactive, then a `run_output_<sha>_*.json` descending from 31bf40e03 and newer than `/var/tmp/se-msc-land10-armed.stamp`, then `busy()` clear | artefacts (unchanged from land10's design) |
 | 4 | **B11 M7 waves** (61113-61115, then 61116-61118) | rankq's pid gone, the first book after `.rankq_ended` (or 6 h), **then land10's end file** | `/var/tmp/se-msc-land10-ended.txt` **newer than** `/var/tmp/b11m7/.rankq_ended` |
 | 5 | HEAD-green census (`head-green-census.timer`, nightly ~03:32Z) | its timer, admitted by memory | **not ordered** (see Gaps) |
+| 6 | **A4, EP1's dated rate as a value arm** (`longjob-a4-ep1-dated-rate-value-arm`, `/var/tmp/vte-driver/run_ep1.sh`, added 24 Nov ~20:40Z) | B11 M7's `/var/tmp/b11m7/readout.json` exists, then no land10 / seed_family / census / value-test unit live (5-min polls); refuses at 96 h | `SEAT_PREREG_A4_EP1_DATED_RATE_AS_A_VALUE_ARM_2026-11-24.md` |
 
 **Why land10 goes before M7:** the gate takes one or two hours, and the waves take two 80-minute rounds. MSC has
 failed nine times on co-residence and races. M7's grade is not waiting on anything downstream, so giving the gate
