@@ -320,3 +320,20 @@ close it.
 - **Still owed under item 5:** strikes for AR4-AR7 (page GAP 2), and the forward price graded first
   (item 4). The capacity path is the director's curriculum, so this page sources the band and does
   not pick a value.
+
+## Progress, 24 Nov (worker, item 4: what sets the price when gas is not marginal)
+
+- **K8 first.** §1b of the electricity page covers what sets GB's price when gas is off the margin: imports
+  at the neighbour's own marginal cost, CCGTs bidding below their SRMC to avoid a restart, and subsidised
+  output at or below zero. Sources are UCL for Ofgem 2019 (read from the PDF) and Modo's SRMC method.
+- **The record, binned on fixed CCGT GW rather than quintiles within each year.** At a given amount of gas
+  running, SSP is the same multiple of the floor in every regime, within about 0.05 from 6 to 14 GW, while
+  the floor moved fourfold. What changed after the crisis is the mix of days: 241 of 708 run under 6 GW,
+  against 59 of 1,918 before it.
+- **Correction, beside the CCGT-band note's claim** that the shape needs "a top that flattens as the floor
+  rises". In the crisis, at the highest floor, the top held its pre-crisis ratio. The quintiles moved down
+  the CCGT axis, and the floor's level did not do it. Marked in the result record and in §1a.
+- **So the shape arm is held.** First comes an arm that separates the price leg from the gas-running leg. It
+  is pre-registered in
+  `docs/staging/records/WORKER_PREREG_IS_THE_CHAINS_POST_CRISIS_MISS_IN_ITS_PRICE_LEG_OR_IN_HOW_MUCH_GAS_IT_RUNS_2026-11-24.md`
+  (probe sha256 `3cee2860…`), landed before it runs.

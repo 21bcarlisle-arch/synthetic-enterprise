@@ -64,6 +64,12 @@ Post-crisis by year, chain − SSP, Q1 → Q5: 2023 H2 +25.9 / +3.7 / +2.8 / −
    record's premium above SRMC is a smaller fraction of a larger floor. The chain's a1·x and scarcity terms scale
    with the floor, so they overstate that premium. This miss was not predicted. It is the steer's third gap,
    crisis mis-scaling at high gas, now seen after the crisis as well.
+   **Corrected 24 Nov, beside the claim** (electricity page §1b): on fixed CCGT-GW bins the record's price
+   is the same multiple of the floor in all three regimes, and in the crisis, at the highest floor, the top
+   held its pre-crisis ratio (1.25-1.28 at 16-20 GW). So "a smaller fraction of a larger floor" is wrong as a
+   rule. Within-year quintiles moved down the CCGT axis after the crisis (post Q5 is 16.3 GW), and that, not
+   the floor's level, is what the quintile table showed. The chain's Q5 overprice is real (1.20-1.28 against
+   1.06-1.09 at 14-18 GW, 66 days), but it is not attributed.
 4. **The crisis bias of −1.5 is a cancellation, not a fit.** Q1 is +12.1 and Q4 is −17.7. A small regime bias here
    says nothing about whether the chain prices the crisis well. Quote the bands beside it.
 5. **Both misses point the same way.** The chain's spread across CCGT bands after the crisis is −6 to +23,
@@ -85,6 +91,9 @@ Post-crisis by year, chain − SSP, Q1 → Q5: 2023 H2 +25.9 / +3.7 / +2.8 / −
 **The filed rule does not fire (a) as written.** (a) required C2 to hold, and C2 missed on its Q5 leg. (b) and (c)
 do not fire either: Q1 − Q5 is 15.45, not under 4, and the residual is largest in Q1, not Q5. So under the
 rule this is "reported as it falls, and no build follows from it". **Nothing ships.**
+
+**Superseded 24 Nov, beside it** (§1b): the next arm separates the price leg from the gas-running leg before
+any shape is built; a shape arm would refit a leg the record says already has the right form.
 
 The steer orders the rebuild by the largest gap, and that is Q1. **The next arm** therefore follows (a)'s path,
 widened by what the miss found. First, a K8 note on what sets the price when gas is not marginal: wind and

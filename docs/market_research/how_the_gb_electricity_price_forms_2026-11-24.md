@@ -101,7 +101,70 @@ its imbalance. `sim/market_index_history.py` records this, and it is graded in �
   On daily CCGT quintiles, the chain matches the record within £2.5 in every band before the crisis. After it,
   on the lowest-CCGT fifth of days, the record clears £31 below the floor and the chain clears £6 below it.
   On the highest fifth the chain clears £23 above the floor and the record £13. So the shape also needs a top that
-  flattens as the floor rises.
+  flattens as the floor rises. **Corrected 24 Nov, beside the claim (§1b):** the record's top does not
+  flatten as the floor rises. In the crisis, at the highest floor, it held its pre-crisis ratio. What
+  changed after the crisis is how many days gas runs little, and the chain does not see it.
+
+## 1b. What sets the price when gas is not marginal, and what the record says scales with gas
+
+- **What the published record names.** Before 2018, fossil plant was more than 80% of GB's marginal
+  generation (2013-2017), and coal's share of price-setting hours fell from 31% in 2012 to 11% in 2017.
+  France's price was set by hydro and imports 89% of the time (UCL for Ofgem, Castagneto Gissey et al.,
+  *The value of international electricity trading*, 2019, pp. 72 and 115, read from the PDF). With gas
+  off the margin, the price setters are as follows.
+  - **An import**, priced at the neighbour's own marginal cost: French nuclear and hydro, Norwegian hydro at
+    its water value, or continental gas and coal at TTF and the EU ETS. The same study measures the
+    coupling. One GW more GB wind cuts the GB-France day-ahead spread by €0.31/MWh off-peak and €0.41
+    peak. One GW more continental wind widens it by €1.80 and €1.86 (p. 77). Continental wind moves GB's
+    price relative to France's about five times as much as GB wind does [calc].
+  - **A CCGT bidding below its own SRMC.** It does this to stay on through a trough rather than pay to
+    shut down and restart. Modo's SRMC method (*Modelling thermal short run marginal costs*, updated
+    Nov 2025) says such plant "might wish to stay online longer... and run for a few hours at a loss". It
+    shapes its stack as a proportion of the day's SRMC. In the 2023 BM data, "the cheapest 20% of volume of
+    bids and offers are below the average daily short-run marginal cost". That is a discount on a gas
+    cost, so its depth scales with gas.
+  - **Subsidised or must-run output** at or below zero: RO and early CfD wind, nuclear, CHP and biomass on
+    support (§3). Its price does not scale with gas, so the distance from the gas floor down to it does.
+    Negative day-ahead hours were 29 in 2022, 107 in 2023 and 149 in 2024 (Modo, *Negative prices*, Sep
+    2024; body paywalled, only its summary was read).
+- **Above gas**, the dearest offers come from less efficient plant and from plant pricing in a start
+  (Modo, same page). A start burns gas, so part of that premium scales with gas. The wear part does not.
+  No published split of the two has been read (GAP).
+- **What the record says, measured 24 Nov** (`/var/tmp/mk25/ratio_by_ccgt_gw.py`, sha256 `44224ed5…`,
+  read-only; the mk24 probe's data, with days binned on fixed 2 GW bands of real daily mean FUELHH CCGT
+  output and not on quintiles within each year). Ratio is mean SSP ÷ mean floor, where the floor is
+  (SAP + carbon × EF) ÷ 0.50:
+
+  | CCGT GW | pre (2016-21 H1) | crisis (21 H2-23 H1) | post (23 H2-25 H1) |
+  |---|---|---|---|
+  | 0-4 | — | 0.62 (24 days) | 0.57 (90) |
+  | 4-6 | 0.84 (59) | 0.91 (52) | 0.80 (151) |
+  | 6-8 | 0.95 | 0.98 | 0.96 |
+  | 8-10 | 1.01 | 1.01 | 1.00 |
+  | 10-12 | 1.05 | 1.06 | 1.01 |
+  | 12-14 | 1.10 | 1.10 | 1.07 |
+  | 14-16 | 1.14 | 1.22 | 1.06 (46) |
+  | 16-18 | 1.28 | 1.25 | 1.09 (20) |
+  | 18-20 | 1.35 | 1.28 | 1.38 (22) |
+  | mean floor £/MWh | 34-45 | 130-240 | 78-97 |
+
+- **Read at a given amount of gas running, the price is the same multiple of the floor in every regime**,
+  within about 0.05 from 6 to 14 GW, while the mean floor moved by a factor of about four. The multiplicative form
+  (price = floor × a function of how much gas runs) is supported. Neither "a top that flattens as the floor
+  rises" nor "a depth that grows faster than the floor" is needed to describe the record. The post-crisis
+  dip at 14-18 GW rests on 66 days and is not attributed.
+- **What changed after the crisis is the mix of days.** 241 of 708 post-crisis days have under 6 GW of CCGT
+  running, against 59 of 1,918 before it. The deep quintile-1 gap (−£31) is mostly those days, at a
+  ratio of 0.57-0.80, which the pre-crisis record barely contains. It is not a deeper discount at a given
+  output.
+- **So the chain's post-crisis miss is mostly in the leg that decides how much gas runs, not in the price
+  leg's shape.** On the post-crisis days with 0-4 GW of CCGT, the chain prices at 0.91 of the floor, where
+  the record clears at 0.57. Its x (demand less wind and solar over dispatchable capacity) does not see
+  what displaced gas: imports at 33.4 TWh in 2024 (§5), batteries, and a nuclear output that halved (§4).
+  Before acting on that, the next arm separates the two legs on the record, with its prediction filed first.
+- **What this does NOT establish.** Real CCGT output is a record observable, used here only to diagnose the
+  chain. A forward world has no real CCGT, so the build must produce gas running from its own residual
+  demand. The 0.50 efficiency is a constant (§10's efficiency arm). Daily means blur the half-hourly split.
 
 ## 2. Carbon: Carbon Price Support plus the traded allowance
 
