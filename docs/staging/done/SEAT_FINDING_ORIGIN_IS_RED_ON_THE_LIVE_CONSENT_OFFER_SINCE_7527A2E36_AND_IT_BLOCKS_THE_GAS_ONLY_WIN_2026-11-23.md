@@ -114,3 +114,29 @@ The consent-then-gas chain ended `exit 0` at 10:47:48Z (`/var/tmp/se-consent-gas
 Still open elsewhere: the class (`SEAT_FINDING_THE_DESK_OFFERS_A_PREPAYMENT_METER_TO_A_HOUSEHOLD_THAT_HAS_LEFT_2026-11-23.md`,
 direction focus `a-closed-account-is-never-offered-a-prepayment-meter`). Also still open is the question of how
 7527a2e36's gate passed while origin went red (the DIRECTION.yaml not_now entry).
+
+## The class: how a red reaches origin past the gate (worker, 24 Nov 2026)
+
+Three instances, one cause. In each, the commit that turned the guard red had a green surgical-land
+receipt because **the guard was outside the gate's selection**. In none was it two landings each
+green alone. Each was checked by asking `tools/pre_commit_test_gate.select_targets` on origin
+3878ac59f5 for the entry commit's paths. It picks none of the three guards.
+
+| red guard | entry commit (bisected) | its receipt | why the gate missed it | fixed by |
+|---|---|---|---|---|
+| `test_collections_journey.py` live Consent pair | 7527a2e36c (`simulation/run_phase2b.py`, triad) | 4 tests, 11 s | the guard runs a live world run; no stem, import or data edge reaches it from `run_phase2b.py`, and a ~7.5 min run is not selected on a world change | 017382851e (re-keyed to the 2017 window) |
+| `test_the_register_is_EXACTLY_the_bare_world_constants` | 6bdfe9c851 (green at its parent, red at it) | 18 tests, 0.11 s | the guard scans every `.py` under `simulation/` and `sim/`; it is named for no module | d382333865 fixed `MEDIA_SWITCHING_COUPLING`, but **origin stayed red** on `MEDIA_SWITCHING_COUPLING_RANGE` (rerun on 3878ac59f5: 1 failed). This commit labels it EVIDENCE RANGE |
+| `test_no_advisor_steer_or_ruling_reaches_done_uncoded_since_the_gate` | 7fe0e91d2d (archived the weather-to-price steer with no `Decision:` line) | 31 tests, 1.9 s | the guard globs `docs/staging/advisor/done/DIRECTOR_*.md`, and a markdown file there has no edge to any test | 2440b5e048 (12:46Z). Green on origin 3878ac59f5 |
+
+**The fix for the two cheap scan guards** is in this commit. `SCAN_SUBJECT_TESTS` in
+`tools/pre_commit_test_gate.py` is keyed by folder prefix and suffix, so it also covers files that
+do not exist yet, which an exact-path key cannot. Any staged `simulation/**.py` or `sim/**.py`
+selects the world-constant scan (~1 s). Any staged `docs/staging/advisor/done/DIRECTOR_*.md`
+selects `test_director_concerns.py` (~2 s). The control is
+`tests/tools/test_a_tree_scan_guard_is_selected_by_its_folder.py`, and its three mutations were run.
+
+**The live-run arm is not fixed here, on purpose.** Selecting a ~7.5 min world run on every
+`run_phase2b.py` change would put that cost on every world landing. The net for that arm is the
+full-suite census (`HEAD_RED_REGISTER.md`). That census has not completed a run since 22 Nov,
+because the memory governor defers it. So the arm has **no live net**, and its owner is the census.
+The triage row stays `fix`/`open` until a census completes on a tree that descends from this commit.

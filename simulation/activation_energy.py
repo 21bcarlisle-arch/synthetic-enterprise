@@ -187,6 +187,7 @@ _MEDIA_BASELINE_MIN_COMPLETE = 3
 # set to 0.0 because that is what the fit measured, not as a placeholder.
 # The interval is the bound a run that varies this term must stay inside.
 MEDIA_SWITCHING_COUPLING = 0.0
+# EVIDENCE RANGE: the bootstrap 95% interval of the same §8 fit, on the page cited above.
 MEDIA_SWITCHING_COUPLING_RANGE = (-0.057, 0.040)
 
 # How excess coverage moves contact and complaint. No weekly contact or complaint

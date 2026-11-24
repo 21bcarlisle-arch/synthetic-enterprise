@@ -586,6 +586,27 @@ SUBJECT_TESTS = {
                        "simulation/net_new_acquisition.py")},
 }
 
+# A guard whose subject is EVERY file under a folder, read by a tree scan, so no stem, import or
+# data-surface edge reaches it from the file that turns it red (a new file has no edge at all).
+# Keyed (prefix, suffix). Both entries let a red reach origin past this gate on 24 Nov 2026:
+# 6bdfe9c85 added a bare world range in simulation/ and 7fe0e91d2 archived a steer uncoded, and
+# `select_targets` picked neither guard (the "The class" section of the 7527a2e36 seat finding in
+# docs/staging/done/). ~1s and ~2s.
+SCAN_SUBJECT_TESTS = {
+    **{(f"{package}/", ".py"): [
+        "tests/architecture/test_a_world_constant_cites_its_anchor_or_is_a_labelled_range.py"]
+       for package in ("simulation", "sim")},  # tools.world_constant_anchors.SCOPE
+    ("docs/staging/advisor/done/DIRECTOR_", ".md"): [  # director_concerns.ADVISOR_DONE_REL
+        "tests/background/test_director_concerns.py"],
+}
+
+
+def scan_subject_tests(path: str) -> list[str]:
+    """The tree-scan guards whose folder holds `path`."""
+    return [t for (prefix, suffix), tests in SCAN_SUBJECT_TESTS.items()
+            if path.startswith(prefix) and path.endswith(suffix)
+            for t in tests if (ROOT / t).exists()]
+
 # A staged path under any of these = a code/config change that could break a control or its own
 # tests -> run the gate. Anything else (docs/status, docs/reports, site/data, observability) is
 # pure data and cannot break a control -> skip (keep the loop's commit cadence fast).
@@ -1496,6 +1517,7 @@ def select_targets(files: list[str]) -> list[str]:
     data_targets: set[str] = set()
     for f in files:
         data_targets.update(data_surface_tests(f))
+        data_targets.update(scan_subject_tests(f))
     if not (code_changed or level_surface_changed or mint_marker_changed
             or canon_surface_changed or store_surface_changed or site_surface_changed
             or discharge_surface_changed or data_targets):
