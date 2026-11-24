@@ -238,3 +238,18 @@ close it.
   against a null on TTF. Against a null on SAP (17.44), it is a tie. From here, quote both nulls.
 - **Next, still item 4:** the arm that names the 2022 markup, run on SAP. The post-crisis −£8 gap is
   the same question. Item 5's forward CfD fleet and volumes are still owed.
+
+## Progress, 24 Nov (worker, item 4: the interconnector arm)
+
+- **Pre-registered** in `ef4b0ef19`, before the run. **Result** in
+  `docs/staging/records/WORKER_RESULT_GB_NET_EXPORT_CARRIES_THE_2022_MARKUP_BUT_LEAVES_TWO_THIRDS_OF_THE_POST_CRISIS_GAP_2026-11-24.md`.
+  Five of seven predictions held.
+- **The leg's residual demand is INDO, which excludes exports.** Adding the real FUELHH net export, on SAP,
+  takes 2022's bias from −10.7 to −1.1. The crisis monthly MAE is 17.02, which beats the shipped chain
+  (17.20), null_S (17.44) and null_T (24.53). The 2022 markup was a missing demand: France's, on GB plant.
+- **The post-crisis bias only falls from +12.3 to +8.2,** and by year it grows from +5.6 to +11.3. That is a
+  second mechanism, not yet attributed. The candidates are a fleet more efficient than the 0.50 constant,
+  and SSP against MID.
+- **Item 4's interconnector ask is answered "add it".** It ships with SAP once a forward flow mechanism
+  exists. Nothing in `sim/` changed. **Next, still item 4:** the K8 section on forward flow, then the
+  efficiency arm on X.
