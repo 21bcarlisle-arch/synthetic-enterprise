@@ -100,9 +100,9 @@ each factor needs a source:
 2. **Output per MW:** the world's own weather through the fleet-aggregate curve
    (`sim/weather_price_chain`). This has to be the same curve and the same weather as the world's
    price, or the levy and the price will disagree about the same windy day.
-3. **Strike by unit:** not in this table. Live units' strikes are in
-   `actual-cfd-generation-and-avoided-ghg-emissions`, and allocation results publish them in 2012
-   prices, indexed to CPI (GAP 2: not read for AR4-AR7 here).
+3. **Strike by unit:** not in the portfolio table. §4a reads it for every round, AR1-AR7, from
+   DESNZ's allocation results. AR7 is in a different price base from the others in LCCC's table,
+   and §4a says how to read it.
 4. **The reference price:** the world's own forward price. That price must be graded before a levy is
    built on it (item 4's work, still open).
 5. **The negative-hour rules by round:** GAP 3 on the electricity page, still open.
@@ -115,11 +115,86 @@ did not exist. The two must be drawn from **one** capacity path. §2-3 are the s
 the CfD-contracted part of that path. Choosing the path stays the director's curriculum, as the steer
 says for forward carbon and strikes. This page does not pick one.
 
+## 4a. Strikes by round and technology (GAP 2, read)
+
+Added by the worker, 2026-11-24. **Source:** LCCC Data Portal, dataset `auction-outcomes`, datastore
+resource `55bd2d1e-d25d-4980-8569-ea27f6ec7217`. It has 569 rows, all `Version = Final`, and was
+fetched 2026-11-24 (sha256 of the API response `b3641c4f…`). LCCC transcribes it from DESNZ's
+allocation-round results. Its fields are Auction, Project_Name, Developer, Technology_Type,
+Capacity_MW, Strike_Price_GBP_Per_MWh, Delivery_Year and Region. The rounds were checked against
+the DESNZ results PDFs, each as published on GOV.UK: AR4 (clearing table §E), AR5 and AR6 (each
+headed "strike prices are in 2012 prices"), and AR7 and AR7a (both price bases, row by row).
+
+**Read this first: LCCC's strike column is not one price base.** AR1-AR6 are in 2012 prices, as
+DESNZ publishes them. AR7 is the first round for which DESNZ printed two columns, 2012 prices and 2024
+prices. LCCC carries the **2024** column. Awel y Môr is £65.45 in 2012 prices and £91.20 in 2024
+prices. Bettyhill 2 is £51.85 and £72.24. Every AR7 row has the same ratio, 1.3932-1.3934 [calc], so
+the factor is DESNZ's own, not a per-technology choice. **Taking the column as one series would
+overstate AR7 by 39% against the other rounds.** The table below therefore gives AR7 in both bases,
+and the 2012 figure is the one comparable with AR1-AR6.
+
+| Round | Technology | Units | MW offered | Strike, 2012 prices (£/MWh) | Delivery years |
+|---|---|---:|---:|---:|---|
+| AR4 | Offshore wind | 5 | 6,994 | 37.35 | 2026/27 |
+| AR4 | Floating offshore | 1 | 32 | 87.30 | 2026/27 |
+| AR4 | Onshore wind | 9 | 838 | 42.47 | 2024/25 |
+| AR4 | Remote island wind | 6 | 598 | 46.39 | 2026/27 |
+| AR4 | Solar PV | 66 | 2,209 | 45.99 | 2023/24-2024/25 |
+| AR4 | Energy from waste (CHP) | 1 | 30 | 45.99 | 2024/25 |
+| AR4 | Tidal stream | 4 | 41 | 178.54 | 2025/26-2026/27 |
+| AR5 | Onshore wind | 24 | 1,481 | 52.29 | 2025/26-2027/28 |
+| AR5 | Remote island wind | 1 | 224 | 52.29 | 2027/28 |
+| AR5 | Solar PV | 56 | 1,928 | 47.00 | 2025/26-2027/28 |
+| AR5 | Tidal stream | 11 | 53 | 198.00 | 2026/27-2027/28 |
+| AR5 | Geothermal | 3 | 12 | 119.00 | 2026/27-2027/28 |
+| AR6 | Offshore wind | 9 | 4,942 | 54.23-58.87 (MW-weighted 57.39) | 2027/28-2028/29 |
+| AR6 | Floating offshore | 1 | 400 | 139.93 | 2028/29 |
+| AR6 | Onshore wind | 22 | 990 | 50.90 | 2026/27-2027/28 |
+| AR6 | Solar PV | 93 | 3,288 | 50.07 | 2026/27-2027/28 |
+| AR6 | Tidal stream | 6 | 28 | 172.00 | 2027/28-2028/29 |
+| AR7 | Offshore wind | 10 | 8,245 | 64.23-65.45 (MW-weighted 65.25; 2024 prices 90.91) | 2028/29-2030/31 |
+| AR7 | Floating offshore | 2 | 193 | 155.37 (2024 prices 216.49) | 2029/30 |
+| AR7a | Onshore wind | 28 | 1,306 | 51.85 (2024 prices 72.24) | 2027/28-2028/29 |
+| AR7a | Solar PV | 157 | 4,905 | 46.82 (2024 prices 65.23) | 2027/28-2028/29 |
+| AR7a | Tidal stream | 4 | 21 | 190.19 (2024 prices 265.00) | 2028/29-2029/30 |
+
+LCCC's table labels both AR7 publications "AR7". Pots 3 and 4 (offshore) were published on 14 Jan 2026,
+and pots 1 and 2 (AR7a on GOV.UK) on 10 Feb 2026. A delivery year is DESNZ's April-March year, and
+LCCC records it as its first calendar year.
+
+**Capacity-weighted strike by round, in 2012 prices [calc]:** AR1 101.85, AR2 62.62, AR3 40.64,
+AR4 40.74, AR5 51.84, AR6 57.98 and AR7 59.25 (82.56 in 2024 prices). AR5 has no offshore wind
+row: none cleared. In 2012 prices, AR7's offshore wind is 75% above AR4's (65.25 against 37.35)
+[calc]. Why offshore strikes rose from AR4 to AR7 is not read here.
+
+**What this does to a forward levy, as a mechanism, not a number.** The levy on a unit is (strike
+− reference) × output, with the strike CPI-indexed from its 2012 base. The 2027-29 tranche of §2 is
+mostly offshore from rounds whose strikes run 37-59 in 2012 prices (AR3 40.67, AR4 37.35, AR6
+54.23-58.87). Which round each unit is waits on GAP 2's join. In 2024 money that is about £52-82
+(37.35 and 58.87 × 1.3933) [calc]. Above that, the levy on those units goes negative and generators
+pay back. As CPI rises, the band in nominal terms rises with it. AR7's offshore wind, from 2028/29,
+strikes at about £91 in 2024 money. At a world price between the two bands, the older units pay
+back while AR7's are paid. **So a forward levy is not one strike times one volume.** It
+is a sum over vintages, and the vintage mix of §2 decides its sign as much as the world's price
+does. This cannot be computed until item 4 grades the forward price. It is stated here so that the
+build does not average the strikes first.
+
+**Two counts that differ, stated and not attributed.** Offered MW here (AR4 10,742, AR7 14,670)
+is not the portfolio's Maximum Contract Capacity in §3 (AR4 9,328, AR7 14,336). The outcome table
+counts contracts *offered*, and the portfolio counts contracts *held*, with capacity revised since
+signature. How much of the gap each of those explains is GAP 2's remainder.
+
+**The 2012→nominal factor for other years is not read here.** DESNZ's AR7 columns give one point,
+1.3933 for 2012→2024. Each contract indexes by CPI under its own terms. The index series for
+forward years is a curriculum input, the same as forward carbon. This page does not pick one.
+
 ## 5. GAPs
 
 1. **Slippage history.** Expected start dates as at each earlier date. Candidates are LCCC's own
    earlier publications and the Wayback Machine. Neither was read.
-2. **Strikes for AR4-AR7 units.** Read from the DESNZ allocation-round results, in 2012 prices.
+2. **Strikes for AR4-AR7 units.** Read in §4a (24 Nov, worker). It stays open for one thing: the
+   join from an outcome row to a portfolio CFD_ID. Names differ between the two tables, and
+   capacity is offered MW in one and Maximum Contract Capacity in the other.
 3. **First power against CfD start for each phased offshore unit,** and the AR4 rule that allows
    deferral. This decides how far the two fleets of §0 differ in 2022-2026.
 4. **Capacity not under any CfD** (RO, merchant, FiT). This is needed to split the curriculum's one
@@ -156,4 +231,18 @@ for r in p:
     terminated[r["Allocation_Round"]][0] += mw(r)
     if r["Status"] == "Terminated":
         terminated[r["Allocation_Round"]][1] += mw(r)
+```
+
+```python
+# Strikes (§4a): fetch resource 55bd2d1e-d25d-4980-8569-ea27f6ec7217 with fetch.py above, then
+import json
+from collections import defaultdict
+rows = json.load(open("outcomes.json"))["rows"]
+# DESNZ's own 2012-price column for the AR7 rows, which LCCC carries in 2024 prices
+P2012 = {91.20: 65.45, 89.49: 64.23, 216.49: 155.37, 72.24: 51.85, 65.23: 46.82, 265.00: 190.19}
+g = defaultdict(lambda: [0, 0.0, 0.0])
+for r in rows:
+    mw, s = float(r["Capacity_MW"]), float(r["Strike_Price_GBP_Per_MWh"])
+    s12 = P2012[s] if r["Auction"] == "AR7" else s
+    x = g[(r["Auction"], r["Technology_Type"])]; x[0] += 1; x[1] += mw; x[2] += mw * s12
 ```

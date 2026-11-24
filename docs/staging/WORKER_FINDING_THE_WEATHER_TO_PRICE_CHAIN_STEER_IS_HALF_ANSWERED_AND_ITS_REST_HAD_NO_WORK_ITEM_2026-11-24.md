@@ -511,3 +511,20 @@ close it.
 - **Next, still item 4:** (1) the leg on real x on SAP plus GB's real net export (`c2f65d9e9`'s term), with this
   record's SAP R L0 row as its control. (2) Build-terms B1-B3 rerun on SAP. (3) The end-year clamps on a
   FUELHH-basis fleet, unchanged.
+
+## Progress, 24 Nov (worker, item 5: strikes AR4-AR7, read)
+
+- **The fleet page's GAP 2 is read.** It is in §4a of `docs/market_research/the_forward_cfd_fleet_from_lccc_contract_portfolio_2026-11-24.md`,
+  from LCCC's `auction-outcomes` table (569 rows, AR1-AR7), checked against the DESNZ results PDFs
+  for AR4-AR7a. Nothing in `sim/` or `company/` reads any of it, and nothing changed there.
+- **LCCC's strike column mixes price bases.** AR1-AR6 are in 2012 prices. AR7 carries DESNZ's 2024
+  column, which is 1.3933× on every row. Read as one series, it overstates AR7 by 39%. By round, in
+  2012 prices, the capacity-weighted strikes are AR4 40.74, AR6 57.98 and AR7 59.25. AR7's offshore
+  wind is 65.25, against AR4's 37.35.
+- **For the levy build:** the forward levy is a sum over vintages. The 2027-29 tranche's strikes
+  (about £52-82 in 2024 money) sit well below AR7's (about £91). So the vintage mix can change the
+  levy's sign at one world price, and averaging the strikes before the sum would hide that.
+- **Still owed under item 5:** the join from an outcome row to a portfolio CFD_ID (GAP 2's
+  remainder), the negative-hour rules by round (electricity page GAP 3), and the forward price
+  graded first (item 4, another lane). The CPI path for indexing forward strikes is a curriculum
+  input, like forward carbon.
