@@ -493,7 +493,11 @@ def queued_long_jobs(runner=subprocess.run) -> list[str] | None:
         return None
     if out.returncode != 0:
         return None
-    return sorted(line.split()[0] for line in out.stdout.splitlines() if line.strip())
+    from background.launch_long_job import unmet_awaits
+    units = sorted(line.split()[0] for line in out.stdout.splitlines() if line.strip())
+    # A queue still awaiting an artefact is not waiting for room: yielding to it deferred the very
+    # book its artefact descends from (24 Nov, A4). Unreadable reads as waiting for room.
+    return [u for u in units if not unmet_awaits(u, runner=runner)]
 
 
 def book_admission(head: str | None = None, *, spec_path: Path | None = None, today=None,

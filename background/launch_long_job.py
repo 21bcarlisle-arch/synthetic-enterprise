@@ -545,7 +545,7 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
            launched_at: str | None = None, out=None, peak_mb=None,
            wait_for_pid: int | None = None, residents=resident_census,
            guest_total_mb=None, expect_minutes=None, run_case: dict | None = None,
-           landing_deadline_seconds: float | None = None, holds=()) -> dict:
+           landing_deadline_seconds: float | None = None, holds=(), awaits=()) -> dict:
     """Start `command` in a transient user unit AND write its liveness record. One call, both.
 
     THE ORDER IS THE ARGUMENT, and it is the opposite of the obvious one. The record is written
@@ -614,6 +614,14 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
     case_refusal = run_case_refusal(expect_minutes, run_case)
     if case_refusal:
         raise LaunchRefused(case_refusal)
+    # A JOB THAT IS ONLY WAITING IS NOT STARTED, SO IT DECLARES NOTHING. On 24 Nov the A4 arm
+    # (12000 MB) and land10 (6000 MB) were launched, declared, and then slept on files that only
+    # the owed book could produce; sim-runner deferred that book every cycle against their
+    # 18000 MB. Refused as NoRoom, the wait goes to the queue unit, which holds no launch record
+    # and so no peak, and admission is asked again when the file exists -- at fire time, not now.
+    missing = [a for a in awaits if not Path(a).exists()]
+    if missing:
+        raise NoRoom(f"awaiting {', '.join(missing)}: not started, so not declared, until it exists")
     landing_wait = _wait_for_pending_landings(say, deadline_seconds=landing_deadline_seconds,
                                               wait_as=f"launch {job}")
     if landing_wait:
@@ -763,6 +771,24 @@ def queue_unit_name(job: str) -> str:
     return f"{unit_name(job)}-queued"
 
 
+def unmet_awaits(unit: str, *, runner=subprocess.run) -> list[str] | None:
+    """The `--awaits` paths a queue unit is still waiting on that do not exist yet, read off its
+    ExecStart; None when systemd cannot say. A queue with an unmet await is waiting on an
+    ARTEFACT, not on room, and a reader that yields to queued jobs must not yield to it -- on
+    24 Nov the A4 queue waited for a file the owed book's readers make, and sim-runner deferred
+    that book for it."""
+    try:
+        res = runner(["systemctl", "--user", "show", unit, "-p", "ExecStart"],
+                     capture_output=True, text=True, timeout=30)
+    except Exception:  # noqa: BLE001 -- cannot tell is its own answer
+        return None
+    if res.returncode != 0 or "argv[]=" not in res.stdout:
+        return None
+    tokens = res.stdout.split("argv[]=", 1)[1].split(" ; ", 1)[0].split()
+    awaited = [tokens[i + 1] for i, t in enumerate(tokens[:-1]) if t == "--awaits"]
+    return [a for a in awaited if not Path(a).exists()]
+
+
 def hand_off_queue(argv: list, job: str, *, cwd: str | None = None, runner=subprocess.run,
                    launcher_cgroup: str | None = None) -> str:
     """Move a launch that has to WAIT into a transient unit of its own, and return that unit.
@@ -849,6 +875,9 @@ def main(argv: list | None = None) -> int:
                         help="why the minutes tier (the probe, the decision set, a few hundred "
                              "homes over a year or two) cannot answer it")
     parser.add_argument("--would-change", help="what result would change what we do")
+    parser.add_argument("--awaits", action="append", default=[], metavar="PATH",
+                        help="do not start (or declare a peak) until this path exists; the wait "
+                             "queues in a unit of its own. Pair with --follow-deadline-hours")
     parser.add_argument("--wait-for-pid", type=int,
                         help="instead of refusing over this resident, start the job when it exits")
     parser.add_argument("--detach", action="store_true",
@@ -905,7 +934,8 @@ def main(argv: list | None = None) -> int:
                    description=args.description, asserted_live_by=args.asserted_live_by, env=env,
                    peak_mb=args.peak_mb, wait_for_pid=args.wait_for_pid,
                    expect_minutes=args.expect_minutes, run_case=run_case,
-                   landing_deadline_seconds=0 if hands_off else None, holds=args.holds)
+                   landing_deadline_seconds=0 if hands_off else None, holds=args.holds,
+                   awaits=args.awaits)
             break
         except NoRoom as exc:
             if args.no_queue:
