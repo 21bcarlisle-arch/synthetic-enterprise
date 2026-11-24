@@ -253,3 +253,19 @@ close it.
 - **Item 4's interconnector ask is answered "add it".** It ships with SAP once a forward flow mechanism
   exists. Nothing in `sim/` changed. **Next, still item 4:** the K8 section on forward flow, then the
   efficiency arm on X.
+
+## Progress, 24 Nov (worker, item 4: the efficiency arm)
+
+- **Pre-registered** in `ca6f4c1a27`, before the run. **Result** in
+  `docs/staging/records/WORKER_RESULT_THE_CCGT_FLEETS_EFFICIENCY_BY_YEAR_DOES_NOT_CARRY_THE_CHAINS_POST_CRISIS_BIAS_2026-11-24.md`.
+  Five of five predictions held.
+- **Efficiency is ruled out.** With DUKES 5.10.C CCGT efficiency by year in the floor, the post-crisis bias
+  moves from +8.23 to +8.16. The published efficiency peaks in 2023 (49.91%), so 2023's bias falls £1.59
+  and the growth to 2025 widens. A constant efficiency is absorbed exactly by the no-intercept refit, so
+  the 0.50 constant is not a defect the chain can see. 2025's efficiency is a GAP.
+- **Correction, beside the previous note's candidate list** ("SSP against MID"). The power grade (§10a)
+  already has SSP's post-crisis level within £1.76 of MID, so the price choice cannot carry £8. The real
+  question is why GB power cleared about £9.80 below gas-plus-carbon SRMC in 2023-25.
+- **Next, still item 4:** a K8 note on that question (imports setting the price, gas marginal less often,
+  CCGTs bidding below spot SRMC, each a GAP), then the arm that separates them. The forward-flow K8
+  section is still owed, and so is item 5's forward CfD fleet.
