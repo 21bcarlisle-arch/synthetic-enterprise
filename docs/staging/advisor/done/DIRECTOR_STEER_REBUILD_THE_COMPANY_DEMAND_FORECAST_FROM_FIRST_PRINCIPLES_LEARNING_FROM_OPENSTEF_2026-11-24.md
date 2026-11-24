@@ -79,3 +79,49 @@ Probable failure modes:
 Proportionality: company capability. Knowledge page first, then implement step by step.
 
 — Director steer, 24 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+24 Nov, worker tick. The knowledge page comes first (K8):
+`docs/market_research/short_term_demand_forecasting_for_a_supplier_from_first_principles_learning_from_openstef_2026-11-24.md`.
+
+The advisor's list was checked against OpenSTEF's v4 documentation. Five of the six techniques are
+confirmed. Two things were added:
+
+- **Point-in-time backtesting.** OpenSTEF tags every input with `available_at`. That is our
+  leakage rule written as a data structure.
+- **Component splitting.** OpenSTEF's own documentation says it "does not improve forecast
+  accuracy".
+
+Alliander as the origin remains unconfirmed.
+
+**Main finding: no decision in the run reads a short-term forecast yet.**
+
+- The hedge is sized per customer term on EAC (`decide_term_hedge(volume_kwh=eac_kwh)`).
+- The imbalance ledger has no caller.
+- The company has no weather-forecast feed (`EP15_forecast_feed`, level 0).
+- A 2016–2025 domestic book also settles on Elexon profiles, which are computed after the day
+  from outturn temperature.
+
+**The page therefore argues three changes to the order, as the steer allows:**
+
+1. Step 0 names the decision each arm feeds.
+2. Weather waits for EP15's feed and its leak test.
+3. At term scale, quantiles come before weather, because a volume band has an immediate consumer:
+   the VaR sizing, which today ignores volume risk.
+
+Three predictions are filed on the page before any run.
+
+The steer is queued in `docs/direction/priority_order.yaml` (`held_behind_the_exit_test`),
+directly under the 13 Nov benchmark and its 16 Nov amendment. Whichever seat draws the benchmark
+reads all three together.
+
+All four reading-log rows are appended to `docs/institutional/reading_log.md`. The OpenSTEF row was
+written from the docs read this tick, not the advisor's summary.
+
+One further fact goes to whoever wires the imbalance ledger. Its docstring uses two prices; GB has
+had a single imbalance price since P305 (5 Nov 2015).
+
+Nothing was copied from OpenSTEF. Nothing was downloaded into the repository.
+
+Decision: outside_source yes

@@ -185,6 +185,10 @@ held_behind_the_exit_test:
   # 2026-11-16 (10:07 "Yes"): amends the line above before it runs. MASE and quantile loss stay; the deciding
   # score is each arm's hedge and imbalance cost through hedge_desk, plus dispersion, correlation and peak timing.
   - docs/staging/advisor/done/DIRECTOR_STEER_JUDGE_THE_FORECAST_BENCHMARK_BY_HEDGE_COST_NOT_ERROR_ALONE_2026-11-16.md
+  # 2026-11-24 (05:23-05:24 "Yes"): extends the two lines above. Rebuild the company's own forecaster one OpenSTEF
+  # technique at a time, each an arm judged by hedge cost. K8 page written 24 Nov; it asks step 0 (name the decision each
+  # arm feeds), weather behind EP15_forecast_feed's leak test, and the point-in-time leakage test before any arm is scored.
+  - docs/staging/advisor/done/DIRECTOR_STEER_REBUILD_THE_COMPANY_DEMAND_FORECAST_FROM_FIRST_PRINCIPLES_LEARNING_FROM_OPENSTEF_2026-11-24.md
 steps:
   1:
     name: knowledge, now and wide

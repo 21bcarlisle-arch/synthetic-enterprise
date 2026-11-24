@@ -813,13 +813,69 @@
     "label": "Delivery and CI",
     "anchor": null
    }
+  },
+  {
+   "read": "24 Nov",
+   "source": "OpenSTEF (LF Energy, MPL-2.0; v4 docs and repository read 24 Nov); shared by the director",
+   "claim": "An open, model-agnostic short-term energy forecasting framework: horizon-aware lags, calendar and school holidays, physics weather transforms, multi-quantile models with calibration, post-forecast component split, input validation, and point-in-time (`available_at`) backtesting",
+   "evidence": "Open-source project and its own documentation; not peer-reviewed; Alliander origin unconfirmed",
+   "verdict": "ADAPT (rebuild, don't use)",
+   "done": "Learn its techniques from first principles and build our own, each step judged by hedge cost. K8 page `docs/market_research/short_term_demand_forecasting_for_a_supplier_from_first_principles_learning_from_openstef_2026-11-24.md` adds what the advisor's list missed (versioned point-in-time inputs, the source's own word that component splitting does not improve accuracy) and finds that no decision consumes a short-term forecast yet; queued under the 13 and 16 Nov benchmark steers",
+   "concept": "Forecast skill",
+   "placed": {
+    "kind": "unplaced",
+    "label": null,
+    "anchor": null
+   }
+  },
+  {
+   "read": "24 Nov",
+   "source": "Anthropic, \"Introducing Claude Ship\" (23 Nov): Code Review, PR Steward, Claude Approvals; Team and Enterprise only; shared by the director",
+   "claim": "Managed PR review, stewarding and approval rules",
+   "evidence": "Vendor announcement",
+   "verdict": "CONFIRMS DIRECTION",
+   "done": "Not available on Max, and PR-based. Confirms approval rules read from the base, observe-first gates, \"how to reverse it\" on every fix, and a fixer that never approves",
+   "concept": "Delivery and CI",
+   "placed": {
+    "kind": "step",
+    "label": "Delivery and CI",
+    "anchor": null
+   }
+  },
+  {
+   "read": "24 Nov",
+   "source": "Claude Code Code Mode docs (shared again; page not fetchable from the advisor's session); shared by the director",
+   "claim": "As 15 Nov",
+   "evidence": "Vendor feature, unread",
+   "verdict": "NO CHANGE",
+   "done": "No evidence of headless (`-p`) support yet. Backlog row E-cm stands, re-checked each Friday",
+   "concept": "Agents and models",
+   "placed": {
+    "kind": "step",
+    "label": "Agents and models",
+    "anchor": null
+   }
+  },
+  {
+   "read": "22 Nov",
+   "source": "A friend's system-dynamics model, \"UK electricity supplier – essence\" (9 stocks; behaviour constants are assumptions on sliders); shared by the director",
+   "claim": "The supplier's essence as stocks and flows",
+   "evidence": "One practitioner's model; constants unsourced",
+   "verdict": "NOT TAKEN FORWARD",
+   "done": "Reviewed and diagrammed for the director by the advisor; not taken forward, by his decision",
+   "concept": "—",
+   "placed": {
+    "kind": "none",
+    "label": null,
+    "anchor": null
+   }
   }
  ],
  "placed": {
   "concept": 17,
-  "step": 28,
-  "unplaced": 5,
-  "none": 8
+  "step": 30,
+  "unplaced": 6,
+  "none": 9
  },
  "rejected": 4
 }
