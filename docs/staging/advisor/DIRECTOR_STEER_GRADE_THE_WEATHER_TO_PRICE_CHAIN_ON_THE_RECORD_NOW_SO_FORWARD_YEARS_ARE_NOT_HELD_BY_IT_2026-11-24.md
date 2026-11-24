@@ -49,3 +49,40 @@ What is asked, added to the steer above:
 2. **For forward years, carbon is a drawn input like gas**, in a sourced band: DESNZ carbon value or traded-price projections. Draw it jointly with gas where the evidence supports that. Set the band by curriculum, which is the director's.
 3. **The CfD levy (and any price-dependent policy cost) becomes endogenous for forward years:** strike against the simulated reference price, times the CfD fleet's volumes. Check it on the record against LCCC's published Interim Levy Rate, including the 2022 negative. The supplier still sees only the levy as a real supplier would, not the mechanism's inside.
 4. **K8 first:** a short page on carbon pricing and CfD levy mechanics with sources, GAPs labelled.
+
+## Addendum, Tue 24 Nov 05:40 GMT: gas first, interconnection, and why there is no deep page
+
+The director's words: "Interconnection? Nb. Start with gas, getting gas right first is key as it drives elec often. Why isn't the model drawing on a deep knowledge page? Cfds etc are obvious"
+
+**What the advisor found on origin, 05:40:**
+
+- **There is no deep knowledge page on GB wholesale price formation.**
+  - The five published Knowledge topics are short (about 75-115 rendered words each, the body in `site/data/knowledge_wholesale.json`): electricity-wholesale, gas-wholesale, carbon-price, how-gb-gas-and-power-prices-move, gb-electricity-market.
+  - Across the wholesale knowledge data they mention interconnectors **0** times, CfDs **0** times and the merit order **0** times.
+  - `sim/weather_price_chain.py` was built and taken to L4 without one.
+  - Interconnectors appear only in the grid-carbon modules, not in price formation.
+- He is right that these are obvious. Any GB power trader would name these drivers first:
+  - gas, and the gas-plant cost with carbon;
+  - interconnectors;
+  - the renewable support schemes (CfD, RO);
+  - nuclear availability;
+  - scarcity and the balancing mechanism.
+
+  **This is a K8 breach on the world side, and a clean case for the 22 Nov curiosity measure:** "nonsense found by the director before the machine". File it in the learning loop as a world model built to L4 with no knowledge page beneath it. Find any other world model in the same state.
+
+**What is asked. This supersedes the order of work above, not its content.**
+
+1. **Gas first.** Get the GB gas price right before electricity, because gas sets the marginal power price most of the time.
+   - Write the deep **K8 gas page**: how the NBP and SAP price forms.
+   - Its drivers: UK Continental Shelf supply, Norwegian pipeline flows, LNG and the global LNG market, storage (and the loss of Rough in 2017), interconnection to the continent through IUK and BBL and coupling to TTF, seasonal and weather-driven demand, and the 2021-23 shock.
+   - Then grade the world's gas price record and any gas drawing for forward years against it. The world's daily SAP splice landed on 18 Nov; start from it.
+2. **Then the deep electricity page:** price formation from the merit order.
+   - Gas-plant short-run marginal cost (gas plus carbon: Carbon Price Support plus UK or EU ETS) and efficiency.
+   - Renewables and their support schemes (CfD, RO), and negative-price behaviour.
+   - Nuclear.
+   - **Interconnectors:** France, Belgium, the Netherlands, Norway, Denmark and Ireland. Their capacity by year, flow direction, price coupling, and the exports of 2022.
+   - Capacity Market, scarcity and the balancing mechanism.
+   - Demand and its weather dependence.
+   - Use published sources: Ofgem, NESO, Elexon, the CMA's 2016 energy market investigation, Cornwall Insight and Aurora summaries where public, and the academic literature on GB price formation.
+3. **Then grade and rebuild the chain against both pages,** in order of the largest gap. Add the carbon term from the 05:39 addendum. Add interconnector flows as a price-coupling term, or state why not. Keep the regime-split grading and the pre-registered bands from the steer above.
+4. **Mechanism, not only numbers (22 Nov steer):** each page says what moves each driver and how it passes into price. That is what lets forward years respond to a cold, still, low-LNG winter as reality would.
