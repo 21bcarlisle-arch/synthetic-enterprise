@@ -1,259 +1,197 @@
 version: 1
-oriented_at: "2026-11-23T21:22:06.956497+00:00"
+oriented_at: "2026-11-24T03:23:45.205774+00:00"
 thesis_read: >-
-  This stretch had 16 commits, and 3 were substantive. By side: supplier 0, world 0, both 1, other 15, and 5 of the
-  16 carried nothing (seat merges). It is the fifth stretch running in which the supplier gained almost nothing.
-  The one exception is real: the closed-account fix is on origin as 1d1059350, so the company no longer offers a
-  prepayment meter at a premise it has stopped supplying. Just after the window, db2f502b23 (21:24Z) moved the
-  supplier's first-term quote onto a six-month ladder of the published forward. Its own correction says the quote
-  still sits 10-18% under the market's cheapest fix in 2023 H2-2024 at the residential network cost, with 25-40
-  GBP/MWh unattributed. A supplier that wins customers by pricing under the market is transferring value, not
-  creating it (M2), so the campaign's 225 wins are not yet evidence for the thesis. The central question is
-  unchanged: does the per-customer arm beat the flat-rules twin? The twin's outputs are now written
-  (/var/tmp/vtn-out/twin). Arm A (pid 677395) is 2h47m in and ends around 06:00Z, and its reader is armed. The book
-  every queued supplier grade reads has now been unbuilt for about 78 hours. The previous focus was all drawn
-  (3 of 3). Item 2 is finished (1d1059350), so it leaves focus. Item 3 closed on its stated alternative:
-  f80cc5a46 names the three working copies that hold the shared tree 58 behind. Two of them age out on 24-25 Nov,
-  and the third is MSC's own, and a recheck is queued for 25 Nov. Item 1 did not land, but it advanced properly.
-  The hour is now measured (da44381d2): the hook's 183-file selection runs GREEN in 4,604 s serial, against a
-  3,600 s deadline, and 85% of that is five whole-run setups. phase4c's repeat of the shared run is now folded
-  into msc8. The MSC work is durable in /var/tmp/se-msc-keep. land8 is queued behind the book, and the seat's
-  own prediction, written before the run, is that land8 still times out. So the risk has moved. MSC failing is
-  no longer the problem; the problem is that MSC's hold on the next book could cost every supplier grade another
-  day. MSC alone moves no 2023-24 attribution (campaign wins pay no MSC yet). This stretch's call is therefore:
-  MSC gets one sequenced attempt, and any other outcome releases the book at once.
+  Two commits this stretch, one substantive and on the supplier side (supplier 1, world 0, other 1). The previous
+  focus was drawn 2 of 3, and two of its items finished and leave focus. The first-term cap hold's deletion is
+  pre-registered and built off (ee7d60bbd). Building it turned up the stretch's real supplier finding: a won first
+  term is contracted on a different strike from the one it was quoted on. The campaign quotes through
+  growth_desk.quote_first_term (ladder, operating-cost line, gated at the default). The run then contracts the
+  account through renewals.price_fixed_term, which is spot-led at the notice date. On 151 won fixed terms the
+  contracted strike in 2021 sits up to 1.54 times the cap, and only the cap hold pulls it back. In 2023-24 it sits a
+  median 31% and 18% under the market's cheapest fix, where the quote sat 4.5% and 5.1% under. So the company wins
+  on one number and bills another. Until that is fixed, its first-year margin cannot test whether the price
+  decision was a good one, and the margin given away in 2023-24 is transfer, not inference (M2). It is now focus 1.
+  MY LAST DIRECTION WAS WRONG A SECOND TIME, and the worker corrected it. My focus 1 said 9 dirty imports in the
+  shared checkout deferred the book. They do not. Since b1c7d76b16 (22 Nov) sim-runner builds the book in its own
+  worktree, which reads admitted. The probe I wrote read the shared root. The shared tree's real harm was that its
+  stale next_book_requires.yaml lacked the MSC hold row, so the book would have built without MSC once s.12g freed
+  memory. The worker wrote origin's bytes over the clean shared copy at 00:43Z and armed a follow unit for the fill
+  (37a2b7283). sim-runner has logged "MSC replacement win ... has not landed" every 5 minutes since. So the hand
+  order MSC-then-book is now live. Both seat rows are corrected below, and the probe lesson is recorded beside
+  them. The book is still unbuilt after about 84 hours. Its order is now set and visible: s.12g ends around 06:00Z
+  (arm A, pid 677395, 8h49m in, /var/tmp/vtn-out/A still empty), then land8 gates MSC (prediction: a timeout), then
+  either MSC's sha fills the row or the row is deleted, and then the book starts. The hold file also expires at
+  the end of 24 Nov. Against the thesis, nothing moved this stretch: whether the per-customer arm beats the
+  flat-rules twin is still unanswered and waits on arm A. Its reader is queued.
 stretch_reviewed:
-  since: "2026-11-23T18:23:07.458521+00:00"
-  commits: 16
-  substantive: 3
+  since: "2026-11-24T00:21:20.756428+00:00"
+  commits: 2
+  substantive: 1
 focus:
+- id: the-won-first-term-is-contracted-at-the-strike-it-was-quoted
+  lane: B_commercial
+  side: supplier
+  what: 'Make the won account''s first term carry the strike the company quoted. Read docs/staging/SEAT_FINDING_A_WON_FIRST_TERM_IS_CONTRACTED_ON_A_STRIKE_IT_WAS_NOT_QUOTED_2026-11-24.md
+    and docs/staging/records/SEAT_PREREG_THE_FIRST_TERM_CAP_HOLD_DELETED_2026-11-24.md. K8 first: amend
+    §7 of docs/market_research/cheapest_fix_against_the_default_tariff_gb_2016_2025.md with what a real
+    supplier contracts a won fixed first term at, sourced from SLC 22/31E and published practice, plus
+    the measured gap. Then build one path: either the quote from growth_desk.quote_first_term is carried
+    onto the account, or the first term and the quote are struck through one function. It goes behind
+    one named switch, default off, with a control that asserts the switch CAN be taken. Before landing,
+    at the run seed and real inputs, print per year (2017-2025) the quoted strike, the contracted strike
+    and the market''s cheapest fix, with the switch off and on. Re-run the cap-hold pre-registration''s
+    probe with the switch on, and write a prediction for P2 and P3 with ranges. Do not flip it before
+    the post-s.12g book has been read: B8''s five grades read that book, and two changes in one book cannot
+    be told apart.'
+  why: 'A won first term is billed on a strike nobody quoted: up to 1.54 times the cap in 2021, and 31%/18%
+    under the market''s cheapest fix in 2023-24 against a quote at 4.5%/5.1% under. So the book''s first-year
+    margin cannot test the price decision the company made per customer, and the cap hold cannot be deleted
+    while this stands. Done means the amended §7, the switched-off build and the per-year table are on
+    origin, with the prediction written before any book carries it on.'
+  written_at: 1795490907.594
 - id: the-msc-replacement-win-lands-or-releases-the-book
   lane: E_finance_treasury
   side: supplier
-  what: 'land8 (unit longjob-land8-msc-replacement-win: /var/tmp/se-msc-keep/land8.sh execs land7.sh,
-    which applies msc8.patch, that is msc6 plus phase4c reading the shared run) is queued behind the s.12g
-    book (pid 65649, arm A pid 677395, ending about 06:00Z 24 Nov). Do NOT launch another copy while it
-    lives. When /var/tmp/se-msc-land7-ended-20261123.txt appears (land7.sh''s EXIT trap writes it on every
-    path), read /var/tmp/se-msc-keep/land7.log. IF IT LANDED: run surgical_land --verify on the origin
-    sha, write that sha into the MSC row of background/next_book_requires.yaml, and retire verify-msc-replacement-win-landing-v6.
-    IF IT DID ANYTHING ELSE (timeout, a red, an apply conflict): in that same turn, delete the commit:
-    null MSC row from background/next_book_requires.yaml and land the deletion, so the post-s.12g book
-    starts without MSC. Then grade da44381d2''s written prediction (a timeout at 90-95%, no red) in that
-    finding, with the wrong figure kept beside the result. Before any land9, take the next lever the finding
-    names (the collections_journey live_run / answered_live_run setups, or the flat-supplier arm''s) and
-    re-run the hook''s selection serially with --durations=40. Never raise GATE_TIMEOUT_SECONDS and never
-    drop a test from the selection.'
-  why: Every grade queued for 24-25 Nov reads the book and none of them reads MSC (B8's five, D48, KNIFE3,
-    dual-household, supplied-won switches). MSC alone moves no 2023-24 first-term attribution, because
-    the campaign's wins pay no charge yet. One sequenced attempt costs the book about 75 minutes. A failed
-    attempt that keeps the hold costs it a day. Done means MSC is on origin with its sha in the row, OR
-    the hold row is gone and sim-runner has started the post-s.12g book, and in either case da44381d2's
-    prediction is graded.
-  written_at: 1795469286.085
-- id: the-first-term-strike-gap-to-the-cheapest-fix-is-attributed
-  lane: B_commercial
-  side: supplier
-  what: 'db2f502b23 strikes the first fixed term on a six-month ladder of the published forward. At the
-    residential network cost, that strike sits 10-18% under the market''s cheapest fix in 2023 H2-2024,
-    and 25-40 GBP/MWh is unattributed (docs/market_research/cheapest_fix_against_the_default_tariff_gb_2016_2025.md
-    section 8). KNOWLEDGE FIRST (K8): from Ofgem''s cap methodology (the wholesale allowance''s shaping,
-    imbalance and backwardation terms, operating cost, EBIT, headroom, policy and payment-method allowances)
-    and from published supplier accounts, establish what a real supplier adds between the forward and
-    its fixed price. Compare it component by component with the ladder for the same months, and write
-    each component into section 8 as sourced or GAP. Print the 2023-07 to 2024-07 position against the
-    cheapest fix at real inputs after each component. Only then wire into renewal_desk.quote_first_term
-    the components the evidence establishes, each with a mutation-proven control. Whatever is still unattributed
-    stays a named None, never a fitted number.'
-  why: A quote 10-18% under the market's cheapest fix wins customers by giving margin away. That is value
-    transferred, not created (M2), and it would let the campaign book wins the flat-rules twin cannot
-    match for the wrong reason. Done means section 8 carries every component sourced or GAP with the reprinted
-    position, and any build that follows names the component that justifies it.
-  written_at: 1795469286.085
-- id: campaign-wins-pay-the-market-stabilisation-charge
-  lane: E_finance_treasury
-  side: supplier
-  what: Build MSC's next increment WITHOUT landing it yet. msg8 says the growth campaign's net-new wins
-    (campaign_acquisition_spend_events) pay no Market Stabilisation Charge, because their quotes carry
-    no annual volume. Work in a fresh worktree under /var/tmp (lock it with an owner and a reason), detached
-    at origin/main, with /var/tmp/se-msc-keep/msc8.patch applied. Carry the prospect's EAC/AQ through
-    the campaign quote (simulation/live_population.py to company/interfaces/growth_desk.py). A real supplier
-    reads these from industry data at registration, so the company receives the charge amount and never
-    the rate table. Make each campaign win between 14 Apr 2022 and 31 Mar 2024 book book_market_stabilisation_charge
-    exactly as a replacement win does. Test that margin falls by exactly the charge and acquisition spend
-    does not move. Print the 2022-24 charge count and total at the run's seed. Save the result as /var/tmp/se-msc-keep/msc9-campaign.patch
-    with its message. Land it only after MSC is on origin, as its own landing, after re-reading the gate's
-    durations.
-  why: msg8 says campaign wins are most of 2022-24's wins. Until they pay the charge, the supplier's 2022-24
-    P&L overstates the campaign's margin in exactly the years the thesis is hardest. Building it now uses
-    the gate's quiet hours. Holding the landing keeps a second ledger change out of a gate that does not
-    yet fit one. Done means the patch is durable and tested with the 2022-24 figures printed, and it is
-    landed once MSC is on origin.
-  written_at: 1795469286.085
+  what: 'land8 (/var/tmp/se-msc-keep/land8.sh, pid 916978) waits on s.12g (pid 65649, ~06:00Z). Do NOT
+    launch another copy while it lives. When /var/tmp/se-msc-land7-ended-20261123.txt appears, read the
+    land7 log. IF IT LANDED: run surgical_land --verify on the origin sha and confirm fill_hold.sh wrote
+    it into origin''s MSC row of background/next_book_requires.yaml. Then confirm the b8-msc-hold-row-follow
+    unit mirrored it into the shared copy (its follow_hold_row.log in /var/tmp/se-msc-keep/shared-tree-20261124/),
+    and that sim-runner''s next cycle stops logging "has not landed". IF IT DID ANYTHING ELSE: in that
+    same turn, delete the MSC row on origin AND in the shared copy (sim-runner reads the shared one),
+    and land the deletion. Then grade da44381d2''s prediction (a timeout at 90-95%, no red) in its finding,
+    keeping the wrong figure beside the result. Before any land9, take the next setup lever the finding
+    names. Never raise GATE_TIMEOUT_SECONDS.'
+  why: Without MSC the post-s.12g book's 2022-24 P&L omits a real levy on won switches, in the years the
+    thesis is hardest, and the campaign patch (msc9) cannot land before it. The row is now the book's
+    only live hold, so leaving it unresolved costs every queued supplier grade. Done means sim-runner's
+    log shows the book admitted (MSC on origin with its sha in the row, or the row gone) and da44381d2
+    is graded.
+  written_at: 1795490907.594
 not_now:
-  - what: Deleting the MSC hold row now, so the book starts the moment s.12g ends whatever happens to MSC.
+  - what: A focus item to read s.12g arm A and decide the retention lever when it ends.
     why: >-
-      land8 and the book would then start together, and gating beside a book is what killed land2 to land5. One
-      sequenced attempt of about 75 minutes costs less than a contested attempt that fails anyway. Focus item 1
-      releases the hold on the first non-landed outcome, so the most the book can lose is that one attempt.
-  - what: Raising GATE_TIMEOUT_SECONDS to about 5,400 s, now that the ledger selection is measured green in 4,604 s.
+      It is the thesis's live test, and it is already queued exactly (continuation s12g-has-a-reader-when-it-ends,
+      held on A's member file). A focus item would hand the same read to a second writer. The 0.12-cut wrong row is
+      folded into that owner in wrong_triage.yaml.
+  - what: Flipping the first-term cap hold off now that its deletion is built (ee7d60bbd).
     why: >-
-      Green but slow is now a known fact, but a longer deadline on the money modules lengthens every lane's hold on
-      one serial gate, and the whole reason landings lose their race to origin is gate length. The finding names
-      the setups that spend the hour, so the cost can come out of the selection instead.
-  - what: Re-focusing the shared checkout, which is now 58 behind origin.
+      Its own pre-registration refuses the flip while the won term is contracted on an unquoted strike (focus 1), and
+      flipping it before B8's five grades would put two changes in the book those grades read.
+  - what: Advancing the shared checkout's 8 dirty code paths now.
     why: >-
-      f80cc5a46 names the three working copies that hold it. Two are superseded 6C drafts that age out on 24-25 Nov,
-      and the third is MSC's own source copy, which becomes a twin when MSC lands. The recheck is queued for
-      2026-11-25T06:30Z (shared-tree-advance-recheck-after-age-lines). Forcing it sooner would mean moving a live
-      lane's bytes.
-  - what: PB3_book_growth_as_earned_outcome, which db2f502b23 names as its NEXT.
+      They do not gate the book (it builds in /var/tmp/se-sim-runner-book). They are preserved byte-for-byte in
+      /var/tmp/se-msc-keep/shared-tree-20261124/, and most of them are the live MSC lane's. Advancing them under
+      land8 risks the landing that matters. The queued recheck at 25 Nov 06:30Z (shared-tree-advance-recheck-after-age-lines)
+      stays as it is.
+  - what: Landing the campaign-MSC patch (msc9) ahead of, or together with, MSC.
     why: >-
-      Book growth cannot be called an earned outcome while the wins are priced 10-18% under the market's cheapest
-      fix. The price gap is attributed first (focus 2), and PB3 then reads wins whose price means something.
-  - what: B7 home moves and W2_36 unbilled energy (both DRAWABLE, both on the billing-accuracy priority).
+      It is GBP 1,331.99 over 40 legs, and a second ledger change in a gate that does not yet fit one risks MSC. It
+      stays queued behind it (campaign-wins-pay-the-market-stabilisation-charge-lands).
+  - what: Raising GATE_TIMEOUT_SECONDS or the sim-runner memory budget so the book and land8 can run together.
     why: >-
-      Both are world-side and unblock no supplier result graded tonight. Both need a book to grade, and the gate's
-      quiet overnight hours are better spent on the supplier's price and P&L.
-  - what: Switching the conditioned renewal belief on before B8's five grades.
+      Gating beside a book is what killed land2 to land5. The order is now set and live, so speed comes from
+      resolving the row, not from overlapping the two.
+  - what: KNIFE3 wall-crossing paydown as a focus item (942 unchanged draws).
     why: >-
-      Its pre-registration gates it on the coming book (25 Nov). Flipping it early spends the blind holdout's
-      evidence.
-  - what: Reaping the 10 worktrees whose commits no remote ref keeps.
+      It is drawable and its i1-i5 grade is queued on the coming book. A slice now would add a world/company seam
+      change to a book that B8's grades must read clean.
+  - what: B7 home moves and W2_36 unbilled energy.
     why: >-
-      A reap cannot be undone, and losing se-msc-wt is exactly how MSC lost its tree on 23 Nov. Nothing is reaped
-      until MSC is on origin.
+      These are world-side, they need a book to grade, and the book is the scarce resource for the next day.
+  - what: Reaping the 11 worktrees whose commits no remote ref keeps.
+    why: >-
+      A reap cannot be undone. Nothing is reaped until MSC resolves and the s.12g trees have been read.
 wrong:
   - what: >-
+      THE SEAT'S OWN, NEW. My 21:22Z direction said the post-s.12g book would start once s.12g ended and MSC landed
+      or released its hold, and it put the shared-tree advance in not_now with a 25 Nov recheck. In fact
+      sim_runner.code_admission defers any book while the shared checkout's imports are not HEAD's bytes, and at
+      00:21Z 9 were not. Also, the MSC hold row I relied on is not in the shared copy that sim-runner reads (it is 67
+      behind). I steered the book's release through a gate that was not the one holding it, and I did not run the
+      admission probe before writing. Focus 1 now acts on the real gate. 03:23 24 Nov -- CORRECTED by the worker (37a2b7283): the gate that was
+      really failing was the hold row missing from the shared copy, and it is restored; sim-runner holds the book on
+      it now.
+    corrected: true
+  - what: >-
+      THE SEAT'S OWN, NEW. My 00:21Z focus 1 said 9 dirty shared imports deferred the book, and told the worker to
+      advance them before s.12g ended. They did not defer it: since b1c7d76b16 (22 Nov) sim-runner admits the book in
+      its own worktree, /var/tmp/se-sim-runner-book, which reads admitted. My probe read the shared root (root=None).
+      I corrected one wrong gate with another, again without running the daemon's own admission call. Lesson: ask
+      what the daemon calls, at the root it calls it with. The worker did not advance the trees, and preserved every
+      copy.
+    corrected: true
+  - what: >-
       THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333
-      on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 12:24 23 Nov -- measured on held-back
-      years (094429018): pooled 2019-2024 live 0.452, conditioned 0.857, paired lower bound +0.34. The company still
-      acts on the backwards belief. Not corrected until the conditioned belief is live (B8's gate, 25 Nov). 15:23 23
-      Nov -- unchanged; the pre-flight (6613986bc) now lets all five of B8's grades read. 18:23 23 Nov -- unchanged.
-      21:22 23 Nov -- unchanged; B8's switch-on is pre-registered and staged off (e23d5d3b6b).
+      on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 21:22 23 Nov -- unchanged; B8's
+      switch-on is pre-registered and staged off (e23d5d3b6b). 00:21 24 Nov -- unchanged, and B8's five grades now
+      wait on focus 1, because the book cannot start on the dirty shared imports. 03:23 24 Nov -- unchanged; the
+      five grades wait on the book, which waits on the MSC row (focus 2), not on the imports.
     corrected: false
   - what: >-
       THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median
-      same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 12:24 23 Nov --
-      unchanged; it needs a book. 15:23 23 Nov -- the triage recheck fell due; re-held to 26 Nov, with the reason in
-      wrong_triage.yaml. 18:23 23 Nov -- unchanged. 21:22 23 Nov -- unchanged.
+      same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 21:22 23 Nov --
+      unchanged. 00:21 24 Nov -- unchanged; the triage recheck is due 26 Nov. 03:23 24 Nov -- unchanged.
     corrected: false
   - what: >-
-      THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one,
-      so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account.
-      Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on
-      67d454905c -- 0.00 per domestic account-day; voids omit GBP 202.53 over ten years; a latent fix, off B12's
-      path. 12:24 23 Nov -- unchanged. 15:23 23 Nov -- unchanged. 18:23 23 Nov -- unchanged. 21:22 23 Nov -- unchanged.
+      THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one.
+      [Earlier tails are in decisions.jsonl.] RE-STATED 19 Nov on 67d454905c -- GBP 0.00 per domestic account-day;
+      voids omit GBP 202.53 over ten years; a latent fix, off B12's path. 00:21 24 Nov -- unchanged. 03:23 24 Nov -- unchanged.
     corrected: false
   - what: >-
       THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin.
       The advantage reads -GBP 0.33 (-1.77 to +0.96) on two draws over 785 households, and the cut was fitted on the
-      same pair. [Earlier tails are in decisions.jsonl.] 12:24 23 Nov -- unchanged; the twin child is 5h23m in. Not
-      corrected until s.12g publishes the advantage with its interval. 15:23 23 Nov -- the twin child is 8h21m in,
-      and A has not written. 18:23 23 Nov -- the twin child is 11h21m in at 10.6 GB, and both output directories are
-      empty. 21:22 23 Nov -- the twin has written its member and control files; arm A (pid 677395) is 2h47m in, ending
-      about 06:00Z; the reader s12g-has-a-reader-when-it-ends is held on A's file.
+      same pair. [Earlier tails are in decisions.jsonl.] 21:22 23 Nov -- the twin has written its files; arm A
+      (pid 677395) ends about 06:00Z. 00:21 24 Nov -- arm A is 5h49m in, and /var/tmp/vtn-out/A is still empty; the
+      reader is held on A's member file. 03:23 24 Nov -- arm A is 8h49m in, and the directory is still empty.
+      Folded into the value-arm triage row, owned by the s.12g reader.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The book that every queued supplier grade reads has not been built for 30 hours (since 20
-      Nov 15:39). [Earlier tails are in decisions.jsonl.] 12:24 23 Nov -- worse: about 69 hours, and about 18h to come.
-      15:23 23 Nov -- worse: about 72 hours, and about 15h to come. 18:23 23 Nov -- worse: about 75 hours, and about
-      12h to come. 21:22 23 Nov -- worse: about 78 hours, and about 9h to come plus MSC's one held attempt; focus 1
-      releases the hold on any outcome but a landing.
+      Nov 15:39). [Earlier tails are in decisions.jsonl.] 21:22 23 Nov -- about 78 hours. 00:21 24 Nov -- worse:
+      about 81 hours. It is now known that ending s.12g is not enough: 9 dirty imports in the shared checkout defer
+      it (focus 1). 03:23 24 Nov -- about 84 hours, and that cause was wrong: the book waits on memory until s.12g
+      ends, then on the MSC row (focus 2), and the hold file lapses at the end of 24 Nov regardless.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. Two declared long jobs and the book queued one behind another with nobody choosing the
-      order. From 16:26Z sim-runner deferred every book to the queued s.12g (2,100 minutes). 21:21 22 Nov -- the
-      seat chose book-first at 18:22Z, but s.12g was admitted at 19:32:32Z, before any worker drew that decision. So
-      the order was still made by whoever reached the queue first. 12:24 23 Nov -- the concern is withdrawn because
-      s.12g nearly finished, but the admission path is unchanged. 15:23 23 Nov -- unchanged. 18:23 23 Nov -- unchanged.
-      21:22 23 Nov -- unchanged; this time the order (MSC, then the book) was chosen by hand in next_book_requires.yaml
-      (d5a209bac), not by the admission path.
+      order. [Earlier tails are in decisions.jsonl.] 21:22 23 Nov -- the order (MSC, then the book) was chosen by hand
+      in next_book_requires.yaml (d5a209bac), not by the admission path. 00:21 24 Nov -- worse than stated: that hand
+      order is not even live, because sim-runner reads the shared copy, which lacks the row. 03:23 24 Nov -- the row is live in the shared
+      copy (00:43Z, 37a2b7283), so the hand order now holds. The class stays open: the order is still set by hand.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The reg 6C re-landing (longjob-land-reg-6c-erroneous-gains-2) was refused at 01:25Z, 3
-      seconds in, on a stale copy of simulation/run_phase2b.py. The refusal printed its remedy, and no lane ran it.
-      Its continuation waited on a file that only success writes, so a refused landing left its own follow-on held
-      with no owner. 12:24 23 Nov -- v4 again carries a hand-built end marker. Unchanged. 15:23 23 Nov -- land5 carries
-      another hand-built marker (/var/tmp/se-msc-land5-ended-20261123.txt). Unchanged; held in not_now until the checkout
-      catches up. 18:23 23 Nov -- unchanged; land5's and land6's hand-built markers both fired on failure. 21:22 23 Nov
-      -- unchanged; land7.sh carries an EXIT trap by hand again.
+      seconds in, on a stale copy of simulation/run_phase2b.py. Its continuation waited on a file that only success
+      writes. [Earlier tails are in decisions.jsonl.] 21:22 23 Nov -- land7.sh carries an EXIT trap by hand again.
+      00:21 24 Nov -- unchanged. 03:23 24 Nov -- unchanged.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z), but
-      their work reached origin: each was refused at promotion because origin had moved, and the retries left three
-      merges that authored nothing (f68028b7f, 755536805, 965a59053). This is a new instance of
-      a-landing-loses-its-race-to-origin. 06:20 23 Nov -- fixed on origin with a test (0b4d8ae59), but NOT LIVE.
-      12:24 23 Nov -- worse: 31 behind, and 8 more empty merges. 15:23 23 Nov -- 39 behind, and 3 more empty merges;
-      the reconciler fix is landing (pid 2960194). 18:23 23 Nov -- the reconciler fix landed (b0b05661f), but the checkout
-      is 42 behind, and the closed-account landing lost its promotion race again (to a2d8c2888). 21:22 23 Nov -- worse:
-      58 behind, 5 more empty seat merges this stretch, and two more executor landings DIED at exit 2 (19:06Z, 20:15Z)
-      before 1d1059350 reached origin.
+      their work reached origin. This is a new instance of a-landing-loses-its-race-to-origin. [Earlier tails are in
+      decisions.jsonl.] 21:22 23 Nov -- 58 behind. 00:21 24 Nov -- worse: 67 behind, and land-se-seat-executor-1795472056
+      DIED at 22:14Z (status 1) while its successor -1795472093 succeeded. 03:23 24 Nov -- unchanged; 69 behind.
     corrected: false
   - what: >-
-      THE MACHINE'S, NEW. The MSC replacement-win landing's gate timed out at 3600 s (land-msc-replacement-win, 04:55Z to
-      05:56Z) while other gates ran beside it. 12:24 23 Nov -- v2 and v3 both died on the timeout; v3 reached 88% with
-      no red. 15:23 23 Nov -- the flock is on origin (7c03dfda0) but is not live in the shared checkout. The real cause
-      was partly that origin was red on its own (reds 1-4 in 52dba1ade's finding): reds 1 and 2 are fixed, red 3 rides
-      land5, and red 4 is focus item 2. Not corrected until land5 lands or fails on a named red. 18:23 23 Nov -- worse:
-      land5 died on the same timeout at 88% (16:31Z), from a worktree detached at origin, so with the flock live. Concurrency
-      was not the whole cause. Red 4 is fixed (8a9e5ecea). 21:22 23 Nov -- the cause is measured (da44381d2): the
-      selection runs green in 4,604 s serial, and five whole-run setups take 3,897 s of it. msc8 removes phase4c's
-      repeat (about 950 s), and the written prediction is still a timeout.
+      THE MACHINE'S, NEW. The MSC replacement-win landing's gate timed out at 3600 s (land-msc-replacement-win, 04:55Z
+      to 05:56Z) while other gates ran beside it. [Earlier tails are in decisions.jsonl.] 21:22 23 Nov -- the cause is
+      measured (da44381d2): green in 4,604 s serial, five whole-run setups take 3,897 s; msc8 removes phase4c's
+      repeat, and the written prediction is still a timeout. 00:21 24 Nov -- unchanged; land8 waits on s.12g. 03:23 24 Nov -- unchanged (focus 2 grades it).
     corrected: false
   - what: >-
-      THE MACHINE'S, NEW. 7527a2e36 reached origin with test_collections_journey.py red on the live Consent offer
-      (773e2d9ba), so origin itself refused the next landing on that path. Either a landing's gate passed while
-      origin was red on a test in its own path, or the red came from the merge with what moved under it. Which of
-      the two has not been established. 10:47 23 Nov -- the red itself is gone (017382851, on origin via 56d118ffc).
-      15:23 23 Nov -- unchanged. The 52dba1ade run found four more tests red at origin alone, so this is now a class:
-      origin carries reds that no landing's gate caught. 18:23 23 Nov -- red 4 is fixed (8a9e5ecea) and red 3 rides
-      MSC, but how a red reaches origin past a gate is still unexplained. 21:22 23 Nov -- unchanged.
+      THE MACHINE'S, NEW. 7527a2e36 reached origin with test_collections_journey.py red on the live Consent offer, so
+      origin itself refused the next landing on that path. [Earlier tails are in decisions.jsonl.] 21:22 23 Nov --
+      how a red reaches origin past a gate is still unexplained. 00:21 24 Nov -- unchanged. 03:23 24 Nov -- unchanged.
     corrected: false
   - what: >-
-      THE COMPANY'S, NEW. The collections desk opened a debt journey for a household that had left (ACC-SYN-2016-005,
-      closed June 2016) and offered it a prepayment meter by Consent on 2016-10-26, at a premise the company no longer
-      supplied (813c99cca). Nothing on the Consent path asks whether the account is still supplied. 12:24 23 Nov --
-      the fix is built but not landed. 15:23 23 Nov -- refused three times on the same three controls, which were
-      keyed to the leaver's offer. Focus item 1 re-keys them. 18:23 23 Nov -- with the controls re-keyed it passed its
-      gate (9423d3dc5) and is re-gating after losing the promotion race. Not yet on origin. 19:50 23 Nov --
-      corrected: on origin as 1d1059350 (receipt verified, gate-rc 0); finding closed with that sha (4eb4bdd67).
-    corrected: true
-  - what: >-
-      THE SEAT'S OWN, NEW. My 12:24Z direction named MSC's "1,074-file selection" as the gate's selection, and a worker
-      designed, built and refuted a sharded gate against it (e554e8deb). That selection is select_impacted_tests',
-      which no gate calls. The hook's selection is 181 files. I copied the figure from 52dba1ade without asking which
-      selector produced it. The correction is landing (land-msc-gate-finding-correction). 18:23 23 Nov -- that landing
-      was refused at 15:22Z with "already at HEAD", so nothing landed, and the finding on origin still reads 1,074. It
-      now rides focus item 1. 21:22 23 Nov -- corrected on origin by 0eb14fbd9, with the wrong figure kept beside it.
-    corrected: true
-  - what: >-
-      THE MACHINE'S, NEW. The closed-account landing was relaunched at 14:35Z unchanged after two refusals on the same
-      three reds (11:55Z, 14:26Z), and it was refused a third time. The register still lists it as live while its log
-      reads REFUSED. A refusal that names its reds was retried without anyone reading them. 18:23 23 Nov -- it happened
-      again: the 16:34Z attempt (1795451681) was refused a fourth time on the same three reds. Only the 17:18Z attempt
-      carried the re-keyed controls. 21:22 23 Nov -- the instance is over (1d1059350), but nothing stops an unchanged
-      relaunch after a named refusal; still open as a class.
+      THE MACHINE'S, NEW. The closed-account landing was relaunched at 14:35Z unchanged after two refusals on the
+      same three reds, and it was refused a third time. [Earlier tails are in decisions.jsonl.] 21:22 23 Nov -- the
+      instance is over (1d1059350), but nothing stops an unchanged relaunch after a named refusal; still open as a
+      class. 00:21 24 Nov -- unchanged. 03:23 24 Nov -- unchanged.
     corrected: false
   - what: >-
-      THE SEAT'S OWN, NEW. Focus item the-shared-checkout-runs-the-promotion-fix-origin-already-has was retired at
-      15:31Z when its fix landed on origin (b0b05661f). Its done-means was HEAD equal to origin/main, and that never
-      held: the checkout went from 39 behind to 42. I wrote a done-means the tombstone did not read, so the item was
-      retired on its landing rather than its effect. Re-focused this stretch as the-shared-checkout-actually-reaches-origin.
-      21:22 23 Nov -- corrected: the re-focused item was retired at 20:50Z on the alternative its done-means named, a
-      filed finding naming the bytes that block the advance and whose they are (f80cc5a46), not on a landing.
-    corrected: true
-  - what: >-
-      THE MACHINE'S, NEW. The MSC chain's worktree, /var/tmp/se-msc-wt, was removed while the chain still depended on
-      it. land6 died in under a second (cd failed, exit 2), and the MSC work now survives only as /tmp/msc_land/msc6.patch,
-      in /tmp, and as salvage ae573846b1. Which lane or reaper removed it has not been established. 21:22 23 Nov -- the
-      work is now durable (/var/tmp/se-msc-keep, msc6 to msc8). Who removed the tree is still not established, and
-      land6.sh was then overwritten by a tick that took its name as free.
+      THE MACHINE'S, NEW. The MSC chain's worktree, /var/tmp/se-msc-wt, was removed while the chain still depended
+      on it. [Earlier tails are in decisions.jsonl.] 21:22 23 Nov -- the work is durable (/var/tmp/se-msc-keep);
+      who removed the tree is not established. 00:21 24 Nov -- unchanged. 03:23 24 Nov -- unchanged.
     corrected: false
-  - what: >-
-      THE MACHINE'S, NEW. 059b3632e published that a six-month ladder prices the market's cheapest fix "within 3.2%"
-      in 2023-07 to 2024-07. The probe had passed segment "domestic", which falls through to the SME network table (75
-      against 42.4 GBP/MWh in 2023-07). At the residential cost, the ladder sits 10-18% under the cheapest fix.
-      Corrected beside the claim on the knowledge page by db2f502b23, 23 minutes later. The 25-40 GBP/MWh that remains
-      is focus item 2.
-    corrected: true
 for_the_director: []

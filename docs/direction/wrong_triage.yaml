@@ -815,7 +815,8 @@ items:
   # 2026-11-18 15:21Z orientation: the value-arm row given its one fate ahead of its 24 Nov line.
   - id: the-value-arm-loses-to-the-flat-book-on-the-better-belief
     problem: "With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year where the flat book gains GBP 0.14, so the advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13)."
-    match: ["the per-customer value arm loses GBP 1.21 per"]
+    # 2026-11-24 03:2xZ orientation: the 0.12-cut row (first listed 20 Nov) is the same problem on the next lever, folded into this one fate ahead of its 27 Nov line. Owner now: continuation s12g-has-a-reader-when-it-ends.
+    match: ["the per-customer value arm loses GBP 1.21 per", "With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin"]
     first_seen: "2026-11-17"
     fate: fix
     status: open
