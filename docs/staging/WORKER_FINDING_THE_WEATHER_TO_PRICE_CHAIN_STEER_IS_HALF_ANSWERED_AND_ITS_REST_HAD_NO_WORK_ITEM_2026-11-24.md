@@ -666,3 +666,18 @@ will re-fire the hold, so the next re-arm should move the file aside itself.
   would produce futures DESNZ does not model. That pairing is the director's.
 - **Next:** one `for_the_director` row proposing the three missing `forward_years.json` bands (ND, net flow,
   carbon), with a recommendation for each.
+
+## Progress, 24 Nov (worker, item 4: K8 on the neighbour shortfall)
+
+- **Electricity page §5b** defines a neighbour shortfall (GB's monthly net flow with France at or below zero),
+  measures it on the world's own FUELHH cache (annual totals reconcile with DUKES 5.13 to within 0.6 TWh), and
+  counts 16 of 120 months in five runs: Oct 2016-Jan 2017, Nov 2017, Jul 2020, Nov-Dec 2021 and Apr-Nov 2022.
+  Two are dated to the French nuclear fleet (the 2016 Le Creusot checks; 2022's 279 TWh at 54% availability,
+  RTE). Nov 2017 and Jul 2020 are counted and not attributed. **Nothing in `sim/` changed.**
+- **For forward years.** The FES annual level cannot carry an event, and leaving it out asserts none in any year
+  (K2) where the record shows runs in five of ten. The page names three ways to carry it and builds none. Whether
+  forward years draw such an event is the director's curriculum, beside the bands in row
+  `the-forward-world-has-bands-for-gas`.
+- **Next, still item 4:** (1) read the chain's pre-crisis residual in Oct 2016-Jan 2017 for the event (page GAP
+  13c), with a prediction filed first; (2) R's 2025 residual against the AGWS windows finding. The record-years
+  build is carried by the SAP splice finding, and its placement in the switch order is the seat's.

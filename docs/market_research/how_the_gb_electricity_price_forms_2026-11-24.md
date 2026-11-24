@@ -491,6 +491,86 @@ section sources it. It sets no forward number.*
   seasonal or hourly flow shape, by link. (11c) Which of the Window 3 and pilot-OHA links reach final investment
   decision. Each is named, and none is filled with a number.
 
+## 5b. A neighbour's shortfall: what it is, how often the record shows one, and why a forward annual level cannot carry it
+
+- **What it is, said before it is counted.** A *neighbour shortfall* here means one thing: GB's net flow with
+  **France** (IFA, IFA2 and ElecLink together) runs at or below zero for a calendar-month mean, so GB is not
+  importing from the neighbour it imports from most. France is the one named because it is GB's largest import
+  source in every year but 2022 (§5) and because French supply is mostly nuclear, so its shortfalls have a
+  physical cause that can be dated. It is not a GB scarcity measure, and it is not a price measure. A month
+  that meets it is a month in which a usually cheap block of GB supply (about 1-3 GW of import) is absent or
+  reversed into demand.
+- **The measure** [calc, from the world's own FUELHH cache `sim/cache/elexon_fuelhh_carbon_relevant.json`,
+  fuel types INTFR + INTIFA2 + INTELEC, last row wins per half hour and cable, Elexon's sign: + is import].
+  Annual totals reconcile with DUKES 5.13's France column to within 0.6 TWh in every year (FUELHH: 9.9, 7.8,
+  12.9, 11.1, 8.7, 13.6, −10.0, 12.9, 19.4, 21.9 TWh for 2016-2025). Monthly mean net import, GW:
+
+  | Year | Jan | Feb | Mar | Apr | May | Jun | Jul | Aug | Sep | Oct | Nov | Dec |
+  |---|---|---|---|---|---|---|---|---|---|---|---|---|
+  | 2016 | 1.54 | 1.93 | 1.95 | 1.55 | 1.81 | 1.69 | 1.49 | 1.44 | 0.66 | **−0.16** | **−0.11** | **−0.21** |
+  | 2017 | **−0.61** | 0.58 | 1.76 | 1.81 | 1.62 | 1.22 | 1.59 | 1.59 | 1.12 | 0.21 | **−0.56** | 0.35 |
+  | 2018 | 1.91 | 1.58 | 1.42 | 1.42 | 1.73 | 1.47 | 1.74 | 1.53 | 1.21 | 1.00 | 0.97 | 1.65 |
+  | 2019 | 1.29 | 1.83 | 1.84 | 0.89 | 1.52 | 1.17 | 1.29 | 1.20 | 1.06 | 0.75 | 1.23 | 1.22 |
+  | 2020 | 1.01 | 1.58 | 1.66 | 1.30 | 1.16 | 0.68 | **−0.34** | 0.87 | 0.23 | 1.21 | 1.36 | 1.22 |
+  | 2021 | 1.80 | 2.00 | 1.95 | 1.54 | 2.29 | 2.39 | 2.53 | 2.51 | 1.52 | 0.59 | **−0.19** | **−0.21** |
+  | 2022 | 0.07 | 0.31 | 0.01 | **−0.87** | **−1.59** | **−2.17** | **−2.42** | **−1.53** | **−2.07** | **−1.75** | **−1.92** | 0.31 |
+  | 2023 | 0.93 | 1.24 | 1.71 | 1.45 | 2.99 | 1.86 | 0.86 | 1.14 | 0.99 | 1.49 | 1.83 | 1.11 |
+  | 2024 | 1.23 | 2.26 | 3.13 | 2.68 | 2.94 | 3.19 | 3.11 | 2.27 | 1.83 | 1.15 | 1.66 | 1.14 |
+  | 2025 | 1.44 | 1.60 | 3.30 | 2.88 | 2.66 | 2.08 | 3.14 | 3.34 | 2.66 | 1.99 | 2.16 | 2.72 |
+
+- **What the table says.** 16 of 120 months meet the definition, in five runs: Oct 2016-Jan 2017 (4), Nov 2017
+  (1), Jul 2020 (1), Nov-Dec 2021 (2) and Apr-Nov 2022 (8). If the near-zero Jan and Mar 2022 (0.07, 0.01 GW)
+  are read as the same event, Nov 2021-Nov 2022 is one thirteen-month episode with a one-month break. Four of
+  five runs start in October or November. 2022 is the only one that runs through a summer, and it is the only
+  one large enough to turn GB's annual France balance negative. 2018-2019 and 2023-2025 have none.
+- **Two of the five runs have a dated physical cause, both on the French nuclear fleet.**
+  - **Autumn 2016.** The French safety authority (ASN) required checks on steam-generator channel heads made at
+    Le Creusot and JCFC after a carbon-segregation anomaly. About 20 reactors were offline in late October 2016,
+    some held into 2017. French forward baseload for 2017 hit a contract high on 27 Oct 2016, and ICIS reported
+    GB turning to net export to France at peak in early November [press: ICIS 26 Oct, 3 Nov and 29 Dec 2016;
+    POWER magazine; ASN annual report 2016].
+  - **2021-2022.** Stress-corrosion cracking found on safety-injection pipework (Civaux, late 2021), on top of
+    maintenance deferred by Covid. French nuclear output in 2022 was **279.0 TWh**, the lowest since 1988, at a
+    fleet availability of **54%** against 73% on average in 2015-2019, and France was a net importer
+    (16.5 TWh) for the first time since 1980 (RTE, *Bilan électrique 2022*, Feb 2023). Output recovered to
+    361.7 TWh in 2024 (RTE, *Bilan électrique 2024*), and France's net export was a record 89 TWh in 2024 and
+    92.3 TWh in 2025 [press, quoting RTE's 2025 bilan; not re-read].
+  - **Nov 2017 and Jul 2020 are not attributed here.** Both are single months. A cold French November and low
+    summer nuclear availability in the Covid year are candidate causes, and neither has been checked. They are
+    counted, and their cause is a GAP.
+- **Mechanism, for the price.** France's price is set by French nuclear availability against French demand,
+  which is strongly temperature-driven in winter because of electric heating. When French nuclear is short,
+  France's price rises above GB's, flow reverses (§5), and GB loses an import block and gains an export load.
+  GB's residual demand on gas rises by the swing (about 2-4 GW in 2022 against the 2018-19 months [calc]), so gas runs
+  harder and sits on the margin more often. On the record this is the term that carries 2022's markup on SAP
+  (`c2f65d9e92`) and the seasonal shape the price leg needs in the crisis (the net-export timescale arm: 92%
+  month-to-month). The leave-one-year-out profile arm carried none of it (`781ad788be`), because the shape is the
+  event and not a GB season.
+- **Why a forward annual level cannot carry it.** §5a's candidate forward term is the FES annual net-flow level.
+  An annual level averages a shortfall into a slightly smaller import year, so a 2022-type event moves the
+  forward price's level a little and its months not at all. On the record, the part that is lost is about
+  £2.6/MWh of crisis monthly MAE on the chain's price leg (net-export timescale arm). Leaving the event out
+  asserts that no neighbour shortfall happens in any forward year (K2), and the record shows runs in five of
+  ten years.
+- **Three ways a forward year could carry it, none chosen here.**
+  1. **A drawn event.** A forward year draws whether a French shortfall happens, its start month and its length
+     from the record's frequency (five runs in ten years, one of them large), and imposes the record's swing
+     on the annual level's within-year shape. This is the smallest build. Its risk is that ten years is one
+     large event, so its size is a single observation.
+  2. **A French availability input.** A forward French nuclear availability path (EDF publishes an annual
+     output guidance range, and RTE an adequacy outlook) drives the flow through a spread. This needs the
+     continental price §5a option 2 already rules out of scope.
+  3. **State it beside the figure.** Every forward figure carries the sentence that a 2022-type neighbour
+     shortfall is outside it, and its record-scale size. This is what the forward years do today.
+- **Choice this section makes.** None is built. Option 3 is the standing state, and it is honest. Option 1 is
+  the candidate if the director wants forward years to be able to defeat the company through a neighbour (the
+  coupled-triad requirement that the world can press back). Whether forward years draw such an event, and how
+  often, is a curriculum choice and the director's, like the forward bands in §2a, §5a and §8a.
+- **GAP.** (13a) The causes of the Nov 2017 and Jul 2020 runs. (13b) French nuclear output by month 2016-2025
+  from RTE eco2mix or EDF, so that a run is matched to an availability series rather than to press dates.
+  (13c) Whether a run moved GB's power price against SAP in the pre-crisis years. The chain's pre-crisis
+  residual in Oct 2016-Jan 2017 has not been read for it. (13d) EDF's forward output guidance by year.
+
 ## 6. Wind and solar: what moves residual demand
 
 - **Size.** Renewables were 24.5% of generation in 2016 and 50.4% in 2024 (DUKES via the 2026-07-24
@@ -800,3 +880,5 @@ Fifteen of twenty-two predictions held. The seven misses stay beside the outcome
     and which approved links reach FID.
 12. Forward carbon (§2a): CPS after 31 Mar 2028, a UK-EU linking path and date, and the CPI path that puts the
     DESNZ band (real 2025) on the gas band's real-2024 base.
+13. A neighbour's shortfall (§5b): the causes of the Nov 2017 and Jul 2020 runs, French nuclear output by
+    month, whether the pre-crisis runs moved GB power against SAP, and EDF's forward output guidance.
