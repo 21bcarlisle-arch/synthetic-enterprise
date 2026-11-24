@@ -269,10 +269,30 @@ section covers the years after it.*
     the rule "for future CfD contracts" only, so contracts already signed keep the six-hour rule. Its
     reason: the old rule "encourages CfD generators to keep generating during these periods of low
     demand and also facilitates negative bidding into the balancing mechanism".
-  - **Not read (narrowed GAP).** The AR1 (2014) terms and the investment contracts. Modo Energy
-    [press] says AR1 keeps the difference in every negative hour, and BEIS's "current rule" does not
-    say which rounds it covers. Also not read: the AR4, AR5 and AR7 terms. That they carry AR6's
-    one-hour wording follows from the 2020 decision [inference], not from their text.
+  - **AR1 (DECC, *CFD Standard Terms and Conditions*, Version 1, 29 Aug 2014, Part 5B; read 24 Nov
+    from the PDF).** No negative-price rule. The Intermittent Difference Amount is "Difference × MAX
+    (MIN (Qt × ht × TLMt , Mt ),0 )", with no proviso, and the text holds no "negative price" or
+    "consecutive" hours wording. The gov.uk page says these terms "will be used in the first CFD
+    Allocation Round". So an AR1 unit keeps its difference in every negative hour, which agrees with
+    Modo [press].
+  - **The six-hour rule's first text (DECC, *CFD Standard Terms and Conditions*, draft of 26 Oct 2015,
+    published as the December 2015 update; read 24 Nov).** Part 5B adds the proviso "in respect of any
+    and all Settlement Units which form part of an Intermittent Rolling Negative Price Period, the
+    Intermittent Difference Amount shall be zero (0)". The defined period is "a period of six (6) or
+    more consecutive Settlement Units (irrespective of whether or not such Settlement Units fall within
+    the same Billing Period) in repect [sic] of which the Intermittent Market Reference Price is negative
+    (that is, less than £0/MWh)". Baseload units (Part 5A) lose theirs over "twelve (12) or more
+    consecutive Settlement Units" whose six hour-long IMRP periods are negative. The February 2017
+    draft (tracked against August 2014) keeps both clauses. So the "current rule" that BEIS's 2020
+    response describes covers the rounds signed on the 2015-2017 terms (AR2-AR3) [inference from the
+    dates; the AR2/AR3 contracts' own term versions were not read].
+  - **Not read (narrowed GAP).** The FID-enabling investment contracts (gov.uk's page for them returns
+    404), and the AR4, AR5 and AR7 terms. That AR4-AR7 carry AR6's one-hour wording follows from the
+    2020 decision [inference], not from their text.
+  **So a forward levy carries three rules by vintage:** AR1 is paid in every hour, AR2-AR3 are zeroed only
+  inside six-hour negative runs, and AR4 onwards are zeroed in any negative hour. The 2027-29 tranche
+  mixes them: the fleet page has AR3 and AR4 offshore phases starting then, so a forward levy applies
+  the rule per unit by round, never one rule to the tranche.
   So older CfD plant still bids below zero in short negative runs, and plant from AR4 on has a reason
   to stop at zero. **For the world:** the rule is tested on the hourly day-ahead price. The world
   settles at the half-hourly imbalance price, which goes negative far more often (§10). Testing the
@@ -894,7 +914,8 @@ Fifteen of twenty-two predictions held. The seven misses stay beside the outcome
 2. Hourly GB-continent price spreads and flows by link, 2016-2025, and the size of the post-2021
    explicit-allocation loss (§5).
 3. ~~The CfD Standard Terms' negative-price clauses by round (§3).~~ Read 24 Nov for AR6 and for the pre-AR4
-   six-hour rule. Still open: the AR1 and investment-contract terms, and the AR4/AR5/AR7 texts (§3). ~~LCCC's reconciliation amounts for
+   six-hour rule; AR1 (Aug 2014, no rule) and the six-hour rule's first text (Oct 2015) read the same day.
+   Still open: the investment-contract terms, and the AR4/AR5/AR7 texts (§3). ~~LCCC's reconciliation amounts for
    2021-23~~ are held, as daily payments per unit and reconciled levy rates from the LCCC Data Portal (24 Nov).
    Still open for item 5: the forward CfD fleet (`cfd-contract-portfolio-status`, `forecast-cfd-generation`,
    not yet read).

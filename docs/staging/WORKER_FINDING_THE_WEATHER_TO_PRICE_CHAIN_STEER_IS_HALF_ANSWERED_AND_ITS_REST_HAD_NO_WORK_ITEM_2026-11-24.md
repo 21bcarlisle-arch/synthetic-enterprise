@@ -804,3 +804,20 @@ will re-fire the hold, so the next re-arm should move the file aside itself.
 - **What is left of 1-6:** item 4's build (carried by the SAP splice finding). For item 5: GAP 2a, AR1's
   rule, hour matching and the six-hour-run count against the auction (GAP 3, both need the auction's hourly
   series), and the forward levy, which waits on the director's bands row and the forward price.
+
+## Progress, 24 Nov (worker, item 5: AR1's negative-hour rule, read)
+
+- **Operational-layer draw first.** The forced re-run came back GREEN at 23:04Z (rc 0, nothing blocked).
+  Every file in the 4-hour "collection interrupted" list imports and collects cleanly at HEAD, and no
+  shared module changed in that window. The interrupt was transient, not a broken import.
+- **AR1 has no negative-price rule (primary text).** The *CFD Standard Terms and Conditions* v1 (29 Aug 2014),
+  Part 5B: "Intermittent Difference Amount = Difference × MAX (MIN (Qt × ht × TLMt , Mt ),0 )", with no
+  proviso. Modo's [press] claim holds.
+- **The six-hour rule first appears in the 26 Oct 2015 draft** (the December 2015 update): an "Intermittent
+  Rolling Negative Price Period" of "six (6) or more consecutive Settlement Units", with Baseload at twelve.
+  It is kept in Feb 2017. Electricity page §3 and §13 are updated.
+- **For the levy build:** three rules by vintage (AR1 every hour, AR2-AR3 six-hour runs, AR4+ any hour). The
+  2027-29 tranche mixes AR3 and AR4, so the rule is applied per unit by round.
+- **What is left of 1-6:** item 4's build (carried by `worker-finding-the-sap-splice-was-decided-...`). For item 5:
+  GAP 2a, the investment-contract terms (gov.uk page 404), the auction's hourly series (hour matching and the
+  six-hour-run count), and the forward levy, which waits on the director's bands row and the forward price.
