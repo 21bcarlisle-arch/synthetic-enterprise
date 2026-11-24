@@ -337,3 +337,16 @@ close it.
   is pre-registered in
   `docs/staging/records/WORKER_PREREG_IS_THE_CHAINS_POST_CRISIS_MISS_IN_ITS_PRICE_LEG_OR_IN_HOW_MUCH_GAS_IT_RUNS_2026-11-24.md`
   (probe sha256 `3cee2860…`), landed before it runs.
+
+## Progress, 24 Nov (worker, item 4: the separating arm on the record)
+
+- **Result** in `docs/staging/records/WORKER_RESULT_BOTH_LEGS_CARRY_THE_CHAINS_POST_CRISIS_MISS_ITS_RESIDUAL_NEVER_RUNS_GAS_LOW_AND_ITS_PRICE_LEG_HAS_NO_LOW_GAS_DAYS_TO_LEARN_FROM_2026-11-24.md`.
+  It was pre-registered in `4f9e788e7` and promoted before the run. Four of six predictions held.
+- **Given real gas running, a floor multiple fitted on 2016-21 beats every comparator in every regime.**
+  Monthly MAE is 3.06 / 9.44 / 6.97, against X's 4.89 / 17.02 / 10.38. Its post-crisis bias of +6.16 sits
+  mostly on the 241 days under 6 GW, which the pre-crisis record barely contains.
+- **The chain's own residual never runs gas below 6 GW**, in any regime. After the crisis it overstates gas
+  running by 3.1 GW, and the composite's post bias is +11.75. This is the larger term.
+- **The filed rule fires (b)**, on a £0.16 bias miss. The shape arm returns, second. First is an arm on gas
+  running from residual demand: nuclear by year and storage in x, with K8 first on embedded generation and
+  batteries.
