@@ -17,19 +17,19 @@ independent draw -- the single reason a naive sim under-prices winter risk.
 R13 BASELINE (blind to company P&L). Every relationship here is fit to the REAL
 2016-2025 record (Elexon INDO demand, AGWS wind/solar generation, Open-Meteo
 weather), decided for fidelity-to-reality only, never tuned because company
-results look a certain way. The price engine's constants are `sim/price_engine.py`'s
-own already-landed calibration, imported unchanged. This module ADDS the two
-front links; it does not retune the engine (R12/R13 wall).
+results look a certain way. `sim/price_engine.py`'s constants are unchanged; the
+chain refits the same form on the same window with carbon in its floor
+(`fit_price_leg`) and passes those coefficients, so no other engine caller moves.
 
 THE THREE FITTED LINKS (all closed-form, deterministic -- C-S2 replay):
   1. DEMAND ~ WEATHER: national demand = base + b_hdd * HDD + b_cdd * CDD, the
      standard degree-day form (HDD = max(0, T_heat - T), CDD = max(0, T - T_cool)).
      OLS on real (Open-Meteo national temperature, Elexon INDO demand). Convex in
      cold -> the heating plateau (D4). R^2 ~ 0.55.
-  2. WIND OUTPUT ~ WIND SPEED: fleet_wind_mw * power_curve(wind_speed), the
-     idealised turbine curve `sim/price_engine.wind_power_output_fraction`
-     (cubic ramp, D5), the fleet scale MEAN-MATCHED to real AGWS wind generation.
-     Low speed -> near-zero output (the still tail).
+  2. WIND OUTPUT ~ WIND SPEED: fleet_wind_mw * fleet_wind_fraction(wind_speed), the
+     turbine curve convolved with a fitted Gaussian on a transferred speed (the
+     fleet-aggregate curve, `fit_fleet_curve`, K8 electricity page s.6a), held flat
+     from its in-record maximum; the fleet scale MEAN-MATCHED to real AGWS wind.
   3. SOLAR OUTPUT ~ SEASON x CLOUD: fleet_solar_mw * clear_sky(doy) * (1 - cloud),
      a seasonal clear-sky envelope attenuated by cloud, mean-matched to real AGWS
      solar. A named SIMPLIFICATION (R10): a seasonal+cloud proxy, not a fitted
@@ -50,16 +50,16 @@ R10 SIMPLIFICATIONS (registered, not hidden):
   * SOLAR is a seasonal x cloud proxy, not a fitted irradiance/PV model.
   * DEMAND is temperature-only (degree-day); no explicit daylight/working-day
     term (weekday/holiday load structure is out of this atom's L3 scope).
-  * WIND fleet is a single MEAN-MATCHED scalar over the whole window BY DEFAULT --
-    the real fleet ~ doubled 2016-2025. W1_7 (`sim/renewable_capacity_trend.py`)
-    layers a per-year time-varying fleet on top, reachable per-call (`year=` on
-    `derive_price`/`wind_output_from_speed`/`solar_output_from_weather`) and as a
-    whole-record diagnostic (`derive_price_on_record(year_aware=True)`,
-    `chain_vs_real_ssp_mae(year_aware=True)`) -- but the DEFAULT stays the
-    whole-window scalar everywhere (this default flip is an explicit L2 step,
-    gated on re-running the SSP calibration below, W1_7 FRAME §9 task 7).
-  * CARBON term left at the engine default (0.0) -- see sim/price_engine.py's own
-    R10 note; adding a real UK-ETS series is future work, out of scope here.
+  * WIND fleet: on the record, each day takes its own year's fleet (W1_7,
+    `renewable_capacity_trend.capacity_wind`, matched on the same curve); a call
+    without `year` takes the whole-window scalar. A forward year holds the last
+    full year's fleet flat: a capacity path is owed (GAP), never a matched output.
+  * CARBON: CPS + the allowance price by month (`merit_order_reconstruction.
+    carbon_price_in_month_gbp_per_tonne`) is passed, and the price leg's A0-A2 are
+    refitted with it in the floor (`fit_price_leg`); the two ship together, since
+    either alone double counts or drops carbon. Forward carbon is the curriculum's.
+  * GAS is the monthly TTF proxy (flat within a month); the daily SAP swap is its
+    own one-variable arm (area map C2), not bundled here.
   * NEGATIVE/DISCRETE price structure is the engine's (smooth, can go negative in
     oversupply); no discrete stack is modelled (W1_6 FRAME 3.3).
 
@@ -122,8 +122,11 @@ def load_daily_record() -> Dict[str, np.ndarray]:
     weather, Elexon demand/generation/price, NBP gas) -- the anti-marking-own-
     homework rule (generator anchors != validator anchors). Cached (parses the
     large AGWS/SSP caches once)."""
-    from sim.generation_demand_history import aggregate_renewable_generation, aggregate_wind_generation
     from sim.gas_prices_history import load_nbp_history
+    from sim.generation_demand_history import (
+        aggregate_renewable_generation,
+        aggregate_wind_generation,
+    )
 
     def _load(name):
         return json.loads((_CACHE / name).read_text())
@@ -191,6 +194,176 @@ def _solar_envelope(day_of_year, cloud_pct) -> np.ndarray:
     return clear * (1.0 - np.asarray(cloud_pct, float) / 100.0)
 
 
+# ---------------------------------------------------------------------------
+# The fleet-aggregate power curve (K8: how_the_gb_electricity_price_forms §6a)
+# ---------------------------------------------------------------------------
+# One turbine's curve on a town 10 m daily mean is not a fleet: it gives zero below 3 m/s and
+# 13x its mean at 10 m/s, and it moved the chain's wind 2.2-3.8x the real fleet's MW per m/s
+# (64fd7f5f8). Staffell & Pfenninger (2016, Energy 114) model a fleet as the turbine curve
+# convolved with a Gaussian, on a corrected speed w' = a*w + b. Here (a, b, sigma) are fitted
+# on 2016-2019 only, against AGWS wind normalised by its own calendar-year mean, so the fit sees
+# shape and never level (4413f635ab, where this arm was pre-registered and run).
+_CURVE_FIT_WINDOW = ("2016-01-01", "2019-12-31")
+_GH_X, _GH_W = np.polynomial.hermite_e.hermegauss(41)
+_GH_W = _GH_W / _GH_W.sum()
+_CURVE_GRID = np.linspace(-15.0, 45.0, 6001)
+_CURVE_P = np.array([wind_power_output_fraction(float(v)) for v in _CURVE_GRID])
+
+
+@dataclass(frozen=True)
+class FleetCurve:
+    """The fitted aggregate curve, and where it is held flat."""
+
+    a: float
+    b_ms: float
+    sigma_ms: float
+    # Above about 10 m/s the fitted curve falls, because the transfer takes a 12 m/s town day
+    # past the turbine's 25 m/s cut-out. The record has 2 days in 3,337 above 10 m/s, so the
+    # fall is unconstrained by data: the curve is held at its maximum over the record's range.
+    hold_from_ms: float
+    hold_fraction: float
+    corr_single: float
+    corr_aggregate: float
+    n_fit_days: int
+
+
+def _aggregate_unheld(wind_speed_ms, a: float, b: float, sigma: float) -> np.ndarray:
+    v = (a * np.atleast_1d(np.asarray(wind_speed_ms, float))[:, None] + b) + sigma * _GH_X[None, :]
+    return (np.interp(v, _CURVE_GRID, _CURVE_P) * _GH_W[None, :]).sum(axis=1)
+
+
+def _normalise_by_year(values: np.ndarray, years: np.ndarray) -> np.ndarray:
+    out = np.empty_like(values)
+    for y in np.unique(years):
+        m = years == y
+        out[m] = values[m] / values[m].mean()
+    return out
+
+
+@lru_cache(maxsize=1)
+def fit_fleet_curve() -> FleetCurve:
+    """Fit (a, b, sigma) on 2016-2019 by coordinate descent from a coarse start grid
+    (closed-form inputs, deterministic). The optimiser's start grid and step are search
+    settings, not domain values: the fitted triple is what the record says."""
+    rec = load_daily_record()
+    dates, wspd, wind = rec["dates"], rec["wind_speed_ms"], rec["wind_gen_mw"]
+    years = np.array([int(d[:4]) for d in dates])
+    fit_m = (dates >= _CURVE_FIT_WINDOW[0]) & (dates <= _CURVE_FIT_WINDOW[1])
+    if fit_m.sum() < 365:
+        raise DegenerateChainError(f"too few fit-window days for the fleet curve: {fit_m.sum()}")
+    target = _normalise_by_year(wind, years)
+
+    def loss(theta):
+        a, b, sg = theta
+        if a <= 0 or sg <= 0:
+            return 1e9
+        fr = _aggregate_unheld(wspd, a, b, sg)
+        if (fr[fit_m] <= 0).all():
+            return 1e9
+        norm = _normalise_by_year(np.where(fr > 0, fr, 1e-9), years)
+        return float(np.mean((norm[fit_m] - target[fit_m]) ** 2))
+
+    best = None
+    for a0 in (1.0, 1.5, 2.0, 2.5):
+        for b0 in (-1.0, 0.0, 1.0, 2.0):
+            for s0 in (0.5, 1.5, 3.0):
+                val = loss((a0, b0, s0))
+                if best is None or val < best[0]:
+                    best = (val, (a0, b0, s0))
+    theta = np.array(best[1], float)
+    step = np.array([0.25, 0.5, 0.5])
+    for _ in range(60):
+        improved = False
+        for i in range(3):
+            for sgn in (1, -1):
+                t = theta.copy()
+                t[i] += sgn * step[i]
+                v = loss(t)
+                if v < best[0]:
+                    best, theta, improved = (v, tuple(t)), t, True
+        if not improved:
+            step = step / 2
+    a, b, sg = (float(x) for x in theta)
+    grid = np.linspace(0.0, float(wspd.max()), 1001)
+    on_grid = _aggregate_unheld(grid, a, b, sg)
+    i = int(np.argmax(on_grid))
+    single = np.array([wind_power_output_fraction(float(w)) for w in wspd])
+    agg = _aggregate_unheld(wspd, a, b, sg)
+    return FleetCurve(
+        a=a, b_ms=b, sigma_ms=sg,
+        hold_from_ms=float(grid[i]), hold_fraction=float(on_grid[i]),
+        corr_single=float(np.corrcoef(single, wind)[0, 1]),
+        corr_aggregate=float(np.corrcoef(agg, wind)[0, 1]),
+        n_fit_days=int(fit_m.sum()),
+    )
+
+
+def fleet_wind_fraction(wind_speed_ms, curve: FleetCurve | None = None) -> np.ndarray:
+    """The fleet's output fraction at a national town wind speed (the chain's wind input):
+    the aggregate curve, held flat from its in-record maximum upward."""
+    c = curve or fit_fleet_curve()
+    w = np.atleast_1d(np.asarray(wind_speed_ms, float))
+    out = _aggregate_unheld(w, c.a, c.b_ms, c.sigma_ms)
+    return np.where(w >= c.hold_from_ms, c.hold_fraction, out)
+
+
+# ---------------------------------------------------------------------------
+# The price leg, refitted with carbon in its floor (d424b78095)
+# ---------------------------------------------------------------------------
+# price_engine's A0-A2 were fitted against SSP with carbon at zero, so the multiplier carries
+# carbon; passing carbon on top double counts it after 2021 (2ce49dcd3). The chain refits the
+# same form, on the same half-hourly window and grid point, with CPS + the allowance price in
+# the floor, and passes carbon with it. The two ship together: either alone is worse than both.
+
+
+@dataclass(frozen=True)
+class PriceLegParams:
+    a0: float
+    a1: float
+    a2: float
+    mae: float
+    r2: float
+    n_half_hours: int
+
+
+def carbon_on(date_str: str) -> float:
+    """CPS + allowance price (GBP/tCO2) for a record date, from the one carbon table."""
+    from sim.merit_order_reconstruction import carbon_price_in_month_gbp_per_tonne
+    return carbon_price_in_month_gbp_per_tonne(str(date_str)[:7])
+
+
+@lru_cache(maxsize=1)
+def fit_price_leg() -> PriceLegParams:
+    """Refit A0-A2 with carbon in the floor (closed-form least squares, deterministic)."""
+    import sim.price_engine as pe
+    from simulation.run_phase3b_recalibration import (
+        SELECTED_SCARCITY_EXPONENT,
+        SELECTED_X_TIGHT,
+        _build_dataset,
+        _fit_form,
+    )
+
+    rows = _build_dataset()
+    if len(rows) < 10_000:
+        raise DegenerateChainError(f"too few half-hours to refit the price leg: {len(rows)}")
+    gas = np.array([r["gas_price"] for r in rows])
+    x = (np.array([r["demand_mw"] for r in rows]) - np.array([r["renewable_mw"] for r in rows])) \
+        / pe.DISPATCHABLE_CAPACITY_MW
+    by_month: Dict[str, float] = {}
+    carbon = np.array([by_month.setdefault(r["settlementDate"][:7], carbon_on(r["settlementDate"]))
+                       for r in rows])
+    floor = (gas + carbon * pe.EF_GAS_TCO2_PER_MWH_TH) / pe.THERMAL_EFFICIENCY
+    f = _fit_form(floor, x, np.array([r["ssp"] for r in rows]),
+                  SELECTED_X_TIGHT, SELECTED_SCARCITY_EXPONENT)
+    return PriceLegParams(a0=f["a0"], a1=f["a1"], a2=f["a2"], mae=f["mae"], r2=f["r2"],
+                          n_half_hours=len(rows))
+
+
+class CarbonRequiredError(ValueError):
+    """The chain's price leg was fitted with carbon in its floor, so a call without carbon
+    would price with a multiplier that no longer carries it."""
+
+
 @dataclass(frozen=True)
 class ChainParams:
     """The fitted weather->(demand, renewable) constants (R13 baseline). Kept as
@@ -220,7 +393,7 @@ def fit_chain() -> ChainParams:
     demand_pred = X @ coef
     r2 = float(1.0 - np.var(rec["demand_mw"] - demand_pred) / np.var(rec["demand_mw"]))
 
-    frac = np.array([wind_power_output_fraction(w) for w in rec["wind_speed_ms"]])
+    frac = fleet_wind_fraction(rec["wind_speed_ms"])
     if frac.mean() <= 0:
         raise DegenerateChainError("wind power-curve fraction has zero mean")
     wind_fleet = float(rec["wind_gen_mw"].mean() / frac.mean())
@@ -279,8 +452,7 @@ def wind_output_from_speed(wind_speed_ms, params: ChainParams | None = None,
     so the same weather draw produces a different output in 2016 than in 2025. Default
     (None) is the whole-window scalar — unchanged for every existing caller."""
     p = params or fit_chain()
-    frac = np.array([wind_power_output_fraction(float(w)) for w in np.atleast_1d(wind_speed_ms)])
-    out = _wind_fleet_mw(p, year) * frac
+    out = _wind_fleet_mw(p, year) * fleet_wind_fraction(wind_speed_ms)
     return out if np.ndim(wind_speed_ms) else float(out[0])
 
 
@@ -295,36 +467,44 @@ def solar_output_from_weather(day_of_year, cloud_pct, params: ChainParams | None
 
 
 def derive_price(temp_c, wind_speed_ms, cloud_pct, day_of_year, gas_price,
-                 params: ChainParams | None = None, year: int | None = None):
+                 params: ChainParams | None = None, year: int | None = None,
+                 carbon_price_gbp_per_tonne=None, wind_fleet_mw=None):
     """THE CHAIN, closed (W1_6 L4). One coherent weather draw -> demand +
     renewable output -> residual demand -> merit-order price. Price is DERIVED;
     it is never an independent draw. Vectorised over arrays or scalar.
 
-    `year` (W1_7): when given, renewable output uses the time-varying per-year fleet
-    AND the merit order's dispatchable-capacity denominator uses the real coal+gas+
-    nuclear plant capacity for that year (W1_7 L2 re-stacking,
-    `sim.price_engine.system_margin_price`'s own `year=` kwarg) — so a 2016 cold-still
-    spell prices differently from a 2025 one on BOTH the renewable-fleet side and the
-    dispatchable-fleet side. Default (None) keeps the whole-window scalar and the flat
-    dispatchable constant — unchanged behaviour, so the SSP calibration gate is not
-    re-opened (R12; the year-aware default flip is the L2 step after recalibration)."""
+    `carbon_price_gbp_per_tonne` (CPS + allowance, scalar or per-row) is REQUIRED: the price
+    leg is refitted with carbon in its floor (`fit_price_leg`). A record day takes
+    `carbon_on(date)`; a forward day takes the curriculum's drawn carbon, which is not built.
+
+    `wind_fleet_mw` (scalar or per-row) overrides the fleet scalar, so the record can price
+    each day at its own year's fleet without re-stacking the dispatchable side.
+
+    `year` (W1_7): renewable output uses that year's fleet AND the merit order's
+    dispatchable denominator uses that year's coal+gas+nuclear capacity
+    (`system_margin_price`'s `year=`). Default None keeps the flat dispatchable constant."""
+    if carbon_price_gbp_per_tonne is None:
+        raise CarbonRequiredError(
+            "derive_price needs carbon: the price leg was refitted with CPS + the allowance price "
+            "in its floor (d424b78095), so pricing without it under-prices by the carbon cost. "
+            "Pass carbon_on(date) on the record; forward carbon is the curriculum's drawn input")
     p = params or fit_chain()
+    leg = fit_price_leg()
+    coef = (leg.a0, leg.a1, leg.a2)
     demand = np.atleast_1d(demand_from_weather(temp_c, p))
-    wind = np.atleast_1d(_wind_fleet_mw(p, year) * np.array(
-        [wind_power_output_fraction(float(w)) for w in np.atleast_1d(wind_speed_ms)]))
-    solar = np.atleast_1d(solar_output_from_weather(day_of_year, cloud_pct, p, year))
-    gas = np.atleast_1d(np.asarray(gas_price, float))
+    n = len(demand)
+    fleet = (np.broadcast_to(np.asarray(wind_fleet_mw, float), (n,)) if wind_fleet_mw is not None
+             else np.full(n, _wind_fleet_mw(p, year)))
+    wind = fleet * fleet_wind_fraction(np.broadcast_to(np.asarray(wind_speed_ms, float), (n,)))
+    solar = np.broadcast_to(np.atleast_1d(solar_output_from_weather(day_of_year, cloud_pct, p, year)), (n,))
+    gas = np.broadcast_to(np.atleast_1d(np.asarray(gas_price, float)), (n,))
+    carbon = np.broadcast_to(np.atleast_1d(np.asarray(carbon_price_gbp_per_tonne, float)), (n,))
     renewable = wind + solar
-    # `year` only passed through when given -- keeps the exact 3-positional-arg call
-    # signature for the (overwhelmingly common) year=None path, so a caller that
-    # monkeypatches `synthetic_price` with a 3-arg stub (as an existing R15 mutation
-    # test does) is unaffected by this kwarg's addition.
-    if year is None:
-        price = np.array([synthetic_price(float(gas[i]), float(demand[i]), float(renewable[i]))
-                          for i in range(len(demand))])
-    else:
-        price = np.array([synthetic_price(float(gas[i]), float(demand[i]), float(renewable[i]), year=year)
-                          for i in range(len(demand))])
+    kw = {} if year is None else {"year": year}
+    price = np.array([synthetic_price(float(gas[i]), float(demand[i]), float(renewable[i]),
+                                      carbon_price_gbp_per_tonne=float(carbon[i]),
+                                      coefficients=coef, **kw)
+                      for i in range(n)])
     return price if np.ndim(temp_c) else float(price[0])
 
 
@@ -348,44 +528,49 @@ def derive_price_on_record(params: ChainParams | None = None,
     price series the coupled-triad measures the company against, plus the
     intermediate demand/renewable/residual for inspection.
 
-    `year_aware` (W1_7): when True, EACH ROW uses ITS OWN calendar year's per-year
-    effective renewable fleet (`sim.renewable_capacity_trend.capacity_wind/solar`) AND
-    its own year's real dispatchable (coal+gas+nuclear) capacity (W1_7 L2 re-stacking,
-    `sim.price_engine.system_margin_price`'s `year=` kwarg) instead of the single
-    whole-window scalar / flat constant -- the mechanism actually LAYERED onto
-    the ground-truth series the harness (`background/weather_price_triad.py`)
-    measures the company against, not just reachable in isolation via the `year=`
-    kwarg on the individual link functions. Default False preserves the existing
-    series BYTE-IDENTICAL (the SSP calibration gate is not re-opened, R12/S8) --
-    flipping the default is the L2 step gated on re-running that gate (FRAME §9
-    task 7) and is deliberately NOT done here.
+    Default (24 Nov 2026, the weather-to-price steer's item 4): the fleet-aggregate curve,
+    each day's own year's wind fleet (W1_7's per-year scalar, mean-matched on the same curve),
+    the whole-window solar scalar, the flat dispatchable constant, and carbon by month with the
+    price leg refitted on it. That is arm E of 4413f635ab. A `params` whose wind_fleet_mw
+    differs from the fitted one scales every year's fleet by the ratio, so a test can cut a link.
+
+    `year_aware=True` (W1_7) additionally uses each year's solar fleet and real dispatchable
+    (coal+gas+nuclear) capacity, the merit-order re-stacking (`system_margin_price`'s `year=`).
     """
     rec = load_daily_record()
     p = params or fit_chain()
+    from sim.renewable_capacity_trend import _year_of, capacity_wind
+    years = [_year_of(d) for d in rec["dates"]]
+    carbon = np.array([carbon_on(d) for d in rec["dates"]])
+    demand = demand_from_weather(rec["temperature_c"], p)
+    # Each year's fleet, scaled by params' whole-window fleet over the fitted one: identity for
+    # the fitted params, zero when a test cuts the wind link (wind_fleet_mw=0).
+    scale = p.wind_fleet_mw / fit_chain().wind_fleet_mw
+    by_year = {y: capacity_wind(y) * scale for y in set(years)}
+    fleet = np.array([by_year[y] for y in years])
+    wind = fleet * fleet_wind_fraction(rec["wind_speed_ms"])
     if year_aware:
-        from sim.renewable_capacity_trend import _year_of
-        years = [_year_of(d) for d in rec["dates"]]
-        wind = np.array([wind_output_from_speed(float(w), p, year=y)
-                         for w, y in zip(rec["wind_speed_ms"], years)])
         solar = np.array([solar_output_from_weather(int(doy), float(c), p, year=y)
                           for doy, c, y in zip(rec["day_of_year"], rec["cloud_pct"], years)])
-        demand = demand_from_weather(rec["temperature_c"], p)
         renewable = np.asarray(wind) + np.asarray(solar)
+        leg = fit_price_leg()
         price = np.array([
-            synthetic_price(float(rec["gas_price"][i]), float(demand[i]), float(renewable[i]), year=years[i])
+            synthetic_price(float(rec["gas_price"][i]), float(demand[i]), float(renewable[i]),
+                            carbon_price_gbp_per_tonne=float(carbon[i]),
+                            coefficients=(leg.a0, leg.a1, leg.a2), year=years[i])
             for i in range(len(demand))
         ])
     else:
-        demand = demand_from_weather(rec["temperature_c"], p)
-        wind = wind_output_from_speed(rec["wind_speed_ms"], p)
         solar = solar_output_from_weather(rec["day_of_year"], rec["cloud_pct"], p)
         renewable = np.asarray(wind) + np.asarray(solar)
         price = derive_price(rec["temperature_c"], rec["wind_speed_ms"], rec["cloud_pct"],
-                             rec["day_of_year"], rec["gas_price"], p)
+                             rec["day_of_year"], rec["gas_price"], p,
+                             carbon_price_gbp_per_tonne=carbon, wind_fleet_mw=fleet)
     return {
         "dates": rec["dates"], "month": rec["month"],
         "temperature_c": rec["temperature_c"], "wind_speed_ms": rec["wind_speed_ms"],
-        "gas_price": rec["gas_price"], "demand_mw": np.asarray(demand),
+        "gas_price": rec["gas_price"], "carbon_gbp_per_t": carbon,
+        "demand_mw": np.asarray(demand),
         "renewable_mw": renewable, "residual_mw": np.asarray(demand) - renewable,
         "derived_price": np.asarray(price), "real_ssp": rec["ssp"],
     }

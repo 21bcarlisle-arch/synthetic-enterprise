@@ -67,7 +67,10 @@ family to make the lift look positive — the test checks the family by identity
 
 from __future__ import annotations
 
+import json
 import math
+from functools import lru_cache
+from pathlib import Path
 from typing import NamedTuple
 
 from sim.price_engine import THERMAL_EFFICIENCY  # the frozen-ruler efficiency (0.50)
@@ -206,6 +209,48 @@ def ets_carbon_price_gbp_per_tonne(year: int) -> float:
         return (EUA_AUCTION_VWAP_EUR_PER_TONNE_BY_YEAR[y]
                 * ECB_GBP_PER_EUR_ANNUAL_AVERAGE_BY_YEAR[y])
     return 0.0  # NAMED GAP year (2022-2024) — CPS-only, flagged not fabricated
+
+# UK ETS allowance (UKA) auction clearing prices, May 2021 - Dec 2025: 116 auctions from the UK
+# ETS Authority's reports, in docs/market_research/uk_ets_allowance_auction_clearing_prices_2021_2025.json.
+# Monthly volume-weighted. This is the market price the annual table above could not give for
+# 2022-2024 (the statutory series is forward-referencing from 2022), held as the one file.
+_UKA_AUCTIONS_PATH = (Path(__file__).resolve().parent.parent / "docs" / "market_research"
+                      / "uk_ets_allowance_auction_clearing_prices_2021_2025.json")
+
+
+@lru_cache(maxsize=1)
+def uka_auction_vwap_by_month() -> dict:
+    """{'YYYY-MM': GBP/tCO2}, each month's auctions weighted by allowances sold."""
+    auctions = json.loads(_UKA_AUCTIONS_PATH.read_text(encoding="utf-8"))["auctions"]
+    acc: dict = {}
+    for a in auctions:
+        s, n = acc.get(a["date"][:7], (0.0, 0.0))
+        acc[a["date"][:7]] = (s + a["allowances"] * a["clearing_gbp_per_t"], n + a["allowances"])
+    return {k: s / n for k, (s, n) in sorted(acc.items())}
+
+
+def carbon_price_in_month_gbp_per_tonne(month: str) -> float:
+    """CPS plus the allowance price a GB gas plant faced in calendar month 'YYYY-MM'.
+
+    To 2020, the EUA annual auction price above. From 2021, the UKA auction VWAP of that month,
+    or of the latest month with an auction (auctions are fortnightly, so a gap is short). Jan-Apr
+    2021 had no UKA auction (the first was 19 May 2021) and takes May's: a stated simplification,
+    four months long. After the last auction on file this refuses: forward carbon is a drawn input
+    in a sourced band, and the band is the director's curriculum, not this table's to extend.
+    """
+    y = int(month[:4])
+    if y <= 2020:
+        return CPS_CARBON_GBP_PER_TONNE + ets_carbon_price_gbp_per_tonne(y)
+    by_month = uka_auction_vwap_by_month()
+    first, last = next(iter(by_month)), next(reversed(by_month))
+    if month > last[:4] + "-12":
+        raise ValueError(
+            f"no UK ETS auction price for {month}: the record ends {last}. Forward carbon is "
+            "the curriculum's drawn input, not an extension of this table")
+    if month < first:
+        return CPS_CARBON_GBP_PER_TONNE + by_month[first]
+    return CPS_CARBON_GBP_PER_TONNE + by_month[max(k for k in by_month if k <= month)]
+
 
 # GB cash-out / scarcity ceiling (DDM design). 2026-07-24 external benchmark pass.
 CASH_OUT_CEILING_GBP_PER_MWH = 6000.0

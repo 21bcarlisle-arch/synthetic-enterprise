@@ -170,6 +170,7 @@ def system_margin_price(
     renewable_generation_mw: float,
     dispatchable_capacity_mw: float = DISPATCHABLE_CAPACITY_MW,
     year: int | None = None,
+    coefficients: tuple[float, float, float] | None = None,
 ) -> float:
     """The merit-order system price (£/MWh): the gas floor scaled by a
     residual-demand scarcity multiplier.
@@ -210,7 +211,10 @@ def system_margin_price(
     capacity = _dispatchable_capacity_for_year(dispatchable_capacity_mw, year)
     x = residual_demand_mw / capacity
     tight_excess = max(0.0, x - X_TIGHT)
-    multiplier = A0 + A1 * x + A2 * (tight_excess ** SCARCITY_EXPONENT)
+    # `coefficients` (a0, a1, a2) replaces A0-A2 for a caller fitted on another floor:
+    # the weather-to-price chain refits them with carbon in the floor (fit_price_leg).
+    a0, a1, a2 = coefficients if coefficients is not None else (A0, A1, A2)
+    multiplier = a0 + a1 * x + a2 * (tight_excess ** SCARCITY_EXPONENT)
     return gas_floor_price_gbp_per_mwh * multiplier
 
 
@@ -249,6 +253,7 @@ def synthetic_price(
     year: int | None = None,
     engine: str = ENGINE_REDUCED_FORM,
     ets_price_gbp_per_tonne: float | None = None,
+    coefficients: tuple[float, float, float] | None = None,
 ) -> float:
     """Convenience wrapper chaining gas_floor_price -> system_margin_price —
     the full merit-order price for one settlement period.
@@ -311,5 +316,8 @@ def synthetic_price(
         )
 
     floor = gas_floor_price(gas_price_gbp_per_mwh, thermal_efficiency, carbon_price_gbp_per_tonne)
+    if coefficients is None:
+        return system_margin_price(floor, demand_mw, renewable_generation_mw,
+                                   dispatchable_capacity_mw, year=year)
     return system_margin_price(floor, demand_mw, renewable_generation_mw,
-                               dispatchable_capacity_mw, year=year)
+                               dispatchable_capacity_mw, year=year, coefficients=coefficients)

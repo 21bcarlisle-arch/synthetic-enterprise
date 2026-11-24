@@ -26,6 +26,10 @@ import pytest
 
 from sim import weather_price_chain as wpc
 
+# A test input for the carbon argument, not a domain value: CPS + an allowance price of
+# the order the record shows (GBP 22-98/t across 2016-2025).
+_CARBON = 40.0
+
 
 @pytest.fixture(scope="module")
 def params():
@@ -72,7 +76,7 @@ def test_r15_i1_price_is_derived_not_drawn(record, params):
     frozen = wpc.derive_price(
         temp_c=np.full(n, 10.0), wind_speed_ms=np.full(n, 6.0),
         cloud_pct=np.full(n, 50.0), day_of_year=np.full(n, 100),
-        gas_price=np.full(n, 30.0), params=params,
+        gas_price=np.full(n, 30.0), params=params, carbon_price_gbp_per_tonne=_CARBON,
     )
     assert float(np.std(frozen)) < 1e-6       # the control FIRES: no weather -> no price move
 
@@ -100,14 +104,17 @@ def test_r15_i3_merit_order_monotone_in_cold(params):
     # fixed wind/solar/gas. A monotone chain; mutate the temperature down and
     # price must not fall.
     warm = wpc.derive_price(temp_c=8.0, wind_speed_ms=6.0, cloud_pct=50.0,
-                            day_of_year=15, gas_price=40.0, params=params)
+                            day_of_year=15, gas_price=40.0, params=params,
+                            carbon_price_gbp_per_tonne=_CARBON)
     cold = wpc.derive_price(temp_c=-3.0, wind_speed_ms=6.0, cloud_pct=50.0,
-                            day_of_year=15, gas_price=40.0, params=params)
+                            day_of_year=15, gas_price=40.0, params=params,
+                            carbon_price_gbp_per_tonne=_CARBON)
     assert cold > warm
     # still-and-cold is dearer still than cold-but-windy (low wind -> low output
     # -> tighter residual).
     cold_windy = wpc.derive_price(temp_c=-3.0, wind_speed_ms=12.0, cloud_pct=50.0,
-                                  day_of_year=15, gas_price=40.0, params=params)
+                                  day_of_year=15, gas_price=40.0, params=params,
+                            carbon_price_gbp_per_tonne=_CARBON)
     assert cold > cold_windy
 
 
@@ -126,7 +133,8 @@ def test_r15_i3_price_monotone_in_residual_demand(params, monkeypatch):
     temps = np.linspace(15.0, -12.0, 60)
     assert float(temps.max()) <= wpc.T_HEAT_C          # pure-HDD sweep (no CDD kink)
     kw = dict(wind_speed_ms=np.full(60, 6.0), cloud_pct=np.full(60, 50.0),
-              day_of_year=np.full(60, 15), gas_price=np.full(60, 40.0), params=params)
+              day_of_year=np.full(60, 15), gas_price=np.full(60, 40.0), params=params,
+              carbon_price_gbp_per_tonne=_CARBON)
     price = wpc.derive_price(temp_c=temps, **kw)
     rd = wpc.residual_demand(temps, kw["wind_speed_ms"], kw["cloud_pct"],
                              kw["day_of_year"], params)
@@ -139,7 +147,7 @@ def test_r15_i3_price_monotone_in_residual_demand(params, monkeypatch):
     # The monotonicity control must FIRE (a downward step appears in residual order)
     # -- proving it has teeth, not a property that always passes on any price map.
     monkeypatch.setattr(wpc, "synthetic_price",
-                        lambda gas, demand, renewable: -1.0 * float(demand - renewable))
+                        lambda gas, demand, renewable, **_kw: -1.0 * float(demand - renewable))
     price_mut = wpc.derive_price(temp_c=temps, **kw)
     assert np.any(np.diff(price_mut[order]) < -1e-6)   # control FIRES on the non-monotone mutant
 
@@ -167,7 +175,9 @@ def test_r15_i4_spike_comes_from_weather_residual_coupling(params):
                                   wind_fleet_mw=0.0, solar_fleet_mw=0.0)
     collapsed = wpc.cold_still_spike(cut_all)
     assert collapsed["spike_ratio"] < 1.35
-    assert collapsed["spike_ratio"] < healthy["spike_ratio"] - 0.7
+    # The collapse removes at least three quarters of the excess over 1 (measured 24 Nov,
+    # fleet curve: 1.90 -> 1.20; the single curve's ratio was larger, so was its fall).
+    assert collapsed["spike_ratio"] - 1.0 < 0.25 * (healthy["spike_ratio"] - 1.0)
 
 
 def test_r12_chain_vs_real_ssp_is_a_reported_diagnostic(params):
@@ -191,3 +201,53 @@ def test_determinism_and_fail_open():
              "wind_speed_ms": np.array([5.0, 6.0, 7.0])}
     with pytest.raises(wpc.DegenerateChainError):
         wpc.cold_still_tail_mask(empty)  # no winter days -> FAIL-OPEN
+
+
+def test_the_fleet_curve_has_no_still_cliff_and_no_storm_fall(record):
+    """Defect named: one turbine's curve on a town wind gave exactly zero on 28% of record days
+    and 100.8 GW on the windiest (area map C1), and the fitted aggregate curve falls above about
+    10 m/s where the record has 2 days. The hold must be REACHABLE on the record before its
+    value is asserted, or a hold that never binds passes."""
+    curve = wpc.fit_fleet_curve()
+    w = record["wind_speed_ms"]
+    held = w >= curve.hold_from_ms
+    assert held.any() and (~held).any()            # the hold binds on some days, not all
+    f = wpc.fleet_wind_fraction(w)
+    assert np.all(f[held] == curve.hold_fraction)
+    assert np.all(f > 0)                           # no still-day cliff to zero
+    storm = wpc.fleet_wind_fraction(np.array([curve.hold_from_ms, 15.0, 24.0, 30.0]))
+    assert np.all(storm == curve.hold_fraction)    # no fall into a forward storm draw
+    rec = wpc.load_daily_record()
+    assert float(np.max(record["renewable_mw"])) < 2.0 * float(np.max(rec["wind_gen_mw"]
+                                                                       + rec["solar_gen_mw"]))
+
+
+def test_the_price_leg_refuses_a_call_without_carbon(params):
+    """Defect named: the refitted multiplier no longer carries carbon, so a call that omits it
+    under-prices silently. The refusal must name its reason, and the same call with carbon
+    must price (the branch is takeable both ways)."""
+    kw = dict(temp_c=5.0, wind_speed_ms=6.0, cloud_pct=50.0, day_of_year=15, gas_price=40.0,
+              params=params)
+    with pytest.raises(wpc.CarbonRequiredError, match="carbon"):
+        wpc.derive_price(**kw)
+    low = wpc.derive_price(**kw, carbon_price_gbp_per_tonne=20.0)
+    high = wpc.derive_price(**kw, carbon_price_gbp_per_tonne=80.0)
+    assert high > low > 0
+
+
+def test_the_carbon_table_is_one_series_and_ends_where_its_record_does():
+    from sim.merit_order_reconstruction import (
+        CPS_CARBON_GBP_PER_TONNE,
+        carbon_price_in_month_gbp_per_tonne,
+        ets_carbon_price_gbp_per_tonne,
+        uka_auction_vwap_by_month,
+    )
+
+    assert carbon_price_in_month_gbp_per_tonne("2018-06") == pytest.approx(
+        CPS_CARBON_GBP_PER_TONNE + ets_carbon_price_gbp_per_tonne(2018))
+    months = uka_auction_vwap_by_month()
+    assert carbon_price_in_month_gbp_per_tonne("2022-06") == pytest.approx(
+        CPS_CARBON_GBP_PER_TONNE + months["2022-06"])
+    with pytest.raises(ValueError, match="curriculum"):
+        carbon_price_in_month_gbp_per_tonne("2027-01")
+    assert wpc.carbon_on("2023-03-15") == carbon_price_in_month_gbp_per_tonne("2023-03")

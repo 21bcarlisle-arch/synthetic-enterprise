@@ -329,11 +329,19 @@ put the chain's over-coupling to wind in this link.*
 - **The forward-year chain** prices from weather → demand and renewables → residual demand → a merit
   order fit to SSP. It has gas but no carbon allowance, no interconnectors, no nuclear availability, and
   no CfD or RO bidding below zero. It loses to a gas-only null at the month in every regime (chain grade).
+  **Rebuilt 24 Nov 2026 (steer item 4).** The chain now ships the §6a aggregate curve, fitted on 2016-19
+  and held flat from its in-record maximum (9.2 m/s) upward. It uses each year's wind fleet, matched on
+  that curve, and carbon (CPS plus the §2 allowance price by month) in the call, with A0-A2 refitted on
+  it. Monthly MAE is 6.50 / 17.20 / 8.19 (pre / crisis / post) against the gas-only null's 5.4 /
+  24.5 / 6.7. It beats the null in the crisis and still loses by £1-1.5 either side, on the price leg.
+  Every forward figure carries that error beside it. Interconnectors, nuclear availability and CfD/RO
+  negative bidding are still absent, and the gas input is still the TTF proxy.
 - **The chain as the code builds it**, leg by leg, with what each reads, who reads the chain, and where this
   week's graded misses sit: `docs/design/WORLD_POWER_PRICE_AREA_MAP_2026-11-24.md`. Three things the code does that
-  this page's mechanisms do not show: the wind leg is one turbine's curve times a mean-matched 128.7 GW, the gas
-  input is the monthly TTF proxy (flat within each month), and the record's AGWS wind double-counts republished
-  half-hours. No forward-years generator reads the chain yet.
+  this page's mechanisms do not show: the wind leg was one turbine's curve times a mean-matched 128.7 GW (replaced
+  24 Nov by the aggregate curve above), the gas input is the monthly TTF proxy (flat within each month), and the
+  record's AGWS wind double-counted republished half-hours (fixed 24 Nov in the shared aggregator). No
+  forward-years generator reads the chain yet.
 
 ### 10a. The grade, in brief
 

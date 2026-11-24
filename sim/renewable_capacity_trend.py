@@ -155,7 +155,9 @@ def _load_offshore_onshore_daily() -> tuple[dict, dict]:
     has only ever been ADDED across 2016-2025 (never de-commissioned) — a fact the
     combined onshore+offshore scalar hides entirely.
     """
-    raw = json.loads((_CACHE / "elexon_agws_full.json").read_text())
+    from sim.generation_demand_history import latest_publish_per_key
+
+    raw = latest_publish_per_key(json.loads((_CACHE / "elexon_agws_full.json").read_text()))
     off: dict = defaultdict(list)
     on: dict = defaultdict(list)
     for r in raw:
@@ -191,13 +193,15 @@ def fleet_trajectory() -> dict:
     # year-aware paths import capacity_wind/capacity_solar from here).
     from sim.weather_price_chain import (
         _solar_envelope,
+        fleet_wind_fraction,
         load_daily_record,
-        wind_power_output_fraction,
     )
 
     rec = load_daily_record()
     years = np.array([_year_of(d) for d in rec["dates"]])
-    frac = np.array([wind_power_output_fraction(float(w)) for w in rec["wind_speed_ms"]])
+    # The chain's fleet-aggregate curve, so the per-year scalar is matched on the curve the
+    # chain multiplies it by (WORLD_POWER_PRICE_AREA_MAP_2026-11-24 s.5 condition 1).
+    frac = fleet_wind_fraction(rec["wind_speed_ms"])
     env = np.asarray(_solar_envelope(rec["day_of_year"], rec["cloud_pct"]), float)
     off_daily, on_daily = _load_offshore_onshore_daily()
 
@@ -219,6 +223,9 @@ def fleet_trajectory() -> dict:
         cell = {
             "wind_fleet_mw": float(rec["wind_gen_mw"][m].mean() / wf_mean),
             "solar_fleet_mw": float(rec["solar_gen_mw"][m].mean() / env_mean),
+            # The year's mean generation, which the fleet scalar reproduces by construction.
+            "wind_gen_mean_mw": float(rec["wind_gen_mw"][m].mean()),
+            "solar_gen_mean_mw": float(rec["solar_gen_mw"][m].mean()),
             "n_days": n,
             "months_covered": months_covered,
             # The single definition of "this year may supply a MAGNITUDE" (see the
@@ -676,12 +683,12 @@ def check_mix_share_against_independent_source(source_path=None,
     the derivation). Raises `IndependentSourceUnavailableError` when the source is not
     on disk (R15 FAIL-SILENT forbidden — never silently pass on absent data).
 
-    Real result (2026-08-03 pass): the sim's implied wind-share runs consistently
-    ~5-8 percentage points ABOVE the independent DESNZ series across 2017-2024 (the
-    sim's wind power-curve is a worse fit to reality than its solar envelope — see
-    `check_load_factor_residual_bounded`'s docstring for the mechanism) — within the
-    pre-stated 0.15 tolerance, so this check PASSES, but the gap is a real, reported
-    finding, not zero.
+    Real result (24 Nov 2026): the record's AGWS wind share of wind+solar generation runs
+    1.5-3.5 percentage points BELOW DESNZ's across 2017-2024 (0.787-0.848 against
+    0.812-0.858), inside the 0.15 tolerance. Correction beside the claim: the 2026-08-03
+    "~5-8pp above" compared the ratio of the two fleet SCALARS, which is not a share of
+    anything; it was close to DESNZ only because the single-turbine curve's 0.043 mean
+    fraction inflated the wind scalar to 128 GW.
     """
     desnz = _load_desnz_mix_share(source_path)
     traj = fleet_trajectory()
@@ -701,10 +708,15 @@ def check_mix_share_against_independent_source(source_path=None,
             return False
         real_wind_frac = (onshore + offshore) / denom
         cell = traj[y]
-        sim_denom = cell["wind_fleet_mw"] + cell["solar_fleet_mw"]
+        # A share of GENERATION, as DESNZ's is. The two fleet scalars are MW on different
+        # shapes (a power-curve fraction, a solar envelope), so their ratio is not a share:
+        # on the single-turbine curve it read 0.91 by accident of a 0.043 mean fraction.
+        if "wind_gen_mean_mw" not in cell or "solar_gen_mean_mw" not in cell:
+            return False  # a trajectory without generation means cannot be compared (R15)
+        sim_denom = cell["wind_gen_mean_mw"] + cell["solar_gen_mean_mw"]
         if sim_denom <= 0:
             return False
-        sim_wind_frac = cell["wind_fleet_mw"] / sim_denom
+        sim_wind_frac = cell["wind_gen_mean_mw"] / sim_denom
         if abs(real_wind_frac - sim_wind_frac) > tolerance:
             return False
     return True

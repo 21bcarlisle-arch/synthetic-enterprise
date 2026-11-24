@@ -198,3 +198,29 @@ close it.
 - **Next, step B:** the curve and the per-year fleet, refitted against the deduplicated record,
   with carbon in the call and in A0-A2 together. The carbon series must sit in the one table
   `merit_order_reconstruction` already holds (map C4).
+
+## Progress, 24 Nov (worker, item 4 build, step B: the curve, the fleet and carbon, shipped)
+
+- **The chain is rebuilt.** `sim/weather_price_chain` now prices from the fleet-aggregate curve,
+  fitted on 2016-19 and held flat from its in-record maximum (9.23 m/s; 9 record days). Each record
+  day uses its own year's fleet, which `renewable_capacity_trend` matches on the same curve.
+  Carbon is CPS plus the allowance price by month, from
+  `merit_order_reconstruction.carbon_price_in_month_gbp_per_tonne`, which reads the one UKA auction
+  file and refuses past the record. The price leg is refitted with that carbon (`fit_price_leg`,
+  reproducing `d424b78095`'s constants). `derive_price` refuses a call without carbon and names why.
+  `price_engine`'s own constants are unchanged. Map s.5 conditions 1, 3 and 4 are met, and 5 holds
+  because gas is untouched.
+- **All six predictions, filed before the measure, held.** Monthly MAE is 6.50 / 17.20 / 8.19
+  against arm E's 6.39 / 16.95 / 8.20 and the null's 5.4 / 24.5 / 6.7. The chain beats the null in
+  the crisis and loses by about £1-1.5 either side, on the price leg. Wind moves 1.06 / 1.12 / 0.81×
+  the record's MW per m/s.
+- **Unattributed, said plainly:** post-crisis bias is +1.84 where E's was −1.88. The candidate is
+  2025, which the trajectory clamps to 2024's fleet. I cannot yet say.
+- **Found in the build:** the chain's windiest day is 12.8 GW against the record's 21.0 GW. The
+  over-range at the top has become an under-range. That is the missing noise the arm named.
+- **Correction, beside the claim** (`renewable_capacity_trend` A3): the mix-share validator divided
+  two fleet scalars. Its "5-8pp above DESNZ" was an artefact of the old curve. It now compares
+  generation shares, and AGWS runs 1.5-3.5pp below DESNZ.
+- **Still owed under item 4:** the gas-input arm (TTF proxy against the daily SAP splice, map C2),
+  and the post-crisis price-leg level gap. **Item 5:** the forward CfD fleet and volumes.
+  **Forward years:** a capacity path for the fleet, and the curriculum's carbon band.
