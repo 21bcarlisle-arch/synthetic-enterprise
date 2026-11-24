@@ -2556,3 +2556,98 @@ alive. This run is the one the item meant.)
     member to empty.
   - Reverse: `systemctl --user stop s12g-reader-deathwatch` and
     `python3 -m background.seat_continuation --drop s12g-has-a-reader-when-it-ends`.
+
+#### s.12g graded: P1 is −£0.14 (−£1.39 to +£1.03). Refuted by its own rule, and the interval straddles zero (24 Nov, read at 05:47Z)
+
+**What was read.** The job `longjob-value-test-cut012-new-book` ended at about 05:38Z on 24 Nov
+(result=success; the death watch logged it at 05:40Z). The A member and the chained grader output were
+both written at 05:38Z. The grader `/var/tmp/vtn-driver/grade_new_book.py` re-hashed to `3cb5f92d5f10b00d…`
+and ended `rc=0`. The pin re-hashed to `030f8d16c8fc2aee…`, which equals `cut012.patch.sha256`, so the tree
+the run read is the e09f1640a port and nothing else. No prediction below is revised, and no other book was
+looked at. Every number is quoted from `/var/tmp/vtn-driver/grade_new_book.out`, apart from P4's count, which
+`/var/tmp/vtn-driver/s12g-reader/p4.py` computes with the grader's own unit and arithmetic.
+
+**The book.** 61118 has 1,027 accounts at import, 698 of them founders. The twin's control-arm household-years
+are 5,723 (13131) and 5,666 (14141). Of §12c's in-sample nine, SYN-2016-557 and SYN-2016-498 recur by id
+as re-drawn households, as filed. Neither one appears among P1's or P3's top movers.
+
+**P1, the thesis test out of sample.** The per-customer arm (the 0.12 cut) against the flat-rules twin is
+measured as (cut value arm − flat book) − (twin value arm − flat book), in £ per household-year:
+
+| | 13131 | 14141 | Mean | 95% interval (2,000 household resamples, seed 20261117) |
+|---|---|---|---|---|
+| **P1: cut − twin, advantage over the flat book** | −0.896 | +0.617 | **−£0.140** | **−£1.389 to +£1.025** |
+| Predicted (21 Nov) | | | −£0.40 | −£2.00 to +£1.20 |
+
+- **P1's verdict by its own rule: REFUTED.** The point is below zero. ("Refuted below zero. Held only above
+  zero with an interval that excludes zero.")
+- **The outcome by the interval, as the 23 Nov pre-registration defines it: STRADDLE.** The interval contains
+  zero.
+- Both labels are printed side by side, as that record requires. On households it was not fitted on, the
+  per-customer arm does not beat flat rules. The sign is against it, but the size cannot be told from zero.
+  The in-sample read was −£0.33 (−£1.77 to +£0.96), so out of sample the point moved toward zero and the
+  interval kept its width.
+- Movers: 484 (seed, household) units moved, 178 up and 306 down, totalling −£1,632. The largest is
+  SYN-2016-382 on 14141 (+£2,534), and the smallest is SYN-2016-241 on 13131 (−£3,456).
+
+**The decomposition (the pre-registration's step, printed before the branch).** P1 = (cut − A) + (A − twin)
+on the advantage measure:
+- (cut − A) = P3 − P3b = +£0.916 − £0.195 = **+£0.721**.
+- (A − twin) = P2 = **−£0.861**.
+- Sum: −£0.140, which equals P1.
+
+As in sample, the cut wins back most of A's loss against the twin, and no more.
+
+| | Measure | Predicted | Read | Verdict |
+|---|---|---|---|---|
+| P2 | Advantage, A − twin | −£1.10 (−£2.80 to +£0.60) | **−£0.861** (−£2.095 to +£0.320); per seed −1.365 / −0.358 | **In range** |
+| P3 | Value arm, cut − A | +£0.70 (−£0.30 to +£1.70) | **+£0.916** (+£0.222 to +£1.790); per seed +0.882 / +0.951 | **In range** |
+| P3b | Flat book, cut − A | moves by less than £0.10 either way | **+£0.195** (−£0.026 to +£0.626); per seed +0.412 / −0.023 | **Out of range** |
+| P4 | Where P3's gain sits | 15 or fewer units carry ≥80%, all up-movers | **4 units carry 82%** (£8,576 of £10,434), all up-movers | **Holds** |
+
+- **P4's four units:** SYN-2016-382 on 14141 (+£2,534), SYN-2016-383 on 13131 (+£2,533), PROS-2020-0287 on 14141
+  (+£1,786) and PROS-2018-0053 on 13131 (+£1,723). P3 has 38 up-movers summing +£10,692 and 108 down-movers summing
+  −£258. Its gain is as concentrated out of sample as in sample, on different households.
+- **P3b missed.** The flat book is not fixed across configurations: the control arm runs inside each child, and
+  its households see a different run history. Here the flat book moved by +£0.195 between cut and A, and by
+  +£0.329 (−£0.144 to +£1.063) between cut and twin. P1 differences each run against its own flat book, so P1
+  carries this by construction. That is the measure as filed, and it is not revised here. It means a
+  flat-book shift of this size sits inside every "advantage" number on this page.
+
+**The founder/win split** (the director's 10 Oct condition 1; it carries no prediction):
+
+| Cut − twin, advantage | Households | Mean | 95% interval |
+|---|---|---|---|
+| Founders only | 391 | +£0.087 | −£0.767 to +£0.841 |
+| Campaign and trickle wins only | 371 | −£0.227 | −£1.086 to +£0.727 |
+
+Neither side can be told from zero. The founders' point is above zero and the won households' point is below.
+
+**Also printed by the grader (cut − twin, no prediction):**
+- value arm +£0.189 (−£0.955 to +£1.370)
+- level arm −£0.225 (−£1.317 to +£0.772)
+- choosing leg +£0.414 (−£1.151 to +£2.065)
+
+The levels against each run's own flat book are cut +£5.795, twin +£5.934 and A +£5.073.
+
+**The pre-registered branch: STRADDLE.** The branch is
+`docs/staging/records/SEAT_PREREG_WHAT_THE_SUPPLIER_DOES_ON_EACH_S12G_OUTCOME_2026-11-23.md`, section
+"STRADDLE: the interval contains zero". Its next lever is "the cut on rank at the twin's volume, so that no
+fitted number is left": offer at a renewal when A's conditioned belief is in the top q share of the desk's own
+beliefs on the previous 12 months' renewals. q is the twin's value-arm share of renewals offered on 61118,
+pooled over 13131/14141.
+
+**The measured-first step, done** (`/var/tmp/vtn-driver/s12g-reader/measure_first.py`):
+- **q = 0.7563.** The twin offered at 211 of its 279 value-arm renewals.
+- **Where 0.12 sits.** In the cut run's value-arm desk churn belief on the 278 renewals that carry an offer
+  decision, 0.12 is at the **16.2nd percentile**. The rank-at-q threshold is the (1 − q) = **24.4th percentile**.
+- **The gap is 8.2 points, outside the ±5 rule, so the run is launched.** The rule's literal wording ("the
+  q-quantile", the 75.6th percentile) gives a gap of 59 points, and the desk's whole value-arm belief
+  population (1,036 asks, where 0.12 is at the 63.9th percentile) gives 40 or 12. Every reading passes, so the
+  rule's wording does not decide the outcome.
+- **Not a selection, recorded because it bounds what the run can show.** The cut already offered at 215 of
+  278 value-arm renewals (77.3%), within 1.7 points of the twin. A offered at 169 of 278 (60.8%). No cut
+  renewal at or below 0.12 was offered, and 18 above it were refused by the value test. So at realised
+  volume, the cut already matches the twin. The rank-at-q gate moves the gate's own threshold, from the
+  16th percentile to the 24th, and the value test still runs after it. If rank-at-q reads like the cut, the
+  difference between A and the twin is not mostly volume at the gate.
