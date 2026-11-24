@@ -741,3 +741,20 @@ will re-fire the hold, so the next re-arm should move the file aside itself.
   more, and every year without one has 1.23 or less.
 - **Next, still item 4:** pre-register the neighbour-shortfall top arm at the month. The shippable record-years
   build keeps S1's top, with the by-year spread stated beside it, and is carried by the SAP splice finding.
+
+## Progress, 24 Nov (worker, item 4: the France-shortfall top arm, on the record)
+
+- **Pre-registered** in `a1b069a39` and pushed to origin before the run. **Result** in
+  `docs/staging/records/WORKER_RESULT_ONE_FRANCE_SHORTFALL_AUTUMN_2016_PRICED_THE_TOP_AND_THE_REST_OF_THE_YEAR_SPLIT_IS_A_YEAR_EFFECT_2026-11-24.md`.
+  Three of five predictions held, and one of those three rests on a single event. **Nothing in `sim/` changed.**
+- **The clean split by year was mostly a year effect.** The non-shortfall months of the shortfall years sit +0.21
+  of the floor above the years with none. Within those years, shortfall months are higher in 2016 only.
+- **One event priced the top: autumn 2016** (Le Creusot). November was +0.94 of the floor above the other
+  Novembers and October +0.37. The other six pre-crisis shortfall months average +0.005. Rule (c) applies, so no
+  term is built.
+- **Item 4's diagnostic arms on the price leg end here.** Item 4 now waits only on the shippable record-years build
+  (SAP, the annual net-export level, demand by year, solar out, the 2025 basis rule, the low-gas hinge, S1's top
+  with its by-year spread of −0.14 to +0.20 stated). The SAP splice finding carries that build. What still moves
+  the top by year is not tested on this record (page §7) and is stated as unknown.
+- **What is left of 1-6:** item 4's build (via the SAP splice finding); item 5's outcome-to-CFD_ID join, the
+  negative-hour rules (electricity page GAP 3), and the forward levy, which waits on the director's bands row.
