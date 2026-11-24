@@ -70,6 +70,33 @@ its imbalance. `sim/market_index_history.py` records this, and it is graded in �
 - **GAP.** No published series of the marginal technology by hour has been read beyond ECIU's annual
   shares. No published efficiency of the marginal (rather than average) CCGT is held.
 
+## 1a. Why the average price can sit below gas SRMC when no plant bids below cost
+
+- **Mechanism.** A monthly or annual average price is a time-weighted mix of two regimes. When gas is
+  marginal, price is at or above the marginal CCGT's SRMC. When residual demand is met by wind, nuclear and
+  imports, something cheaper sets the price, often far below gas. The average sits below gas SRMC once the
+  second regime is common enough, even if no generator bids below its own cost. The distance from SRMC to
+  a non-gas price also scales with the SRMC level: a £90 SRMC leaves more room under it than a £40 one.
+- **On the record (24 Nov,
+  `docs/staging/records/WORKER_RESULT_GB_POWER_SITS_BELOW_GAS_SRMC_AFTER_THE_CRISIS_BECAUSE_GAS_IS_OFF_THE_MARGIN_MORE_OFTEN_AND_HALF_THE_GAP_WAS_THE_CARBON_PROXY_2026-11-24.md`).**
+  The record splits half-hours by FUELHH CCGT output, as a proxy for gas being marginal. In the top quintile,
+  MID sits £11-13 above fleet SRMC in 2018-20 and £14-24 above it in 2023-25. In the bottom quintile it sits
+  £6-13 below in 2018-20 and £37-42 below in 2023-25. Half-hours with CCGT under 5 GW rose from 5-7% of the
+  year (2018-19) to 25% (2023) and 37% (2024).
+- **Candidates, as they now stand.** (a) The carbon proxy: half of the power grade's −£9.80 (on UKA auction
+  carbon it is −£4.89). (b) Gas off the margin more often: what the record shows. (c) CCGTs bidding below
+  spot SRMC (hedged or contracted): **not supported** where gas is plainly marginal. (d) Imports setting the
+  price: **GAP**. At a given CCGT output, high-import half-hours price slightly higher, because flow follows
+  the spread, so a one-way split cannot separate it (needs §13 GAP 2).
+- **Published shares of "gas sets the price" disagree by definition, not only by year.** Electric Insights
+  gives 98% of hours (2024 report). ECIU gives about 85% (2024). The Institute for Government's explainer gives
+  60% "in 2026", against over 90% in 2021. They count different things: hours in which a gas unit is in the
+  marginal stack, the technology of the marginal unit, or price near gas SRMC. None was read in full here
+  [press]. The world needs the third of these, because that is what moves a price. GAP 4 stays open.
+- **What a forward generator must show.** A price leg that is a no-intercept multiple of gas cannot make the
+  low-CCGT regime deep enough at high gas. It needs a shape below gas whose depth scales with SRMC, and
+  that shape must be driven by residual demand.
+
 ## 2. Carbon: Carbon Price Support plus the traded allowance
 
 - **Carbon Price Support (CPS).** This is a UK tax on fossil fuel burned for power, on top of the
@@ -356,7 +383,9 @@ Fifteen of twenty-two predictions held. The seven misses stay beside the outcome
   valued on a price no supplier's hedged energy pays.
 - **Gas plus carbon explains the traded price, with nothing fitted.** Pre-crisis the monthly MAE is
   £2.80 with carbon and £17.58 with gas alone. Post-crisis the traded price sat £9.80 below
-  gas-plus-carbon SRMC, and the cause is not yet attributed (§2 GAP 1 separates the candidates).
+  gas-plus-carbon SRMC, and the cause is not yet attributed (§2 GAP 1 separates the candidates). *Correction, 24 Nov, beside it:*
+  £9.80 was on the civil-penalty carbon proxy. On UKA auction carbon it is £4.89. What remains is mostly
+  gas being off the margin more often (§1a).
 - **Interconnectors:** FUELHH has France at −9.98 TWh in 2022, against DUKES −10.0. **Nuclear** fell
   42% from 2016 to 2024. **Wind:** the gap between the traded price and SRMC falls as the wind share
   rises (monthly correlation −0.45 to −0.64).

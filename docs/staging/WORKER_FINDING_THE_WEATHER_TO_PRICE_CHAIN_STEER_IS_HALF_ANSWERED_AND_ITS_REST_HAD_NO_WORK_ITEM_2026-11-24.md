@@ -269,3 +269,21 @@ close it.
 - **Next, still item 4:** a K8 note on that question (imports setting the price, gas marginal less often,
   CCGTs bidding below spot SRMC, each a GAP), then the arm that separates them. The forward-flow K8
   section is still owed, and so is item 5's forward CfD fleet.
+
+## Progress, 24 Nov (worker, item 4: why power sat below gas SRMC after the crisis)
+
+- **K8 first.** The new §1a of the electricity page covers how an average price sits below gas SRMC with
+  no plant bidding below cost. **Result** in
+  `docs/staging/records/WORKER_RESULT_GB_POWER_SITS_BELOW_GAS_SRMC_AFTER_THE_CRISIS_BECAUSE_GAS_IS_OFF_THE_MARGIN_MORE_OFTEN_AND_HALF_THE_GAP_WAS_THE_CARBON_PROXY_2026-11-24.md`.
+  The predictions were hashed before the run but not landed first, and the record says so. Three of seven
+  held. The misses stay beside the outcomes.
+- **Half the −£9.80 was the carbon proxy.** On UKA auction carbon it is −£4.89. **Correction, beside the
+  efficiency note's claim** that the −£9.80 "matches the chain's +8.2". The chain already uses auction
+  carbon, so the like-for-like gap is about £5.
+- **The rest is gas off the margin more often.** In the top CCGT-output quintile, power clears £14-24 above
+  fleet SRMC after the crisis, so below-SRMC bidding is not supported. In the bottom quintile it clears
+  £37-42 below. Half-hours with CCGT under 5 GW went from 5-7% (2018-19) to 25-37% (2023-24). Imports cannot
+  be separated on this split.
+- **Next, still item 4:** the chain's own residual by CCGT band, with its prediction filed first. If the
+  post-crisis +8.2 sits in the low-CCGT band, the price leg needs a sub-gas shape that scales with SRMC.
+  Still owed: the forward-flow K8 section (§5), and item 5's forward CfD fleet.
