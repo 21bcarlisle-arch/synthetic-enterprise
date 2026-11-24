@@ -152,3 +152,17 @@ close it.
   fleet. Then the arm with its prediction filed first. Separately, the post-crisis −£8 level gap the
   price leg shows with real inputs. Shipping the step-1 refit with a sim carbon series ((i) above)
   is still owed.
+
+## Progress, 24 Nov (worker, item 4 step iii: the fleet power curve, knowledge then pre-registration)
+
+- **K8 first.** §6a of `docs/market_research/how_the_gb_electricity_price_forms_2026-11-24.md` covers how
+  a fleet turns wind into output, from Staffell and Pfenninger 2016, read in full. Their method is per
+  farm: hub-height extrapolation, a Gaussian-smoothed curve (σ = 0.6 + 0.2·w), and corrected speeds
+  w′ = αw + β. On that method, GB hourly R² is 0.935. The world uses one turbine curve on a 10 m daily
+  mean over four customer towns, which averages 3.7-4.6 m/s. It differs from the published chain at all
+  four stages. New gap 8: a GB national-aggregate curve and a farm register.
+- **Pre-registered** in `docs/staging/records/WORKER_PREREG_A_FLEET_AGGREGATE_POWER_CURVE_TAKES_THE_CHAINS_OVER_COUPLING_OUT_OF_ITS_WIND_LEG_2026-11-24.md`:
+  curve {single, aggregate} × fleet {whole, per-year}. The curve is fitted on 2016-19 only. Seven
+  predictions and the decision rule are filed before the run.
+- **Next, still item 4:** run it and put the result beside the predictions. Still owed and separate:
+  shipping the step-1 refit with a sim carbon series, and the post-crisis −£8 level gap.

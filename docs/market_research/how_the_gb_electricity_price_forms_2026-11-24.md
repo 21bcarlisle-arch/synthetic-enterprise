@@ -208,6 +208,65 @@ its imbalance. `sim/market_index_history.py` records this, and it is graded in �
   the next plant's bid, which may be below zero (§3).
 - **GAP.** No published price-response curve by residual demand band for GB has been read.
 
+## 6a. From wind speed to fleet output: the aggregate power curve
+
+*Added 24 Nov by the worker, before the fleet power-curve arm (item 4, step iii), as K8 requires. The
+weather-coupling arm (`WORKER_RESULT_THE_CHAINS_OVER_COUPLING_TO_WIND_IS_IN_ITS_POWER_CURVE_NOT_ITS_PRICE_LEG_2026-11-24.md`)
+put the chain's over-coupling to wind in this link.*
+
+- **What a fleet is.** GB wind output is the sum of many farms, onshore and offshore, from the south
+  coast to Shetland. Each one sees its own wind at its own hub height. A country's output
+  therefore does not ramp like one turbine at the country's average wind. On a day with a moderate
+  national mean, some sites are at rated output and others are below cut-in.
+- **The published method (Staffell and Pfenninger, 2016, *Energy* 114, 1224-1239, open access, read in
+  full for this section).** The Virtual Wind Farm model behind renewables.ninja works farm by farm. It
+  (a) takes reanalysis wind at 2, 10 and 50 m; (b) interpolates to each farm's coordinates; (c)
+  extrapolates to hub height with the logarithmic profile; and (d) converts speed to power through the
+  manufacturer's curve, "smoothed to represent a farm of several geographically dispersed turbines"
+  (§3.1). The smoothing is a Gaussian filter of width σ = 0.6 + 0.2·w m/s (their Eq. 1), "to capture the
+  increase in spatial and temporal variation at high wind speeds", with parameters "determined
+  empirically". Speeds are bias-corrected as w′ = αw + β (Eq. 5). Two parameters are used because "using
+  two parameters allows both the level and the variability of CF to be controlled. One parameter used
+  alone could exaggerate or dampen the variability of wind speeds" (§3.2).
+- **What it achieves for Britain.** Before correction, MERRA put Britain's mean capacity factor at 39.2%
+  against 29.0% observed over 2005-14. The correction factors are 0.70 onshore and 0.82 offshore
+  (§3.2). After correction, national hourly output has R² 0.935, an RMS error of 4.68 percentage points
+  of CF, and a 1.24-point error on percentiles (Table 3, 2009-14, NG and Elexon data covering 92% of
+  capacity). The current British fleet averages 32.4% ± 2.1% CF across 20 weather years (§5.1).
+- **Smoothing grows with area.** "Individual countries have a wide distribution of CF, whereas the
+  aggregate European distribution is much narrower" (§5.2). The same mechanism operates inside one
+  country: the spread of site speeds around the national mean flattens the national curve against a
+  single turbine's.
+- **Multi-turbine curves.** Nørgård and Holttinen (2004, "A multi-turbine power curve approach",
+  VTT/Risø) build a regional curve by smoothing a single curve over the distribution of site speeds. A
+  secondary description (Aalto, Holttinen) gives the operation as a combination of the curve shifted by
+  ±1 m/s. **[not re-read]**: the primary text was not obtained in this session.
+- **What the world does instead (`sim/price_engine.wind_power_output_fraction`,
+  `sim/weather_price_chain.fit_chain`).** One idealised turbine (cubic from 3 to 12 m/s, rated to 25) is
+  applied to **one national speed**. That speed is the mean of four Open-Meteo `wind_speed_10m_mean`
+  daily series at the customer towns C1-C4 (`sim/weather_tail_demonstration.load_national_daily`).
+  Across 2016-2025 those series average 3.7-4.6 m/s, with a daily standard deviation of about 1.7 m/s.
+  So the world's input differs from the published chain at all four stages. It has no site
+  interpolation. It has no hub-height extrapolation: a 10 m town speed is not a hub speed offshore. It
+  has no bias correction. It has no smoothing. It also uses a daily mean, not hourly speeds, so the
+  cube is taken of an average rather than averaged. Its fleet scale is then mean-matched to AGWS output,
+  which corrects the level and leaves the slope wrong. The 2.3-3.9× excess in MW per m/s that the
+  coupling arm measured is what that combination predicts.
+- **What output the record holds.** AGWS covers BM-unit wind only. Embedded onshore wind
+  is outside it (W1_7 page). A curve fitted against AGWS is a curve for the transmission-connected
+  fleet. That is the fleet the price leg was fitted against, so the two are consistent.
+- **The design choice for the arm, and why.** The world has one national speed and no farm register, so
+  the VWF method cannot be reproduced. The arm keeps its form and moves it to the fleet: the
+  single-turbine curve, convolved with a Gaussian σ, on a transferred speed w′ = a·w + b. Here (a, b)
+  stand in for hub height, site exposure and the town-to-site bias, and σ for the spread of site speeds
+  around the national mean. All three are fitted on the record. The σ of Eq. 1 is a WITHIN-farm width,
+  so the fitted national σ is expected to be larger, and Eq. 1 is a floor to compare against, not a
+  value to adopt.
+- **GAP.** No published GB national-aggregate curve against a single national (or 10 m town) wind
+  speed has been read. A per-site register of GB farms with coordinates and hub heights (REPD holds
+  coordinates) has not been brought into the world. Without it, the curve has to be fitted, not
+  built.
+
 ## 7. Capacity Market, scarcity and the Balancing Mechanism
 
 - **Capacity Market (CM).** CM pays firm capacity £/kW-year to be available, through auctions four
@@ -325,3 +384,6 @@ Fifteen of twenty-two predictions held. The seven misses stay beside the outcome
 6. A published price response by residual-demand band (§6), and a de-rated margin series (§7).
 7. The 2013-14 to 2015-16 CPS rates, the CM suspension dates, and the post-2020 coupling texts, which
    are marked [not re-read] above.
+8. A GB fleet-aggregate power curve against a national wind speed, and a per-site farm register
+   (REPD coordinates plus hub heights) that would let the world build the curve rather than fit it
+   (§6a).
