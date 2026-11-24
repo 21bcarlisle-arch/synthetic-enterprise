@@ -255,10 +255,32 @@ section covers the years after it.*
   clearing price go below zero.
 - **Contracts for Difference (CfD).** A CfD generator sells into the market and receives (strike −
   reference price), or pays it when the reference is above the strike. Intermittent CfDs reference the
-  day-ahead hourly price. Per Modo Energy [press]: AR1 CfDs keep the difference payment in negative
-  hours. AR2 and AR3 lose it only after six consecutive negative hours. From AR4, no difference is paid
-  in any negative hour. The primary text (the CfD Standard Terms) has not been read (GAP). So older CfD
-  plant also bids below zero, and newer plant has a reason to stop at zero.
+  day-ahead hourly price. The negative-hour rule by round (GAP 3, read 24 Nov from primary text):
+  - **AR6 (Standard Terms v6, 13 Mar 2024, Part 5B, read in full for these clauses).** An "Intermittent
+    Negative Price Period" is "any period of one (1) or more Settlement Units in respect of which the
+    Intermittent Market Reference Price is negative (that is, less than £0/MWh)", and in it "the
+    Intermittent Difference Amount shall be zero (0)". The IMRP is built from "Day Ahead Hourly Prices"
+    (the APX and N2EX intermittent indices). The Terms leave "Settlement Unit" to each CfD Agreement,
+    which was not read. Baseload contracts (Part 5A) test the same IMRP over hour-long periods, not their
+    own seasonal reference. A price of exactly £0 is not negative, so the difference is still paid.
+  - **Before AR4 (BEIS, *Government response to consultation on proposed amendments to the CfD
+    scheme*, Nov 2020, p.51).** Under "the current rule ... generators still receive difference
+    payments when there are less than six consecutive hours of negative pricing". The response extends
+    the rule "for future CfD contracts" only, so contracts already signed keep the six-hour rule. Its
+    reason: the old rule "encourages CfD generators to keep generating during these periods of low
+    demand and also facilitates negative bidding into the balancing mechanism".
+  - **Not read (narrowed GAP).** The AR1 (2014) terms and the investment contracts. Modo Energy
+    [press] says AR1 keeps the difference in every negative hour, and BEIS's "current rule" does not
+    say which rounds it covers. Also not read: the AR4, AR5 and AR7 terms. That they carry AR6's
+    one-hour wording follows from the 2020 decision [inference], not from their text.
+  So older CfD plant still bids below zero in short negative runs, and plant from AR4 on has a reason
+  to stop at zero. **For the world:** the rule is tested on the hourly day-ahead price. The world
+  settles at the half-hourly imbalance price, which goes negative far more often (§10). Testing the
+  rule on SSP would zero too many hours for AR4+ units and find too many six-hour runs for older ones.
+  An endogenous levy needs an hourly day-ahead price, or the rule applied to a stated proxy with its
+  error measured. The nearest series the world holds is Elexon's MID (`sim/market_index_history`), a
+  half-hourly short-term traded price, not the day-ahead hourly auction. How often its negative
+  half-hours match the auction's negative hours has not been measured (GAP 3).
 - **When reference is above strike, generators pay.** In late 2021 and 2022 the reference price was
   above most strikes, and CfD generators paid LCCC, which refunds suppliers (Ofgem, *Decision on the CfD
   allowance methodology*, June 2022). About £205m was paid back from September 2021 to March 2022, and
@@ -865,7 +887,8 @@ Fifteen of twenty-two predictions held. The seven misses stay beside the outcome
 1. ~~A UKA market price series 2021-2025 (§2).~~ Closed 24 Nov from the UK ETS Authority's auction tables (§2).
 2. Hourly GB-continent price spreads and flows by link, 2016-2025, and the size of the post-2021
    explicit-allocation loss (§5).
-3. The CfD Standard Terms' negative-price clauses by round (§3). ~~LCCC's reconciliation amounts for
+3. ~~The CfD Standard Terms' negative-price clauses by round (§3).~~ Read 24 Nov for AR6 and for the pre-AR4
+   six-hour rule. Still open: the AR1 and investment-contract terms, and the AR4/AR5/AR7 texts (§3). ~~LCCC's reconciliation amounts for
    2021-23~~ are held, as daily payments per unit and reconciled levy rates from the LCCC Data Portal (24 Nov).
    Still open for item 5: the forward CfD fleet (`cfd-contract-portfolio-status`, `forecast-cfd-generation`,
    not yet read).

@@ -105,7 +105,10 @@ each factor needs a source:
    and §4a says how to read it.
 4. **The reference price:** the world's own forward price. That price must be graded before a levy is
    built on it (item 4's work, still open).
-5. **The negative-hour rules by round:** GAP 3 on the electricity page, still open.
+5. **The negative-hour rules by round:** read 24 Nov (electricity page §3). From AR4, no difference in
+   any hour the day-ahead reference is below £0. Before AR4, none only from six consecutive negative
+   hours. AR1 and the investment contracts are not read. The world has no hourly day-ahead price to
+   test the rule on (GAP 3).
 
 **The interconnection that matters most.** `sim/renewable_capacity_trend` holds the world's fleet
 flat after 2025 by design: "the forward window is CURRICULUM (a director-authored buildout scenario)".

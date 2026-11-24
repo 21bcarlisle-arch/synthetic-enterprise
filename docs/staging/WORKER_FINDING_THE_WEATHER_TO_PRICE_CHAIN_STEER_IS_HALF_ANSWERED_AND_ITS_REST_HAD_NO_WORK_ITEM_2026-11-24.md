@@ -774,3 +774,21 @@ will re-fire the hold, so the next re-arm should move the file aside itself.
   (electricity page GAP 3), GAP 2a, and the forward levy itself, which waits on the director's bands row and the
   forward price.
 
+## Progress, 24 Nov (worker, item 5: the negative-hour rules, read)
+
+- **Electricity page GAP 3 is narrowed from primary text**, in §3 and §13. The AR6 Standard Terms (v6,
+  13 Mar 2024, Part 5B) zero the difference in "any period of one (1) or more Settlement Units" where
+  the day-ahead hourly reference is "less than £0/MWh". Baseload units test the same reference. BEIS's
+  Nov 2020 government response (p.51) gives the rule before AR4: the difference is lost only after "six
+  consecutive hours of negative pricing". The response extends the new rule "for future CfD contracts"
+  only. The fleet page's item 5 is updated.
+- **Not read, so it stays a GAP:** the AR1 (2014) terms and the investment contracts. Modo's claim that
+  AR1 keeps the difference in every negative hour stays [press]. The AR4, AR5 and AR7 texts are not
+  read either; that they match AR6 is inferred from the 2020 decision.
+- **Found, for the levy build.** The rule is tested on the hourly day-ahead price. The world settles at
+  SSP, which goes negative far more often, so testing the rule on SSP would zero too many hours. Its
+  nearest held series is MID, which is half-hourly and not the auction. How well the two agree is not
+  measured.
+- **What is left of 1-6:** item 4's build (carried by the SAP splice finding). For item 5: GAP 2a, AR1's
+  rule, a day-ahead proxy measured against the auction, and the forward levy, which waits on the
+  director's bands row and the forward price.
