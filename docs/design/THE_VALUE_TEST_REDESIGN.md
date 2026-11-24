@@ -2782,3 +2782,21 @@ assumes an equal-volume run, and this run was not one.
 **The next lever.** The STRADDLE branch of `SEAT_PREREG_WHAT_THE_SUPPLIER_DOES_ON_EACH_S12G_OUTCOME_2026-11-23.md`
 names nothing after this run. No lever is named here. The question is raised in `for_the_director` with a
 recommendation.
+
+#### Rankq's BELOW split from its own records: the loss is fewer offers, and the records cannot clear A's rank (24 Nov)
+
+Pre-registered in `docs/staging/records/SEAT_PREREG_RANKQ_BELOW_SPLIT_INTO_RANKING_AND_VOLUME_FROM_ITS_OWN_RECORDS_2026-11-24.md`
+(`1c3072781`) before the reader ran. Result: `SEAT_RESULT_RANKQ_BELOW_IS_FEWER_OFFERS_AND_THE_RECORDS_CANNOT_CLEAR_A_S_RANK_2026-11-24.md`.
+No run was launched. A's rank is logged for 751 of the twin's 777 asks, read from rankq's `rank_gate_log`.
+
+- **Fewer (pre-registered, rule met).** Households the twin offered and rankq did not carry **−£2.659 (−£4.654 to −£0.930)**
+  of R1's −£2.454. Households both offered carry +£0.499.
+- **Worse (pre-registered): cannot tell.** Within the twin's asks, the households A ranked over its bar earned **+£31.4 per ask
+  (−£72.6 to +£135.4)** more than the rest. Per twin offer the gap is −£111 (−£447 to +£227).
+- **Leaning against A (exploratory).** £22.7k of the £29.9k drop sits on households A ranks below even a static equal-volume
+  bar (0.476). That is about −£2/hh-yr a volume-matched rank gate would most likely still lose, unless its added offers earn it back.
+- **Debtors.** The rank gate's offered households are debtors less often than the twin's (0.114 against 0.180), and
+  0 of its 20 highest-belief offers are. The triage row's mechanism is not shown here.
+
+**So:** the rerun is not needed to show *where* the money went (the dropped offers). It is the only way to show whether A's
+rank, at the twin's volume, finds equal money. On this read it would most likely not.
