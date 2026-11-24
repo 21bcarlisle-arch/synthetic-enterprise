@@ -224,3 +224,17 @@ close it.
 - **Still owed under item 4:** the gas-input arm (TTF proxy against the daily SAP splice, map C2),
   and the post-crisis price-leg level gap. **Item 5:** the forward CfD fleet and volumes.
   **Forward years:** a capacity path for the fleet, and the curriculum's carbon band.
+
+## Progress, 24 Nov (worker, item 4: the gas-input arm, map C2)
+
+- **Run, with predictions filed before it.** The result is in
+  `docs/staging/records/WORKER_RESULT_ON_THE_REAL_GB_GAS_PRICE_THE_CHAINS_ONE_PRICE_LEG_CANNOT_FIT_THE_CRISIS_AND_THE_YEARS_AFTER_IT_2026-11-24.md`.
+  Five of nine predictions held. The misses are code 2 and domain 2.
+- **The swap does not ship on its own.** With SAP in the call and in the A0-A2 refit, monthly MAE is
+  4.77 / 20.88 / 13.00, against the shipped 6.50 / 17.20 / 8.19. Post-crisis bias goes to +12.3.
+  One fitted price leg cannot fit both 2022 and 2023-25 on the real GB gas price. On TTF, the proxy's
+  29% premium in 2022 stood in for a missing crisis markup.
+- **Correction, beside the step-B note** ("it now beats the gas-only null in the crisis"). That holds
+  against a null on TTF. Against a null on SAP (17.44), it is a tie. From here, quote both nulls.
+- **Next, still item 4:** the arm that names the 2022 markup, run on SAP. The post-crisis −£8 gap is
+  the same question. Item 5's forward CfD fleet and volumes are still owed.
