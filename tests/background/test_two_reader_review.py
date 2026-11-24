@@ -128,6 +128,10 @@ def test_a_broken_reader_records_no_verdict_and_logs_the_attempt(lane, tmp_path)
 
 
 def test_the_tick_spawns_nothing_when_the_dial_holds_it(monkeypatch):
+    # Inside the trial window: past REVIEW_DATE the tick returns before it asks the dial, and this
+    # read the wall clock, so it went red on 12 Nov with nothing changed.
+    from datetime import datetime
+    monkeypatch.setattr(tr, "_now", lambda: datetime.fromisoformat(tr.TRIAL_START.replace("Z", "+00:00")))
     monkeypatch.setattr(tr, "qualifying_commits", lambda: pytest.fail("held tick must not select"))
     assert tr.tick(gate=lambda route: (False, "off", "tick mode off")).startswith("held")
 

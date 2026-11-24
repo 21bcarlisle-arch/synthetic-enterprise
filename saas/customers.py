@@ -497,7 +497,10 @@ def make_acquired_customer(
     acquisition_date: str,
 ) -> dict:
     """Build a fresh-market acquisition customer record cloned from a predecessor's
-    property profile. Electricity only (no gas leg in Phase 8a).
+    property profile, on the predecessor's own fuel. A win from a gas-only household is a gas
+    point at the same premise, carrying its AQ and gas factors, named bare as a drawn gas-only
+    household is (the trailing `g` names a dual household's gas leg). Until 22 Nov 2026 every win was stamped electricity, so
+    a gas-only win had nothing to supply (switching_mechanics_2026-10-25.md s.6).
 
     Phase 50: stamps smart_meter based on rollout penetration at acquisition year.
     """
@@ -532,8 +535,10 @@ def make_acquired_customer(
         "home_type": _home_type,
         "bedrooms": _bedrooms,
         "epc_rating": _epc_rating,
-        "eac_kwh": predecessor.get("eac_kwh", 3200),
-        "commodity": "electricity",
+        **({"commodity": "gas", "aq_kwh": predecessor["aq_kwh"],
+            **{k: predecessor[k] for k in ("cv_factor", "cf") if k in predecessor}}
+           if predecessor.get("commodity") == "gas"
+           else {"eac_kwh": predecessor.get("eac_kwh", 3200), "commodity": "electricity"}),
         "contract_type": predecessor.get("contract_type", "fixed_1yr"),
         "segment": segment,
         "smart_meter": has_smart_meter,

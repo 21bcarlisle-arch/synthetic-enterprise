@@ -35,3 +35,23 @@ pre-register the run, then run the one-variable version.
 
 **Reversal:** the finding changes nothing. If it proves wrong, move it to `done/` with the measurement
 that refuted it.
+
+## 2026-11-24: built off, pre-registered
+
+The national uplift is built behind `SETTLEMENT_LOSSES_APPLIED` (`simulation/hedged_settlement.py`),
+which is False. It is read from a new commons artefact,
+`docs/domain_artefact_library/regulatory/ofgem_cap_loss_multipliers.json`, taken from the Annex 3
+v1.25 workbook itself (sha256 matched to the page). Domestic electricity buys `wholesale × (m − 1)`
+more, in the hedged and deemed writers. SME, I&C and flex are named GAPs.
+
+The pre-registration, its predictions and the off-rule are in
+`docs/staging/records/SEAT_PREREG_THE_WORLD_SETTLES_ELECTRICITY_LOSSES_2026-11-24.md`. Sizing at
+real SSP gives +9.1% to +11.4% on electricity energy: £10–15/yr per 2,900 kWh home in 2016–20 and
+£57 in 2022. That is narrower than this finding's 9.5–12%, which I correct here beside the original
+claim.
+
+**Still owed:**
+1. Take the switch, alone, once the first-term cap hold's book has been read.
+2. The company prices no losses in any strike. A real supplier does, from published LLFs. That is
+   a company follow-on, and it should land before or with the switch's book being read as value.
+

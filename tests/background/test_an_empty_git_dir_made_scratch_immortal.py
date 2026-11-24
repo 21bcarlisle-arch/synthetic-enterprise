@@ -241,6 +241,9 @@ def test_the_census_puts_pytest_temp_on_real_disk_not_the_tmpfs():
         m.setattr(census, "overlay_shortfall", lambda subject: [])
         m.setattr(census.subprocess, "run", _capture)
         m.setattr(resource_headroom, "admitted", _admit)
+        # The census queues through `queued` since a285086483; stubbing only `admitted` left the
+        # real governor in, so this read the box's free memory and went red when it was short.
+        m.setattr(resource_headroom, "queued", _admit)
         census.run_suite(timeout=1)
 
     assert seen.get("env") is not None, "setting it without passing it is the same defect one line down"
@@ -307,6 +310,9 @@ def test_a_timed_out_run_reports_unproven_and_discards_its_partial_output():
         m.setattr(census, "overlay_shortfall", lambda subject: [])
         m.setattr(census.subprocess, "run", _timeout)
         m.setattr(resource_headroom, "admitted", _admit)
+        # The census queues through `queued` since a285086483; stubbing only `admitted` left the
+        # real governor in, so this read the box's free memory and went red when it was short.
+        m.setattr(resource_headroom, "queued", _admit)
         out = census.run_suite(timeout=1)
 
     # The overlay check and the memory governor each return "" BEFORE the suite runs, so without

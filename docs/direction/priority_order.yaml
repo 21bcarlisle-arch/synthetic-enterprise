@@ -103,6 +103,20 @@ customer_outcomes_candidates:
       final-account loss phased over time, after verifying the pack's section 6 against primary sources; the
       rule is the seat's to decide. Then the value test's write-off measurement runs against it
       (docs/design/THE_VALUE_TEST_REDESIGN.md).
+  - id: a-home-move-seeds-an-unnamed-account-and-its-debt
+    source: docs/staging/advisor/done/DIRECTOR_EVIDENCE_CUSTOMER_VOICE_PRICE_SHOCKS_REFUNDS_MOVES_SOLR_EV_AND_THE_REPORTS_2026-11-23.md
+    world_first: the world's home move can leave an unnamed ("the occupier") account, a wrong opening or
+      closing read, or a void-period charge between occupiers (Pack B, 7 of 8 accounts; gap V4). The only rate
+      is change-of-tenancy accounts holding 20-40% of domestic debt (Ofgem call for input 9 Dec 2025, s.2.5,
+      graded S, supplier-reported), and about 90 days before an unnamed occupier first contacts. Verify both
+      against the primary first; K8 page before build.
+  - id: end-of-fix-default-is-rational-when-fixes-price-above-the-cap
+    source: docs/staging/advisor/done/DIRECTOR_EVIDENCE_CUSTOMER_VOICE_PRICE_SHOCKS_REFUNDS_MOVES_SOLR_EV_AND_THE_REPORTS_2026-11-23.md
+    world_first: in 2021-22 renewals priced above the cap made rolling onto default the rational choice (Pack A
+      P4, P6, P7; switching fell over 80%, Ofgem 2022 review, P). The world's end-of-fix behaviour must allow a
+      deliberate default, not only inert rollover; Ofgem 2019 trial (P) gives 19%/28% switching, external 6%
+      in both arms. Front-line and Ombudsman complaint populations differ (Customer Service 33-50% vs 7-14%)
+      and are not one population.
 # 2026-11-14 (11:05): the director's steer that the world produce real meter-data faults is world-lane work,
 # held here until the one work system's world lane exists; ranked against the other world items in the
 # 16 Nov balance review, not drawn this weekend (usage pace). K8 page first; build on simulation/meter_reads.py.

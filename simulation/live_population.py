@@ -1130,9 +1130,10 @@ def first_term_offer_fn(*, elec_daily, gas_daily):
     """The campaign's quote, asked before the win (`plan_growth_campaign(first_term_offer_fn=)`).
 
     The company strikes and gates the first term through `growth_desk.quote_first_term`, from the
-    published daily spot histories it is handed. The world then reads this prospect's position as
-    the strike against the market's cheapest deal, both ex-VAT, and that is what the funnel's
-    quote-to-application stage responds to.
+    published daily spot histories it is handed and the published 12-month forward weeks knowable
+    on the quote day (`sim.forward_curve.published_forward_knowable_by`). The world then reads
+    this prospect's position as the strike against the market's cheapest deal, both ex-VAT, and
+    that is what the funnel's quote-to-application stage responds to.
 
     Returns None, which leaves the funnel at the run-level position as before, where no position can
     be read: a default-tariff quote (no strike), no company forward, no history for the fuel, or an
@@ -1141,6 +1142,7 @@ def first_term_offer_fn(*, elec_daily, gas_daily):
     import datetime as _dt
 
     from company.interfaces.growth_desk import quote_first_term
+    from sim.forward_curve import published_forward_knowable_by
     from simulation.policy_costs import (
         get_electricity_network_cost_per_mwh,
         get_gas_ccl_per_mwh,
@@ -1171,6 +1173,8 @@ def first_term_offer_fn(*, elec_daily, gas_daily):
             tariff_type=prospect.tariff_type or "fixed", eac_kwh=int(prospect.eac_kwh),
             term_start=day, observable_daily_prices=gas_daily if gas else elec_daily,
             published_policy_cost_per_mwh=policy, published_network_cost_per_mwh=network,
+            observable_published_forward=published_forward_knowable_by(
+                day, "gas" if gas else "electricity"),
         )
         if not quote.quoted:
             return {"quoted": False, "reason": quote.reason}

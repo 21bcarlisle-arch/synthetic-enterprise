@@ -249,6 +249,15 @@ CAPPED_TARIFF_TYPES = ("svt",)
 #: the published cap. Without it, writer 4's removal from `fixed` let first terms in 2021-22 sit up
 #: to x3.55 the cap (`SEAT_FINDING_A_CHOSEN_FIXED_RENEWAL_IS_OUTSIDE_THE_CAP_AND_A_FIRST_TERM_IS_HELD_BY_THE_ACQUISITION_RULE_2026-10-02.md`).
 ACQUISITION_HELD_AT_CAP_TARIFF_TYPES = ("fixed",)
+#: (2026-11-24) THE DELETION, ready and off. True takes the acquisition rule above out of
+#: `held_at_published_cap`, so a fixed first term is contracted at the rate the chain arrives at,
+#: as a fixed renewal already is. A default tariff stays held either way: that one is the law.
+#: Pre-registered before any book carries it, with its predictions and its off-rule:
+#: `docs/staging/records/SEAT_PREREG_THE_FIRST_TERM_CAP_HOLD_DELETED_2026-11-24.md`. It stays
+#: False until the post-s.12g book has been read. Flipping it reds the off-by-default leg of
+#: `tests/company/pricing/test_the_first_term_cap_hold_comes_off_by_one_switch.py`; amend that leg
+#: in the same commit, then delete the rule, this switch and the test together.
+FIRST_TERM_CAP_HOLD_DELETED: bool = False
 #: The cap binds a default tariff on what the supplier RECEIVES, and during the EPG HM Treasury
 #: paid the supplier the gap between the EPG and the cap. So an SVT segment's ceiling is the
 #: published cap, not min(cap, EPG). The world's SVT strike is that cap, ex-VAT, with the receipt
@@ -259,9 +268,11 @@ EPG_MADE_WHOLE_TARIFF_TYPES = ("svt",)
 def held_at_published_cap(tariff_type: str, term_index: int) -> bool:
     """Whether a domestic term's rate is held at or under the published cap: always for a default
     tariff (the law), and for a fixed only on the term the customer is won on (`term_index == 0`,
-    the acquisition rule above). A fixed RENEWAL is the customer's choice and is not held."""
+    the acquisition rule above, unless `FIRST_TERM_CAP_HOLD_DELETED`). A fixed RENEWAL is the
+    customer's choice and is not held."""
     return tariff_type in CAPPED_TARIFF_TYPES or (
-        term_index == 0 and tariff_type in ACQUISITION_HELD_AT_CAP_TARIFF_TYPES)
+        not FIRST_TERM_CAP_HOLD_DELETED
+        and term_index == 0 and tariff_type in ACQUISITION_HELD_AT_CAP_TARIFF_TYPES)
 
 
 @dataclass

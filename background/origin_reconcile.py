@@ -1619,10 +1619,10 @@ def _definitions_the_merge_doubles(local: bytes, theirs: bytes | None, merged: b
 def _carry_plan(project: Path, path: str) -> tuple[dict | None, str]:
     """How a held tracked edit crosses the fast-forward, or `(None, why it cannot)`.
 
-    A plan is `{"deleted", "staged", "local", "merged", "target"}`. A deletion is carried as a
-    deletion; an edit as origin's copy with the lane's HEAD->disk change merged in, written at
-    `target` -- the path itself, or where origin MOVED it. A conflict is never carried: git cannot
-    say what the lane meant there, and neither can this.
+    A plan is `{"deleted", "staged", "local", "merged", "target", "times_ns"}`. A deletion is
+    carried as a deletion; an edit as origin's copy with the lane's HEAD->disk change merged in,
+    written at `target` -- the path itself, or where origin MOVED it. A conflict is never carried:
+    git cannot say what the lane meant there, and neither can this.
 
     THE MOVE LEG (2026-11-16). `alarm_repetition` writes dated lines into a staging alarm document
     in the shared tree and never commits them, so an archiver that moves that document to `done/`
@@ -1669,8 +1669,10 @@ def _carry_plan(project: Path, path: str) -> tuple[dict | None, str]:
                          "which neither this copy nor origin's does -- the lane and origin wrote " \
                          "the same thing twice, and Python would silently keep one".format(
                              ", ".join(sorted(doubled)[:4]))
+    stat = os.lstat(full)
     return ({"deleted": False, "staged": staged == here != in_head,
-             "local": full.read_bytes(), "merged": merged[1], "target": target},
+             "local": full.read_bytes(), "merged": merged[1], "target": target,
+             "times_ns": (stat.st_atime_ns, stat.st_mtime_ns)},
             "its change from HEAD merges cleanly onto origin's copy{} and is carried across".format(
                 "" if target == path else ", which origin moved to {},".format(target)))
 
@@ -1748,6 +1750,12 @@ def _apply_carry(project: Path, path: str, plan: dict, content: bytes | None,
                     return "{}: the staged deletion was not re-staged".format(path)
             return ""
         full.write_bytes(content)
+        # The carry is not the lane writing. Leave the lane's own last-write time on the file, or
+        # the abandoned class reads every carry as fresh work: annual_report.py was carried four
+        # times from 21 Nov (last b19e2a51de, 23 Nov 05:32), its mtime was the carry's, and a copy
+        # whose only novel line reverts 0efa633c1b read "8h old, LIVE" while the tree fell 39 behind.
+        if plan.get("times_ns"):
+            os.utime(full, ns=plan["times_ns"])
         if plan["staged"]:
             res = _git(project, "add", "--", path)
             if res.returncode != 0:

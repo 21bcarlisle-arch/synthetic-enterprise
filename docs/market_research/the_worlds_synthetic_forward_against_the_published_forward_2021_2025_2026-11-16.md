@@ -99,3 +99,21 @@ Jul to Nov 2022.
   published anchor here, and the synthetic model's error on those is unmeasured.
 - **GAP, gas.** The gas comparison inherits the 14 Nov page's instrument caveat: the synthetic gas input is a monthly
   IMF series at a fixed FX, not daily NBP.
+
+## Built 2026-11-23: a world hedge executes at the published forward
+
+`sim.forward_curve.published_forward_quote(trade_date, fuel)` returns the published 12-month price from the latest
+week a trader could have seen by `trade_date`. Ofgem says a row is knowable from its Friday, so the row is read from
+the following Monday. It returns None before 2021-02-08, and None once the newest row is a week or more stale (the series
+ends with the week of 2026-06-29). In `run_phase2b`, the electricity hedge (`run_hedged_term`, the company's
+`open_term_hedge` agreed price, the I&C volume-tolerance unwind) and the gas hedge leg (`run_gas_term`) execute at
+that price wherever it exists, and at the synthetic model otherwise. Nothing else moves: the company's strike and
+hedge sizing (`company_fwd`), the VaR inputs and the basis-risk log still read the synthetic `forward_price`. That
+keeps it one variable.
+
+**Prediction, filed before any book is run with it.** Terms starting from Aug 2021 to Mar 2022 book hedges below
+the old price (synthetic/published 1.19 to 1.65), so hedge P&L on those terms rises. Terms starting from Jun 2022 to
+Mar 2023 book hedges about GBP 60 to 200/MWh dearer, into the 2023 fall in spot, so hedge P&L on those terms falls by
+more than the 2021 gain. **Net hedge P&L over 2021 to 2023 term starts falls; 2016 to Jan 2021 term starts are
+unchanged to the penny.** If the 2016 to 2020 hedge P&L moves at all, the swap leaked outside its window, and that is a
+defect.

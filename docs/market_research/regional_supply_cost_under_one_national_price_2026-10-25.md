@@ -199,6 +199,12 @@ GCF uplift.
 | `company/market/llf_register.py` | A per-MPAN LLF store, reached only by its own test. Its docstring said "typical domestic LLF 1.00–1.05" and that TLMs "are national" | **Both are wrong.** Ofgem's distribution-only demand-weighted multiplier is 1.08–1.15 for single-rate domestic customers (D&L v1.19 §2), and TLMs have been zonal since April 2018. Corrected in the docstring in the same commit as this page |
 | World settlement and supplier cost | **No loss uplift anywhere.** No `LLF`, `TLM`, `GCF` or loss-multiplier term in `simulation/`, `sim/`, `company/` or `saas/` outside the unreached register | The world settles metered kWh. A real supplier pays for about 1.09–1.12× those kWh |
 
+*Update 2026-11-24.* The world now has a domestic loss uplift: `SETTLEMENT_LOSSES_APPLIED` in
+`simulation/hedged_settlement.py`, read from `docs/domain_artefact_library/regulatory/ofgem_cap_loss_multipliers.json`
+(this section's §3b table, from the workbook, 14 regions × 32 cap periods). It is built **off**, pre-registered in
+`docs/staging/records/SEAT_PREREG_THE_WORLD_SETTLES_ELECTRICITY_LOSSES_2026-11-24.md`. The row above stays true of
+every book until the switch is taken. The company still prices no losses.
+
 **The finding this produces, and its direction.** Losses are not a regional subtlety. They are a
 **national ~9–12% uplift on the energy line**, and the world omits all of it. It is published in the
 cap: the cap's DF allowance is scaled by the loss multiplier, as shown in §1. So any revenue or price

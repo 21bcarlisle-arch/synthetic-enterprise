@@ -57,6 +57,11 @@ def rhythm(tmp_path, monkeypatch):
     monkeypatch.setattr(world_claims, "drawn_book", lambda: [])
     monkeypatch.setattr(draw_follows_the_order, "render", lambda *a, **k: "ORDER-TABLE")
     monkeypatch.setattr(merge_pressure_census, "render", lambda *a, **k: "MERGE-TABLE")
+    # The live How it's built page ages with the calendar: once a dated section passed 30 days,
+    # every close here went red on a page no test owns. The refusal's partition is
+    # test_monday_cannot_close_on_a_page_aging_problem_until_it_is_explained's.
+    from tools import harness_page_figures
+    monkeypatch.setattr(harness_page_figures, "page_aging_problems", lambda *a, **k: [])
     return tmp_path
 
 

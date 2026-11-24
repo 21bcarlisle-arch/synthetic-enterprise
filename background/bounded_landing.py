@@ -19,7 +19,9 @@ turn's salvage-and-reset leaves it alone -- see `seat_executor.worktree_is_live`
 unit and returns its exit status. The turn sees the landing's output exactly as before; if the turn
 is killed while following, the landing carries on. When the landing succeeds and the executor named
 the claim (`SE_WORK_ID`), the unit also promotes it, because a landed commit that never reaches
-origin is lost at the next turn's reset just as surely as a killed one.
+origin is lost at the next turn's reset just as surely as a killed one. A promotion that loses the
+race to a moved origin is re-landed and promoted again inside the same unit (`promote_until_landed`),
+so one landing is one register row whose exit says whether its content reached origin.
 
 IF THE HAND-OFF CANNOT BE MADE (no systemd, a refusal), the landing runs in place only when the turn
 has longer left than `LANDING_WINDOW_SECONDS`. Inside that window it is REFUSED BY NAME and the
@@ -197,17 +199,72 @@ def _run_in_unit(argv: list) -> int:
     rc = surgical_land.main(argv)
     work_id = os.environ.get(WORK_ID_ENV)
     if rc == 0 and work_id:
-        print(f"landed; promoting for {work_id}", flush=True)
-        from background.child_diagnostics import stderr_tail
-
-        result = subprocess.run([sys.executable, "-m", "tools.promote_worktree_landing", ".",
-                                 "--work-id", work_id], stderr=subprocess.PIPE, text=True)
-        sys.stderr.write(result.stderr or "")
-        rc = result.returncode
-        if rc != 0:
-            print(f"promotion for {work_id} FAILED (exit {rc}); stderr tail: "
-                  f"{stderr_tail(result.stderr) or 'no stderr captured'}", flush=True)
+        rc = promote_until_landed(Path("."), work_id)
     return rc
+
+
+def promote_until_landed(worktree: Path, work_id: str, *, attempts: int | None = None,
+                         say=None) -> int:
+    """Promote the worktree's landing; when origin moved under it, re-land on the new origin and
+    promote again, INSIDE THIS JOB. 0 once the landing's content is on origin, 2 otherwise.
+
+    WHY (2026-11-23). This used to promote once and exit 2 on a lost race. The next turn then ran
+    `surgical_land --merge origin/main` as a new job, which could lose the race again: 01:14-01:21Z,
+    land-se-seat-executor-1795394035, -1795396520 and -1795396769 were registered DIED with their
+    work reaching origin through three merges that authored nothing (f68028b7f, 755536805,
+    965a59053). Every orientation reads that register to decide whether work was lost.
+
+    A lost race is answered by `surgical_land.replay`: the same change as one commit on the new
+    origin, gated again with tests selected only on what both sides touched. A merge is made only
+    when replay says it does not apply (a path both sides changed, a merge landing). Any other
+    refusal, and a red gate above all, ends the job refused on the first sight of it.
+    """
+    from tools import promote_worktree_landing as pwl
+    from tools import surgical_land as sl
+
+    say = say or (lambda line: print(line, flush=True))
+    attempts = attempts or sl.DEFAULT_ATTEMPTS
+    for attempt in range(1, attempts + 1):
+        say(f"landed; promoting for {work_id} (attempt {attempt} of {attempts})")
+        try:
+            result = pwl.promote(worktree, work_id=work_id)
+        except pwl.AlreadyOnOrigin as exc:
+            say(f"ON ORIGIN already, so nothing was lost: {exc}")
+            return 0
+        except pwl.NotFastForward as exc:
+            moved_to = exc.remote_head
+            say(f"lost the promotion race: {exc}")
+        except pwl.PromotionRefused as exc:
+            say(f"promotion for {work_id} REFUSED: {exc}")
+            return 2
+        else:
+            say(f"promoted {result['commit'][:9]} -> origin/main ({len(result['paths'])} "
+                f"path(s), from {result['from'][:9]})")
+            say(result["binding"])
+            return 0
+        if attempt == attempts:
+            break
+        try:
+            sha = sl.replay(worktree, moved_to)
+            say(f"replayed as {sha[:9]} on {moved_to[:9]}")
+        except sl.NothingToLand as exc:
+            say(f"ON ORIGIN already, so nothing was lost: {exc}")
+            return 0
+        except sl.NotReplayable as why:
+            say(f"not replayable ({why}); merging {moved_to[:9]} instead")
+            try:
+                sha = sl.land(worktree, [], f"merge origin/main: fold {moved_to[:9]} under the "
+                              "landing that lost its promotion race", merge=moved_to)
+                say(f"landed MERGE {sha[:9]}")
+            except sl.LandingRefused as exc:
+                say(f"the merge onto {moved_to[:9]} was REFUSED: {exc}")
+                return 2
+        except sl.LandingRefused as exc:
+            say(f"the replay onto {moved_to[:9]} was REFUSED: {exc}")
+            return 2
+    say(f"promotion for {work_id} REFUSED: origin moved under all {attempts} attempt(s); the "
+        "landing is committed in this worktree and not on origin")
+    return 2
 
 
 if __name__ == "__main__":  # pragma: no cover - the unit's entry point
