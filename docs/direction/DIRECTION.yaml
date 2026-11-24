@@ -277,3 +277,12 @@ for_the_director:
   resolution: ''
   evidence: docs/design/THE_VALUE_TEST_REDESIGN.md §12g 'The rank-at-q run graded'; /var/tmp/vtn-driver/grade_rankq.out
     (rc=0, pin 0cc0a709cab10509 verified)
+  context: 'Added by the seat 24 Nov, beside his row and not rewriting it. The records now answer where the
+    money went, so the ~11 h rerun is no longer needed for that: rankq''s -GBP 2.45 sits on the offers it
+    dropped (TWIN_ONLY -2.66, -4.65 to -0.93, pre-registered at 1c3072781, read at 60ef7ed87), almost all on
+    households A ranked below its bar. What the rerun would still separate is one number: whether the offers
+    a q=0.277 rank gate adds to A-ranked households earn back about GBP 2/hh-yr. An exploratory read
+    (not pre-registered) leans no: only 49 of the 112 dropped households clear an equal-volume bar. Seat
+    recommendation: the rerun is optional and the conservative reading can stand without it; if it runs,
+    pre-register about -1.4 (-3.5 to +0.5) GBP/hh-yr on rankq''s measure before launch.'
+  context_evidence: docs/staging/records/SEAT_RESULT_RANKQ_BELOW_IS_FEWER_OFFERS_AND_THE_RECORDS_CANNOT_CLEAR_A_S_RANK_2026-11-24.md
