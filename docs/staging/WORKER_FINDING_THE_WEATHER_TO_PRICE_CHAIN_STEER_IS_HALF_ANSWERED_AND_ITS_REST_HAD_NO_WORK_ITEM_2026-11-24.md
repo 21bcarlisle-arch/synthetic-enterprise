@@ -758,3 +758,19 @@ will re-fire the hold, so the next re-arm should move the file aside itself.
   the top by year is not tested on this record (page §7) and is stated as unknown.
 - **What is left of 1-6:** item 4's build (via the SAP splice finding); item 5's outcome-to-CFD_ID join, the
   negative-hour rules (electricity page GAP 3), and the forward levy, which waits on the director's bands row.
+
+## Progress, 24 Nov (worker, item 5: the outcome-to-CFD_ID join)
+
+- **The fleet page's GAP 2 is closed.** It is in §4b of `docs/market_research/the_forward_cfd_fleet_from_lccc_contract_portfolio_2026-11-24.md`.
+  The prediction, stated before the run, was at least 85% of AR4-AR7 MW matched. It held: 90.0% / 99.9-100% /
+  100%, with six hand aliases in AR4. **Every AR4-AR7 portfolio unit has one strike**, so the forward levy can be
+  summed unit by unit over vintages. Only AR6 and AR7 offshore have more than one strike within a round and
+  technology, and every unit there matched by name.
+- **Correction, beside the claim, in my own probe.** The first pass took the first fuzzy candidate rather than
+  the best, and paired phases with sibling units. The capacity split caught it. The page records it.
+- **Found, not attributed:** AR4's held offshore is 1,446 MW below what it was offered (Hornsea Three, EA3 and
+  Inch Cape). The same three projects hold new AR6 units at 54.23. New page GAP 2a.
+- **What is left of 1-6:** item 4's build (carried by the SAP splice finding). For item 5: the negative-hour rules
+  (electricity page GAP 3), GAP 2a, and the forward levy itself, which waits on the director's bands row and the
+  forward price.
+

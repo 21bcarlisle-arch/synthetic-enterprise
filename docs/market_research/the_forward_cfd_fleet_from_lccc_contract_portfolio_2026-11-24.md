@@ -188,13 +188,68 @@ signature. How much of the gap each of those explains is GAP 2's remainder.
 1.3933 for 2012→2024. Each contract indexes by CPI under its own terms. The index series for
 forward years is a curriculum input, the same as forward carbon. This page does not pick one.
 
+## 4b. The join from an outcome row to a CFD_ID (GAP 2's remainder, read)
+
+Added by the worker, 2026-11-24. **Sources:** the two LCCC tables above. The portfolio was re-fetched the
+same evening (612 rows, sha256 of the saved response `439805f5…`). The join was predicted before it ran:
+at least 85% of AR4-AR7 portfolio MW would match an outcome row on round, technology and normalised
+name, with most misses being phased offshore units listed as one project. **That held.** AR4 matched
+90.0% of MW, and AR5, AR6 and AR7 matched 99.9-100%.
+
+**How the join is made.** Match on the same round and the same technology, and normalise the name: drop
+"wind farm", "solar", "phase", "limited" and punctuation. Then take an exact match. Failing that, take the
+best SequenceMatcher score of 0.85 or more, and failing that, containment. Taking the *first* candidate
+over 0.85, rather than the best, pairs "Unit A Phase 1" with a sibling "Unit B" (score 0.97) and leaves
+whole outcome rows unclaimed. That mistake was made in the first pass of this probe and caught by the
+capacity split below. Six AR4 units need a hand alias. EA3 Phases 2 and 3 are phases of the outcome row
+"EA3 Phase 1" (1,372.34 MW offered, 1,054.53 held across three phases). Four solar units are listed under
+their SPV names, matched on capacity: NEXTPOWER CRIFTON ↔ SPV 5, Hatherden ↔ SPV 10, Whitecross ↔ SPV 6,
+and Bicker Fen (18.16 MW held) ↔ SPV 11 (15 MW offered). SPV 5 and SPV 10 are both 40 MW, so that pair
+cannot be told apart. Both clear at 45.99, so the strike does not depend on it.
+
+**Two portfolio units have no outcome row.** The first is AR4's High Constellation Wind Farm (50 MW,
+Terminated). LCCC's AR4 outcome rows hold 9 onshore units and the portfolio holds 10. The same project
+won again in AR7 at 72.24 (2024 prices). The second is AR6's Locks Farm Solar (13.1 MW, Pre-MDD). AR6
+solar clears at one price, 50.07, so its strike is known without the row.
+
+**What the join settles for the levy: every AR4-AR7 portfolio unit has one strike.** In the outcome
+table, a round and technology clear at a single strike, with two exceptions. AR6 offshore is 54.23 for
+2027 delivery and 58.87 for 2028. AR7 offshore is 91.20, apart from Berwick Bank Phase B at 89.49
+(2024 prices). Every portfolio unit in those two pots matched its own project by name, with a score of
+0.92 or more. The 58.87 tranche is Hornsea Four and East Anglia Two. The 54.23 tranche is EA3B,
+Hornsea Three AR6 A-C, Inch Cape A-B and Moray West String 9. So a vintage-summed levy can now be
+built unit by unit, with no averaged strike.
+
+**Offered MW against held MW, split [calc]:**
+
+| Round | Offered | Offered, no contract in the portfolio | Capacity revised on held units | Held, no outcome row | Portfolio |
+|---|---:|---:|---:|---:|---:|
+| AR4 | 10,742.1 | −18.5 | −1,445.7 | +50.0 | 9,327.9 |
+| AR5 | 3,697.1 | −84.8 | −72.3 | 0 | 3,540.0 |
+| AR6 | 9,648.3 | −79.7 | −59.6 | +13.1 | 9,522.0 |
+| AR7 | 14,669.6 | −47.5 | −285.7 | 0 | 14,336.4 |
+
+The gap is mostly capacity revised on contracts that were signed. Offers that were never signed in the
+portfolio are a small part of it. AR4's −1,446 MW is three offshore projects: Hornsea Three −705.9, EA3
+−317.8 and Inch Cape −270.0. The same three appear in AR6 as new units at 54.23: Hornsea Three AR6 A-C
+(1,080 MW), EA3B (158.9) and Inch Cape A-B (266.1). **This is observed, not attributed.** Whether these are
+the same turbines re-contracted at a higher strike, extensions, or both is not read here. It is a GAP
+(below, 2a). For a forward levy, it means some AR4 offshore capacity is paid at 54.23, not 37.35. AR7's
+−285.7 is Norfolk Vanguard East and West Unit A, −165 MW each. The offered-but-unsigned rows (AR5
+Bockingfold, Eastgate and Rainsbrook; AR6 Maisemore, Great House and Trinity) are solar only.
+
+The probe is `join.py` and `split.py` (sha256 `b7ad0568…`, `55038c7f…`), run with `python3 -I` against the
+saved responses outside the repository. Nothing in `sim/` or `company/` reads any of this.
+
 ## 5. GAPs
 
 1. **Slippage history.** Expected start dates as at each earlier date. Candidates are LCCC's own
    earlier publications and the Wayback Machine. Neither was read.
-2. **Strikes for AR4-AR7 units.** Read in §4a (24 Nov, worker). It stays open for one thing: the
-   join from an outcome row to a portfolio CFD_ID. Names differ between the two tables, and
-   capacity is offered MW in one and Maximum Contract Capacity in the other.
+2. **Strikes for AR4-AR7 units.** Read in §4a, and the join is made in §4b (24 Nov, worker). Every
+   AR4-AR7 portfolio unit has one strike. **Closed.**
+   2a. **AR4 offshore capacity that reappears in AR6** (Hornsea Three, EA3, Inch Cape, §4b): whether it is
+   re-contracted or extension capacity, and under what rule. The candidate source is DESNZ's AR6
+   allocation framework on permitted reductions. Not read.
 3. **First power against CfD start for each phased offshore unit,** and the AR4 rule that allows
    deferral. This decides how far the two fleets of §0 differ in 2022-2026.
 4. **Capacity not under any CfD** (RO, merchant, FiT). This is needed to split the curriculum's one
