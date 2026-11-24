@@ -593,3 +593,26 @@ close it.
 - **Next, still item 4:** (1) a leave-one-year-out monthly climatology, rule (a)'s arm. It is predicted in the result
   record to carry under a quarter of the £2.63. (2) B1-B3 on SAP plus net export. (3) R's 2025 residual against the
   AGWS windows finding.
+
+## Progress, 24 Nov (worker, item 4: the leave-one-year-out profile arm, on the record)
+
+- **Pre-registered** in `7f08d5309` and promoted to origin before the run. **Result** in
+  `docs/staging/records/WORKER_RESULT_A_NET_EXPORT_PROFILE_LEARNT_FROM_OTHER_YEARS_CARRIES_NONE_OF_THE_CRISIS_SHAPE_2026-11-24.md`.
+  Five of six predictions held. **Nothing in `sim/` changed.**
+- **A profile from the other years carries none of the crisis shape.** Each year's mean plus a leave-one-year-out
+  monthly profile gives R L0 a crisis MAE of 16.21, against 16.16 for the annual level alone and 13.53 for the
+  year's own months (W: 15.43, 15.32, 13.15). Rule (a) fires: the crisis shape is 2022's event, not a GB season.
+- **Wrong, kept beside it:** CL-P2 predicted that the profile would cost pre-crisis accuracy. It helps instead
+  (R 4.45 → 4.32). Post-crisis it costs R £0.37 ex-2025. This is not attributed.
+- **For forward years:** the net-flow term is the FES annual level alone. Every forward figure states that a
+  2022-type neighbour shortfall (about £2.6/MWh of crisis monthly MAE on R) is outside it.
+- **Next, still item 4:** (1) B1-B3 on SAP plus net export; (2) R's 2025 residual against the AGWS windows
+  finding; (3) a K8 section on the neighbour-shortfall mechanism (French nuclear availability as GB export
+  demand), before any build of it.
+
+**Also, the land10 reader (lane 0), 24 Nov ~18:55Z:** `/var/tmp/se-msc-land10-ended.txt` had been written by the
+EXIT trap of the land10 instance that was stopped for the 18:48Z re-arm. It was not an outcome, but it fired
+the file hold on `land10-outcome-is-read-and-msc-lands-or-is-re-cut`. It was moved aside to
+`/var/tmp/se-msc-land10-ended.rearm-2026-11-24T1848Z.txt` (reverse: move it back), and the note is in
+`land10.log`. The live land10 waits on rankq's pid 1718490. A re-arm that writes the end file through its trap
+will re-fire the hold, so the next re-arm should move the file aside itself.
