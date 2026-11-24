@@ -2742,3 +2742,43 @@ That script goes through `launch_long_job` as `longjob-value-test-s12g-rankq` (1
 grader is chained after it into `/var/tmp/vtn-driver/grade_rankq.out`. The deadline is 8 Dec.
 
 **Reverse:** `systemctl --user stop s12g-rankq-watch longjob-value-test-s12g-rankq`.
+
+#### The rank-at-q run graded: R1 is −£2.45 (−£4.76 to −£0.47). Refuted, and the interval is BELOW (24 Nov, read at 20:02Z)
+
+**Pin and grader.** `git -C /var/tmp/value-test-cut012 diff --binary 870201d1e7 -- company saas sim simulation tools tests | sha256sum`
+is `0cc0a709cab10509…`, the pin. The grader `/var/tmp/vtn-driver/grade_rankq.py` is sha256 `86f84b177e1ca351…`,
+and `grade_rankq.out` ends `rc=0`. The predictions are the ones filed in `d6af317e77`, unrevised.
+
+| | Measure | Predicted | Read | In range |
+|---|---|---|---|---|
+| **R1** | rankq − twin, advantage | −£1.20 (−£2.60 to +£0.20) | **−£2.454 (−£4.762 to −£0.474)**; seeds −3.026, −1.883 | point yes; **REFUTED** by its rule (point below zero); interval **BELOW** |
+| R2 | value-arm offered share | 0.13 to 0.19 | **0.109** (82 of 754) | **no**, below |
+| R3 | rankq − A, advantage | −£0.30 (−£1.00 to +£0.40) | −£1.593 (−£3.891 to +£0.465) | **no**, below |
+| R4 | rankq − cut, advantage | −£1.00 (−£2.10 to +£0.10) | −£2.315 (−£4.565 to −£0.267) | **no**, below |
+
+**The gate's own path.** There were 754 value-arm asks, and 82 of them fell on the standing 0.30 gate during warm-up
+(window under 20 beliefs). The gate's median was **0.5228**, with a range of 0.0070 to 0.6335. 173 asks were at or above
+the gate, and the value test then offered 82. The pre-run estimate of the threshold was about 0.437. The real gate was
+stricter still, which is why R2 came in under its range.
+
+**Where R1 sits.** Founders only: −£2.184 (−£4.270 to −£0.393). Campaign and trickle only: −£0.271 (−£1.183 to
++£0.614). Value arm alone: −£3.428. Control arm: −£0.973 (−£1.930 to −£0.172). The control arm moving at all is the
+book's own feedback, not the gate. 535 units moved: 252 up, 283 down.
+
+**The labels side by side.** By R1's own rule: **REFUTED**. By the interval: **BELOW**. By the pre-registration's
+STRADDLE rule (holds = ABOVE, refuted = point below zero): **refuted**.
+
+**What this run cannot say.** It was meant to separate *who* is offered from *how many*, at the twin's volume. It did
+not hold volume. The twin offered 0.277 of its asks. Rankq offered 0.109, fewer even than A (0.223). So "worse
+households" and "fewer households" are still confounded here, exactly as they were for the cut. The note filed before
+the run said this would happen. **I cannot yet say** that A ranks worse where money is made. What the run does show,
+against A on the same belief: a stricter bar that offers fewer households costs about £1.6 per household-year (an
+interval that touches zero), and none of the three gates (0.12, 0.30, rank) beats the twin on 61118.
+
+**Context only, not this branch's rule.** The pre-registration's BELOW branch, step 1, reads "below zero" as "A ranks
+worse where money is made. The lever is the belief, not the gate", with no retention lever run after it. That reading
+assumes an equal-volume run, and this run was not one.
+
+**The next lever.** The STRADDLE branch of `SEAT_PREREG_WHAT_THE_SUPPLIER_DOES_ON_EACH_S12G_OUTCOME_2026-11-23.md`
+names nothing after this run. No lever is named here. The question is raised in `for_the_director` with a
+recommendation.

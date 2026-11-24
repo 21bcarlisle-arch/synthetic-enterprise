@@ -285,3 +285,23 @@ for_the_director:
   resolution: ''
   evidence: docs/market_research/how_the_gb_electricity_price_forms_2026-11-24.md s.2a, s.5a, s.8a; docs/staging/WORKER_FINDING_THE_WEATHER_TO_PRICE_CHAIN_STEER_IS_HALF_ANSWERED_AND_ITS_REST_HAD_NO_WORK_ITEM_2026-11-24.md
     (progress, 24 Nov)
+- id: s-12g-rank-at-q-run-graded
+  raised: '2026-11-24'
+  kind: strategy
+  decision_kind: measurement
+  what: 's.12g rank-at-q run graded REFUTED: rankq minus twin -2.45 GBP/hh-yr (-4.76 to -0.47), BELOW.
+    But it offered 0.109 of asks against the twin''s 0.277, so ranking and volume are still confounded.
+    The pre-registration names no lever after this outcome.'
+  proposal: Stop the retention-gate line on book 61118. Record that no gate on A's belief (0.12 cut, 0.30,
+    rank-at-q) beats the twin out of sample. Open the next item as a finding against the corrected belief's
+    money grade, which is the BELOW step-1 consequence, taken as the conservative reading.
+  recommendation: 'Take the conservative reading (F11: erring against our own thesis): treat the money
+    as not in A''s ranking for retention, and run no further retention lever. The alternative is one more
+    ~11 h run with the gate set on offered volume after the value test, so that offers match 0.277. It
+    would separate worse from fewer, but it is a lever this record did not fix in advance. Recommend it
+    only if you want that confound closed before the thesis result stands.'
+  based_on: 5710e7d1ed
+  status: open
+  resolution: ''
+  evidence: docs/design/THE_VALUE_TEST_REDESIGN.md §12g 'The rank-at-q run graded'; /var/tmp/vtn-driver/grade_rankq.out
+    (rc=0, pin 0cc0a709cab10509 verified)

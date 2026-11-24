@@ -163,3 +163,8 @@ on the same files, and nothing here is revised.
   **51.7th** percentile of the cut's asked beliefs against the threshold at the 72.3rd, a gap of 20.6 points,
   beyond ±5. The branch and the grade (`held`) are unchanged. The run is armed as `s12g-rankq-watch`, and its
   predictions R1–R4 were filed before it ran (§12g, "The rank-at-q run").
+- **The STRADDLE branch's run, graded (24 Nov, 20:02Z).** Rank-at-q − twin = −£2.454 (−£4.762 to −£0.474). By
+  this branch's rule it is **refuted**, because the point is below zero. The interval is BELOW. The realised
+  offered share was 0.109, against the twin's 0.277, so the run did not match volume, and the rule's premise
+  ("the same share") did not hold in the run. This record names no lever after this run, so the question is
+  raised in `for_the_director`. Full publication: §12g, "The rank-at-q run graded".
