@@ -695,3 +695,19 @@ will re-fire the hold, so the next re-arm should move the file aside itself.
   2022, not only 2022.
 - **Next, still item 4:** R's 2025 residual against the AGWS windows finding. The record-years build is carried by
   the SAP splice finding.
+
+## Progress, 24 Nov (worker, item 4: 2025's residual against the AGWS windows)
+
+- **Pre-registered** in `42ec42e7c`, promoted before the run. **Result** in
+  `docs/staging/records/WORKER_RESULT_THE_CHAINS_2025_MISS_IS_MOSTLY_THE_BASIS_OF_THE_FLEET_IT_IS_CLAMPED_TO_2026-11-24.md`.
+  Seven of seven predictions held. **Nothing in `sim/` changed.**
+- **2025's +3.27 GW gas-running miss was mostly a basis mismatch.** W1 scaled 2025 by 2025's FUELHH ÷ AGWS ratio
+  (0.812), but 2025's wind is 2024's clamped fleet on 2024's basis (1.221). Carrying the fleet's own basis takes
+  2025 to +1.40 GW, and the post-crisis gas-running miss to +0.29 GW (composite bias 8.29 → 7.04). Build rule: a
+  clamped year inherits its source year's fleet and its basis together. The remaining +1.4 GW is wind level
+  (the calm-year curve and fleet growth after 2024). It stays beside 2025's number until a 2025 fleet exists
+  outside AGWS.
+- **With 2025's gas running set right, its price miss is the price leg's** (+6.27, against +5.83 in 2023-24). Step B's
+  unattributed 2025 candidate is closed.
+- **Next, still item 4:** the price-leg shape arm on low-gas days (§1b), now the largest post-crisis term in every
+  year. The shippable record-years build, with this rule in it, is carried by the SAP splice finding.
