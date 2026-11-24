@@ -2651,3 +2651,94 @@ pooled over 13131/14141.
   volume, the cut already matches the twin. The rank-at-q gate moves the gate's own threshold, from the
   16th percentile to the 24th, and the value test still runs after it. If rank-at-q reads like the cut, the
   difference between A and the twin is not mostly volume at the gate.
+
+#### Correction: q is read on the population the gate acts on. It is 0.2767, not 0.7563, and the run is still owed (24 Nov, 06:00Z)
+
+**What was wrong, beside the claim and not over it.** The paragraph above reads q and the 0.12 percentile
+from the decision record's `renewals` lists. Those hold only renewals that carry a world roll: 279 pooled,
+against **777** renewals where the twin's desk was asked. That subset is skewed toward offered renewals (211
+of 279). The offer gate (`run_phase2b.py:4336` at the pin) is evaluated at every renewal where the desk is
+asked, which is exactly the `desk_asked` rows of `desk_belief_by_arm`. The "share of renewals offered" that
+the switch must match therefore has those rows as its denominator.
+(`/var/tmp/vtn-driver/s12g-reader/measure_first_gate.py`.)
+
+**Re-measured on the gate's population:**
+
+| Run | Value-arm asked renewals | Offers | Offered share | Belief > 0.12 | Belief > 0.30 |
+|---|---|---|---|---|---|
+| twin | 777 | 215 | **0.2767** | 99.7% | 89.5% |
+| cut | 774 | 218 | 0.2817 | 48.3% | 37.2% |
+| A | 771 | 172 | 0.2231 | 50.5% | 38.7% |
+
+- **q = 215/777 = 0.2767.**
+- **The threshold.** The rank-at-q threshold is the 72.3rd percentile. 0.12 sits at the **51.7th** in the cut
+  run's value-arm asked beliefs. **The gap is 20.6 points, beyond ±5, so the run is launched.** The literal
+  "q-quantile" reading (27.7th) gives a gap of 24.0. The branch and the grade (`held`) are unchanged.
+- **The volume finding, re-stated on this population.** The cut already offered at 28.2% against the twin's
+  27.7%, and A at 22.3%. The earlier 77.3% / 75.6% figures were on the rolled-event subset and are withdrawn.
+- **The landed commit message carries the withdrawn figures.** This correction is the record.
+
+#### The rank-at-q run: built, pinned, predicted and armed (24 Nov)
+
+**Stated deviation, the second on this tree.** The rank switch is added to `/var/tmp/value-test-cut012`.
+No configuration of it has produced output. The knowledge page came first:
+`docs/market_research/a_retention_gate_set_by_volume_on_the_desks_own_ranked_beliefs_2026-11-24.md`.
+
+**The switch.** `DecisionPolicy.retention_rank_at_share` (default `None`) and
+`growth_desk.retention_gate_at_rank_share`:
+- **The gate.** The belief at index ⌊(1 − q)·n⌋ of the desk's own sorted beliefs at renewals in the 365 days
+  before the day.
+- **Warm-up.** Below 20 beliefs, the gate falls back to the standing 0.30. That is a design constant of this
+  test, not a domain value.
+- **The cut.** A belief at or above the gate takes its tier's cut, or the lowest tier's where it is under the
+  lowest tier. This is the 0.12 cut's own rule.
+- **Logging.** Every gate is logged to `rank_gate_log`.
+- **Switch off.** Every path is unchanged, so the twin, cut and A files on disk remain the comparators.
+
+**The pin.** The diff from `870201d1e7` is now `0cc0a709cab10509…` (`/var/tmp/vtn-driver/rankq.patch`, `.sha256`).
+It touches four files: the three cut012 files plus `collections_journey.py`. `cut012.patch.sha256`
+(`030f8d16…`) is kept as s.12g's own pin.
+
+**The run.**
+- **Configuration.** One: `rankq`, with A's belief on, the cut off and `retention_rank_at_share = 215/777`.
+- **Book and seeds.** Book 61118, churn pair 13131/14141.
+- **Driver.** `/var/tmp/vtn-driver/driver_rankq.py` (sha256 `16f15aa39689ea52…`), which is s.12g's driver
+  with only its configuration set, pin and output directory changed. It also keeps `rank_gate_log`.
+- **Dry check.** Seed 61118, 1,027 accounts, 698 founders, and the switch on both policies.
+
+**The grader.** `/var/tmp/vtn-driver/grade_rankq.py` (sha256 `86f84b177e1ca351…`) uses grade_new_book's unit,
+resampling and divisor. It prints:
+- rankq − twin (P1's measure; HOLDS only ABOVE, REFUTED when the point is below zero);
+- rankq − cut (0.12 replaced by the volume match);
+- rankq − A;
+- the realised offered share and the gate's own path.
+
+Validated on a fixture with A's files posing as rankq: it reproduces P2 (−0.861, −2.095 to +0.320) and −P3,
+and rankq − A reads exactly zero. (`s12g-reader/grade_rankq_fixture_A_as_rankq.out`.)
+
+**Read before the run, and why it shapes the predictions.** The value test still refuses after the gate. At
+A's 0.30 gate, 298 asks pass and 172 are offered, 58%. On A's whole-run beliefs, the rank-at-q threshold is
+about **0.437**, which is *stricter* than A's own gate. So as registered, the rank gate does not raise A to
+the twin's volume: it lowers it. It is the lever the pre-registration named, and it is run as named. What it
+can still answer: A's ranking at a stricter, volume-set bar, against the twin and against A's own gate.
+
+**Predictions (£ per household-year), filed before rankq has run:**
+
+| | Measure | Predicted | Rule |
+|---|---|---|---|
+| **R1** | rankq − twin, advantage over the flat book | **−£1.20 (−£2.60 to +£0.20)** | **Holds only ABOVE. Refuted below zero. Otherwise "cannot tell".** |
+| R2 | Realised value-arm offered share | 0.13 to 0.19 (offers 100 to 150 of about 775) | In range or not |
+| R3 | rankq − A, advantage | −£0.30 (−£1.00 to +£0.40) | In range or not |
+| R4 | rankq − cut, advantage | −£1.00 (−£2.10 to +£0.10) | In range or not |
+
+**Armed.** User unit `s12g-rankq-watch` runs `/var/tmp/box-plan/s12g-rankq/arm_rankq.sh` (sha256
+`520d192764253d04…`):
+1. It waits for `box_free.py`.
+2. It refuses if the job is already running or on disk.
+3. It checks the rankq pin, with the same mixed-reset repair as the earlier arm scripts.
+4. It runs `launch_rankq.sh` (sha256 `ef15968c5fb93060…`) once.
+
+That script goes through `launch_long_job` as `longjob-value-test-s12g-rankq` (11,800 MB, 800 min), and the
+grader is chained after it into `/var/tmp/vtn-driver/grade_rankq.out`. The deadline is 8 Dec.
+
+**Reverse:** `systemctl --user stop s12g-rankq-watch longjob-value-test-s12g-rankq`.
