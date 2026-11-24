@@ -494,3 +494,20 @@ close it.
 - **Next, still item 4:** (1) the leg's inputs by year (the record's gas against the daily SAP splice, and
   carbon) in 2021, 2023 and 2025, pre-registered with the by-year biases as its control. (2) Unchanged: the
   end-year clamps on a FUELHH-basis fleet, then rerun B1-B3.
+
+## Progress, 24 Nov (worker, item 4: the leg's inputs arm, on the record)
+
+- **Pre-registered** in `932409f6e`, promoted before the run. **Result** in
+  `docs/staging/records/WORKER_RESULT_ON_THE_SAP_SPLICE_THE_PRICE_LEGS_POST_CRISIS_MISS_CHANGES_SIGN_THE_LEVEL_WAS_THE_PROXYS_2022_PREMIUM_2026-11-24.md`.
+  Five of seven predictions held. **Nothing ships.**
+- **On SAP, the leg's post-crisis miss changes sign.** On real daily x, R L0 goes from −7.99 to +4.08, and its
+  MAE from 9.84 to 5.82. Pre-crisis MAE falls from 5.48 to 4.65. Crisis MAE rises from 14.62 to 18.46, with
+  2022 at −17.85. 2021, 2023 and 2025 close (−1.2 / +3.3 / −1.2). That is the multiplier rising, not a lagging
+  input.
+- **Correction, beside the claim:** this replicates the gas-input arm `8be76e9495` (11:15) on the leg's own form.
+  The shape result's "Next 1" and my pre-registration both missed it. The build-terms and shape arms' price-leg
+  LEVEL conclusions were measured on the TTF proxy. These are the "about £7 low", "a level, not a shape", and
+  the £5-6 constant (which goes negative on SAP). They need re-reading on SAP before any build uses them.
+- **Next, still item 4:** (1) the leg on real x on SAP plus GB's real net export (`c2f65d9e9`'s term), with this
+  record's SAP R L0 row as its control. (2) Build-terms B1-B3 rerun on SAP. (3) The end-year clamps on a
+  FUELHH-basis fleet, unchanged.
