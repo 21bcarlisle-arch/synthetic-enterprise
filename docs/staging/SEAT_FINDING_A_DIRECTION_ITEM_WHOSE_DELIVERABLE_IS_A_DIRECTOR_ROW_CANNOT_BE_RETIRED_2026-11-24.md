@@ -22,3 +22,9 @@ re-offered, and the turn that drew it is logged `LANDED NOTHING`.
 record, `--release` should accept that commit on origin/main as the item's DONE. Either that, or the refusal message should
 stop saying "--release" is sufficient. Mutation check for the fix: the same seat-record-only commit must still be refused as
 *credit* for an item whose DONE names a non-record path.
+
+**Correction, later 24 Nov (the redraw this finding predicted happened).** The executor drew the id again. With the id now
+drawn, step 4 no longer holds: `--premise-spent rankq-equal-volume-question-carried-to-the-director-row 49b62d352 <reason>`
+was accepted ("window is disposed as premise-spent by 49b62d352"). So the working retirement for a record-only deliverable
+is: let the item be redrawn, then `--premise-spent` against the commit that landed it. The defect narrows to the first turn:
+the turn that does the work cannot retire it, and one redraw is spent finding that out. The one-leg fix above still stands.
