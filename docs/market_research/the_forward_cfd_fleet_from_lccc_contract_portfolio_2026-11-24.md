@@ -285,12 +285,36 @@ counts once, because it left the AR4 contract. Some withdrawn capacity won nothi
 158.9 MW is exactly half of its withdrawal, and Inch Cape is 3.9 MW short. That capacity is not
 under any CfD on this record (GAP 4).
 
-**Still open (2a-ii).** Hornsea Three's AR6 units are 374.1 MW more than it withdrew. The note's text
-("that reduced capacity") does not allow for that. Two readings fit: the project grew after AR4, or
-the AR6 bid included capacity that was never under the AR4 contract. Neither is read. The candidate
-source is the AR6 application rules on Permitted Reduction applicants: the 2024 Allocation
-Regulations amendment, or the AR6 Round Notice. Until it is read, the forward levy carries the 374.1 MW
-at 54.23, as LCCC holds it, and says so.
+**2a-ii, narrowed (worker, 24 Nov).** Hornsea Three's AR6 units are 374.1 MW more than it withdrew. The note's text
+("that reduced capacity") does not allow for that. The first reading was that the project grew after AR4.
+The project's size rules most of that reading out:
+
+- Ørsted, company announcement of 3 September 2024 (read in full): "Hornsea 3 will be the world's single
+  largest offshore wind farm with a capacity of 2,955 MW." The 1,080 MW is "a 1,080 MW share". AR6 holds
+  it as three units of 360 MW (A-C). Turver, *AR6 Contracts for Cronies?*, 10 September 2024 [press],
+  gives the same split.
+- [calc] Contracted on this record: 2,146.10 (AR4, held) + 1,080.00 (AR6) = **3,226.10 MW**, which is
+  **271.1 MW more than the whole farm**. Growth after AR4 (2,955 − 2,852 = 103 MW) explains at most
+  103 MW of the 374.1 MW.
+- So the two contracts overlap on paper. Either the AR4 contract will be cut below 2,146.1 MW, or both
+  contracts name capacity that no turbine will fill. Turver reports putting the 25% question to DESNZ, and
+  his page shows no reply. One search summary attributes to an Ørsted spokesperson that the bid "was not
+  limited by the capacity removed" from AR4, and that Ørsted would "assess the options" for splitting the
+  project between AR4 and AR6. That statement was **not found on any page read** (Ørsted, the project's own
+  news page, offshorewind.biz, Turver). It is a pointer to follow, not a source.
+- The register entry that would settle the current AR4 capacity (`register.lowcarboncontracts.uk/AR4-HRN-010`)
+  refuses automated reads (HTTP 403). Recharge's report is behind a login.
+
+**What it settles for a forward levy [inference, not read in the terms].** A CfD pays on metered output,
+not on contract capacity. Hornsea Three's two contracts together can be paid on at most what 2,955 MW
+generates. A levy that multiplies each unit's LCCC capacity by a load factor would overcount the project
+by 271.1 MW, which is 9.2% of it. **Build rule:** cap Hornsea Three's AR4 + AR6 paid capacity at 2,955 MW.
+Until the split is published, put the 1,080 MW at 54.23 and the rest (1,875 MW) at 37.35. The order is
+not established, so state the other order (AR4 full at 2,146.1 and 808.9 MW at 54.23) beside it as the
+bound. The two orders put 271.1 MW at different strikes, 16.88 apart in 2012 prices, so they differ by
+about £0.40m a year for each percentage point of the farm's load factor [calc]. **How metered output is shared between two CfDs on
+one farm is not read** (new GAP 2b). The AR4 and AR6 terms' metering or apportionment provisions are
+where to look.
 
 ## 5. GAPs
 
@@ -300,7 +324,11 @@ at 54.23, as LCCC holds it, and says so.
    AR4-AR7 portfolio unit has one strike. **Closed.**
    2a. **AR4 offshore capacity that reappears in AR6.** Read in §4c (24 Nov, worker). It is AR6's
    "Offshore Wind Permitted Reduction" category, and the rule is primary text. **Narrowed, not closed.**
-   Hornsea Three's AR6 capacity is 374.1 MW more than it withdrew, and that is still unexplained (2a-ii).
+   Hornsea Three's AR6 capacity is 374.1 MW more than it withdrew (2a-ii). **Narrowed** in §4c (24 Nov,
+   worker): AR4 held plus AR6 is 3,226.1 MW against a 2,955 MW farm, so 271.1 MW of contract capacity has
+   no turbine behind it. The levy caps the project at 2,955 MW. Which contract the cut falls on is open.
+   2b. **How metered output is shared between two CfDs on one farm** (AR4 and AR6 Permitted Reduction
+   units). Not read. It decides which strike the shared output is paid at.
 3. **First power against CfD start for each phased offshore unit,** and the AR4 rule that allows
    deferral. This decides how far the two fleets of §0 differ in 2022-2026.
 4. **Capacity not under any CfD** (RO, merchant, FiT). This is needed to split the curriculum's one

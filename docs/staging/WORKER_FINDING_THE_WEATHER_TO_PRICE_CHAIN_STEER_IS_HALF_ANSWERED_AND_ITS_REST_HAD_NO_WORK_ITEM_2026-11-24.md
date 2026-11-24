@@ -838,3 +838,18 @@ will re-fire the hold, so the next re-arm should move the file aside itself.
 - **What is left of 1-6:** item 4's build (carried by the SAP splice finding). For item 5: 2a-ii, the
   investment-contract terms, the auction's hourly series, and the forward levy, which waits on the
   director's `the-forward-world-has-bands-for-gas` row and the forward price.
+
+## Progress, 24 Nov (worker, item 5: GAP 2a-ii, Hornsea Three's excess, narrowed)
+
+- **Fleet page §4c.** Ørsted's 3 Sep 2024 announcement puts Hornsea Three at 2,955 MW. LCCC holds 2,146.1 MW
+  on AR4 and 1,080 MW on AR6 (3 × 360), 3,226.1 MW in all. That is 271.1 MW of contract capacity with no
+  turbine behind it. Growth after AR4 explains at most 103 MW of the 374.1 MW.
+- **For the levy:** CfDs pay on metered output, so cap the project at 2,955 MW, not the sum of its LCCC
+  capacities, which would overcount it by 9.2%. Which contract the cut falls on is not published. Both
+  orders are stated as the bound, about £0.40m/yr per point of load factor. New fleet-page GAP 2b: how one
+  farm's output is shared between two CfDs.
+- **Not read:** the LCCC register entry (HTTP 403) and Recharge (login wall). A spokesperson quote that
+  appeared in a search summary was not found on any page read, and it is kept only as a pointer.
+- **What is left of 1-6:** item 4's build (carried by the SAP splice finding). For item 5: GAP 2b, the
+  investment-contract terms, the auction's hourly series, and the forward levy, which waits on the
+  director's `the-forward-world-has-bands-for-gas` row and the forward price.
