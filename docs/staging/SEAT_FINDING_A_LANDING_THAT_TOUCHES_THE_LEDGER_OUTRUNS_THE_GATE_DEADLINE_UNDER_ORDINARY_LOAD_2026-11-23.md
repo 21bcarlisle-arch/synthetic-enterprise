@@ -187,3 +187,22 @@ this prediction was wrong, and the margin was the box's load and not the selecti
 **The post-s.12g book is held** by the `commit: null` MSC row in `background/next_book_requires.yaml`
 (d5a209bac). It holds until MSC lands or the file lapses after 24 Nov. If land7 times out as predicted,
 the hold costs the book its 24 Nov slot. Deleting the row is the reverse (see the row's comment).
+
+**land7's outcome, 24 Nov 05:38Z: UNGRADED.** The prediction above (timeout at 90–95%, no red) was
+never tested: land7 was refused in 8 s at the stale-copy check, before any test ran, because msc8
+deletes the `phase2b_2016_2018` fixture 83570bd1c added to `tests/simulation/conftest.py`. That
+deletion is a deliberate MOVE to `tests/conftest.py` (with `book_after_the_run`, so phase 4c reads
+the shared run); 83570bd1c does not share with phase 4c, so neither hunk duplicates the other.
+`refresh_to_head` is the wrong door: restoring the sub-conftest copy would shadow the root fixture
+for `tests/simulation` and bring back the second whole run. The door is `--drops`.
+
+**The hold is released.** The `commit: null` MSC row is deleted from `next_book_requires.yaml`
+(24 Nov), so the post-s.12g book builds without MSC; MSC enters the following book.
+
+**Prediction for land9 (msc8 + `--drops tests/simulation/conftest.py`, gated only after the
+post-s.12g book has ended and never beside rankq; written 24 Nov before it is armed):** the
+stale-copy check passes. The gate's selection takes 3,300–3,700 s: msc8 removes phase 4c's own
+1,097 s run from the 4,604 s serial run measured for msc6 (which already shared the run with the
+flat-supplier file), leaving about 3,500 s. So it is a coin toss against the 3,600 s deadline, decided by load and not the selection,
+with no red. If it times out, the fix is shrinking the selection, never raising GATE_TIMEOUT_SECONDS.
+Script: `/var/tmp/se-msc-keep/land9.sh`; log `land9.log`.
