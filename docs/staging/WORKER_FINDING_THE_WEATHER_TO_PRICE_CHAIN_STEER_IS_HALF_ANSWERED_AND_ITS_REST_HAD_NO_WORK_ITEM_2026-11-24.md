@@ -81,3 +81,17 @@ close it.
   benefit to suppliers came through reconciliation and generator paybacks. An endogenous levy must
   produce a negative NET payment, not a negative ILR (page §3).
 - **Next: item 3**, the carbon arm. It needs a UKA market series first (page GAP 1). Items 4-5 follow.
+
+## Progress, 24 Nov (worker)
+
+- **Item 3 landed.** The UKA market series is held: 116 UK ETS auctions, May 2021 to Dec 2025, from the
+  UK ETS Authority's reports, in `docs/market_research/uk_ets_allowance_auction_clearing_prices_2021_2025.json`.
+  The electricity page's GAP 1 is closed. The arm's result is
+  `docs/staging/records/WORKER_RESULT_CARBON_EXPLAINS_THE_CHAINS_PRE_CRISIS_BIAS_AND_ITS_MULTIPLIER_ALREADY_CARRIES_IT_AFTER_2021_2026-11-24.md`.
+  Pre-crisis, carbon takes the chain's bias from −£12.0 to +£3.1 (held) and its MAE to £7.14 (≤ £7
+  missed by £0.14). The chain still loses to the gas-only null. After mid-2021 the term makes the chain
+  much worse (MAE 31.5 → 53.2, 10.3 → 23.4; filed as "fall by less", wrong in sign). The leading
+  explanation is that the reduced form's multiplier was fitted with carbon at zero and already carries it.
+- **Next: item 4.** Its first step is the refit that tests that explanation, with its prediction already
+  filed in the result record. The same step fills `merit_order_reconstruction`'s 2022-2024 allowance gap
+  years, which can now be sourced.

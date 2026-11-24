@@ -93,8 +93,17 @@ its imbalance. `sim/market_index_history.py` records this, and it is graded in �
   (`WORKER_RESULT_THE_WEATHER_TO_PRICE_CHAIN_LOSES_...`) is the size the allowance alone would leave in
   2019-20 (£11-12 at 2019-20 prices [calc]). That is consistent with missing carbon, but this page does
   not attribute it. Item 3 of the steer does that, with its prediction filed first.
-- **GAP.** No daily or monthly UKA market series is held. The civil-penalty price is not the market
-  price.
+- **UKA market series (GAP 1, closed 24 Nov).** Every UK ETS auction from the first (19 May 2021) to
+  10 Dec 2025, 116 in all, is transcribed from the UK ETS Authority's annual *Functioning of the UK
+  carbon market* reports into `uk_ets_allowance_auction_clearing_prices_2021_2025.json`. The
+  transcription reproduces the statutory 2021 price (£47.96, the auction VWAP to 11 Nov), the 2024
+  table's revenue total to the pound, and every year's stated price range. Calendar-year
+  volume-weighted clearing prices: **£51.41 (2021, from May), £75.42 (2022), £53.38 (2023), £37.18
+  (2024), £48.05 (2025)**. The civil-penalty proxy above sat £5-12/t higher in 2022-2024, because it
+  averaged futures traded before the 2023 fall. At fleet efficiency that is about £2-4/MWh of SRMC
+  [calc], so it explains a minority of the post-crisis −£9.80 gap in the power grade, not most of it.
+  The clearing price is the primary-auction price, within about £2 of the prevailing secondary price
+  at every 2025 auction (the 2025 report prints both).
 
 ## 3. CfD, RO and negative prices
 
@@ -291,13 +300,14 @@ Fifteen of twenty-two predictions held. The seven misses stay beside the outcome
 2. **Fleet-average efficiency, not marginal-unit efficiency**, because it is the published one. The
    marginal plant is less efficient, so the SRMC here is a lower bound.
 3. **The civil-penalty UK ETS prices are taken in the year they were traded**, because that is what
-   they average. They are futures for the following December, not spot.
+   they average. They are futures for the following December, not spot. *Superseded 24 Nov for
+   2021-2025 by the auction series (§2); the grade that used the proxy is kept as run.*
 4. **No forward number is set here.** Forward gas, carbon and fleet are curriculum, and the director's
    (R13). This page says which mechanisms a forward generator must be able to show.
 
 ## 13. Named gaps, in the order the rebuild needs them
 
-1. A UKA market price series 2021-2025 (§2). Item 3, the carbon arm, needs it first.
+1. ~~A UKA market price series 2021-2025 (§2).~~ Closed 24 Nov from the UK ETS Authority's auction tables (§2).
 2. Hourly GB-continent price spreads and flows by link, 2016-2025, and the size of the post-2021
    explicit-allocation loss (§5).
 3. The CfD Standard Terms' negative-price clauses by round, and LCCC's quarterly reconciliation
