@@ -726,3 +726,18 @@ will re-fire the hold, so the next re-arm should move the file aside itself.
   running, the composite post bias goes from +7.04 to +3.63 (+1.57 without 2025), but MAE barely moves.
 - **Next, still item 4:** (1) the post-crisis top above 14 GW, pre-registered first. (2) The shippable record-years
   build now carries the hinge too. It is carried by the SAP splice finding.
+
+## Progress, 24 Nov (worker, item 4: the price leg's post-crisis top, on the record)
+
+- **Pre-registered** in `160f9fa88`. It landed locally before the run, but unlike the earlier arms it was not on
+  origin first. **Result** in
+  `docs/staging/records/WORKER_RESULT_THE_PRICE_LEGS_TOP_MOVES_BY_YEAR_BEFORE_THE_CRISIS_TOO_SO_THE_POST_CRISIS_TOP_IS_NOT_YET_A_REGIME_2026-11-24.md`.
+  Three of six testable predictions held. **Nothing in `sim/` changed.**
+- **The top moves by year before the crisis too.** On 14 GW+ days, the record sits −0.10 to +0.20 of the floor
+  around the pre-crisis fit in 2016-2021, against −0.05 to −0.14 in 2023-25. Rule (a) fired mechanically.
+  A post-crisis level term takes the leg's post bias from +2.44 to −0.27 with each year held out. But "after
+  2023" is not separable from the year-to-year spread, so no date term is built.
+- **Seen after the run, so it is a hypothesis:** every year with a §5b neighbour shortfall has a top of 1.24 or
+  more, and every year without one has 1.23 or less.
+- **Next, still item 4:** pre-register the neighbour-shortfall top arm at the month. The shippable record-years
+  build keeps S1's top, with the by-year spread stated beside it, and is carried by the SAP splice finding.
