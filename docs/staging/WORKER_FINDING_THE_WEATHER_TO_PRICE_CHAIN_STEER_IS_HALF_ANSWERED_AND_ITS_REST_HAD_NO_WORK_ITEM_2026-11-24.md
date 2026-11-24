@@ -616,3 +616,18 @@ the file hold on `land10-outcome-is-read-and-msc-lands-or-is-re-cut`. It was mov
 `/var/tmp/se-msc-land10-ended.rearm-2026-11-24T1848Z.txt` (reverse: move it back), and the note is in
 `land10.log`. The live land10 waits on rankq's pid 1718490. A re-arm that writes the end file through its trap
 will re-fire the hold, so the next re-arm should move the file aside itself.
+
+## Progress, 24 Nov (worker, item 4: the build terms rerun on SAP plus the annual net-export level)
+
+- **Pre-registered** in `df7cd4297` and pushed to origin before the run. **Result** in
+  `docs/staging/records/WORKER_RESULT_ON_SAP_PLUS_THE_ANNUAL_NET_EXPORT_LEVEL_DEMAND_BY_YEAR_AND_SOLAR_OUT_THE_CHAIN_BEATS_THE_GAS_ONLY_NULL_IN_EVERY_REGIME_2026-11-24.md`.
+  Five of eight predictions held. **Nothing in `sim/` changed.**
+- **On the form a build would ship, the chain beats the gas-only null on SAP in every regime at the month.** That
+  form is SAP, the annual net-export level, demand by year, and solar out. Monthly MAE is 4.22 / 16.81 / 6.18,
+  against null_S's 4.97 / 17.44 / 9.84 and the shipped chain's 6.50 / 17.20 / 8.19. Against null_T it loses only
+  post-crisis without 2025 (5.47 against 4.81). Rule (a) fires. FUELHH wind is worse than AGWS here.
+- **Stated plainly:** on the record, the demand and net-flow year levels are each year's own real level. A forward
+  figure adds the error of the published path it takes them from. The quarter was not measured.
+- **Not built.** The build waits on the DIRECTION `not_now` hold on SAP, a forward demand path (§8a), and the FES
+  net-flow level (§5). **Next, still item 4:** pre-register a forward year's demand level from FES system demand.
+  Then the neighbour-shortfall K8 section, and R's 2025 residual.
