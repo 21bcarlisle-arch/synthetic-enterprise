@@ -178,6 +178,9 @@ dedupes to the latest `publishTime` per `(settlementDate, settlementPeriod, psrT
 summing (max renewable figure drops from 1,480,897 MW to a physically sane 28,456 MW). This is a
 real bug in the shared aggregator, not fixed there in this pass (out of this atom's file_scope) —
 logged as a finding for a future touch of `generation_demand_history.py`.
+**Fixed in the shared aggregator, 24 Nov 2026:** `latest_publish_per_key` keeps the latest publish
+before every AGWS sum. On the weather-to-price chain's daily record, mean wind falls 5,519 → 5,492 MW,
+the maximum day 35,458 → 20,977 MW, and the chain's fleet scalar 128,701 → 128,061 MW (−0.50%).
 
 **Result — the gate clears against the hard bar:**
 

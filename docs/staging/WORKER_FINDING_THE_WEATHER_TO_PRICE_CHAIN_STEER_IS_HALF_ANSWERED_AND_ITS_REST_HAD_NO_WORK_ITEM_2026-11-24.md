@@ -180,3 +180,21 @@ close it.
   `sim/weather_price_chain`, landed with the step-1 refit and its sim carbon series. It carries two
   caveats: hold the curve above 10 m/s, and source the forward fleet from a capacity path. Separately,
   the post-crisis −£8 level gap is still owed.
+
+## Progress, 24 Nov (worker, item 4 build, step A: the map's condition 2)
+
+- **The build is split into two one-variable steps** so each move can be attributed. Step A is
+  the AGWS dedup (map C3). Step B is the aggregate curve, the per-year fleet, and the carbon refit
+  shipped together (map conditions 1, 3 and 4).
+- **Step A landed.** `sim/generation_demand_history.latest_publish_per_key` keeps the latest
+  publish per (date, period, psrType) before every AGWS sum: wind, solar and renewable. The two
+  recalibration scripts' local copies were already correct and are unchanged.
+- **Measured on the chain's daily record, predictions filed before the run.** Mean wind went from
+  5,519.3 to 5,491.8 MW. A1 held on the drop (−27.5, filed −27) and missed its ±5 level band,
+  because the map's 5,509 was not this record's figure. The maximum day went from 35,458 to
+  20,977 MW (held). The fleet scalar went from 128,701 to 128,061 MW, −0.50%. A2's < 0.5% held
+  at its edge; the map's 0.16% was wrong. Chain-vs-SSP daily MAE went from 23.989 to 23.965 (A3
+  held). The wind correlation rose from 0.610 to 0.619.
+- **Next, step B:** the curve and the per-year fleet, refitted against the deduplicated record,
+  with carbon in the call and in A0-A2 together. The carbon series must sit in the one table
+  `merit_order_reconstruction` already holds (map C4).

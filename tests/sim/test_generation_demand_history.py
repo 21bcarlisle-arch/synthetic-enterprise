@@ -110,3 +110,25 @@ def test_aggregate_wind_excludes_solar():
 def test_aggregate_renewable_empty():
     totals = aggregate_renewable_generation([])
     assert totals == {}
+
+
+def test_a_republished_half_hour_is_counted_once_at_its_latest_publish():
+    """Defect named: the aggregator summed every AGWS publish of one half-hour, so 2022-03-26
+    period 45 (564 publishes) read 1,480,896 MW. The later publish must win, not add."""
+    from sim.generation_demand_history import aggregate_solar_generation
+
+    records = [
+        {"settlementDate": "2024-01-01", "settlementPeriod": 1, "psrType": "Wind Onshore",
+         "quantity": 100.0, "publishTime": "2024-01-01T01:00:00Z"},
+        {"settlementDate": "2024-01-01", "settlementPeriod": 1, "psrType": "Wind Onshore",
+         "quantity": 120.0, "publishTime": "2024-01-02T01:00:00Z"},
+        {"settlementDate": "2024-01-01", "settlementPeriod": 1, "psrType": "Wind Onshore",
+         "quantity": 999.0, "publishTime": "2023-12-31T01:00:00Z"},
+        {"settlementDate": "2024-01-01", "settlementPeriod": 1, "psrType": "Solar",
+         "quantity": 7.0, "publishTime": "2024-01-01T01:00:00Z"},
+        {"settlementDate": "2024-01-01", "settlementPeriod": 1, "psrType": "Solar",
+         "quantity": 7.0, "publishTime": "2024-01-01T01:00:00Z"},
+    ]
+    assert aggregate_wind_generation(records) == {("2024-01-01", 1): 120.0}
+    assert aggregate_renewable_generation(records) == {("2024-01-01", 1): 127.0}
+    assert aggregate_solar_generation(records) == {("2024-01-01", 1): 7.0}
