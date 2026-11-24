@@ -77,3 +77,24 @@ the weekly review rules on the level-above-2 proposal, the smallest mechanism th
 visible is the same: widen `knowledge_plan`'s atom source to every world model at level ≥ 2, and let
 `atoms_with_a_page` keep reporting the bare-name result it reports today. A plan row is not a gate.
 It is a cost on a list the seat already reads.
+
+## Addendum (worker, 24 Nov evening): two candidates read, from the code side
+
+This census works from the module side: does the module's source cite a page, and does any page
+name its path? It covered 32 `sim/`/`simulation/` modules under 20 atoms at level 3 or above. Ten
+modules cite no page. Eight of those are covered by a page under another name (flex dispatch by
+`vpps_and_local_flexibility_2026-10-25.md`, grid carbon by the G14 page, the fabric path through
+`fabric_physics.py`, profile classes by `hh_load_shape_clustering_2026.md`). Two of the candidates
+above have now been read:
+
+- **`W1_3`, `sim/weather_tail_demonstration.py`: confirmed, no mechanism page.** The nearest page,
+  `cold_snaps_arrive_in_blocks_and_britain_has_no_second_weather.md`, is temperature only. It says
+  that the cold-and-still joint, which the module's docstring calls "THE single most important GB
+  power correlation", is not measured there. No page names the module. The owed page covers the
+  real GB worst weeks and the published joint-tail evidence, with a GAP, and then grades the demo
+  against them.
+- **`W5_1`, `simulation/dd_collection_book.py`: covered, unlinked.** `payments_and_direct_debit_2026-10-25.md`
+  holds the Bacs cycle, but the module cites no page. The fix is a docstring line, once a reader has
+  checked that the page covers what the book does.
+
+The weather-cells question for `W1_3` is answered. `W1_4` is still unread.
