@@ -374,6 +374,79 @@ gas runs, before any arm is built on it (K8).*
 - **GAP.** No hourly cross-border price-spread series is held. Interconnector flows by direction are
   held only as FUELHH (graded in §10).
 
+## 5a. A forward net-flow path: what FES publishes, and what the leg needs
+
+*Added 24 Nov 2026 by the autonomous worker, for item 4 of the weather-to-price steer. The net-export arm
+(`docs/staging/records/WORKER_RESULT_ON_SAP_PLUS_GB_NET_EXPORT_THE_PRICE_LEG_TAKES_A_QUARTER_OFF_ITS_CRISIS_MISS_AND_ITS_POST_CRISIS_BIAS_TO_ZERO_2026-11-24.md`)
+found that GB's net export, added to INDO, is the term a build would ship. Real FUELHH flow cannot cross into
+forward years, so that term needs a sourced forward path before it enters `sim/weather_price_chain` (K8). This
+section sources it. It sets no forward number.*
+
+- **What the thing is.** In the leg, the term is FUELHH's signed interconnector rows summed per half-hour, with the
+  sign flipped so that + is export, in MW, added to INDO. Its annual mean on the record (MW): 2016 −1,914 ...
+  2022 **+506** ... 2024 −3,793. 2024's −3,793 MW is −33.2 TWh [calc], against DUKES 5.13's 33.4 TWh net
+  import, so FUELHH and DUKES agree on the year both cover. A forward path has to be in this quantity: net, signed,
+  transmission-metered and half-hourly. It is not gross imports, and it is not an annual total.
+- **What FES publishes.** NESO's *FES 2025 Electricity Supply data table ES1* (`fes2025_es1_v006.csv`, NESO Data
+  Portal, read 24 Nov 2026) gives interconnector Capacity (MW), Import (TWh), Export (TWh, negative) and
+  Netflows (TWh, + is import) per pathway and calendar column, 2024-2050, at transmission only. The *2026 Ten
+  Year Outlook* table (`10yo2026_es1_v001.csv`) gives the same for one central case. Read as totals across
+  all links:
+
+  | Netflows, TWh (+ import) | 2025 | 2026 | 2028 | 2030 | 2032 | 2035 |
+  |---|---|---|---|---|---|---|
+  | Falling Behind | 39.6 | 35.6 | 20.0 | −5.9 | −31.3 | −40.6 |
+  | Electric Engagement | 30.6 | 28.6 | 24.2 | −3.1 | −29.3 | −47.8 |
+  | Holistic Transition | 29.0 | 26.9 | 30.5 | −3.2 | −42.3 | −81.2 |
+  | Hydrogen Evolution | 32.7 | 29.9 | 24.5 | +3.9 | −24.7 | −62.2 |
+  | Ten Year Forecast (FES 2025) | 32.7 | 29.2 | 11.9 | −23.8 | −50.4 | −71.8 |
+  | Ten Year Outlook (2026) | 35.6 | 23.0 | 9.2 | 8.1 | −0.9 | −34.0 |
+
+  Capacity (GW, same tables): 10.3 in 2025-27 in every case. Then 11.7 by 2028-30, and 11.7-20.6 by 2035
+  (Falling Behind 12.9, Electric Engagement 20.6, 2026 Outlook 16.4). §5's link list gives 10.3 GW at
+  end-2023 and 10.8 GW once Greenlink is in (2025). ES1's 2025 is 10.3, so 0.5 GW is unexplained: Greenlink's
+  timing or a derate. This has not been checked. Ofgem's pipeline
+  behind the rise: the Window 3 cap-and-floor IPA (Nov 2024) approved LirIC 0.7 GW, MaresConnect 0.75 GW and
+  Tarchon 1.4 GW in principle. The pilot offshore-hybrid IPA approved LionLink 1.8 GW and Nautilus 1.4 GW, by
+  2032. Both are conditional (conditions amended Aug 2025). Ofgem gives 11.7 GW "operational or under
+  construction" (Ofgem, *Window 3 IPA decision* and press release, Nov 2024).
+- **What the band says.** Every case keeps GB a net importer to 2028, by 9-40 TWh (about 1.0-4.5 GW mean
+  import [calc, ÷8.76]). Between 2030 and 2032 every case turns GB into a net exporter, or close to it. This is
+  NESO's modelled result of GB renewables outgrowing GB demand. It is not an observed trend: the record's net
+  import grew to 2024. The 2026 Outlook is the slowest case, with a crossover only by 2032. Across the cases in
+  one year, the spread (2030: −23.8 to +8.1 TWh, about 3.7 GW) is larger than any year-to-year move in the record
+  outside 2022.
+- **The 2024 column does not reconcile, stated before anyone uses it.** ES1 2025's 2024 column is 19.2 TWh
+  import, 14.5 TWh export and 4.7 TWh net, the same in every pathway. DUKES 5.13 has 33.4 TWh net import, and
+  FUELHH agrees with DUKES. Its 2025 column (29.0-39.6 net) sits around DUKES 2025's 29.7. So the 2024 column
+  is not the outturn on the basis the leg uses. Why is a GAP (13: 11a). **A forward path must start from the
+  2025 column, or splice from the record's 2024. It must never difference against ES1's own 2024.**
+- **Why an annual path is not enough.** Flow follows the price spread (§5, mechanism). GB exports in windy,
+  low-price hours and imports in still, high-price ones. So the half-hourly net export is correlated with the
+  leg's own residual, and the leg's coefficient was fitted on that joint shape. FES publishes annual totals
+  only. No published source read gives a forward half-hourly or seasonal flow shape. The shape is set by the
+  continental price, which the world does not carry. There are three ways to build it:
+  1. **An annual level from the band, plus the record's within-year shape conditioned on GB residual demand.**
+     The shape keeps the 2021+ explicit-allocation regime (§5) and is re-levelled to the drawn annual net.
+     This is the smallest build. Its risk is that a net-export GB shifts the shape as well as the level, and
+     that cannot be checked on the record (one export year, 2022, for a different cause).
+  2. **Endogenous flow from a spread.** This needs a continental price path (TTF plus EU ETS through a
+     continental merit order). It is a second world market, and it is out of scope here.
+  3. **Leave the term out of forward years.** This asserts the 2024-25 mean net import of about 3.8 GW for
+     every forward year (K2: omission asserts a value). Every FES case is below that by 2028.
+- **Choice this section makes.** Option 1 is the candidate. The annual level is a **drawn input in a sourced
+  band**: the FES 2025 pathways plus the 2026 Outlook, per year from 2026. Like forward carbon, which band the
+  company lives through is the director's curriculum, and it is not set here. Before any build, one arm on the
+  record has to say how much of the leg's net-export gain is the annual level and how much is the within-year
+  shape. That means refitting with net export replaced by its annual mean. If the annual mean carries most of
+  it, option 1's shape risk is small. If not, every forward year carries the error beside it.
+- **Downstream, stated so nobody rediscovers it.** The same forward flow sets imported carbon in
+  `sim/grid_carbon_intensity` (NESO counts imports at the exporting country's factor). A forward path used for
+  price must be the one used for carbon, or the world's two forward legs disagree.
+- **GAP.** (11a) Why ES1 2025's 2024 column (4.7 TWh net) is not DUKES's 33.4. (11b) Any published forward
+  seasonal or hourly flow shape, by link. (11c) Which of the Window 3 and pilot-OHA links reach final investment
+  decision. Each is named, and none is filled with a number.
+
 ## 6. Wind and solar: what moves residual demand
 
 - **Size.** Renewables were 24.5% of generation in 2016 and 50.4% in 2024 (DUKES via the 2026-07-24
@@ -679,3 +752,5 @@ Fifteen of twenty-two predictions held. The seven misses stay beside the outcome
    connection and in GWh, and a forward must-run path in a sourced band (§4a).
 10. The bridge from FES system demand to ND (about 28 TWh not decomposed in 2024), a forward embedded-
     generation path on the demand side, and when transmission demand turns up (§8a).
+11. A forward net-flow path (§5a): why ES1 2025's 2024 column is not DUKES, a forward within-year flow shape,
+    and which approved links reach FID.

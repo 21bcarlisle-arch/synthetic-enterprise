@@ -543,3 +543,21 @@ close it.
   goes from −1.20 to −4.21. 2022 keeps about −8.5.
 - **Next, still item 4:** (1) B1-B3 rerun on SAP plus net export; (2) the §5 forward-flow K8 section; (3) R's
   2025 residual against the AGWS windows finding.
+
+## Progress, 24 Nov (worker, item 4: K8 on a forward net-flow path)
+
+- **The electricity page's §5a is written.** It reads NESO's FES 2025 ES1 table and the 2026 Ten Year Outlook
+  (NESO Data Portal). Interconnector net flow per case: GB stays a net importer to 2028 (9-40 TWh). Every case
+  turns it into a net exporter between 2030 and 2032, or close to it (2030 spread −23.8 to +8.1 TWh, about
+  3.7 GW). Capacity is 10.3 GW to 2027, then 11.7 GW, then 12.9-20.6 GW by 2035. Ofgem's Window 3 and pilot-OHA
+  links behind that are approved in principle only.
+- **A trap, stated before use:** ES1 2025's 2024 column (4.7 TWh net import) is not DUKES's 33.4. FUELHH agrees
+  with DUKES. A forward path starts from the 2025 column or splices from the record. It never differences
+  against ES1's 2024.
+- **FES is annual, and the leg was fitted on the half-hourly joint shape.** Flow follows the spread, so export
+  happens in windy hours. The candidate build is an annual level drawn from the band (the director's
+  curriculum, like forward carbon), plus the record's within-year shape conditioned on residual demand.
+  Leaving the term out asserts about 3.8 GW import every year (K2). **Nothing in `sim/` changed.**
+- **Next, still item 4:** (1) the annual-mean arm: refit with net export replaced by its annual mean, to say how
+  much of the gain is level and how much is shape, with its prediction filed first. (2) B1-B3 rerun on SAP plus
+  net export. (3) R's 2025 residual against the AGWS windows finding.
