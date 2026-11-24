@@ -329,6 +329,11 @@ put the chain's over-coupling to wind in this link.*
 - **The forward-year chain** prices from weather → demand and renewables → residual demand → a merit
   order fit to SSP. It has gas but no carbon allowance, no interconnectors, no nuclear availability, and
   no CfD or RO bidding below zero. It loses to a gas-only null at the month in every regime (chain grade).
+- **The chain as the code builds it**, leg by leg, with what each reads, who reads the chain, and where this
+  week's graded misses sit: `docs/design/WORLD_POWER_PRICE_AREA_MAP_2026-11-24.md`. Three things the code does that
+  this page's mechanisms do not show: the wind leg is one turbine's curve times a mean-matched 128.7 GW, the gas
+  input is the monthly TTF proxy (flat within each month), and the record's AGWS wind double-counts republished
+  half-hours. No forward-years generator reads the chain yet.
 
 ### 10a. The grade, in brief
 
