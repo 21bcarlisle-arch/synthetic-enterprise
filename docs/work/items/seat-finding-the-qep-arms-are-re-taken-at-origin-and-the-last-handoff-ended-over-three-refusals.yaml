@@ -8,7 +8,7 @@ class: standard
 severity: LATENT
 source: finding
 evidence:
-- docs/staging/SEAT_FINDING_THE_QEP_ARMS_ARE_RE_TAKEN_AT_ORIGIN_AND_THE_LAST_HANDOFF_ENDED_OVER_THREE_REFUSALS_2026-10-04.md
+- docs/staging/done/SEAT_FINDING_THE_QEP_ARMS_ARE_RE_TAKEN_AT_ORIGIN_AND_THE_LAST_HANDOFF_ENDED_OVER_THREE_REFUSALS_2026-10-04.md
 knowledge_gap: null
 insight: null
 decider: machine
@@ -16,12 +16,12 @@ director_rank: null
 atom: null
 blocked_by: []
 occurrences: 1
-state: open
+state: done
 opened_at: '2026-10-04T00:00:00+00:00'
 chosen_at: null
-closed_at: null
+closed_at: '2026-11-24T04:47:59+00:00'
 chosen_by: null
-done_evidence: null
+done_evidence: b9ede156f1
 parked: null
 obsolete: null
 finding_lane: W2_customer_generator
