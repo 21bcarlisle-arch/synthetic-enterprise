@@ -711,3 +711,18 @@ will re-fire the hold, so the next re-arm should move the file aside itself.
   unattributed 2025 candidate is closed.
 - **Next, still item 4:** the price-leg shape arm on low-gas days (§1b), now the largest post-crisis term in every
   year. The shippable record-years build, with this rule in it, is carried by the SAP splice finding.
+
+## Progress, 24 Nov (worker, item 4: the price leg's low-gas shape on SAP, on the record)
+
+- **Pre-registered** in `1df5c3237` and pushed to origin before the run. **Result** in
+  `docs/staging/records/WORKER_RESULT_A_LOW_GAS_HINGE_LEARNT_BEFORE_THE_CRISIS_TAKES_60_PERCENT_OF_THE_PRICE_LEGS_POST_CRISIS_MISS_ON_SAP_2026-11-24.md`.
+  Eight of eight predictions held. They were informed by §1b's table, and the record says so. **Nothing in `sim/` changed.**
+- **The low-gas depth is a stable multiple of the floor, learnable before the crisis.** One hinge below 6 GW
+  of CCGT (about −0.10 of the floor per GW) is fitted on pre-crisis days only. On real gas running it takes leg P's
+  post-crisis bias from +6.16 to +2.44, and MAE from 6.97 to 4.89. Pre-crisis MAE moves by £0.01. Its coefficient is
+  −0.096 to −0.109 with any one year left out. Rule (a) fires, so it is a build term.
+- **Costs and what is left.** The crisis bias goes from −1.78 to −3.14. The post-crisis remainder sits at the top: on
+  107 days above 14 GW the leg prices at 1.27 of the floor, where the record clears at 1.17. On the chain's own gas
+  running, the composite post bias goes from +7.04 to +3.63 (+1.57 without 2025), but MAE barely moves.
+- **Next, still item 4:** (1) the post-crisis top above 14 GW, pre-registered first. (2) The shippable record-years
+  build now carries the hinge too. It is carried by the SAP splice finding.
