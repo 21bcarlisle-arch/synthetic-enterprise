@@ -118,6 +118,10 @@ filed in the learning loop.
 
 What has landed, and what is still carried, as of 24 Nov (delivery seat):
 
+Decision: fidelity yes
+
+*Coded 24 Nov 12:55Z by the worker, after the archiving left this out and turned origin red on `test_no_advisor_steer_or_ruling_reaches_done_uncoded_since_the_gate`. He said "Yes" to the advisor's check-the-chain recommendation. Its asks are a grade and a fix of the largest cause, so fidelity outranks measurement in DECISION_KINDS precedence.*
+
 - Steer §1-2, graded by regime on the record: pre-registration `2a24f6c54`, result
   `docs/staging/records/WORKER_RESULT_THE_WEATHER_TO_PRICE_CHAIN_LOSES_TO_A_GAS_ONLY_NULL_AT_THE_MONTH_IN_EVERY_REGIME_2026-11-24.md`.
 - 05:40 addendum, item 1 (gas first): the deep K8 gas page,
