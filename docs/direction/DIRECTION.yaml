@@ -222,5 +222,11 @@ wrong:
       returned FINISHED on 'tools.run_annual_report', but no book had run. FINISHED requires one poll that matched,
       so a transient process naming the pattern satisfied it. At 13:31Z land9 refused to gate beside rankq (exit 7).
       Nothing is waiting to land MSC now. Focus 3 names the matching process and re-arms it on artefacts.
-    corrected: false
+      16:30 24 Nov -- BOTH CAUSES NAMED; THEY DIFFER. 07:18Z: land9 was setsid-nohup'd from a worker claude -p
+      inside worker-tick.service, and that unit's cgroup kill at 07:18:01Z took it. 13:29Z: wait_for --pattern
+      counts any argv the regex hits. It was reproduced with a no-op bash line naming tools/run_annual_report.py.
+      The exact 13:29Z process is not established; the leading candidate is the wt-w2p-shape gate (13:28:41Z to
+      13:29:55Z). See SEAT_FINDING_A_PATTERN_WAITER_IS_SATISFIED_BY_ANY_COMMAND_LINE_THAT_NAMES_ITS_PATTERN.
+      land10 is armed at 16:22Z on artefacts, and its dry run reached the gate's door on 79fc1fbdb8.
+    corrected: true
 for_the_director: []
