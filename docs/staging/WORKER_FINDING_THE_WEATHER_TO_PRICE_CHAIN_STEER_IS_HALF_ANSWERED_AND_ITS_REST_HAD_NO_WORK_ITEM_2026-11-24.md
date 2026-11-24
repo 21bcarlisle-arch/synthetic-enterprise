@@ -392,3 +392,24 @@ close it.
 - **Disclosure:** the pre-registration was gated as `f616ad94e` before the run, but promoted to origin only
   after it.
 - **Next, still item 4:** K8 on a forward transmission-demand path, then the wind-target arm, pre-registered.
+
+## Progress, 24 Nov (worker, item 4: K8 on a forward transmission-demand path)
+
+- **K8 first, as the gas-running arm's rule (a) asked.** §8a of the electricity page sources it. FES's annual
+  demand is system demand: end-consumer demand gross of embedded generation, plus losses, weather-corrected,
+  in fiscal years (NESO, FES 2025 Table 3 footnote and *Modelling Methods* §2). It is not ND. In FY2024 it is
+  289.7 TWh against ND's 230.9 TWh. Embedded wind and solar account for 31.0 TWh of that gap, and about 28 TWh
+  is not decomposed (GAP 10a).
+- **Out of sample, real 2026 (knowledge only, W6):** ND for 1 Jan to 3 Nov was 25.4 GW mean in each of 2023,
+  2024, 2025 and 2026, within 0.7%. ND plus embedded rose 4.4%. Since 2023, growth in demand has been met by
+  embedded solar.
+- **Forward, by FY2030:** FES 2025 pathways put system demand up 11.8% to 19.0% on FY2024. NESO's 2026 Ten Year
+  Outlook, now the yearly source since FES went three-yearly, puts it up 11.7%.
+- **What the build must respect:** forward ND and the forward embedded fleet are one capacity path. A FES
+  demand paired with `renewable_capacity_trend`'s flat post-2025 fleet would raise the chain's residual by a
+  definition mismatch. The default the record supports is ND held at its 2023-25 level. The band is curriculum.
+- **Correction, beside the claim**, in `scenario_spine_and_friction_anchors_2026-07-23.md` §1.1: "+8-13% by
+  2030" is +17-20% on that table's own figures.
+- **Nothing in `sim/` changed.** **Next, still item 4:** the wind-target arm (the chain's wind mean-matched to
+  FUELHH instead of AGWS, on G4's inputs), pre-registered first. Shipping the demand year term waits on the
+  curriculum's joint demand and fleet band.

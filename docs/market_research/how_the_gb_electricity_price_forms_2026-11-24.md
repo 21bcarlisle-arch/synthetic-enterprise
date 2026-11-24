@@ -489,6 +489,98 @@ put the chain's over-coupling to wind in this link.*
 - **GAP.** No published GB price-response per degree. The demand forecast error by lead time is held
   (`published_demand_forecast_error_by_lead_day_bmrs_2021_2026.csv`).
 
+## 8a. A forward transmission-demand path: what FES publishes, and what the chain needs
+
+*Added 24 Nov 2026 by the autonomous worker, for item 4 of the weather-to-price steer. The gas-running arm
+(`docs/staging/records/WORKER_RESULT_A_DEMAND_YEAR_TERM_TAKES_HALF_THE_CHAINS_GAS_RUNNING_MISS_AND_THE_IDENTITY_FORM_LEAVES_1_9_GW_UNEXPLAINED_2026-11-24.md`)
+found a demand year term is a build term. That term must be sourced for forward years before it enters
+`sim/weather_price_chain.demand_from_weather` (K8). This section sources it. It sets no forward number.*
+
+- **What the thing is.** The chain's demand leg stands for transmission demand: INDO, which NESO's ND "is
+  equivalent to" (§4a). Embedded wind and solar have already reduced it, and it excludes station load,
+  pumping and exports. The year term the arm used is that quantity's annual mean, minus the chain's own mean
+  for the year. A forward path has to be in the same unit, or it moves the residual by a definition and not by
+  a demand.
+- **What FES publishes is a different quantity.** FES 2025's headline annual demand is "Customer demand plus
+  on-grid electrolysis meeting GB hydrogen demand only, plus losses, equivalent to GBFES System Demand Total in
+  ED1 of data workbook" (NESO, *Future Energy Scenarios: Pathways to Net Zero*, V.5, Nov 2025, Table 3
+  footnote). The underlying "end consumer demand" is counted "regardless of where (transmission, distribution
+  or on site) the electricity is generated" and is "weather corrected". It "does not include losses, exports,
+  station demand, pumping station demand or other forms of storage demand". Losses average "around eight per
+  cent", and annual figures are "normally given in financial year" (NESO, *FES 2025 Modelling Methods*,
+  §2). So FES is gross of embedded generation, includes losses, is weather-corrected and is fiscal. ND is net
+  of embedded generation, observed, and calendar. NESO's ED2 definitions table marks Transmission System
+  Demand "Used in FES? No".
+- **The bridge on the one year both cover.** FY2024 ED1 system demand is 289.7 TWh. Calendar 2024 ND is 230.9
+  TWh. The gap is 58.8 TWh. NESO's embedded wind and solar estimates account for 31.0 TWh of it. **The other
+  ~28 TWh is not decomposed in any NESO source read** [calc; GAP 10a]. Losses, other embedded and
+  behind-the-meter generation, weather correction and the fiscal year are candidates, with shares unknown.
+  The report's own prose gives "In 2024, electricity demand was 267 TWh", and its Table 3 gives 287. Neither is
+  ND.
+- **The record, in ND terms** (NESO, *Historic demand data*, `demanddata_YYYY.csv`, read 24 Nov; annual TWh =
+  Σ half-hourly MW × 0.5 / 10⁶ [calc], checked twice independently):
+
+| Year | ND | Embedded wind | Embedded solar | ND + embedded |
+|---|---|---|---|---|
+| 2016 | 275.6 | 10.7 | 9.6 | 295.9 |
+| 2019 | 257.2 | 15.5 | 11.5 | 284.2 |
+| 2020 | 238.5 | 18.2 | 12.1 | 268.9 |
+| 2022 | 233.2 | 16.6 | 13.2 | 263.0 |
+| 2023 | 228.2 | 15.6 | 13.4 | 257.2 |
+| 2024 | 230.9 | 17.0 | 14.0 | 261.8 |
+| 2025 | 229.1 | 17.1 | 18.7 | 264.9 |
+
+  ND fell 16.9% from 2016 to 2025, and ND plus embedded wind and solar fell 10.5%. So about a third of the fall
+  in transmission demand was embedded generation taking load off the grid, and the rest was demand itself
+  [calc]. NESO's mechanism: "As solar and other generation on the regional distribution networks increases, the
+  requirement for electricity to flow across the national network reduces" (NESO, *Summer Outlook* press
+  release, 16 Apr 2025).
+- **Out of sample: 2026, which the world does not hold.** Over 1 January to 3 November (307 days), ND was
+  186.9, 188.1, 187.0 and 186.8 TWh in 2023, 2024, 2025 and 2026. That is a mean of 25.4 GW every year, within
+  0.7%. ND plus embedded wind and solar rose from 212.0 to 221.4 TWh (+4.4% over three years), and embedded
+  solar alone rose from 12.8 to 20.6 TWh [calc, same files]. **Since 2023, growth in demand has been met almost
+  exactly by embedded generation, so transmission demand has been flat.** This is real 2026 data read as
+  knowledge only. It is never a runtime input the world or the company reads (W6).
+- **What FES projects** (ED1 "GBFES System Demand: Total", TWh, fiscal year; FES 2025 and NESO's *Ten Year
+  Outlook 2026* `10yo2026_ed1_v001.csv`, both read 24 Nov):
+
+| Path | FY24 | FY25 | FY26 | FY28 | FY30 | FY35 | FY30 vs FY24 |
+|---|---|---|---|---|---|---|---|
+| Holistic Transition | 289.7 | 290.9 | 295.0 | 314.3 | 339.3 | 433.4 | +17.1% |
+| Electric Engagement | 289.7 | 291.7 | 296.1 | 314.3 | 344.8 | 450.1 | +19.0% |
+| Hydrogen Evolution | 289.7 | 293.4 | 297.5 | 311.6 | 334.9 | 464.3 | +15.6% |
+| Falling Behind | 289.7 | 295.2 | 298.5 | 308.3 | 323.7 | 372.9 | +11.8% |
+| Ten Year Forecast (FES 2025) | 289.7 | 292.1 | 295.1 | 308.6 | 330.9 | 396.8 | +14.2% |
+| Ten Year Outlook 2026 | — | 292.6 | 295.3 | 306.3 | 323.6 | 385.0 | +11.7% |
+
+  FES has moved to "a three-yearly publication cycle", and the Ten Year Outlook is updated yearly (NESO, *What
+  is the Ten-Year Outlook 2026?*, Sep 2026). So the Ten Year Outlook is the current near-term source. FES 2025
+  and the 2026 Outlook agree within 1.5% to FY2027 and part after it.
+- **How a forward ND path is built, and what it must share.** ND for a forward year ≈ system demand − losses −
+  embedded generation − the undecomposed bridge. Every term except the first is either a GAP or a fleet. The
+  embedded term is the solar and small-wind fleet: FES 2025 has solar going from 18.8 GW (2024) to 43-47 GW
+  (2030), much of it embedded (`scenario_spine_and_friction_anchors_2026-07-23.md` §1.2). If the world's demand
+  path took FES's system demand while its fleet stayed flat after 2025 (`sim/renewable_capacity_trend`, R13
+  hold-flat), forward ND would rise about 12-19% by 2030. If it took FES's demand together with FES's solar,
+  most of that rise would be netted off, as it was in 2023-26. **So forward transmission demand and the forward
+  embedded fleet are one capacity path, not two inputs.** This is the same disagreement the forward CfD fleet
+  page found for the levy (`the_forward_cfd_fleet_from_lccc_contract_portfolio_2026-11-24.md`). Pairing a FES
+  demand with a flat fleet would raise the chain's residual, and so its gas running and its price, through a
+  definition mismatch alone.
+- **How it reaches price.** Through residual demand and gas running (§4a), which at a given gas level sets the
+  floor multiple (§1b). On the record, 1 GW of residual is the size of a third of the post-crisis gas-running miss
+  (gas-running arm, G1).
+- **Choice this section makes.** No forward value is set, because the path is the director's curriculum (R13).
+  The defensible default is the one the record supports: hold ND at its 2023-25 level. Two things support it.
+  It is what happened in 2026 to within 0.7%, and it is consistent with a hold-flat fleet only if the embedded
+  fleet also holds flat. A curriculum band needs both legs from one source. FES 2025 or the 2026 Ten Year
+  Outlook gives system demand. ES1 gives distributed generation, which is a dispatch output on one weather year
+  and not a demand deduction, so it is GAP 10b until its relation to NESO's embedded estimates is checked.
+- **GAP.** (10a) The ~28 TWh between FES system demand and ND plus embedded wind and solar in 2024. (10b) A
+  published forward embedded-generation path on the demand side; ES1 is a dispatch output. (10c) Any NESO
+  statement on when transmission demand turns up; none was found, and ETYS was not read. (10d) FES's
+  weather correction and fiscal year against ND's observed calendar year. Neither offset has been measured.
+
 ## 9. The 2021-23 shock in power
 
 1. **Gas** (gas page §7) set the level: SRMC is about 2 × gas, and gas rose about tenfold.
@@ -585,3 +677,5 @@ Fifteen of twenty-two predictions held. The seven misses stay beside the outcome
    (§6a).
 9. FUELHH's unit scope (E-type units), why AGWS and FUELHH wind part day by day, battery capacity by
    connection and in GWh, and a forward must-run path in a sourced band (§4a).
+10. The bridge from FES system demand to ND (about 28 TWh not decomposed in 2024), a forward embedded-
+    generation path on the demand side, and when transmission demand turns up (§8a).
