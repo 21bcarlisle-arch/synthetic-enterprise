@@ -47,3 +47,29 @@ Full Phase 2b run (graded later, on the first book built at a commit carrying th
 P4 has more than one cause moving at once (margin, acquisition spend, hedge). If it lands outside
 its range, I cannot yet attribute it, and the one-variable split is the per-won-id net beside the
 change in acquisition spend.
+
+## Reg 6C, filed 22 Nov 09:55 GMT before the probe's output was read
+
+Probe: `/tmp/seat_6c/probe.py`, 2016-2017 window, `ERRONEOUS_TRANSFER_SHARE_PRE_CSS` forced to 1.0 so
+every pre-CSS win is agreed erroneous.
+
+- **R1.** Every supplied win appears in exactly one of `erroneous_gains_returned` or
+  `erroneous_gains_not_returned`; the only not-returned reason is "the return falls after the run's
+  window", for wins after about late October 2017.
+- **R2.** Each `returned_on` is 55 to 62 calendar days after its win (20 + 21 working days).
+- **R3.** No returned win has a settled day on or after its `returned_on`.
+- **R4.** Each returned win has exactly one `_leg_departures` row, dated `returned_on`.
+- **R5.** Gas-only wins (refused supply) appear in neither list.
+
+**Graded 22 Nov 10:35 GMT.** The probe ran as the test fixture `_phase2b_every_pre_css_win_erroneous`, because the
+standalone script queued behind the in-flight book at box admission. All five hold, on one supplied win: R1 (1 of 1
+supplied win returned; nothing not returned), R2 (60 days), R3 (last settled 17 May < 18 May), R4 (one departure row,
+18 May), R5 (SYN-2016-163_3 and SYN-2016-585_3 in neither list). With one win, this shows the mechanism works. It
+says nothing about rates.
+
+## P2-P5 not yet graded (24 Nov 07:25 GMT)
+
+The published book is still the 20 Nov run (producing commit 6a588a832f), which does not descend
+from f80fe3951, so it cannot grade P2-P5. sim-runner has deferred every cycle behind the queued
+s.12g rankq value test. The grade row is held until 25 Nov 09:00 and re-checks the producing
+commit before reading anything.
