@@ -96,6 +96,12 @@ its imbalance. `sim/market_index_history.py` records this, and it is graded in �
 - **What a forward generator must show.** A price leg that is a no-intercept multiple of gas cannot make the
   low-CCGT regime deep enough at high gas. It needs a shape below gas whose depth scales with SRMC, and
   that shape must be driven by residual demand.
+- **The chain against this, by band (24 Nov,
+  `docs/staging/records/WORKER_RESULT_THE_CHAINS_POST_CRISIS_BIAS_SITS_MOSTLY_ON_THE_DAYS_GAS_IS_OFF_THE_MARGIN_AND_PARTLY_ON_THE_DAYS_IT_RUNS_HARDEST_2026-11-24.md`).**
+  On daily CCGT quintiles, the chain matches the record within £2.5 in every band before the crisis. After it,
+  on the lowest-CCGT fifth of days, the record clears £31 below the floor and the chain clears £6 below it.
+  On the highest fifth the chain clears £23 above the floor and the record £13. So the shape also needs a top that
+  flattens as the floor rises.
 
 ## 2. Carbon: Carbon Price Support plus the traded allowance
 

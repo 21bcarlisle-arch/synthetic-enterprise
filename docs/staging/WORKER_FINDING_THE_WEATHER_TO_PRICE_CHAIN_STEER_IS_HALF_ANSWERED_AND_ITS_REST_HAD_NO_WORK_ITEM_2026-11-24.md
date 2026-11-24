@@ -287,3 +287,19 @@ close it.
 - **Next, still item 4:** the chain's own residual by CCGT band, with its prediction filed first. If the
   post-crisis +8.2 sits in the low-CCGT band, the price leg needs a sub-gas shape that scales with SRMC.
   Still owed: the forward-flow K8 section (§5), and item 5's forward CfD fleet.
+
+## Progress, 24 Nov (worker, item 4: the chain's residual by CCGT band)
+
+- **Pre-registered** in `88c69e12a` and landed on origin before the run. **Result** in
+  `docs/staging/records/WORKER_RESULT_THE_CHAINS_POST_CRISIS_BIAS_SITS_MOSTLY_ON_THE_DAYS_GAS_IS_OFF_THE_MARGIN_AND_PARTLY_ON_THE_DAYS_IT_RUNS_HARDEST_2026-11-24.md`.
+  Five of seven predictions held.
+- **Before the crisis the chain matches the record band by band, within £2.5.** After it, the lowest-CCGT
+  fifth of days carries about £5.3 of the £8.64 mean daily residual (+25.2 on those days). There the record
+  clears £31 below the floor and the chain clears £6 below it. The highest fifth carries about £1.9 (+9.7).
+  This was not predicted: the chain clears £22.8 above its floor where the record clears £13.1. One
+  multiplier cannot give a deeper bottom and a flatter top at once.
+- **The crisis regime's −1.5 bias is a cancellation** (Q1 +12.1, Q4 −17.7). Quote the bands beside it.
+- **The filed rule did not fire (a)**, because its C2 missed on the Q5 leg. Nothing ships.
+- **Next, still item 4:** a K8 note on what sets price when gas is not marginal, then a price-leg shape arm. The
+  shape needs a low-x depth that scales with the floor and a top that can flatten, with the pre-crisis band fit
+  held as a control. Still owed: the forward-flow K8 section (§5) and item 5's forward CfD fleet.
