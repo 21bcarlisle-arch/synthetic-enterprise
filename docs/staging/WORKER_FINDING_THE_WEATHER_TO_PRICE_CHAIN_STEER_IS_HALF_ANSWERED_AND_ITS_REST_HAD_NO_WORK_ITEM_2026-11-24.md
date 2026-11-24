@@ -65,4 +65,19 @@ close it.
   `docs/staging/SEAT_FINDING_THE_FORWARD_GAS_DRAW_IS_INDEPENDENT_DAILY_NOISE_WITH_NO_SEASON_OR_PERSISTENCE_2026-11-24.md`.
 - **Item 6 landed.** The learning-loop row is in `docs/institutional/ways_of_working.md` W5. The census is
   `docs/staging/SEAT_FINDING_WORLD_MODELS_BUILT_TO_THEIR_CEILING_WITH_NO_MECHANISM_PAGE_BENEATH_THEM_2026-11-24.md`.
-- **Next: item 2**, the electricity page. Items 3-5 follow it.
+- **Item 2 landed.** The electricity page is `docs/market_research/how_the_gb_electricity_price_forms_2026-11-24.md`,
+  served as the electricity-wholesale page from `site/data/knowledge_wholesale.json`. The grade was
+  pre-registered in `6c828bc2c`, with the result in
+  `docs/staging/records/SEAT_RESULT_GRADING_THE_WORLDS_POWER_RECORD_AGAINST_THE_ELECTRICITY_PAGE_BY_REGIME_2026-11-24.md`.
+  The world's SSP record has the right monthly level (within £2 of the traded price outside the crisis).
+  It carries 1.8-2.1× the traded price's within-day swing:
+  `docs/staging/SEAT_FINDING_THE_WORLD_SETTLES_AT_THE_IMBALANCE_PRICE_WHICH_CARRIES_TWICE_THE_TRADED_PRICES_WITHIN_DAY_NOISE_2026-11-24.md`.
+  Gas plus carbon explains the traded price before the crisis with nothing fitted: monthly MAE £2.80, against £17.58
+  for gas alone.
+- **For item 3, the carbon arm's prediction is filed** in that result record, before the arm runs: the
+  chain's pre-crisis bias moves from −£12.0 to within ±£4, and its MAE falls from £12.4 to ≤ £7.
+- **Correction to item 5, beside the claim.** "The negative 2022 rate" is wrong. The Interim Levy Rate
+  cannot be set below £0/MWh (Ofgem, *Decision on the CfD allowance methodology*, June 2022). The 2022
+  benefit to suppliers came through reconciliation and generator paybacks. An endogenous levy must
+  produce a negative NET payment, not a negative ILR (page §3).
+- **Next: item 3**, the carbon arm. It needs a UKA market series first (page GAP 1). Items 4-5 follow.
