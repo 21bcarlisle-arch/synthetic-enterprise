@@ -93,3 +93,24 @@ def test_sim_runner_does_not_yield_to_a_queue_that_awaits_an_artefact_but_does_t
     unreadable = lambda argv, **kw: (runner(argv) if "list-units" in argv  # noqa: E731
                                      else subprocess.CompletedProcess(argv, 1, "", ""))
     assert sim_runner.queued_long_jobs(runner=unreadable) == ["longjob-a4-queued.service"]
+
+
+def test_a_running_job_marked_waiting_does_not_count_until_its_path_exists(box):
+    """land10's shape: already running, 6000 MB declared, its chain keyed on its unit so it cannot
+    be stopped and re-armed behind `--awaits`. Marked waiting, its peak does not count and the book
+    is admitted; once the path exists it counts again and the book is held."""
+    tmp_path, meminfo = box
+    records = tmp_path / "records.json"
+    entry = llj.launch("land10-like", ["sh", "-c", "sleep 1"], artefact=str(tmp_path / "landed.txt"),
+                       workdir=str(tmp_path), log=str(tmp_path / "l.log"), records_path=records,
+                       runner=_Runner(), peak_mb=18000, residents=lambda: [],
+                       guest_total_mb=24034, expect_minutes=30)
+    resident = [{"pid": 77, "rss_mb": 5.0, "unit": f"{entry['unit']}.service", "command": "sh"}]
+    assert not _book_admitted(tmp_path, meminfo, residents=resident)["admitted"]
+    with pytest.raises(llj.LaunchRefused, match="live launch record"):
+        llj.mark_waiting("no-such-job", str(tmp_path / "x"), records_path=records)
+    ready = tmp_path / "book-ready"
+    llj.mark_waiting("land10-like", str(ready), records_path=records)
+    assert _book_admitted(tmp_path, meminfo, residents=resident)["admitted"]
+    ready.write_text("")
+    assert not _book_admitted(tmp_path, meminfo, residents=resident)["admitted"]

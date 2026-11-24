@@ -43,3 +43,16 @@ over them after preserving their bytes (refs/preserved/refresh-to-head/growth-de
 run-phase2b-stale-msc-draft-2026-11-24, and copies in /var/tmp/se-msc-keep/). The untracked
 `tests/simulation/test_the_market_stabilisation_charge_is_booked.py`, byte-identical to msc8.patch,
 moved to /var/tmp/se-msc-keep/. The MSC work itself is in msc8.patch and land10's worktree.
+
+**Third leg (21:40Z), and land10 after all.** With the A4 queue skipped, sim-runner's
+`cycle_admission` still *yielded* to land10 as a resident long job: it yields to every one,
+whatever the arithmetic says. land10 cannot be stopped and re-armed behind `--awaits` without
+breaking b11m7's order (wait_land10.sh keys on land10's unit and its EXIT-trap file, which a stop
+would write), and its wait is not one path. So `launch_long_job --mark-waiting <job> <path>` sets
+`waiting_until` on a running job's live record, and `declared_peaks` skips that record while the
+path is absent: the budget and the yield both read it. Marked ~22:05Z:
+`--mark-waiting land10-msc-replacement-win-artefact-waits /var/tmp/se-msc-land10-book-ready`.
+`land10-book-ready-watch.service` (not a longjob; /var/tmp/se-msc-keep/land10-book-ready-watch.sh)
+touches that file the first time land10.sh's own `LAND10_PROBE=1` reports a qualifying book, so
+land10 counts again before its gate. To reverse: delete `waiting_until` from its record.
+The cost, stated: a job launched beside land10 while it is marked sees it at its RSS, not its peak.

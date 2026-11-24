@@ -202,7 +202,31 @@ def declared_peaks(records_path: Path | None = None) -> dict:
     except Exception:  # noqa: BLE001 -- no register means no declarations, not no launch
         return {}
     return {_as_cgroup_leaf(r["unit"]): float(r["peak_mb"]) for r in records
-            if r.get("claim") == launch_liveness.LIVE and r.get("unit") and r.get("peak_mb")}
+            if r.get("claim") == launch_liveness.LIVE and r.get("unit") and r.get("peak_mb")
+            and not still_waiting(r)}
+
+
+def still_waiting(record: dict) -> bool:
+    """A live job marked `waiting_until` a path that does not exist yet is in its wait phase: it
+    holds a shell and a sleep, and counting its peak defers the very artefact it waits for
+    (24 Nov: land10's 6000 MB, waiting on the owed book, held that book out). Once the path exists
+    it counts again, before it can grow. `--awaits` is the door for a NEW launch; this is for a
+    job already running whose wait cannot be stopped without breaking a chain keyed on its unit."""
+    until = record.get("waiting_until")
+    return bool(until) and not Path(until).exists()
+
+
+def mark_waiting(job: str, until: str, *, records_path: Path | None = None) -> dict:
+    """Mark the live record of `job` as waiting until `until` exists. Refuses without one."""
+    records = launch_liveness.load(records_path)
+    live = [r for r in records if r.get("job") == job and r.get("claim") == launch_liveness.LIVE]
+    if len(live) != 1:
+        raise LaunchRefused(f"`{job}` has {len(live)} live launch record(s); marking needs exactly one")
+    if not Path(until).is_absolute():
+        raise LaunchRefused(f"{until!r} is not absolute, so its existence depends on who asks")
+    live[0]["waiting_until"] = until
+    launch_liveness.save(records, records_path)
+    return live[0]
 
 
 def declared_durations(records_path: Path | None = None) -> dict:
@@ -841,6 +865,14 @@ def main(argv: list | None = None) -> int:
             print("usage: --follow-only <unit> [<artefact>]")
             return 2
         return follow_unit(argv[1], argv[2] if len(argv) > 2 else None)
+    if argv[:1] == ["--mark-waiting"]:
+        # A running job's wait phase, declared: its peak stops counting until the path exists.
+        if len(argv) != 3:
+            print("usage: --mark-waiting <job> <absolute path it waits for>")
+            return 2
+        entry = mark_waiting(argv[1], argv[2])
+        print(f"{entry['unit']}: peak {entry.get('peak_mb')} MB not counted until {argv[2]} exists")
+        return 0
     from background.secrets_location import load_secret_env
     load_secret_env(only=INHERITED_BY_NAME)      # never overwrites a topic the caller already has
     parser = argparse.ArgumentParser(
