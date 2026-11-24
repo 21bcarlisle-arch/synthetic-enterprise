@@ -528,3 +528,18 @@ close it.
   remainder), the negative-hour rules by round (electricity page GAP 3), and the forward price
   graded first (item 4, another lane). The CPI path for indexing forward strikes is a curriculum
   input, like forward carbon.
+
+## Progress, 24 Nov (worker, item 4: the leg on SAP plus net export, on the record)
+
+- **Pre-registered** in `1b2731aac` and promoted to origin before the run. **Result** in
+  `docs/staging/records/WORKER_RESULT_ON_SAP_PLUS_GB_NET_EXPORT_THE_PRICE_LEG_TAKES_A_QUARTER_OFF_ITS_CRISIS_MISS_AND_ITS_POST_CRISIS_BIAS_TO_ZERO_2026-11-24.md`.
+  Eight of eight predictions held. **Nothing in `sim/` changed.**
+- **On the leg's own form, real net export is the term.** Adding FUELHH net export to INDO, on SAP, takes R L0 from
+  4.65 / 18.46 / 5.82 to 4.62 / 13.29 / 5.99 (monthly MAE, pre / crisis / post). The post bias goes from +4.08 to
+  −0.30, and 2022 from −17.85 to −8.50. W moves the same way.
+- **Rule (a) fires:** the one-leg form on SAP plus net export is the leg a build would ship. It waits on the forward
+  net-flow K8 section (§5) and on the DIRECTION `not_now` hold on SAP.
+- **Not attributed, stated beside it:** R's 2025 goes to −7.52, while W's is −0.80, so this sits on AGWS. 2021
+  goes from −1.20 to −4.21. 2022 keeps about −8.5.
+- **Next, still item 4:** (1) B1-B3 rerun on SAP plus net export; (2) the §5 forward-flow K8 section; (3) R's
+  2025 residual against the AGWS windows finding.
