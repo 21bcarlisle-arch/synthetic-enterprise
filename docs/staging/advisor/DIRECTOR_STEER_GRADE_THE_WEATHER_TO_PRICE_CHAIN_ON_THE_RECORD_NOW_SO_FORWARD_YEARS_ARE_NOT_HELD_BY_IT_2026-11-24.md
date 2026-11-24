@@ -86,3 +86,28 @@ The director's words: "Interconnection? Nb. Start with gas, getting gas right fi
    - Use published sources: Ofgem, NESO, Elexon, the CMA's 2016 energy market investigation, Cornwall Insight and Aurora summaries where public, and the academic literature on GB price formation.
 3. **Then grade and rebuild the chain against both pages,** in order of the largest gap. Add the carbon term from the 05:39 addendum. Add interconnector flows as a price-coupling term, or state why not. Keep the regime-split grading and the pre-registered bands from the steer above.
 4. **Mechanism, not only numbers (22 Nov steer):** each page says what moves each driver and how it passes into price. That is what lets forward years respond to a cold, still, low-LNG winter as reality would.
+
+## Progress, 24 Nov (worker tick). Still open; not done.
+
+**Items 1 and 2 of the first section are done.** The bands and six predictions were pre-registered
+before the run, in
+`docs/staging/records/WORKER_PREREG_GRADE_THE_WEATHER_TO_PRICE_CHAIN_ON_THE_RECORD_BY_REGIME_2026-11-24.md`
+(landed `2a24f6c54`). The result is in
+`docs/staging/records/WORKER_RESULT_THE_WEATHER_TO_PRICE_CHAIN_LOSES_TO_A_GAS_ONLY_NULL_AT_THE_MONTH_IN_EVERY_REGIME_2026-11-24.md`.
+
+**The chain is not fit for forward years.** A gas-only regression prices a demand-weighted month and
+quarter better than the chain, in every regime.
+
+**What the grade points at, in order:**
+- Weather coupling two to five times too strong, wind above all, in every regime. This is a
+  question for the electricity page's interconnector section.
+- A pre-crisis level bias of −£12/MWh that grows year by year. This fits missing carbon, but is not
+  yet attributed.
+- Crisis mis-scaling at high gas.
+
+Five of six predictions were wrong, and they are kept beside the outcomes.
+
+**Nothing was rebuilt.** The 05:40 addendum's order stands: the deep gas K8 page first, then the
+electricity page, then the carbon arm (with and without, prediction first) and the rebuild in order
+of the largest gap. The CfD levy becomes endogenous, and world models built to L4 without a page get
+filed in the learning loop.
