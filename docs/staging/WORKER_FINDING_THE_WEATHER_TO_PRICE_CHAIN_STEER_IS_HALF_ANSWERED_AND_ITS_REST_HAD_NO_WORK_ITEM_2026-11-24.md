@@ -379,3 +379,16 @@ close it.
 - Filed before its probe runs: `docs/staging/records/WORKER_PREREG_DOES_THE_CHAINS_RESIDUAL_DECIDE_HOW_MUCH_GAS_RUNS_ONCE_DEMAND_MUST_RUN_AND_SOLAR_ARE_IN_2026-11-24.md`.
   It adds §4a's three terms to leg H one at a time (demand by year, must-run by year, solar out), then tries
   the identity form (slope 1) on the same inputs. The decision rule picks the build. Nothing in `sim/` changes.
+
+## Progress, 24 Nov (worker, item 4: the gas-running arm, on the record)
+
+- Result: `docs/staging/records/WORKER_RESULT_A_DEMAND_YEAR_TERM_TAKES_HALF_THE_CHAINS_GAS_RUNNING_MISS_AND_THE_IDENTITY_FORM_LEAVES_1_9_GW_UNEXPLAINED_2026-11-24.md`.
+  Five of seven predictions held.
+- **A demand year term halves the post-crisis gas-running miss** (+3.12 to +1.73 GW; composite post bias
+  +11.75 to +8.44). It is a build term, but it moves the crisis bias from −1.09 to −6.19.
+- **Must-run by year and solar out, in the identity form, still leave +1.86 GW after the crisis.** The step
+  comes in 2023. That is not attributed. One candidate is the wind leg's AGWS target, which runs 0.36 GW below
+  FUELHH after the crisis.
+- **Disclosure:** the pre-registration was gated as `f616ad94e` before the run, but promoted to origin only
+  after it.
+- **Next, still item 4:** K8 on a forward transmission-demand path, then the wind-target arm, pre-registered.
