@@ -458,3 +458,23 @@ close it.
   under AGWS wind.
 - **Next, still item 4:** (1) the §1b price-leg shape arm, against the leg-on-real rows as its control;
   (2) record years taking their own fleet, not the clamp; (3) then rerun B1-B3.
+
+## Progress, 24 Nov (worker, item 4 step 2: the end-year clamps, measured before building)
+
+- **Result** in `docs/staging/records/WORKER_RESULT_THE_END_YEAR_CLAMP_ARM_MEASURED_BEFORE_ANY_BUILD_2016_CAN_TAKE_ITS_OWN_FLEET_AND_2025_CANNOT_2026-11-24.md`.
+  **Nothing ships.**
+- **The step's control cannot fail.** A year that takes its own mean-matched fleet reproduces its own
+  AGWS wind mean by construction, so B-P4 passes in 2016 and 2025 whatever the fleet. The independent
+  check is the fleet over DUKES capacity, which runs 0.417-0.472 in 2017-22.
+- **2016 can take its own fleet** (0.415). The clamp to 2017 gives 0.506. **2025 cannot** (0.717). That
+  is not the half-year artefact, which I predicted wrongly before the run: a January-June fleet runs
+  0.78-1.09 of a full year. 2025's town wind is calm (3.23 m/s against 3.91-4.71), and the 2024 fleet it
+  falls back on is itself depressed.
+- **New finding:** `docs/staging/WORKER_FINDING_ELEXONS_PUBLISHED_AGWS_WIND_HOLDS_ABOUT_HALF_THE_METERED_WIND_IN_THREE_WINDOWS_2026-11-24.md`.
+  Published AGWS loses most offshore wind in April 2017, February-July 2023 and May-October 2024. It
+  falls to 0.62-0.64 of DUKES generation in 2023-24, while FUELHH holds about 0.77. Every
+  AGWS-basis grade today carries those windows in its 2023-24 rows. That supports the wind-target
+  arm's FUELHH basis.
+- **Next, still item 4:** (1) the §1b price-leg shape arm, unchanged. (2) Redo step 2 on a FUELHH-basis
+  fleet with DUKES-capacity ratio as its control, not B-P4: 2016 on its own fleet, and 2025 held
+  explicitly as "calm weather plus a clamped fleet", stated beside every 2025 figure.
