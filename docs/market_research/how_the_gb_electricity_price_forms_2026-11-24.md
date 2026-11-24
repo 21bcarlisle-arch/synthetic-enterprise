@@ -257,6 +257,91 @@ its imbalance. `sim/market_index_history.py` records this, and it is graded in �
 - **GAP.** No unit-level availability series has been read. FUELHH nuclear (transmission-metered) is
   graded against DUKES in §10.
 
+## 4a. From residual demand to gas running: the supply identity, and what each series meters
+
+*Added 24 Nov 2026 by the autonomous worker, for item 4 of the weather-to-price steer. The separating arm
+(`docs/staging/records/WORKER_RESULT_BOTH_LEGS_CARRY_THE_CHAINS_POST_CRISIS_MISS_ITS_RESIDUAL_NEVER_RUNS_GAS_LOW_AND_ITS_PRICE_LEG_HAS_NO_LOW_GAS_DAYS_TO_LEARN_FROM_2026-11-24.md`)
+found the chain's residual demand can never produce a low-gas day. This section says what does decide how much
+gas runs, before any arm is built on it (K8).*
+
+- **What the thing is.** Gas running is the CCGT output that is left after every other source has met the
+  demand the transmission system carries. Said as an identity on transmission-metered quantities:
+  CCGT ≈ INDO + net export − transmission wind − nuclear − coal − biomass − hydro − pumped storage − other −
+  oil − OCGT. Every term on the right except INDO and the flows is a FUELHH fuel type.
+- **What each series meters.** INDO "does not include station transformer load, pumped storage demand or
+  interconnector demand" and is "metered by the Transmission Company based on its operational metering"
+  (Elexon, `data.elexon.co.uk` OpenAPI spec, `/demand/outturn`, read 24 Nov). So output from embedded
+  generation (wind and solar without transmission metering) never reaches INDO: it has already reduced it.
+  NESO's ND "is equivalent to INDO", and its TSD adds "an estimate of station load of 500MW in BST and 600MW
+  in GMT" (NESO, *Historic demand data*, read 24 Nov). NESO estimates embedded wind at 10.7-18.2 TWh a year
+  and embedded solar at 9.6-18.7 TWh over 2016-2025 [calc from NESO's `demanddata_YYYY.csv`]. FUELHH is
+  "half-hourly generation outturn ... aggregated by Fuel Type category" (same OpenAPI spec). It has no SOLAR,
+  BATTERY or embedded code. Its scope sentence was not found, so whether it sums embedded (E-type) BM units is
+  a GAP. Its nearest relative, FUELINST, is "system generation connected to the high voltage transmission
+  system" (Elexon glossary).
+- **The identity, measured on the record** (FUELHH latest publish per fuel and half-hour; the chain's daily
+  record for INDO and AGWS; net flow from the interconnector arm's half-hourly file, built from FUELHH's INT types;
+  3,321 days with ≥ 46 periods. Probes: `/var/tmp/mk26/fuel_by_year.py`, `identity.py`, `identity_daily.py`,
+  `legs_by_year.py`, read-only):
+
+| Regime | Days | Identity gap, mean / SD (GW) | R² of real CCGT on the identity | R² on the chain's form (INDO + export − AGWS wind − AGWS solar), slope | Nuclear + coal + biomass, mean / SD (GW) | Days CCGT < 6 GW |
+|---|---|---|---|---|---|---|
+| pre (2016 to Jun 2021) | 1,906 | −0.56 / 0.33 | 0.993 | 0.796, 0.61 | 9.31 / 2.22 | 61 |
+| crisis (Jul 2021 to Jun 2023) | 707 | −0.59 / 0.19 | 0.998 | 0.808, 0.80 | 7.00 / 1.29 | 76 |
+| post (Jul 2023 on) | 708 | −0.78 / 0.30 | 0.996 | 0.737, 0.70 | 6.57 / 0.99 | 241 |
+
+  By year, the identity's gap sits between −0.20 and −1.19 GW in every year 2016-2025. The chain's form
+  misses by −0.59 to −3.39 GW, and the miss moves with the solar fleet and the year. The steady −0.6 GW is
+  not attributed, but station load fits it in size. FUELHH meters generation gross of station load, INDO excludes it, and NESO puts it at 500-600 MW. The other candidates are units outside FUELHH and the INDO estimate itself.
+- **What this says about the chain.** Three things sit between the chain's residual and gas running, and the
+  chain holds none of them.
+  1. **Must-run output that moved by year.** Nuclear, coal and biomass together fell from 9.3 GW to 6.6 GW
+     (mean), and their daily SD before the crisis was 2.2 GW. FUELHH carries biomass under OTHER until late
+     2017, so the 2016-17 part of that figure is low. A leg fitted on the chain's residual alone sees this
+     term as noise, which fits its slope of 0.6-0.8 rather than 1, and the separating arm's leg H being
+     "nearly flat in r".
+  2. **Embedded solar counted twice.** INDO is already net of embedded generation, and GB solar is almost
+     all embedded. So subtracting AGWS solar from INDO removes it a second time
+     (`sim/generation_demand_history.aggregate_solar_generation` says so in its docstring). The size is
+     1.2-1.5 GW on average, 1.9-2.2 GW in June-August and 0.3-0.4 GW in December-January. The carbon
+     dispatch fixed this defect on 30 Sep (`295e9ad64b`, EP13 s19). `sim/weather_price_chain.residual_demand`
+     (whose docstring calls demand − wind − solar "the exact identity") still has it. So does the price
+     leg's refit, through `simulation/run_phase3b_recalibration._dedup_latest_renewable_generation`.
+  3. **Demand that fell, held flat.** The chain's demand leg is base + HDD + CDD on temperature, with no
+     year term (`sim/weather_price_chain.demand_from_weather`). Transmission demand did not stay flat. NESO's
+     ND, "equivalent to INDO", was 276 TWh in 2016, 257 in 2019, 233 in 2022 and 231 in 2024 [calc from
+     NESO's `demanddata_YYYY.csv`]. On the chain's record INDO averages 30.4 GW (2016), 27.1 (2020) and
+     26.0-26.3 (2023-24), while the chain's demand averages 27.7-28.4 GW in every year. Its residual is
+     therefore 2.0-3.4 GW too low in 2016-18 and 1.4-2.0 GW too high in 2022-24. In 2025, the part year to
+     7 Jun, the gap is +7.2 GW, of which −4.9 GW is the renewable leg, where the fleet trajectory is clamped
+     to 2024. **Ranked by size for the post-crisis miss:** demand (+1.7 to +2.0 GW in 2023-24) is the
+     largest term. Must-run fell about 2.7 GW from pre to post. Holding it by year would raise
+     the chain's post-crisis gas running, so it cannot explain an overstatement; it makes the demand term's
+     share larger. The solar double count changes by about 0.25 GW between the regimes
+     and its level is absorbed by the fit. None of these is attributed until an arm moves one at a time.
+- **AGWS wind is not FUELHH wind.** With AGWS wind in place of FUELHH wind (still no solar), the identity's
+  gap is −0.81 / 0.76, +0.30 / 1.63 and −0.43 / 2.66 GW (mean / SD) by regime. AGWS sits above FUELHH
+  before the crisis (+0.26 GW) and below it after (−0.89 and −0.36). §6a says AGWS covers BM-unit wind
+  only. These measurements do not contradict that on the level, but day by day the two series part by up to
+  2.7 GW SD after the crisis. Why they part is a GAP. The chain's wind leg is fitted to AGWS, so its target is the noisier series of the two for this purpose.
+- **Batteries.** DUKES 5.16 counts grid-scale battery power capacity at 140 MW (2017), 1,536 MW (2021) and
+  7,512 MW (2025). Output was 2,274 GWh and input 2,688 GWh in 2025 (DESNZ, DUKES 5.16, 30 Jul 2026). That
+  is about −0.05 GW net on a daily mean [calc], so batteries do not move a daily identity. They shift energy
+  inside the day, which is where they reach price. In Elexon's BM unit reference, 45 of 94 battery-named
+  units carry fuel type OTHER and 49 carry none. So FUELHH OTHER (0.08 GW in 2018, 0.55 GW in 2025) holds
+  some battery output. Pumped storage is 2,744 MW and a net consumer (2025: 1,767 GWh in, 1,437 GWh out;
+  DUKES 5.16), and FUELHH carries it as a signed PS term. INDO excludes pumping, so the identity adds it
+  back, as written.
+- **How it reaches price.** Through the merit order (§1b). At a given amount of gas running, the record's
+  SSP is the same multiple of the floor in every regime. So a chain that knows how much gas runs knows most
+  of the price shape. The arm that builds gas running from this identity takes its must-run terms from the
+  record by year on the record, and from a capacity path for forward years. That path is the director's
+  curriculum (R13).
+- **GAP.** (1) FUELHH's documented unit scope, and whether it holds E-type units. (2) Why AGWS wind and
+  FUELHH wind part day by day. (3) Battery capacity by connection, and energy capacity (GWh) by year: DESNZ
+  says it has "no reliable data source". (4) Nuclear unit availability by month, already gap 5. (5) A forward
+  must-run path (nuclear closures, biomass contracts), which is curriculum and needs a sourced band.
+
 ## 5. Interconnectors by year: capacity, flow and coupling
 
 - **Capacity** (DUKES 5.13A, MW, year commissioned): IFA (France) 2,000, 1986; Moyle (Northern Ireland)
@@ -498,3 +583,5 @@ Fifteen of twenty-two predictions held. The seven misses stay beside the outcome
 8. A GB fleet-aggregate power curve against a national wind speed, and a per-site farm register
    (REPD coordinates plus hub heights) that would let the world build the curve rather than fit it
    (§6a).
+9. FUELHH's unit scope (E-type units), why AGWS and FUELHH wind part day by day, battery capacity by
+   connection and in GWh, and a forward must-run path in a sourced band (§4a).

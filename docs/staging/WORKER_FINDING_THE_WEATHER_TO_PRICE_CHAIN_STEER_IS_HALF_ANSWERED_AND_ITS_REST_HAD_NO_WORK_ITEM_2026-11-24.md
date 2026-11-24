@@ -350,3 +350,26 @@ close it.
 - **The filed rule fires (b)**, on a £0.16 bias miss. The shape arm returns, second. First is an arm on gas
   running from residual demand: nuclear by year and storage in x, with K8 first on embedded generation and
   batteries.
+
+## Progress, 24 Nov (worker, item 4: K8 on what decides how much gas runs)
+
+- **K8 first, as the separating arm asked.** §4a of the electricity page covers the supply identity and what
+  each series meters: INDO, FUELHH, AGWS and NESO's embedded estimates, plus batteries and pumped storage,
+  from Elexon's API definitions, NESO's historic demand data and DUKES 5.6/5.16. Batteries net about
+  −0.05 GW on a daily mean, so they do not move a daily identity.
+- **The identity closes on the record.** INDO + net export − every non-gas FUELHH fuel gives real CCGT with
+  R² 0.993-0.998 and a steady −0.56 to −0.78 GW gap in every regime. Station load fits that gap in size.
+  The chain's form (INDO − AGWS wind − AGWS solar) reaches R² 0.74-0.81.
+- **Three things sit between the chain's residual and gas running.** None of them is in the chain.
+  (1) Demand held flat: the chain's demand leg has no year term, while INDO fell from 30.4 to 26 GW. Its
+  residual is 1.4-2.0 GW too high in 2022-24, and this is the largest term for the post-crisis miss.
+  (2) Must-run by year: nuclear, coal and biomass fell 2.7 GW. This works against the overstatement, not for it.
+  (3) Embedded solar counted twice: INDO is already net of it. **This is the defect EP13 fixed in the
+  carbon dispatch on 30 Sep (`295e9ad64b`), and it is still live in `sim/weather_price_chain.residual_demand`
+  and in the price leg's refit data.** It is one definition with two implementations, the VAT-rule shape.
+- **2025 (part year):** the chain's renewables run 4.9 GW under the record, where the fleet is clamped to 2024.
+  This is a candidate for the step-B post-crisis bias that was left unattributed.
+- **Nothing in `sim/` changed.** **Next, still item 4:** pre-register the gas-running arm. It moves one
+  variable at a time, in size order: a demand year term sourced from NESO ND by year, then must-run by year,
+  then solar out of the residual. The pre-registration must state that this section's identity and by-year
+  legs were seen before it.
