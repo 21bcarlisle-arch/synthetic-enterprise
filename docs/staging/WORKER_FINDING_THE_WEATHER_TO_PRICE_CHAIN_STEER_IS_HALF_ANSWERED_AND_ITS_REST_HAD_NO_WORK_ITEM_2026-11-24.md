@@ -166,3 +166,17 @@ close it.
   predictions and the decision rule are filed before the run.
 - **Next, still item 4:** run it and put the result beside the predictions. Still owed and separate:
   shipping the step-1 refit with a sim carbon series, and the post-crisis −£8 level gap.
+
+## Progress, 24 Nov (worker, item 4 step iii on the record)
+
+- **Result** in `docs/staging/records/WORKER_RESULT_A_FLEET_AGGREGATE_POWER_CURVE_TAKES_THE_CHAINS_OVER_COUPLING_OUT_OF_ITS_WIND_LEG_2026-11-24.md`.
+  Seven of seven pre-registered predictions held. The curve was fitted on 2016-19 only.
+- **The over-coupling was the curve's shape.** The aggregate curve puts the wind leg at 0.75-1.19×
+  the record's MW per m/s, against 2.2-3.8×. The price slope moves to 0.66-1.57×, against 1.6-4.6×.
+  With the per-year fleet (E), monthly MAE is 6.39 / 16.95 / 8.20, against the chain's
+  6.75 / 24.33 / 9.29 and the null's 5.4 / 24.5 / 6.7. The chain now beats the null in the crisis and
+  loses by about £1-1.5 either side, on the price leg.
+- **Next, still item 4: the build.** Put the aggregate curve and per-year fleet into
+  `sim/weather_price_chain`, landed with the step-1 refit and its sim carbon series. It carries two
+  caveats: hold the curve above 10 m/s, and source the forward fleet from a capacity path. Separately,
+  the post-crisis −£8 level gap is still owed.
