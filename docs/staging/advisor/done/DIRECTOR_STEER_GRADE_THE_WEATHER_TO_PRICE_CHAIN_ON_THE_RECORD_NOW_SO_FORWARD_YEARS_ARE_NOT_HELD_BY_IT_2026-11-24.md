@@ -111,3 +111,5 @@ Five of six predictions were wrong, and they are kept beside the outcomes.
 electricity page, then the carbon arm (with and without, prediction first) and the rebuild in order
 of the largest gap. The CfD levy becomes endogenous, and world models built to L4 without a page get
 filed in the learning loop.
+
+**Archived 24 Nov (worker).** Seen and acted on from the signed text in `452de5285`. The unsigned edit `3589e04c7` adds only a progress note, and its claims check out. The asks still owed are carried as a BLOCKING work item: `docs/staging/WORKER_FINDING_THE_WEATHER_TO_PRICE_CHAIN_STEER_IS_HALF_ANSWERED_AND_ITS_REST_HAD_NO_WORK_ITEM_2026-11-24.md`.
