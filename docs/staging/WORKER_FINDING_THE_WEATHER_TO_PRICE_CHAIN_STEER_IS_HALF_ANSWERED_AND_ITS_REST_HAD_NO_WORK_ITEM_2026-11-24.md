@@ -373,3 +373,9 @@ close it.
   variable at a time, in size order: a demand year term sourced from NESO ND by year, then must-run by year,
   then solar out of the residual. The pre-registration must state that this section's identity and by-year
   legs were seen before it.
+
+## Progress, 24 Nov (worker, item 4: the gas-running arm, pre-registered)
+
+- Filed before its probe runs: `docs/staging/records/WORKER_PREREG_DOES_THE_CHAINS_RESIDUAL_DECIDE_HOW_MUCH_GAS_RUNS_ONCE_DEMAND_MUST_RUN_AND_SOLAR_ARE_IN_2026-11-24.md`.
+  It adds §4a's three terms to leg H one at a time (demand by year, must-run by year, solar out), then tries
+  the identity form (slope 1) on the same inputs. The decision rule picks the build. Nothing in `sim/` changes.
