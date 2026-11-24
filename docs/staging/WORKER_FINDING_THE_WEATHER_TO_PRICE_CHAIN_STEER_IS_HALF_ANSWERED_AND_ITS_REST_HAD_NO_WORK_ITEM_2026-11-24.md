@@ -440,3 +440,21 @@ close it.
 - **For item 4.** A forward daily gas price needs a small persistent cold-day premium that switches
   with the regime. Today's world record and forward draw both have a slope of 0. The page's GAP 4
   stays open: no published response was found, so this is a measurement and not a source.
+
+## Progress, 24 Nov (worker, item 4: the build terms on the chain's own price form)
+
+- **Pre-registered** in `f0cfdf4f4`, promoted before the run. **Result** in
+  `docs/staging/records/WORKER_RESULT_ON_THE_CHAINS_OWN_FORM_THE_DEMAND_YEAR_TERM_EXPOSES_A_PRICE_LEG_THAT_RUNS_7_POUNDS_LOW_AFTER_THE_CRISIS_2026-11-24.md`.
+  Four of eight predictions held, one was half wrong and three were wrong. **Nothing ships.**
+- **The earlier arms used a two-leg form the chain does not ship.** On the shipped one-leg form, demand by
+  year, then solar out, then FUELHH wind (each with A0-A2 refitted on the matching residual) take monthly
+  MAE from 6.50 / 17.20 / 8.19 to 5.13 / 16.31 / 8.62. Demand by year with solar out (B2) is best: 5.28 /
+  15.62 / 6.87.
+- **The shipped chain's near-zero post-crisis bias is a cancellation.** Its demand runs about 2 GW high after
+  the crisis, and its price leg, run on REAL inputs, runs £7.2-8.0 low on every basis. Forward years
+  inherit that accident.
+- **Nothing ships because the construction check failed in 2016 and 2025.** Both are
+  `renewable_capacity_trend`'s end clamps on record years: 2025 prices at 2024's fleet and runs 4.4 GW
+  under AGWS wind.
+- **Next, still item 4:** (1) the §1b price-leg shape arm, against the leg-on-real rows as its control;
+  (2) record years taking their own fleet, not the clamp; (3) then rerun B1-B3.
