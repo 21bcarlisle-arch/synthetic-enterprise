@@ -415,3 +415,30 @@ def test_THE_WRITERS_REFUSAL_OF_A_SEAT_RECORD_COMMIT_NAMES_THAT_CAUSE(monkeypatc
     reason = dl.refusal_reason(FOCUS_ID, commit=HEARTBEAT_SHA, path=store)
 
     assert "SEAT'S RECORD" in reason and stretch_log in reason and "--release" in reason, reason
+
+
+def test_THE_SEAT_RECORD_REFUSALS_ADVICE_RETIRES_THE_ITEM_WHEN_FOLLOWED(monkeypatch, tmp_path):
+    """Defect it names: the refusal said "--release the claim", the release then kept the item
+    offered for want of a bind, and `--premise-spent` after the release answered "was never drawn"
+    (SEAT_FINDING_A_DIRECTION_ITEM_WHOSE_DELIVERABLE_IS_A_DIRECTOR_ROW_CANNOT_BE_RETIRED_2026-11-24).
+    Keyed to the property: the route the message names must be ACCEPTED at the point it says to take
+    it, and must still be refused in the order the old message implied. Fires on: the message going
+    back to release-first; and on `note_premise_spent` losing its live-claim fallback."""
+    stretch_log = "docs/status/SEAT_STRETCH_LOG.md"
+    store = tmp_path / "claims.json"
+    claims_mod.claim(FOCUS_ID, "doing the thing", paths=[], path=store, now=DRAWN_AT)
+    monkeypatch.setattr(dl, "_git", _fake_git_commit([stretch_log]))
+    reason = dl.refusal_reason(FOCUS_ID, commit=HEARTBEAT_SHA, path=store)
+    assert f"--premise-spent {FOCUS_ID} {HEARTBEAT_SHA}" in reason, reason
+    assert reason.index("--premise-spent") < reason.rindex("--release"), reason
+
+    def published(*args: str) -> str | None:
+        return HEARTBEAT_SHA if args[:1] == ("rev-parse",) else ""
+    monkeypatch.setattr(dl, "_git", published)
+    assert dl.note_premise_spent(FOCUS_ID, HEARTBEAT_SHA, "row landed", path=store) == ""
+
+    # The old order: release first, then the disposition -- refused, which is why the advice moved.
+    late = tmp_path / "late.json"
+    claims_mod.claim(FOCUS_ID, "doing the thing", paths=[], path=late, now=DRAWN_AT)
+    claims_mod.release(FOCUS_ID, path=late)
+    assert "never drawn" in dl.note_premise_spent(FOCUS_ID, HEARTBEAT_SHA, "x", path=late)

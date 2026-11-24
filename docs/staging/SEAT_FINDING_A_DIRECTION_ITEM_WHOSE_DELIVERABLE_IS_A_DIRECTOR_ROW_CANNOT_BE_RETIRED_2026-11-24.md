@@ -1,4 +1,4 @@
-**Severity:** RECORDED · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** RECORDED · **Status:** fixed (message leg), 24 Nov · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 # A lane-0 item whose whole deliverable is a `for_the_director` row cannot be retired, so it will be drawn again
 
@@ -28,3 +28,13 @@ drawn, step 4 no longer holds: `--premise-spent rankq-equal-volume-question-carr
 was accepted ("window is disposed as premise-spent by 49b62d352"). So the working retirement for a record-only deliverable
 is: let the item be redrawn, then `--premise-spent` against the commit that landed it. The defect narrows to the first turn:
 the turn that does the work cannot retire it, and one redraw is spent finding that out. The one-leg fix above still stands.
+
+**Fixed, 24 Nov (the second of the two proposed legs).** Read again, the contradiction was in the ORDER, not
+in the machinery: step 4 failed on the first turn only because step 2 had already released the claim, and
+`note_premise_spent` sees a draw through the live claim when the ledger has no row. So the bind refusal in
+`refusal_reason` now says: a `--release` alone does not retire a record-only deliverable; once the commit is on
+origin/main, record `--premise-spent <id> <commit> <reason>` FIRST, while the claim is live, then `--release`.
+Control: `test_THE_SEAT_RECORD_REFUSALS_ADVICE_RETIRES_THE_ITEM_WHEN_FOLLOWED` asserts the advised route is
+accepted in the advised order and the old order is still refused; restoring the old message reds it
+(mutation run). The `--release`-accepts-the-record-commit leg was not built: the disposition already is the
+retirement, and a second door to the same state is one more thing to keep in step.

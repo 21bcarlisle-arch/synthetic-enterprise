@@ -3351,11 +3351,17 @@ def refusal_reason(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
         # `record_landing` also refuses a commit confined to the SEAT'S RECORD. Without this leg
         # that refusal fell through to "the claims store refused the write" (2026-10-21: a
         # direction item whose whole deliverable was a stretch-log entry), which names no cause.
+        # IT USED TO SAY "--release the claim" AND THAT WAS WRONG (24 Nov): with no bind, the
+        # release frees the claim but `focus_tombstone_refusal` keeps the item offered, and once
+        # the claim is gone `--premise-spent` cannot see the draw either. The premise-spent
+        # disposition is the retirement, and it must be recorded WHILE the claim is live.
         if _is_liveness_only(paths, _liveness_surface_or_raise() | _seat_record_surface()):
             return (f"{commit} touched only the SEAT'S RECORD ({', '.join(paths)}), which is the "
                     f"seat writing down what it decided and never credited as an item's work. If "
-                    f"recording was the whole deliverable, --release the claim: there is nothing "
-                    f"a bind could add")
+                    f"recording was the whole deliverable, a --release ALONE does not retire it: "
+                    f"once {commit} is on origin/main, record `--premise-spent {focus_id} "
+                    f"{commit} <reason>` FIRST, while this claim is still live (after the release "
+                    f"the disposition cannot see the draw), then --release")
         # NOT `since`: that is now the REF parameter above, and a float landing on top of it
         # would read as the same quantity twice.
         first_drawn = _binding_instant(focus_id, rec, store)
