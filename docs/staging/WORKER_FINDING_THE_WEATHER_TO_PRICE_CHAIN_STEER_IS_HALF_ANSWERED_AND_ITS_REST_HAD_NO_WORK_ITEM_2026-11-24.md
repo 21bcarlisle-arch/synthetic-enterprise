@@ -654,3 +654,15 @@ will re-fire the hold, so the next re-arm should move the file aside itself.
 - **Next, still items 4-5:** K8 first on a forward UK carbon band (UK ETS cap and auction path, DESNZ traded carbon
   values, CPS policy). Then one `for_the_director` row that proposes all three missing bands for `forward_years.json`,
   with a recommendation for each. Asking before carbon is sourced would hand him an unsourced number.
+
+## Progress, 24 Nov (worker, K8 on forward carbon)
+
+- **§2a of the electricity page sources the band.** It is DESNZ's *Traded carbon values used for modelling
+  purposes, 2025* (3 Feb 2026, OGL), £/tCO2e real 2025. For 2030, Low / Central / High is 25 / 50 / 66; for 2035,
+  45 / 70 / 92. The Market column is 44 in 2025, against the record's 2025 auction VWAP of £48.05. The band models
+  the standalone UK ETS and excludes UK-EU linking.
+- **Carbon Price Support (CPS) is not in the band.** It is £18 to 31 Mar 2028, and a GAP after that.
+- **Found:** DESNZ's Low carbon case is its high-fossil-price case. Drawing carbon independently of the gas band
+  would produce futures DESNZ does not model. That pairing is the director's.
+- **Next:** one `for_the_director` row proposing the three missing `forward_years.json` bands (ND, net flow,
+  carbon), with a recommendation for each.

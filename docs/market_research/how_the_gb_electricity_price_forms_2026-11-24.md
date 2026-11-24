@@ -201,6 +201,50 @@ its imbalance. `sim/market_index_history.py` records this, and it is graded in �
   The clearing price is the primary-auction price, within about £2 of the prevailing secondary price
   at every 2025 auction (the 2025 report prints both).
 
+## 2a. Forward carbon: the published band, and what it leaves out
+
+*Added 24 Nov 2026 (worker), K8 before any forward carbon is built. Item 3 closed the record's carbon. This
+section covers the years after it.*
+
+- **The source.** DESNZ, *Traded carbon values used for modelling purposes, 2025*, published 3 Feb 2026, OGL
+  v3. It was read in full from the gov.uk HTML page on 24 Nov. No 2026 edition exists (the analogous URL
+  returns 404). Its Table 1 is in £/tCO2e, real 2025, and gives four trajectories. Selected rows:
+
+  | Year | Market | Low (high fossil prices, low growth) | Central (Net Zero Strategy aligned) | High (low fossil prices, high growth) |
+  |---|---|---|---|---|
+  | 2025 | 44 | 22 | 29 | 37 |
+  | 2026 | 42 | 22 | 38 | 47 |
+  | 2028 | 41 | 23 | 40 | 54 |
+  | 2030 | 50 | 25 | 50 | 66 |
+  | 2035 | 70 | 45 | 70 | 92 |
+  | 2040 | 136 | 74 | 136 | 178 |
+  | 2050 | 235 | 167 | 235 | 298 |
+
+  Market and Central differ only in 2025-29. DESNZ assumes the market's "unobservable" factors "dissipate
+  over four years". The table runs annually to 2050.
+- **What it is.** DESNZ's Carbon Markets Model finds where allowance demand meets the cap plus the bank. It
+  uses four-year foresight, a 3.25% cost of carry and a 67m starting surplus. It models the **standalone**
+  UK ETS at its scope at the start of 2025. It "excludes potential UK-EU ETS linking negotiations". The page
+  says the values "should not be considered as forecasts". The Market column is started from five months of
+  2025 ICE UKA futures.
+- **Against the record [calc].** Market 2025 is £44. The auctions' 2025 volume-weighted clearing price is
+  £48.05 (§2), and in 2025 real 2025 money is nominal money. The published band therefore starts 8% under the
+  record's last year.
+- **CPS is not in it.** The page does not mention Carbon Price Support. CPS is frozen at £18/tCO2 to 31 Mar 2028
+  (`sim/merit_order_reconstruction.py`, from gov.uk's Climate Change Levy rates). After 2028 it is a GAP. An
+  £18 held in nominal money falls in real money.
+- **The band moves against gas, by construction.** DESNZ's Low carbon case is its high-fossil-price case, and
+  its High carbon case is its low-fossil-price case. `docs/design/curriculum/forward_years.json` draws gas from
+  DESNZ's fossil fuel price cases A-C. Drawing carbon independently of gas would produce futures DESNZ does not
+  model, such as high gas with high carbon. That pairing is a curriculum choice. It is named here, not made.
+- **What it leaves out.** (1) UK-EU linking. DESNZ names the negotiations and excludes them. A linked price
+  would follow the EU allowance. No linking path or date has been read (GAP). (2) Price base. The gas band is
+  real 2024 and this band is real 2025. The CPI path that converts them is the same curriculum input that
+  forward CfD strikes need (§3).
+- **What the chain needs.** Each forward day's carbon is CPS plus the UKA level for that year, entering the
+  floor the same way as on the record (§2). This section sources the band. Which band, and whether it is drawn
+  with gas, is the director's curriculum.
+
 ## 3. CfD, RO and negative prices
 
 - **Renewables Obligation (RO).** RO plant earns Renewables Obligation Certificates per MWh generated.
@@ -754,3 +798,5 @@ Fifteen of twenty-two predictions held. The seven misses stay beside the outcome
     generation path on the demand side, and when transmission demand turns up (§8a).
 11. A forward net-flow path (§5a): why ES1 2025's 2024 column is not DUKES, a forward within-year flow shape,
     and which approved links reach FID.
+12. Forward carbon (§2a): CPS after 31 Mar 2028, a UK-EU linking path and date, and the CPI path that puts the
+    DESNZ band (real 2025) on the gas band's real-2024 base.
