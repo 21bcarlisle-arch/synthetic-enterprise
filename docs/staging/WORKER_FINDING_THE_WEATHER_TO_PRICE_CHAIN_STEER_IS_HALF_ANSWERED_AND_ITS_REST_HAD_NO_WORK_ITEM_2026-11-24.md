@@ -631,3 +631,26 @@ will re-fire the hold, so the next re-arm should move the file aside itself.
 - **Not built.** The build waits on the DIRECTION `not_now` hold on SAP, a forward demand path (§8a), and the FES
   net-flow level (§5). **Next, still item 4:** pre-register a forward year's demand level from FES system demand.
   Then the neighbour-shortfall K8 section, and R's 2025 residual.
+
+## Progress, 24 Nov (worker, what the build still waits on, re-read against the tree)
+
+- **Correction, beside the claim.** Five records, the last being the build-terms result above, say the build waits
+  on "the DIRECTION `not_now` hold on SAP". That hold is gone. The `not_now` row left DIRECTION.yaml at `7852dd77ff`
+  (18 Nov 18:53). Its condition, skip1 and skip0 read, was met on 19 Nov (`a2c848965`, `9a361e3562`). The continuation
+  that carried the world's switch to SAP, `world-gas-baseline-switch-readers-to-spliced-sap`, expired untaken. So the
+  18 Nov decision to splice is unowned, and the switch-order census of 24 Nov leaves it out. Filed:
+  `docs/staging/WORKER_FINDING_THE_SAP_SPLICE_WAS_DECIDED_ITS_HOLD_LAPSED_ON_19_NOV_AND_NO_QUEUE_CARRIES_THE_SWITCH_2026-11-24.md`.
+- **What that changes for item 4.** On record years, the shippable form (SAP, the annual net-export level, demand by
+  year, solar out) uses each year's real levels, so no forward band blocks it. It waits on one thing only: the world's
+  gas readers moving to SAP in the same change. Moving the chain alone would price it on a gas record the world does
+  not settle on. That change is ordered by the switch order (one change per book), not by this finding.
+- **What forward years wait on, by name.** `docs/design/curriculum/forward_years.json` (ruled 25 Oct) carries two
+  bands, gas level and renewable fleet. It carries no band for the three other levels the shippable form needs:
+  (1) transmission demand (ND), sourced in electricity page §8a, where the record supports ND held at its 2023-25
+  level, jointly with the fleet band; (2) the interconnector net-flow level, sourced in §5a from FES 2025 ES1, a 2030
+  spread of −23.8 to +8.1 TWh; (3) carbon. Carbon has no sourced forward band: the page names forward carbon as
+  the curriculum's and cites no path. Item 5's forward levy also needs the CfD fleet. Its band is the renewable fleet
+  band, so it shares one capacity path (fleet page).
+- **Next, still items 4-5:** K8 first on a forward UK carbon band (UK ETS cap and auction path, DESNZ traded carbon
+  values, CPS policy). Then one `for_the_director` row that proposes all three missing bands for `forward_years.json`,
+  with a recommendation for each. Asking before carbon is sourced would hand him an unsourced number.
