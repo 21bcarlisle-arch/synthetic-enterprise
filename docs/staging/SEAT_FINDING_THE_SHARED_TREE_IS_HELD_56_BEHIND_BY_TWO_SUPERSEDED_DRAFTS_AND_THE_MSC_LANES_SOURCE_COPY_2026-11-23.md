@@ -77,3 +77,45 @@ already over its line and still held.
 **The earliest the advance can happen** is about **25 Nov 06:00Z**, and only if the seat's 15:22Z
 landing (or a later one) goes through. If the seat is refused again, the three direction paths hold
 past every age line, because they stay under 3h old. That is the thing to check at the recheck.
+
+## Re-read 25 Nov 06:40Z (executor seat, claim `shared-tree-advance-recheck-after-age-lines`): nothing holds it, and the supersession leg is not built
+
+**Nothing holds the shared tree now.** At 06:39Z it was at `567288c031`, 1 behind and 0 ahead of
+origin `86fc2eaddc`, and 1 behind is just the gap between reconciler ticks. Since 24 Nov 20:18Z every
+`fork with origin` line in `docs/observability/reconcile-watch-log.md` is `FAST_FORWARDED` or `PUSHED`.
+There are nine of them, the last at 06:19Z. The one `ERROR` run (01:24–01:33Z, another writer held
+`/var/tmp/se-origin-reconcile`) cleared on the next tick. No `boot-sha drift` line has been logged
+since 24 Nov 19:18Z.
+
+**The age lines did not release the holders. A landing did.** The last `NOT_ADVANCED` was 19:09Z
+(172 behind, held only by `simulation/run_phase2b.py`: 36.8h old, 37 lines not on origin). At
+19:11:58Z a worker landed `40574a0295` through `surgical_land`. That commit merges origin `781ad788be`
+into shared HEAD `bfad11e9fa`. Its tree takes origin's `run_phase2b.py` blob (`2cc3f8ad`). That moved
+HEAD past the hold without the reconciler. The MSC lane's working copies were then saved and refreshed at
+21:36–21:37Z: `/var/tmp/se-msc-keep/{run_phase2b,growth_desk}.shared-tree-stale-2026-11-24.py`, and
+`refs/preserved/refresh-to-head/annual-report-stale-copy-2026-11-24` for the orphaned 6C
+`annual_report.py`. Earlier copies are under `/var/tmp/se-msc-keep/shared-tree-20261124/`. The MSC
+source itself is `msc8.patch`. Increment A is on origin as `567288c031`. Increment B, which carries
+the `run_phase2b.py` wiring, is handed on as `msc-b-the-world-charges-the-msc-on-a-replacement-win`.
+Nothing was lost. The three direction paths that the 12:45Z re-read feared would hold forever are
+cleared by the seat's own landings, as the 04:39Z and 04:54Z fast-forwards show.
+
+**The supersession leg is not built, and here is why.** `earlier_revision_twins` already clears a
+copy whose bytes equal any revision origin has held at that path. The leg proposed above would go
+further: a copy whose non-tip lines all sit in an earlier origin revision, though no blob matches
+whole. Exactly one path of that shape has existed, `tests/simulation/test_run_phase2b.py`. A hand
+released it in minutes (24 Nov 12:50Z), and the 48h age line would have released it anyway. The rule
+is also not lossless the way a whole-blob match is. A copy built from tip plus lines from an earlier
+revision is also exactly what a deliberate partial revert looks like, and that is live work.
+Building it would add a rule with a real false-positive class to fix a shape seen once. If the
+shape repeats and holds the tree, reopen this then.
+
+**Seen in passing, not this item's subject.** The shared tree has 2,825 dirty entries. 48 of them
+are tracked `.py` files, and 22 of those were last written 24 Sep 15:02. Among those 22 are the
+daemon modules `background/{daily_self_note,trust_ledger,disk_headroom,gap_ledger_reconciler}.py`,
+and only the last has been committed on origin since then. They do not hold the advance, because
+the fast-forwards step around them. But the daemons that import them run those local edits, not
+HEAD. Whose they are, and whether they are wanted, is unestablished. The 14 Oct record
+`SEAT_RESULT_THE_STRANDED_SEASONAL_SWING_DELETION_...` already treats same-mtime copies as not stale.
+
+**Status:** the advance this finding was about is resolved. The finding can close once this lands.
