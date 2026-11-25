@@ -885,3 +885,17 @@ will re-fire the hold, so the next re-arm should move the file aside itself.
 - **What is left of 1-6:** item 4's build (carried by the SAP splice finding). For item 5: GAP 2b, AR2's
   terms, the auction's hourly series, and the forward levy, which waits on the director's
   `the-forward-world-has-bands-for-gas` row and the forward price.
+
+## Progress, 25 Nov (worker, item 5: AR2's negative-hour rule, read)
+
+- **Read from primary text**: AR2's own round terms, *CFD Standard Terms and Conditions, Version 2* (13 Mar 2017,
+  gov.uk, PDF sha256 `99869d2f…`). The prediction was filed before reading (sha256 `52344781…`, 02:28Z): six-hour,
+  twelve for Baseload, and no one-hour rule. It held, three of three.
+- **AR2 carries the six-hour rolling rule** in the October 2015 wording, with Baseload at twelve Settlement Units.
+  No one-hour definition appears anywhere in the text. BEIS's *Explanation of changes* note of the same date says the
+  rule was added "to ensure compliance with the conditions of the State aid approval". The AR2 inference in
+  electricity page §3 and §13, and in fleet page item 5, is replaced by text. The rules by vintage now rest on read
+  text in every round: IC and AR1 every hour, AR2-AR3 six-hour runs, AR4 onwards any hour.
+- **What is left of 1-6:** item 4's build (carried by the SAP splice finding). For item 5: GAP 2b, the auction's
+  hourly series, and the forward levy, which waits on the director's `the-forward-world-has-bands-for-gas` row and
+  the forward price.
