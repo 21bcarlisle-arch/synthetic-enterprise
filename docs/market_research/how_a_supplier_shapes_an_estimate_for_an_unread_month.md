@@ -141,6 +141,75 @@ on your EAC". It also says new occupants get a TDCV default, which conflicts wit
 cover the time before you moved in", so it is not relied on. Still unestablished: whether this is
 industry practice or one supplier's, and whether the monthly split is profiled or /12.
 
+**Correction, 2026-11-25.** The second bullet above cites SLC 27.15 for the ranking. SLC 27.15 is the
+duty on the fixed **direct debit amount**, which must rest on "the best and most current information
+available". It is not a rule about how a bill estimate is made. The precedence table in
+`what_a_supplier_holds_to_size_a_direct_debit.md` s.2 (own metered history first, then registry
+EAC/AQ, then declaration, then TDCV) is this repo's reading of that duty for the DD path. Applying the
+same order to a bill estimate is our own inference. No licence condition found requires it for bills.
+
+## 5b. How a supplier turns the home's own earlier reads into one month's estimate (2026-11-25, K8 for E1 (a))
+
+**Why this section exists.** On the f2c6979d01 book, six electricity runs breach
+`INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER` at 3.4 to 5.3 times the meter. All six are electrically
+heated homes in summer. Each one was billed an annual figure spread on the profile class's shape.
+At the date of each estimate, every one of the six accounts already held its own read advance
+of under six months that covered some of the same summer months in an earlier year. For three
+of them, that history covered only part of the run. Account by account:
+`docs/staging/SEAT_FINDING_THE_ESTIMATE_AGAINST_THE_METER_ON_F2C6979D01_IS_7_OF_4250_AND_ONE_IS_A_GAS_AQ_EIGHT_TIMES_ITS_METER_2026-11-25.md`
+(addendum).
+
+**Established (published practice, [M], one supplier each):**
+- **British Gas, gas:** "we will normally use information on how much energy you used in the same
+  period the previous year" (s.11, read first-hand 2026-11-21). That is the home's own seasonal
+  shape, taken from its own reads.
+- **British Gas, electricity:** "the previous month/billing period" (s.11). This uses the home's own
+  recent rate, with no seasonal shape.
+- **OVO, electricity:** the settlement EAC from the last actual read (s.5). This is an annual figure
+  spread on the class profile.
+- **Settlement itself** turns an advance into an EAC/AQ by dividing by the profile weight of the
+  days it covers (s.1, s.3). Spreading that figure back over a month uses the class's shape, not the
+  home's.
+
+**How "the same period the previous year" works in practice.** A meter read every month or so gives
+the supplier its register advance between consecutive actual reads. Each advance covers a known set
+of days. "The same period last year" is then the advance, or advances, whose days fall on the same
+calendar dates twelve months earlier. The estimate is that advance's use, scaled to this period's
+days. Scaling by the profile weight of both windows gives the same answer as scaling by day count
+when the windows match, and corrects a part-season mismatch when they do not.
+
+**Not established, named as gaps:**
+- **G-SP1.** Whether any GB supplier applies the same-period rule to **electricity**. In the
+  practices found, British Gas uses the previous period and OVO uses the EAC. Applying the rule to
+  electricity is our choice. It is graded on a book before it is chosen.
+- **G-SP2.** How close in time the earlier advance must be to count as "the same period". It could
+  be an exact month, overlapping days, or a whole quarter. Not published.
+- **G-SP3.** How far back the rule looks. British Gas says "the previous year". Whether any supplier
+  uses an older year when last year was not read is not published.
+- **G-SP4.** How the earlier year is adjusted for weather, a change in occupancy or a tariff change.
+  s.12 found no published weather correction of an unread month. Nothing was found on the others.
+
+**The design's choices (`unread_month_estimate.same_period_advance`, behind
+`DecisionPolicy.bill_estimate_reads_the_same_period_first`, default off):**
+1. An advance counts as a season only if it spans fewer than 182 days (`MIN_ADVANCE_DAYS`). A longer
+   advance is an annual figure, and that is the existing annualised route.
+2. The advance must cover at least half of this period's days shifted back by whole years (G-SP2).
+   This is our threshold. It is not published.
+3. The rule looks back one year, then two (G-SP3). The second year is our choice. It exists for a
+   meter read too rarely to have last year's season.
+4. Within the chosen advance, the month is shaped by the class profile (s.1 to s.4). That profile
+   only interpolates within the home's own season and no longer sets the season's level.
+5. The rule applies to both fuels (G-SP1 for electricity). It is the first route tried. Every
+   existing route still applies where no such advance is held.
+6. No weather or occupancy adjustment is made (G-SP4). This errs toward last year's level.
+
+**What it is expected to do, before any book has the flag on:** read off f2c6979d01 by hand, the
+rule moves three of the six (a) runs back inside the breach band (4.04 to 1.73, 4.18 to 0.94, 3.09
+to 1.68). It leaves three: SYN-2016-221's July and PROS-2016-0203's June to August have no summer
+advance within two years, and SYN-2016-565's nearest June is a spring-heavy March-to-June advance.
+The pre-registration is
+`docs/staging/records/SEAT_PREREG_D48_THE_ESTIMATE_READS_THE_SAME_PERIOD_FIRST_2026-11-25.md`.
+
 ## 6. What a supplier can and cannot know
 
 **Can know:** the registry EAC/AQ and its vintage; its own prior meter-read history for the

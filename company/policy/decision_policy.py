@@ -266,6 +266,14 @@ class DecisionPolicy:
     #: Knowledge: how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 8.
     bill_estimate_blends_the_eac_at_spar: float | None = 0.5
 
+    #: (2026-11-25, D48) an unread month is billed first from the account's own read advance over the
+    #: same calendar period one or two years before (`unread_month_estimate.same_period_advance`),
+    #: ahead of the annualised advance on the class shape. Off on every standing policy until a
+    #: book graded with it on meets its pre-registration:
+    #: `docs/staging/records/SEAT_PREREG_D48_THE_ESTIMATE_READS_THE_SAME_PERIOD_FIRST_2026-11-25.md`.
+    #: Knowledge: how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 5b.
+    bill_estimate_reads_the_same_period_first: bool = False
+
     #: C35 (2026-10-17): at a renewal, an advice action that costs us may travel with the smallest
     #: monthly rise on the Fixed Retention Tariff that brings our side to zero, capped by the
     #: headroom under the published default (`company.crm.next_best_action.price_retention_rise`).

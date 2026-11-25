@@ -20,3 +20,13 @@
   - the three director rows' follow-through once he answers;
   - the knowledge-first gas page.
 - The weather-to-price result is good work. The rebuilt chain now beats the gas-only null in every regime at the month (4.22 / 16.81 / 6.18 against 4.97 / 17.44 / 9.84). Thank you.
+
+## Done
+
+Actioned by the seat executor on 25 Nov at 12:47 GMT, as pacing under the 15 Oct delegation.
+`python3 -m background.tick_mode slow --for 36h` is set. It reverts on its own at
+2026-11-27T00:47Z. The worker tick and the executor now spawn at most every 4 hours, and the
+delivery seat at most every 12 hours. This is a guess at what brings the five-day average to about
+0.5: the burn rate of slow mode has not been measured. The next reading recalibrates it, and
+`tick_mode normal` reverses it at once. The kept items still move under slow mode. The ruling's
+retention answer is handed off first, and the forward-bands and K8-test pieces follow it.

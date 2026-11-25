@@ -46,6 +46,8 @@ __all__ = [
     "profile_weight",
     "refuse_spar_outside_the_range",
     "register_profile_weight",
+    "same_period_advance",
+    "SAME_PERIOD_LOOKBACK_YEARS",
     "SPAR_WEIGHT_RATE_STATED_RANGE",
     "split_on_register_shape",
 ]
@@ -260,6 +262,52 @@ def opening_register_estimate_kwh(
     shape. Registration hands over one EAC, not one per register (page GAP G7)."""
     annual = _registration_annual_kwh("electricity", registration, start)
     return None if annual is None else split_on_register_shape(annual, start, end)
+
+
+#: How many years back the same-period rule looks, nearest first. British Gas says "the same period
+#: the previous year" (how_a_supplier_shapes_an_estimate_for_an_unread_month.md s.5b); one year is
+#: the published practice. The second year is OUR choice, for a meter read too rarely to have read
+#: last year's season (SYN-2016-215 held no summer advance in 2022, and did in 2021). GAP: whether
+#: any supplier looks further back than one year is not published.
+SAME_PERIOD_LOOKBACK_YEARS = (1, 2)
+
+
+def same_period_advance(
+    window: list[tuple], start: date, end: date,
+) -> tuple | None:
+    """The account's own read advance from the same calendar period in an earlier year, if it holds one.
+
+    `window` holds the advances between consecutive actual reads, each (from, to, kWh) or, for a
+    PC2 meter, (from, to, {register: kWh}). An advance qualifies when it is shorter than
+    `MIN_ADVANCE_DAYS` (a longer one is the annualised route's, and carries no season) and covers
+    at least half of `start`..`end` shifted back by a whole number of years. The nearest year wins;
+    within a year, the advance covering more of the shifted period, then the shorter one.
+
+    None when no held advance qualifies: the caller keeps its other routes, and the absence is the
+    reason. The design choices (half the period, the span limit, the second year) are the page's
+    s.5b, each labelled as ours.
+    """
+    days = (end - start).days + 1
+    for years_back in SAME_PERIOD_LOOKBACK_YEARS:
+        try:
+            s0, e0 = start.replace(year=start.year - years_back), end.replace(year=end.year - years_back)
+        except ValueError:  # 29 Feb: the shifted period starts or ends on the 28th
+            s0 = start.replace(year=start.year - years_back, day=28) if start.month == 2 else start
+            e0 = end.replace(year=end.year - years_back, day=28)
+        best = None
+        for entry in window:
+            a, b = entry[0], entry[1]
+            if (b - a).days + 1 >= MIN_ADVANCE_DAYS:
+                continue
+            overlap = (min(b, e0) - max(a, s0)).days + 1
+            if overlap * 2 < days:
+                continue
+            key = (-overlap, (b - a).days)
+            if best is None or key < best[0]:
+                best = (key, entry)
+        if best is not None:
+            return best[1]
+    return None
 
 
 #: SPAR, the BSC smoothing parameter, carried as the stated range [low, high] and never as a point.

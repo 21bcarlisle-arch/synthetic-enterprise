@@ -86,3 +86,44 @@ The world build (sim lane): make each gas premise's registry AQ from its own rea
 EAC now is. Write the knowledge page for Xoserve's rolling AQ first (UNC TPD G, AQ from reads 9 to 36
 months apart). Its exit is row 7 leaving this invariant on the next fresh book, with the exception
 re-based downward to the count its reason covers.
+
+## Addendum, 25 Nov: did the company hold the home's own summers? Rows 1 to 6, account by account
+
+**Question.** At the date of each estimate, did the account already hold actual reads over the same
+calendar months in an earlier year? Read from `run_output_f2c6979d01_20261124T215935Z.json`, using
+only what the company held then: the register advance between consecutive actual reads, before the
+run's first month. A throwaway probe, not kept in the repo, rebuilt each account's read advances from
+its bills (each actual bill closes an advance that runs from the day after the previous actual read)
+and called `same_period_advance` and `estimate_unread_kwh` on them.
+
+| # | Account, run | Held same-season advance (from, to, kWh/day) | Billed / meter as billed | Own history first (by hand) |
+|---|---|---|---|---|
+| 1 | SYN-2016-215, Jun to Jul 2021 | 2020-05-01 to 07-31, 10.2/day. The run's true rate is 5.8/day | 4.04 | 1.73 |
+| 2 | SYN-2016-215, Jul to Aug 2023 | 2021-06-01 to 08-31, 5.5/day, and Aug 2022, 4.6/day. True 5.4/day | 4.18 | 0.94 |
+| 3 | SYN-2016-221, Jun to Jul 2021 | June: 2020-04-01 to 06-30, 8.4/day. July: only Jul to Aug 2017, four years back | 5.04 | 3.93 |
+| 4 | SYN-2016-565, Jun to Jul 2019 | 2018-03-01 to 06-30 (spring-heavy) and 2018-07-01 to 10-31, 7.0/day | 4.27 | 3.15 |
+| 5 | PROS-2017-0364, Jun to Jul 2022 | 2021-05-01 to 08-31, 6.4/day. True 3.7/day | 3.09 | 1.68 |
+| 6 | PROS-2016-0203, May to Aug 2022 | May: 2020-03-01 to 05-31. Jun to Aug: only 2018 May to Jun (four years back) and 2021 Apr to Oct (214 days, an annual-route span) | 3.69 | 3.99 |
+
+The ratios here are per bill-run totals from the probe, not the runner's shaped meter. They sit within
+about 0.3 of the table above.
+
+**Answer.** Yes. Every account held some of its own summer, and rows 1, 2 and 5 held all of it. The
+exception's reason, "the household's own shape is not known", is wrong for those three as stated.
+The company held the shape and set it aside.
+
+**The route that set it aside, and why.** In `company/billing/monthly_bill_assembly.py`, with
+`bill_estimate_reads_the_annualised_advance` on (standing since 23 Oct), every unread month is
+billed `annualised_advance_kwh(...)[0] * profile_weight(...)`. That is the read pair spanning nearest
+a year, turned into an annual rate, then spread on the class shape. On PC2, each register is spread
+on PC2's shape. The route was chosen because it beat the three-read window in 9 of 9 years. That
+window carried autumn into December. But the route keeps nothing of the home's own year by
+construction: an advance of a year has no season left in it. Section 11 of the estimate page judged
+(a) lawful because OVO and settlement do the same. That holds for practice. It does not hold for
+"not known".
+
+**What was built.** `same_period_advance` and the switch
+`DecisionPolicy.bill_estimate_reads_the_same_period_first`, default off. Knowledge:
+`how_a_supplier_shapes_an_estimate_for_an_unread_month.md` s.5b. By hand, the rule moves rows 1, 2
+and 5 inside the band. It leaves rows 3, 4 and 6, and makes row 6 slightly worse. Row 7 is gas with no
+earlier year, so it is unchanged. The prediction for a book is pre-registered and has not been run.

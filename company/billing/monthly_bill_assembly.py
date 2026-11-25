@@ -85,6 +85,7 @@ from company.billing.unread_month_estimate import (
     opening_register_estimate_kwh,
     profile_weight,
     refuse_spar_outside_the_range,
+    same_period_advance,
     split_on_register_shape,
 )
 from company.interfaces.supply_book import registered_point as get_customer
@@ -710,6 +711,7 @@ def build_monthly_bills(
     annualised_advance_estimate: bool = False,
     gas_advance_floor_nine_months: bool = False,
     bsc_blend_spar: float | None = None,
+    same_period_estimate: bool = False,
 ) -> list[dict]:
     """Group the supplier's own settled records into one bill per customer per
     calendar month, in chronological order, via
@@ -829,6 +831,11 @@ def build_monthly_bills(
     (`bsc_blended_eac_kwh`) at this SPAR, instead of the registration figure. The hold route is an
     actual read held and reads spanning under 182 days. SPAR must lie in the stated range, and a
     value outside it is refused. None, the default, is the hold, and every other route is unchanged.
+
+    `same_period_estimate` (2026-11-25, D48; the page's s.5b): an unread month is billed first from
+    the account's own read advance over the same calendar period in an earlier year
+    (`same_period_advance`), shaped within that advance by the profile. Every other route stands
+    where no such advance is held. Off by default, and off nothing here reads it.
     """
     if bsc_blend_spar is not None:  # refused at the door, not at the first hold-route month
         refuse_spar_outside_the_range(bsc_blend_spar)
@@ -1201,6 +1208,18 @@ def build_monthly_bills(
                             or split_on_register_shape(advance[0], *period))
                     if by_register is not None:
                         shaped = sum(by_register.values())
+                # Own history first (s.5b): the home's own read over the same months a year or two
+                # before outranks every route above, which spread an annual figure on the class's
+                # shape. A heated home's summer is a quarter of that shape (SYN-2016-215, Jul-Aug
+                # 2023: 1,387 kWh billed, 332 used, a 2021 summer advance of 5.5 kWh/day held).
+                own = (same_period_advance(
+                    trailing_register_periods if economy_7 else trailing_actual_periods, *period)
+                    if same_period_estimate else None)
+                if own is not None and economy_7:
+                    by_register = estimate_unread_register_kwh([own], *period)
+                    shaped = sum(by_register.values()) if by_register is not None else shaped
+                elif own is not None:
+                    shaped = estimate_unread_kwh(commodity, [own], *period) or shaped
                 est_kwh = round(shaped, 2) if shaped is not None else None
                 if dataclasses.is_dataclass(event):
                     event = dataclasses.replace(event, estimated_consumption_kwh=est_kwh)

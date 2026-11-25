@@ -41,3 +41,13 @@ He rejects both options: the conservative reading and the volume-matched rerun. 
 4. **Only then propose the next run, if one is still needed**, with what it will settle and its predictions filed first. Explaining why the world behaves as it does comes before testing more levers inside it.
 
 Put the decomposition and the knowledge check first in the supplier share. Give the director a plain-English answer to "what's going on, and what should we expect" within two days. The advisor will relay it.
+
+## In hand, not done (25 Nov, seat executor)
+
+Parts 1 and 2 are actioned. K8's extension is in canon, landed with `Director-doc: his-words`. Both
+rows are closed `yes`. The forward bands and the K8 one-leg test are handed off as
+`the-forward-world-has-bands-for-gas` and `k8-covers-world-models-one-leg-test`. Part 3's row is
+closed `no`. Its work is handed off as
+`the-retention-result-decomposed-and-checked-against-reality`, due 27 Nov. This file stays here until
+that answer lands, because its three questions are open in the question register. A reader drawing
+this file should do part 3 and nothing else.
