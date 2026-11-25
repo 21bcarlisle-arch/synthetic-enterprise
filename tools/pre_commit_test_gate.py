@@ -886,6 +886,10 @@ def _landing_gate_holder(fd: int) -> str:
         return "an unreadable holder"
 
 
+#: lock path -> [fd, depth] for the landing-gate locks THIS process holds. See `__enter__`.
+_LANDING_GATE_HELD: dict[str, list[int]] = {}
+
+
 class LandingGateLock:
     """Hold the box-wide landing-gate lock. `with LandingGateLock(label) as held:` blocks until
     no other landing gate runs; `held.waited_s` is how long that took. While waiting it prints the
@@ -901,9 +905,20 @@ class LandingGateLock:
         self.poll_s, self.report_every_s = poll_s, report_every_s
         self.waited_s = 0.0
         self._fd: int | None = None
+        self._reentered = False
 
     def __enter__(self) -> LandingGateLock:
         import fcntl
+        # RE-ENTRANT IN-PROCESS, because the lock now spans the base read and the ref move, not
+        # just the hook (see `surgical_land._land_once`): the outer holder is the landing or the
+        # promotion, and `run_gate` re-entering it must not open a second description and flock
+        # against its own process -- that blocks forever.
+        held = _LANDING_GATE_HELD.get(str(self.path))
+        if held is not None:
+            held[1] += 1
+            self._reentered = True
+            return self
+        self._reentered = False
         self.path.parent.mkdir(parents=True, exist_ok=True)
         fd = os.open(str(self.path), os.O_RDWR | os.O_CREAT, 0o666)
         start = time.monotonic()
@@ -928,6 +943,7 @@ class LandingGateLock:
             os.close(fd)
             raise
         self._fd = fd
+        _LANDING_GATE_HELD[str(self.path)] = [fd, 1]
         self.waited_s = time.monotonic() - start
         if last_holder is not None:
             print("[landing-gate-lock] acquired after {:.0f} s; the gate's clock starts now"
@@ -935,6 +951,10 @@ class LandingGateLock:
         return self
 
     def __exit__(self, *exc) -> None:
+        if self._reentered:
+            _LANDING_GATE_HELD[str(self.path)][1] -= 1
+            return
+        _LANDING_GATE_HELD.pop(str(self.path), None)
         if self._fd is not None:
             try:
                 os.ftruncate(self._fd, 0)

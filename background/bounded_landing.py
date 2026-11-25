@@ -236,12 +236,15 @@ def hand_off(argv: list, *, cwd: str | None = None, env=None, launch=None, follo
 
 def _run_in_unit(argv: list) -> int:
     """What the unit runs: the landing, then, if it landed and a claim was named, the promotion."""
-    from tools import surgical_land
+    from tools import pre_commit_test_gate, surgical_land
 
-    rc = surgical_land.main(argv)
     work_id = os.environ.get(WORK_ID_ENV)
-    if rc == 0 and work_id:
-        rc = promote_until_landed(Path("."), work_id)
+    # ONE HOLD from the landing's base read to its push: a waiter that re-reads origin on
+    # acquiring the lock then sees this push, not the base before it (see `promote_until_landed`).
+    with pre_commit_test_gate.LandingGateLock("land and promote {}".format(work_id or "")):
+        rc = surgical_land.main(argv)
+        if rc == 0 and work_id:
+            rc = promote_until_landed(Path("."), work_id)
         signal = os.environ.get(LANDED_SIGNAL_ENV)
         if rc == 0 and signal:
             write_landed_signal(signal, Path("."))
@@ -264,11 +267,21 @@ def promote_until_landed(worktree: Path, work_id: str, *, attempts: int | None =
     when replay says it does not apply (a path both sides changed, a merge landing). Any other
     refusal, and a red gate above all, ends the job refused on the first sight of it.
     """
+    from tools import pre_commit_test_gate
     from tools import promote_worktree_landing as pwl
     from tools import surgical_land as sl
 
     say = say or (lambda line: print(line, flush=True))
     attempts = attempts or sl.DEFAULT_ATTEMPTS
+    # THE PUSH IS INSIDE THE LANDING-GATE LOCK (2026-11-25). The replay re-reads origin once it
+    # holds the lock; that only helps if a holder's landing has REACHED origin before it lets go.
+    # Released at its gate's end, c355db288 pushed seconds after the waiter had already read the
+    # base it was about to move.
+    with pre_commit_test_gate.LandingGateLock("promote {}".format(work_id)):
+        return _promote_holding_the_lock(worktree, work_id, attempts, say, pwl, sl)
+
+
+def _promote_holding_the_lock(worktree, work_id, attempts, say, pwl, sl) -> int:
     for attempt in range(1, attempts + 1):
         say(f"landed; promoting for {work_id} (attempt {attempt} of {attempts})")
         try:
@@ -291,7 +304,8 @@ def promote_until_landed(worktree: Path, work_id: str, *, attempts: int | None =
             break
         try:
             sha = sl.replay(worktree, moved_to)
-            say(f"replayed as {sha[:9]} on {moved_to[:9]}")
+            on = sl._git_text(worktree, "rev-parse", sha + "^")
+            say(f"replayed as {sha[:9]} on {on[:9]}")
         except sl.NothingToLand as exc:
             say(f"ON ORIGIN already, so nothing was lost: {exc}")
             return 0

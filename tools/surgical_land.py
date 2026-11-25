@@ -118,6 +118,7 @@ from __future__ import annotations
 
 import argparse
 import atexit
+import functools
 import os
 import re
 import shutil
@@ -1661,9 +1662,32 @@ def replay(root: Path, onto: str, hook_rel: str = HOOK_REL) -> str:
     5a354ebcb), which for a disjoint move is nothing. Refuses (NotReplayable) when HEAD is a
     merge, when `onto` does not contain HEAD's parent, or when both sides touched a path --
     an overlay there would overwrite the mover's bytes, and a merge is what settles that.
-    NothingToLand when `onto` already carries the landing's content."""
+    NothingToLand when `onto` already carries the landing's content.
+
+    `onto` IS RE-READ ONCE THE LOCK IS HELD: a holder that landed while this replay queued moved
+    `UPSTREAM_REF` past it, and building on the stale `onto` loses the promotion to that holder
+    the moment the gate ends -- see `_land_once`."""
+    with pre_commit_test_gate.LandingGateLock("replay onto {}".format(onto)):
+        return _replay_holding_the_lock(root, onto, hook_rel)
+
+
+def _upstream_past(root: Path, target: str) -> str:
+    """`UPSTREAM_REF` when it is a strict descendant of `target`, else `target` itself."""
+    r = _git(root, "rev-parse", "-q", "--verify", UPSTREAM_REF + "^{commit}")
+    upstream = r.stdout.decode().strip() if r.returncode == 0 else ""
+    if not upstream or upstream == target:
+        return target
+    if _git(root, "merge-base", "--is-ancestor", target, upstream).returncode != 0:
+        return target
+    print("[surgical-land] {} moved {} -> {} while this landing waited for the gate lock; "
+          "building on {} before the gate's clock starts.".format(
+              UPSTREAM_REF, target[:9], upstream[:9], upstream[:9]), flush=True)
+    return upstream
+
+
+def _replay_holding_the_lock(root: Path, onto: str, hook_rel: str) -> str:
     landed = _git_text(root, "rev-parse", "HEAD")
-    target = _git_text(root, "rev-parse", "{}^{{commit}}".format(onto))
+    target = _upstream_past(root, _git_text(root, "rev-parse", "{}^{{commit}}".format(onto)))
     parents = _git_text(root, "rev-list", "--parents", "-n", "1", landed).split()[1:]
     if len(parents) != 1:
         raise NotReplayable("HEAD {} has {} parents; only a single-parent landing replays as "
@@ -1847,6 +1871,26 @@ def announce_landing(sha: str, message: str, paths: list[str], *,
         return None
 
 
+def _holding_the_landing_gate_lock(fn):
+    """Run `fn(root, paths, message, ...)` holding `LandingGateLock`, labelled by `message`.
+
+    THE BASE IS READ UNDER THE LANDING-GATE LOCK, and held through the swap (2026-11-25,
+    direction `a-landing-re-gates-on-the-base-it-holds-the-lock-for`). It used to be read first
+    and the lock taken only round the hook, so a landing that queued gated a base the holder was
+    about to move, then lost the swap to it: land-se-seat-executor-1795590119 re-gated on
+    8d11dcab8, waited 1,185 s on c355db288's gate, lost to c355db288 and was registered DIED.
+    Held from the read to the ref move, the base a waiter reads is the one its holder left.
+    A decorator, not a wrapper function, so `_land_once`'s body stays one scope for the
+    substring-scan census's same-module taint walk."""
+    @functools.wraps(fn)
+    def held(root, paths, message, *args, **kwargs):
+        label = message.splitlines()[0][:120] if message else "surgical-land"
+        with pre_commit_test_gate.LandingGateLock(label):
+            return fn(root, paths, message, *args, **kwargs)
+    return held
+
+
+@_holding_the_landing_gate_lock
 def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
                content: Mapping[str, bytes | None] | None = None,
                merge: str | None = None,
@@ -1854,7 +1898,8 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
                drops: frozenset[str] = frozenset(),
                prior_green: str | None = None,
                onto: str | None = None, moved: list[str] | None = None) -> str:
-    """ONE attempt: read HEAD, build the resulting tree, gate it, compare-and-swap.
+    """ONE attempt: read HEAD, build the resulting tree, gate it, compare-and-swap. The base is
+    read with the landing-gate lock held -- see `_holding_the_landing_gate_lock`.
 
     `prior_green` is an earlier attempt's green commit -- see `land`. `onto` builds on that commit
     instead of HEAD and swaps HEAD to the result -- see `replay`."""
