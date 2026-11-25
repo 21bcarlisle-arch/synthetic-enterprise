@@ -630,6 +630,15 @@ its own default, so a dual household could hold a fix on one fuel and the defaul
   that count, because it carries neither the gas leg's answer nor its position. Prediction, filed
   before the first book is read: between 20 and 120 dual households answer apart before the fix,
   and the named residue is under a third of that.
+- *Graded (25 Nov, delivery seat) on `run_output_f2c6979d01_20261124T215935Z.json`, the first
+  book carrying the rows.* 312 riding answers across 183 households, 261 with a household answer.
+  Before the fix, re-derived with `renewal_outcome(event_type='retained', own position)`: 41 rows,
+  **34 households** apart. Inside 20 to 120: that half **passes**. The residue: 15 rows,
+  **13 households** (38% of 34; 37% of the rows). A third would be 11 households: that half
+  **fails**, by two. The fix brought 26 rows together (22 gas fixes taken on a pair at or under its
+  default, 4 gas declines following the household's). The 15 left apart are exactly the residue.
+  Closing them still needs the gas offer struck before the electricity answers (GAP: a joint
+  strike). Finding: `docs/staging/done/SEAT_FINDING_THE_DUAL_ANSWER_FIX_HALVES_THE_HOUSEHOLDS_APART_BUT_THE_NAMED_RESIDUE_IS_OVER_A_THIRD_2026-11-25.md`.
 
 **GAPs.**
 - Whether SLC 31A's cheapest tariff message survives today in the form the 2016 letter kept was not
