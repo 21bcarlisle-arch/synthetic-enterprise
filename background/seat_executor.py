@@ -985,7 +985,10 @@ DO NOT SPEND THIS TURN WAITING ON A JOB. If the next step needs a run, a book or
 will not finish in about ten minutes, land what you have, hand that step on with
 `--hand-off` and put `DO NOT DRAW BEFORE <absolute path> EXISTS` in its WHAT, naming the file the
 job will write. Then release your claim and end. The draw holds the handoff until the file is
-there, and this turn's slot goes to the next item.
+there, and this turn's slot goes to the next item. When the file is your OWN landing (the next piece
+waits on this one reaching origin), do not write it yourself: run `surgical_land` with
+`SE_LANDED_SIGNAL=<that absolute path>` set, and the landing's unit writes the landed sha there
+once it is on origin, even after this turn has ended.
 
 WRITE DOWN WHAT YOU FOUND. A finding in docs/staging/ with its severity header, and a
 pre-registration BEFORE any measurement whose answer you do not already know.

@@ -189,3 +189,48 @@ def test_a_stand_down_names_why_each_focus_item_was_not_drawn(tmp_path):
                                            stores=[(store, 6000.0)])
     assert "not-an-atom-two: CLAIMED in .claims.json 10 min ago by 'the gas lane'" in note
     assert "not-an-atom-one: skipped by" in note
+
+
+def _git_repo(path):
+    subprocess.run(["git", "init", "-q", str(path)], check=True)
+    (path / "f").write_text("x")
+    for args in (["add", "f"], ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "c"]):
+        subprocess.run(["git", *args], cwd=path, check=True)
+    return subprocess.run(["git", "rev-parse", "HEAD"], cwd=path, check=True, capture_output=True,
+                          text=True).stdout.strip()
+
+
+@pytest.mark.parametrize("promoted", [0, 2])
+def test_a_landing_unit_writes_its_own_landed_signal(tmp_path, monkeypatch, promoted):
+    """A landing that finishes in its unit after its turn has ended still releases what is held on
+    it: the turn's `SE_LANDED_SIGNAL` reaches the unit, and once the promotion returns 0 the unit
+    writes the landed sha there. A promotion that did not reach origin writes nothing.
+
+    Evidence: MSC increment A landed in its unit after its turn ended and nothing wrote the file B
+    was held on (docs/staging/SEAT_FINDING_A_LANDING_FINISHED_BY_ITS_OWN_UNIT_HANDS_NOTHING_ON_
+    2026-11-25.md).
+
+    MUTATION (must fire): drop the `write_landed_signal` call from `_run_in_unit` (the file is
+    absent at rc 0), drop its `rc == 0` guard (the file exists at rc 2), or drop the forward in
+    `unit_environment` (the unit is never given the path)."""
+    repo = tmp_path / "wt"
+    repo.mkdir()
+    sha = _git_repo(repo)
+    signal = tmp_path / "held" / "landed"
+
+    unit_env = bl.unit_environment(dict(TURN, **{bl.LANDED_SIGNAL_ENV: str(signal)}), str(repo),
+                                   "longjob-land-x")
+    assert unit_env[bl.LANDED_SIGNAL_ENV] == str(signal)
+    assert bl.LANDED_SIGNAL_ENV not in bl.unit_environment(TURN, str(repo), "longjob-land-x")
+
+    monkeypatch.chdir(repo)
+    monkeypatch.setenv(bl.WORK_ID_ENV, "some-claim")
+    monkeypatch.setenv(bl.LANDED_SIGNAL_ENV, unit_env[bl.LANDED_SIGNAL_ENV])
+    monkeypatch.setattr(surgical_land, "main", lambda argv: 0)
+    monkeypatch.setattr(bl, "promote_until_landed", lambda worktree, work_id: promoted)
+
+    assert bl._run_in_unit(["-m", "msg", "f"]) == promoted
+    if promoted == 0:
+        assert signal.read_text().strip() == sha
+    else:
+        assert not signal.exists()

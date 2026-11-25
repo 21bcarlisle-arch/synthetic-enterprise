@@ -21,7 +21,9 @@ is killed while following, the landing carries on. When the landing succeeds and
 the claim (`SE_WORK_ID`), the unit also promotes it, because a landed commit that never reaches
 origin is lost at the next turn's reset just as surely as a killed one. A promotion that loses the
 race to a moved origin is re-landed and promoted again inside the same unit (`promote_until_landed`),
-so one landing is one register row whose exit says whether its content reached origin.
+so one landing is one register row whose exit says whether its content reached origin. When the
+turn set `SE_LANDED_SIGNAL`, the unit then writes the landed sha to that file, so a continuation held
+on this landing is released even when the turn that armed it has already ended.
 
 IF THE HAND-OFF CANNOT BE MADE (no systemd, a refusal), the landing runs in place only when the turn
 has longer left than `LANDING_WINDOW_SECONDS`. Inside that window it is REFUSED BY NAME and the
@@ -40,6 +42,13 @@ from pathlib import Path
 TURN_ENV = "SE_SEAT_EXECUTOR"
 DEADLINE_ENV = "SE_TURN_DEADLINE"
 WORK_ID_ENV = "SE_WORK_ID"
+#: Set by a TURN that holds a continuation on its own landing (`DO NOT DRAW BEFORE <path> EXISTS`):
+#: an absolute path the landing unit writes the landed sha to once the content is on origin. WHY
+#: (2026-11-25): MSC increment A landed in its unit after its turn had ended, so nothing wrote the
+#: file B was held on and B waited until a human wrote it by hand
+#: (docs/staging/SEAT_FINDING_A_LANDING_FINISHED_BY_ITS_OWN_UNIT_HANDS_NOTHING_ON_2026-11-25.md).
+#: The unit is the only process alive when such a landing finishes, so the unit writes it.
+LANDED_SIGNAL_ENV = "SE_LANDED_SIGNAL"
 #: Set inside the landing unit, so the landing it runs does not hand off a second time.
 IN_UNIT_ENV = "SE_DETACHED_LANDING"
 
@@ -98,6 +107,41 @@ def save_salvage_ref(cwd: str, *, now: float | None = None, runner=subprocess.ru
         index.unlink(missing_ok=True)
 
 
+def unit_environment(env, cwd: str, unit: str) -> dict:
+    """What the landing unit is given of the turn's environment: its claim, and the file to write
+    when it lands. A relative signal path is resolved against the worktree, which is the unit's own
+    working directory too, so both name the same file."""
+    unit_env = {IN_UNIT_ENV: unit, "PYTHONPATH": cwd}
+    if env.get(WORK_ID_ENV):
+        unit_env[WORK_ID_ENV] = env[WORK_ID_ENV]
+    if env.get(LANDED_SIGNAL_ENV):
+        unit_env[LANDED_SIGNAL_ENV] = str(Path(cwd, env[LANDED_SIGNAL_ENV]))
+    return unit_env
+
+
+def write_landed_signal(path: str, worktree: Path, *, runner=subprocess.run) -> str | None:
+    """Write the worktree's HEAD sha (the commit the promotion put on origin) to `path`, whole or
+    not at all: a temporary file renamed into place, so a waiter never reads a half-written file.
+    Returns the sha, or None with the reason printed when it could not."""
+    try:
+        res = runner(["git", "rev-parse", "HEAD"], cwd=str(worktree), capture_output=True,
+                     text=True, timeout=60)
+        sha = (res.stdout or "").strip()
+        if res.returncode != 0 or not sha:
+            raise OSError(f"git rev-parse HEAD said rc={res.returncode}: {res.stderr!r}")
+        target = Path(path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        tmp = target.with_name(f".{target.name}.{os.getpid()}.tmp")
+        tmp.write_text(sha + "\n", encoding="utf-8")
+        os.replace(tmp, target)
+    except (OSError, subprocess.SubprocessError) as exc:
+        print(f"LANDED, but the signal file {path} could NOT be written ({exc}); whatever is held "
+              "on it waits until it is written by hand.", flush=True)
+        return None
+    print(f"landed signal written: {path} holds {sha[:9]}", flush=True)
+    return sha
+
+
 def _launch(argv: list, cwd: str, env, *, runner=subprocess.run) -> tuple[str, str]:
     """Start the landing in its own unit and record it. Returns `(unit, log)`; raises
     `launch_long_job.LaunchRefused` with the reason when it cannot."""
@@ -107,9 +151,7 @@ def _launch(argv: list, cwd: str, env, *, runner=subprocess.run) -> tuple[str, s
     job = f"land-{Path(cwd).name}-{int(time.time())}"
     unit = llj.unit_name(job)
     log = f"/var/tmp/{unit}.log"
-    unit_env = {IN_UNIT_ENV: unit, "PYTHONPATH": cwd}
-    if env.get(WORK_ID_ENV):
-        unit_env[WORK_ID_ENV] = env[WORK_ID_ENV]
+    unit_env = unit_environment(env, cwd, unit)
     # THE ARGV GOES BY FILE, NOT ON THE COMMAND LINE: systemd expands `${VAR}` in a unit's
     # ExecStart (measured on systemd 259), so a commit message would be rewritten in transit.
     argv_file = Path(f"/var/tmp/{unit}.argv.json")
@@ -200,6 +242,9 @@ def _run_in_unit(argv: list) -> int:
     work_id = os.environ.get(WORK_ID_ENV)
     if rc == 0 and work_id:
         rc = promote_until_landed(Path("."), work_id)
+        signal = os.environ.get(LANDED_SIGNAL_ENV)
+        if rc == 0 and signal:
+            write_landed_signal(signal, Path("."))
     return rc
 
 
