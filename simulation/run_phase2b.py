@@ -679,6 +679,49 @@ def register_legacy_premises_on_their_own_reads(customers, shape_fn_for, run_dat
         customer["eac_kwh"] = round(own, 1)
         yield cid, drawn, own, basis
 
+#: The gas twin of `_WORLD_BASE_EAC_KWH`: the drawn level the world settles a gas premise's demand on,
+#: set only where the registry AQ (the roster's `aq_kwh`) was replaced by the meter's own use.
+_WORLD_BASE_AQ_KWH: dict[str, float] = {}
+#: What each roster record's `aq_kwh` was rewritten from and to, so a second run in one process (the
+#: records are module-level) re-reads the drawn level rather than multiplying the own-reads AQ again.
+_AQ_REWRITTEN: dict[str, tuple[float, float]] = {}
+
+
+def _world_gas_aq(customer: dict) -> float:
+    """The level the WORLD settles this gas premise on, before the household's multiplier."""
+    return _WORLD_BASE_AQ_KWH.get(customer["customer_id"], customer["aq_kwh"])
+
+
+def register_gas_premises_on_their_own_reads(customers, gas_multiplier_for, run_start: str):
+    """Hand each domestic gas premise the AQ Xoserve would: its own meter's use, weather-normal.
+
+    docs/market_research/a_gas_meter_points_aq_is_made_from_its_own_reads.md. The world settles a
+    gas year on `aq_kwh x gas_multiplier_for(cid, date)`, and the HDD moves only the daily shape, so
+    the meter's weather-normal year is the drawn level times the multiplier's mean over the 365 days
+    before acquisition (the run's first year when acquisition falls inside it, as the electricity
+    rule's OWN_READS_FIRST_YEAR). Before this the registry AQ was the drawn level itself: a heat-pump
+    home metering ~1,150 kWh was handed 9,542.5 (PROS-2021-0100). The drawn level moves to
+    `_WORLD_BASE_AQ_KWH` first, so the demand does not move. Clears the map, then yields
+    `(cid, drawn, own)` per premise.
+    """
+    _WORLD_BASE_AQ_KWH.clear()
+    first_year_close = date.fromisoformat(run_start) + timedelta(days=365)
+    for customer in customers:
+        if customer.get("segment") != "resi" or not customer.get("aq_kwh"):
+            continue
+        cid = customer["customer_id"]
+        close = max(date.fromisoformat(customer["acquisition_date"]), first_year_close)
+        mean = sum(gas_multiplier_for(cid, (close - timedelta(days=i)).isoformat())
+                   for i in range(1, 366)) / 365
+        drawn = float(customer["aq_kwh"])
+        if cid in _AQ_REWRITTEN and _AQ_REWRITTEN[cid][1] == drawn:
+            drawn = _AQ_REWRITTEN[cid][0]
+        _WORLD_BASE_AQ_KWH[cid] = drawn
+        own = round(drawn * mean, 1)
+        customer["aq_kwh"] = own
+        _AQ_REWRITTEN[cid] = (drawn, own)
+        yield cid, drawn, own
+
 # Phase 4c-1 property records only cover resi electricity customers (C1-C4).
 # SME customers (C5, C6) get this default property for 4c-2's demand-shape
 # adjustment — no occupancy/asset seed data exists for them.
@@ -2339,6 +2382,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         print(f"  registry EAC {_leg_cid} [legacy]: drawn {_drawn_eac} -> own reads "
               f"{_own_eac:.0f} kWh ({_own_basis[:22]})")
 
+    # ...AND ON A GAS PREMISE (2026-11-25): the registry AQ is the meter's own weather-normal year,
+    # its demand level stays the drawn one (`_WORLD_BASE_AQ_KWH`).
+    if household_demand_register is not None:
+        for _gas_cid, _drawn_aq, _own_aq in register_gas_premises_on_their_own_reads(
+                GAS_CUSTOMERS, household_demand_register.gas_eac_multiplier_for_date, REPORT_START):
+            if abs(_own_aq - _drawn_aq) > 0.1 * _drawn_aq:
+                print(f"  registry AQ {_gas_cid}: drawn {_drawn_aq} -> own reads {_own_aq:.0f} kWh")
+
     # A HALF-HOURLY ACCOUNT IS HANDED AN EAC TOO (2026-10-19). The HH roster records carry
     # `eac_kwh: None`, so before its first actual read the bill fell back to the TDCV MEDIUM
     # band: C7 billed 3,100 kWh a year against 13,230 used, and was 67% of the open closing
@@ -3169,6 +3220,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # The occupier's record copies the premise's registry EAC; its demand keeps the premise's level.
         if premise in _WORLD_BASE_EAC_KWH:
             _WORLD_BASE_EAC_KWH[leg] = _WORLD_BASE_EAC_KWH[premise]
+        if premise in _WORLD_BASE_AQ_KWH:
+            _WORLD_BASE_AQ_KWH[leg] = _WORLD_BASE_AQ_KWH[premise]
         # Fabric eligibility is a verdict on the premise, so the incoming leg carries its premise's.
         fabric_eligibility_verdicts.extend(
             FabricEligibility(leg, _v.is_eligible, _v.reason)
@@ -3242,6 +3295,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _by_point[leg] = _by_point[premise]
         if premise in _WORLD_BASE_EAC_KWH:
             _WORLD_BASE_EAC_KWH[leg] = _WORLD_BASE_EAC_KWH[premise]
+        if premise in _WORLD_BASE_AQ_KWH:
+            _WORLD_BASE_AQ_KWH[leg] = _WORLD_BASE_AQ_KWH[premise]
         if "eac_kwh" in record:
             EFFECTIVE_EAC_KWH[leg] = EFFECTIVE_EAC_KWH.get(premise, record["eac_kwh"])
         fabric_eligibility_verdicts.extend(
@@ -5880,7 +5935,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # registered AQ times its EPC-band multiplier (Phase D) -- and drives the world's
             # demand. `hedge_aq_kwh` is what the COMPANY believes it uses, from its own reads and
             # the registered AQ (`_company_eac_estimate`), and is all the desk and the risk see.
-            aq_kwh = gas_customer["aq_kwh"]
+            aq_kwh = _world_gas_aq(gas_customer)
             if household_demand_register is not None:
                 _gas_mult = household_demand_register.gas_eac_multiplier_for_date(cid, term_start_str)
                 aq_kwh = max(1, round(aq_kwh * _gas_mult))
@@ -6203,7 +6258,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             months = len({r["settlement_date"][:7] for r in settled_this_term})
             naked_capital = counterfactual_risk["monthly_cost_of_capital_gbp"] * months
             gas_spot_lookup = {r["settlementDate"]: r["systemSellPrice"] for r in gas_records}
-            aq_kwh = get_customer(cid)["aq_kwh"]
+            aq_kwh = _world_gas_aq(get_customer(cid))
             daily_kwh = aq_kwh / 365.0
             naked_gross = sum(
                 r["revenue_gbp"]
