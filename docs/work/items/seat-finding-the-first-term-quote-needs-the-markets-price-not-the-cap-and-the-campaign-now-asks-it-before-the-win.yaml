@@ -23,14 +23,13 @@ closed_at: null
 chosen_by: null
 done_evidence: null
 parked:
-  reason: 'premise re-measured 2026-11-24 04:40Z: da44381d2 landed; owed step 1 (MSC
-    to the gainer) is queued as land8->land7 behind the s.12g book pid 65649 (~06:00Z);
-    owed step 2 (first-term strike off the company''s own hedge ladder, K8 section
-    on docs/market_research/cheapest_fix_against_the_default_tariff_gb_2016_2025.md)
-    overlaps a live concurrent seat (pid 2048462, started 03:46Z) editing that page
-    and SEAT_FINDING_A_WON_FIRST_TERM_IS_CONTRACTED_ON_A_STRIKE_IT_WAS_NOT_QUOTED_2026-11-24;
-    step 3 (delete ACQUISITION_HELD_AT_CAP_TARIFF_TYPES) waits on both. Redraw after
-    MSC lands.'
-  revisit: '2026-11-25'
+  reason: 're-measured 2026-11-25: step 2 landed (db2f502b23 six-month ladder strike,
+    03bd1213a2 cost-to-serve line); step 3''s pre-registration landed (ee7d60bbd5)
+    and quoted-strike contracting built off (5e6a8b70d2). Step 1, the MSC booked to
+    the gainer, is still not on origin: longjob-land11 unit is failed, and the live
+    seat claim land10-outcome-is-read-and-msc-lands-or-is-re-cut owns it. Deleting
+    ACQUISITION_HELD_AT_CAP_TARIFF_TYPES waits on that landing; redraw after the MSC
+    commit is an ancestor of origin/main.'
+  revisit: '2026-11-27'
 obsolete: null
 finding_lane: W2_customer_generator
