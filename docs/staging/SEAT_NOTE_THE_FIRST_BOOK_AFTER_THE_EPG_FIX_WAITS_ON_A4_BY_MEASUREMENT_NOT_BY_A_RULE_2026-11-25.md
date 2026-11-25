@@ -55,3 +55,25 @@ replacement rule gives 9,036 − 1,160 − 7,066 = 810 MB, which is below the 1,
 refuses. Between 07:21Z and 08:21Z the log alternated between `measured memory too tight` (7.5–7.9 GB
 available) and the long-job yield. Both describe the same full box. The yield stays in place.
 Nothing new is owed until A4 exits (expected by ~18:08Z).
+
+## Re-measured 10:57Z (re-draw): land11 is gone, A4 alone holds the book, the yield still stays
+
+- Every cycle from 09:31Z to 10:56Z logs the same reason: `cycle_admission`'s long-job yield, naming
+  only `longjob-a4-ep1-dated-rate-value-arm.service` (468 of its declared 900 minutes).
+  `longjob-land11-...` is `failed` and holds no memory. `queued_long_jobs()` returns `[]` and
+  `next_book_requires.yaml` has lapsed, so `book_admission` (the line-540 branch) has nothing to
+  refuse. origin/main (ff9933dacd) descends from b148896885.
+- A4's child, pid 2690439, holds 7,340 MB RSS (VmHWM 10,663 MB, 43 MB swapped). MemAvailable is
+  12,351 MB. Those are sample()'s figures plus /proc/2690439/status.
+- The replacement rule ("measured availability less growth still to come") gives two answers,
+  depending on what it counts as still to come:
+  - Counting growth from the high-water mark: 12,351 − (12,000 − 10,663) − 7,066 = 3,948 MB, which
+    is over the 1,024 floor.
+  - Counting growth from current RSS, which is the honest worst case since A4's RSS rose and fell
+    6.1 → 10.4 → 7.3 GB this morning: 12,351 − 4,660 − 7,066 = 625 MB, which is under the floor.
+  A rule that admits only because A4 is between peaks is the 19:07Z kill shape. Getting it wrong
+  kills a thesis run that has done 7.8 hours of work. Waiting costs about 7 hours of book latency.
+  **The yield stays in place.**
+- This re-draw changes nothing. The 05:25Z prediction stands: the first cycle after A4 exits
+  (expected by about 18:08Z) logs `Starting` or `admitted`, with no `DEFERRED` line. The item is
+  handed on with a time gate after that.
