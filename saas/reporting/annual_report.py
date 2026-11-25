@@ -355,6 +355,10 @@ PHASE2B_KEYS_NOT_PUBLISHED: dict[str, str] = {
     "total_bad_debt": "re-derived as the sum of the settled rows' bad_debt_gbp",
     "total_flexibility_revenue": "published as flexibility_revenue_summary's own total",
     "level_dd_collected_in_loop": "consumed by run_phase4c_on_phase2b's level-DD book",
+    "market_stabilisation_charge_events": ("consumed by run_phase4c_on_phase2b's close_the_books; "
+                                           "published as ledger_pnl's "
+                                           "market_stabilisation_charge_gbp, netted in "
+                                           "operating_net_margin_gbp"),
     # Read by an experiment tool from its own run.
     "value_arm_log": _OWN_RUN.format("tools/run_value_cycle_ab.py and run_price_ladder.py"),
     "value_arm_funnel_log": _OWN_RUN.format("tools/run_value_cycle_ab.py"),

@@ -64,6 +64,7 @@ from company.interfaces.growth_desk import (
     RETENTION_THRESHOLD,  # noqa: F401 -- re-exported; tools read the cut from this module
     book_acquisition_gate,
     book_acquisition_spend,
+    book_market_stabilisation_charge,
     book_retention_cost,
     book_retention_holdout,
     book_retention_offer,
@@ -283,6 +284,7 @@ from simulation.live_population import (
     population_seed_argument,
     run_base_seed,
 )
+from simulation.market_stabilisation_charge import charge_gbp as market_stabilisation_charge_gbp
 from simulation.move_destination import (
     draw_destination,
     household_at_destination,
@@ -504,6 +506,37 @@ def start_from_the_drawn_book() -> None:
     EFFECTIVE_EAC_KWH.clear()
     EFFECTIVE_EAC_KWH.update(_DRAWN_EFFECTIVE_EAC_KWH)
     ACQUIRED_CUSTOMERS.clear()
+
+
+def book_after_the_run() -> dict:
+    """A copy of the module-level book a finished `main` leaves behind: the roster as `main`
+    rewrote it, `EFFECTIVE_EAC_KWH`, the run's acquisitions and its incoming occupants.
+
+    Phase 4c reads these after `main` returns (`_get_all_customers`, the DD openings), and
+    `start_from_the_drawn_book` wipes them between tests. A caller that keeps a run's result to
+    hand to phase 4c later keeps this beside it and puts it back with `put_back_the_run_book`."""
+    import copy
+
+    return copy.deepcopy({
+        "roster": [dict(c) for c in _ALL_KNOWN_CUSTOMERS],
+        "effective_eac_kwh": dict(EFFECTIVE_EAC_KWH),
+        "acquired": list(ACQUIRED_CUSTOMERS),
+        "incoming_occupants": list(incoming_occupant_supply_points()),
+    })
+
+
+def put_back_the_run_book(book: dict) -> None:
+    """Restore what `book_after_the_run` copied, into the same live objects (identity kept)."""
+    import copy
+
+    book = copy.deepcopy(book)
+    for c, kept in zip(_ALL_KNOWN_CUSTOMERS, book["roster"], strict=True):
+        c.clear()
+        c.update(kept)
+    EFFECTIVE_EAC_KWH.clear()
+    EFFECTIVE_EAC_KWH.update(book["effective_eac_kwh"])
+    ACQUIRED_CUSTOMERS[:] = book["acquired"]
+    incoming_occupant_supply_points()[:] = book["incoming_occupants"]
 
 # Treasury sized on original customers only — successors don't exist yet at t=0.
 TOTAL_ELEC_EAC = sum(
@@ -3504,6 +3537,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # PB3 exit (c), 2026-08-25: SEEDED with the growth campaign's own quotes, which until now
     # were paid for and never booked. See `campaign_acquisition_spend_events`.
     acquisition_spend_events: list[dict] = campaign_acquisition_spend_events(effective_end)
+    # SLC 24A, levied on the gainer per fuel of each domestic win; apart from the spend above so a
+    # count of acquisition attempts never counts a levy.
+    market_stabilisation_charge_events: list[dict] = []
     fixed_cost_events: list[dict] = []
     _acquisition_counter: dict[str, int] = {}  # base_id -> next fresh-acquisition suffix
 
@@ -3765,12 +3801,17 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 del _erroneous_return_on[cid]
                 _why_kept = (
                     "the household had already left" if billing_account in churned_billing_accounts
+                    else "the return is due on a leg the household does not leave on (its "
+                         "departure is rolled on its decision leg); a riding-leg return is not built"
+                    if commodity != _decision_leg
                     else "the return falls after the term it should cut began" if _cut is None
                     else "the return falls outside the opening fixed term, where a renewal "
                          "decision could also end supply; not built"
                     if (term_indices[cid] != 0 or _spliced
                         or term.get("tariff_type", "fixed") == SVT_TARIFF_TYPE) else None)
-                if _why_kept is None:
+                # Gated on the decision leg as well as the reason, so this booking is one of the
+                # departure sites `test_a_departure_rolls_on_exactly_one_named_leg` can read.
+                if _why_kept is None and commodity == _decision_leg:
                     term_end_str = _cut.isoformat()
                     churned_billing_accounts.add(billing_account)
                     _notify_registration_loss(billing_account, term_end_str,
@@ -5429,6 +5470,17 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             new_customer = make_acquired_customer(new_cid, customer_data, term_start_str)
                             ACQUIRED_CUSTOMERS.append(new_customer)
                             _supply_won_switch(new_customer, customer_data)
+                            # THE MSC ON THIS WIN (SLC 24A, domestic only). The volume is the meter
+                            # point's annual consumption -- EAC/AQ are meter attributes and survive the
+                            # switch -- read as this leg's last billed year, `company_eac`.
+                            if segment == "resi" and company_eac:
+                                _msc = market_stabilisation_charge_gbp(
+                                    date.fromisoformat(term_start_str), commodity, company_eac)
+                                if _msc["amount_gbp"] > 0:
+                                    market_stabilisation_charge_events.append(
+                                        book_market_stabilisation_charge(
+                                            billing_account=new_cid, event_date=term_start_str,
+                                            fuel=commodity, amount=_msc["amount_gbp"]))
                             fresh_acquisitions.append({
                                 "customer_id": new_cid,
                                 "event_date": term_start_str,
@@ -6902,6 +6954,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "starting_treasury": STARTING_TREASURY_GBP,
         # Phase 8a: growth mandate outputs
         "acquisition_spend_events": acquisition_spend_events,
+        "market_stabilisation_charge_events": market_stabilisation_charge_events,
         "acquisition_funnel_log": acquisition_funnel_log,
         # Regs 6ZA/6ZB: the world's registration facts per won switch, and the company's answer --
         # every standard payment it owes on them, each an account credit. Not posted: a won switch

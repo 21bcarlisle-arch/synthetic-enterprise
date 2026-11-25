@@ -186,7 +186,7 @@ def test_build_monthly_bills_clarity_score_not_none():
 
 
 @pytest.fixture(scope="module")
-def main_result():
+def main_result(phase2b_2016_2018_run):
     """ONE full run for the whole module. Each of the three wiring tests below used to call
     main() itself, so the file paid for three complete decade simulations to read three keys of
     one result -- and every commit touching run_phase4c_on_phase2b.py selects this file whole.
@@ -195,8 +195,12 @@ def main_result():
     The window ends 2018-12-31, not at the full record: the decade run took ~1,400 s of every landing
     that selected this file, and three years carry every row these tests read (measured 2026-09-29:
     3,061 read-log rows, 434 contacts, 6 credit refunds, 25 SLC 21B final-read overrides, 326 s).
-    The non-empty legs below are what make a window too short to hold them go red."""
-    return main(report_end="2018-12-31")
+    The non-empty legs below are what make a window too short to hold them go red.
+
+    It reads the session's shared 2016-2018 phase 2b run rather than making its own (1,097 s of
+    the MSC landing's 4,604 s gate, 23 Nov); the equivalence is held by
+    test_phase4c_on_a_kept_run_equals_phase4c_on_its_own_run."""
+    return main(report_end="2018-12-31", phase2b_run=phase2b_2016_2018_run)
 
 
 def test_main_produces_meter_read_log_matching_bills(main_result):
@@ -391,6 +395,59 @@ def test_main_produces_credit_refund_log(main_result):
         assert entry["working_days_to_pay"] is not None
         assert isinstance(entry["breached_reg_6d_deadline"], bool)
         assert (entry["reg_6d_payment_owed"] > 0) is entry["breached_reg_6d_deadline"]
+
+
+def test_phase4c_leaves_the_shared_run_as_it_found_it(main_result, phase2b_2016_2018_run):
+    """main writes into its phase 2b result; on a kept run that must land on a copy, or every
+    later reader of the session's shared run reads phase 4c's writes. The first leg shows the
+    write happened (on the copy), so the second cannot pass because nothing was written."""
+    assert "switching_gsop_credits_refused" in main_result["phase2b"]
+    assert "switching_gsop_credits_refused" not in phase2b_2016_2018_run[0]
+    assert "arrears_lines_by_customer" not in phase2b_2016_2018_run[0]
+
+
+def test_a_kept_run_book_puts_back_what_phase4c_reads():
+    """Phase 4c reads module-level book state a run leaves behind (`_get_all_customers`, the
+    roster's rewritten EACs). Between the shared run and phase 4c, every test's teardown puts the
+    drawn book back, so the kept book must restore all of it. Keyed to phase 4c's own reader,
+    not to a list of today's fields.
+
+    The whole-run equivalence (phase 4c on the kept 2016-2018 run equals phase 4c's own run of
+    the window) is not run here: it costs two whole runs, and the box's admission queued the
+    one-off measurement of it behind the s.12g book on 23 Nov, so it is owed, not shown."""
+    from simulation import run_phase2b as p2b
+    from simulation.run_phase4c_on_phase2b import _get_all_customers
+
+    p2b.start_from_the_drawn_book()
+    roster_entry = p2b.CUSTOMERS[0]
+    roster_entry["eac_kwh"] = 12_345.0
+    p2b.EFFECTIVE_EAC_KWH[roster_entry["customer_id"]] = 12_345.0
+    p2b.ACQUIRED_CUSTOMERS.append({"customer_id": "ACQ-KEPT-TEST", "commodity": "electricity"})
+    occupants = p2b.incoming_occupant_supply_points()
+    occupants_before = list(occupants)
+    occupants.append({"customer_id": "OCC-KEPT-TEST", "commodity": "electricity"})
+    try:
+        read_after_the_run = [dict(c) for c in _get_all_customers()]
+        eacs_after_the_run = dict(p2b.EFFECTIVE_EAC_KWH)
+        kept = p2b.book_after_the_run()
+        p2b.ACQUIRED_CUSTOMERS[-1]["commodity"] = "edited after keeping"
+
+        p2b.start_from_the_drawn_book()
+        occupants.clear()
+        assert [dict(c) for c in _get_all_customers()] != read_after_the_run, "nothing to restore"
+
+        p2b.put_back_the_run_book(kept)
+        assert [dict(c) for c in _get_all_customers()] == read_after_the_run
+        assert dict(p2b.EFFECTIVE_EAC_KWH) == eacs_after_the_run
+        # The live objects, not rebinds: phase 4c bound them at import.
+        assert p2b.ACQUIRED_CUSTOMERS is p2b.acquired_supply_points()
+        # Restoring hands over a copy, so the kept book survives a run that edits its records.
+        p2b.ACQUIRED_CUSTOMERS[-1]["customer_id"] = "EDITED-BY-THE-READER"
+        p2b.put_back_the_run_book(kept)
+        assert any(c["customer_id"] == "ACQ-KEPT-TEST" for c in p2b.ACQUIRED_CUSTOMERS)
+    finally:
+        occupants[:] = occupants_before
+        p2b.start_from_the_drawn_book()
 
 
 # -- bill_shock_yoy_pct / bill_shock_likely_seasonal (docs/design/

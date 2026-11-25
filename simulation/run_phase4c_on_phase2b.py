@@ -543,8 +543,21 @@ def _serialize_dd_collection_book(book) -> dict:
     }
 
 
-def main(report_end: str | None = None, policy=None, instructed_read_arm: str = "register"):
-    phase2b_result = run_phase2b(report_end=report_end, policy=policy)
+def main(report_end: str | None = None, policy=None, instructed_read_arm: str = "register",
+         phase2b_run: tuple[dict, dict] | None = None):
+    """`phase2b_run`, when given, is a phase 2b run already made over the same window and policy:
+    its result and `run_phase2b.book_after_the_run()` taken as it returned. Phase 4c then reads
+    that run instead of making its own. The result is copied, because this function writes into
+    it (`switching_gsop_credits_refused`, `arrears_lines_by_customer`, the settlement scalars)."""
+    if phase2b_run is None:
+        phase2b_result = run_phase2b(report_end=report_end, policy=policy)
+    else:
+        import copy
+
+        from simulation.run_phase2b import put_back_the_run_book
+        kept_result, kept_book = phase2b_run
+        put_back_the_run_book(kept_book)
+        phase2b_result = copy.deepcopy(kept_result)
     all_records = phase2b_result["all_records"]
 
     # D3 step 2 (Expert-Hour finding, 2026-07-12): computed here (moved
@@ -952,6 +965,8 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
         all_records,
         bills,
         acquisition_spend_events=phase2b_result.get("acquisition_spend_events", []),
+        market_stabilisation_charge_events=phase2b_result.get(
+            "market_stabilisation_charge_events", []),
         fixed_cost_events=phase2b_result.get("fixed_cost_events", []),
         cost_to_serve_ledger_events=cost_to_serve_ledger_events,
         # R2 (2026-08-28): business acquisition's cost is a broker trail per kWh billed, not

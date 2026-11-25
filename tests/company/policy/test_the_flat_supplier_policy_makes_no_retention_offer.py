@@ -90,26 +90,32 @@ def test_every_household_gets_one_framing_and_the_tone_current_gives_it():
         tone_for(CURRENT_POLICY, c, "2018-01-31") for c in ids}
 
 
+def _arm(run) -> dict:
+    reasons = [e.get("no_offer_reason") for e in run["no_offer_churn_log"]]
+    return {
+        "offers": (len(run["retention_log"]), len(run["retention_cost_events"])),
+        "past_the_cut": sum(r not in STOPPED_BEFORE_THE_CUT for r in reasons),
+        "no_room": reasons.count("the_fix_has_no_room_above_its_cost_floor"),
+    }
+
+
 @pytest.fixture(scope="module")
-def offers_by_arm():
+def offers_by_arm(phase2b_2016_2018):
+    """The current arm is the shared 2016-2018 run (tests/conftest.py), which `main` runs under
+    CURRENT_POLICY by default; its own 2016-2017 run cost a whole run in every gate that also
+    selects test_run_phase2b.py. Its leg only asks that current CAN reach the cut, so a wider
+    window answers it. The flat arm keeps its own run: it is the arm under test."""
     from simulation.run_phase2b import main as run_phase2b
-    out = {}
-    for policy in (CURRENT_POLICY, FLAT_SUPPLIER_POLICY):
-        with policy_scope(policy):
-            run = run_phase2b(report_end=WINDOW_END, policy=policy)
-        reasons = [e.get("no_offer_reason") for e in run["no_offer_churn_log"]]
-        out[policy.name] = {
-            "offers": (len(run["retention_log"]), len(run["retention_cost_events"])),
-            "past_the_cut": sum(r not in STOPPED_BEFORE_THE_CUT for r in reasons),
-            "no_room": reasons.count("the_fix_has_no_room_above_its_cost_floor"),
-        }
-    return out
+    with policy_scope(FLAT_SUPPLIER_POLICY):
+        flat = run_phase2b(report_end=WINDOW_END, policy=FLAT_SUPPLIER_POLICY)
+    return {CURRENT_POLICY.name: _arm(phase2b_2016_2018), FLAT_SUPPLIER_POLICY.name: _arm(flat)}
 
 
 def test_a_run_under_the_flat_supplier_makes_no_retention_offer(offers_by_arm):
     """DEFECT: the flat arm's fields are right and the run still offers, or still sizes a cut,
-    through a route the fields do not reach. Current gives renewals a cut in the same window, and
-    flat stops some at the cut, so the zero is the policy's and both branches were taken."""
+    through a route the fields do not reach. Current gives renewals a cut in a window holding the
+    flat one (2016-2018 against 2016-2017), and flat stops some at the cut, so the zero is the
+    policy's and both branches were taken."""
     current, flat = offers_by_arm["current"], offers_by_arm["flat_supplier"]
     assert current["offers"][0] + current["past_the_cut"] > 0, offers_by_arm
     assert flat["no_room"] > 0, offers_by_arm

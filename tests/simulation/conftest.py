@@ -149,25 +149,3 @@ def serves_industrial_accounts():
         else:
             os.environ["SE_SERVED_SEGMENTS"] = prior
         reload_with_binders(module)
-
-
-@pytest.fixture(scope="session")
-def phase2b_2016_2018(tmp_path_factory):
-    """One 2016-2018 run of `run_phase2b.main`, shared by every file that reads its logs.
-
-    Session-scoped because the gate runs its selection in one serial process: two files that each
-    ran their own window cost two whole runs (test_run_phase2b_event_log.py's 2016-2017 run was 534 s
-    of a 55-minute gate, SEAT_FINDING_THE_COMMIT_GATE_LOSES_ITS_HOUR_2026-11-22.md). 2016-2018
-    because the world's earliest retention offer lands on 2018-02-09: a 2016-2017 window holds none,
-    so every test that loops over the retention log passes on nothing there.
-
-    `gap_ledger_path` is load-bearing: the run publishes its coupled payment gap at the end, and
-    `live_ledger_guard` refuses a test process writing to the live ledger. Tests read this dict and
-    must never mutate it.
-    """
-    from simulation.run_phase2b import main
-
-    return main(
-        report_end="2018-12-31",
-        gap_ledger_path=tmp_path_factory.mktemp("gap") / "coupled_gap_ledger.json",
-    )

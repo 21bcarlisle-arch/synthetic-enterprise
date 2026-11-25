@@ -370,6 +370,42 @@ def _phase2b_book_is_put_back():
         p2b.start_from_the_drawn_book()
 
 
+@pytest.fixture(scope="session")
+def phase2b_2016_2018_run(tmp_path_factory):
+    """One 2016-2018 run of `run_phase2b.main`, shared by every file that reads its logs.
+
+    In the root conftest, not tests/simulation's, so a file outside that directory can read it:
+    the flat-supplier test's current arm did its own 2016-2017 run, ~830 s, in the same gate.
+
+    Session-scoped because the gate runs its selection in one serial process: two files that each
+    ran their own window cost two whole runs (test_run_phase2b_event_log.py's 2016-2017 run was 534 s
+    of a 55-minute gate, SEAT_FINDING_THE_COMMIT_GATE_LOSES_ITS_HOUR_2026-11-22.md). 2016-2018
+    because the world's earliest retention offer lands on 2018-02-09: a 2016-2017 window holds none,
+    so every test that loops over the retention log passes on nothing there.
+
+    `gap_ledger_path` is load-bearing: the run publishes its coupled payment gap at the end, and
+    `live_ledger_guard` refuses a test process writing to the live ledger. Tests read this dict and
+    must never mutate it.
+
+    Returned with `run_phase2b.book_after_the_run()` beside it, taken before any teardown puts
+    the drawn book back, so phase 4c can read this run instead of repeating it (its own run was
+    1,097 s of the MSC landing's 4,604 s gate, 23 Nov). Most tests want `phase2b_2016_2018`.
+    """
+    from simulation.run_phase2b import book_after_the_run, main
+
+    result = main(
+        report_end="2018-12-31",
+        gap_ledger_path=tmp_path_factory.mktemp("gap") / "coupled_gap_ledger.json",
+    )
+    return result, book_after_the_run()
+
+
+@pytest.fixture(scope="session")
+def phase2b_2016_2018(phase2b_2016_2018_run):
+    """The shared 2016-2018 run's result dict (see `phase2b_2016_2018_run`)."""
+    return phase2b_2016_2018_run[0]
+
+
 # Cumulative tests EXECUTED metric (2026-07-10, director page comment:
 # "Don't we want cumulative tests run, not the growth in the standard test
 # set"). Forward-only instrumentation -- see tools/test_execution_metric.py
