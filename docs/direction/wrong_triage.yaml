@@ -227,7 +227,9 @@ items:
     times_listed: 11
     fate: fix
     owner: "docs/staging/SEAT_FINDING_THE_DRAWS_REFUSALS_AND_ITS_DRAWS_OF_PARKED_ATOMS_REACH_ONLY_THE_SUPERVISOR_JOURNAL_2026-10-07.md"
-    status: open
+    status: already_fixed
+    fixed_by: "the commit adding tests/background/test_a_probe_is_not_a_draw.py"
+    reason: "Parked atoms are idle and the DISCOVER/FRAME lane draws them by ruling; the climbing counter was the rest-legitimacy probes (_is_drained_and_gated, authorized_set_enumeration) writing a draw on every call with nothing dispatched. Measured 2026-11-25: one enumeration bumped three atoms. _probe_only now makes the tracker read-only inside both probes."
   - id: a-coupled-triad-refusal-reaches-only-the-supervisor-log
     problem: "The coupled-triad gate excludes an atom from every BUILD draw and says so only in the supervisor journal."
     match: ["coupled-triad gate now excludes", "supervisor journal"]

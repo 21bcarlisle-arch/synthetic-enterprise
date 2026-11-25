@@ -134,3 +134,39 @@ turns over. Nothing is backfilled. A record with no stamp to move is not rewritt
 `test_a_focus_row_is_dated_when_written_and_keeps_its_date_while_unchanged` covers new, kept,
 reworded and undated rows in one stamp, plus the age leg's release and refusal. It reds under
 no-carry, carry-always, and dropping the `why` comparison.
+
+## Outcome, defects 2 and 3 (worker, 2026-11-25)
+
+**Defect 2** was already closed: `wrong_triage.yaml` carries `a-coupled-triad-refusal-reaches-only-the-supervisor-log`
+as `already_fixed` by the commit adding
+`tests/background/test_the_brief_names_each_stalled_atoms_draw_hold_reason.py` (the brief prints
+each stalled atom's draw-hold reason and names the atoms held by `coupled_triad_l3_wall`).
+
+**Defect 3: what one of these "draws" costs is a counter bump, not a tick.** Measured on a copy of
+the live tracker: one `authorized_set_enumeration()` bumped three atoms' `consecutive_unchanged`
+(SITE6 10458 -> 10459, SITE8 3492 -> 3493, EP1 1267 -> 1268), and one `_is_drained_and_gated()`
+bumped one (EP1 1266 -> 1267). Nothing was dispatched behind either. Both are rest-legitimacy
+probes that call the real draws with `exclude_stalled=True`, and the draw writes the tracker. They
+run every cycle, so the counts in the thousands (EP20, SITE6, SITE11, H43, C30 all at ~10,459 that
+morning) counted probes. At `ATOM_STALL_THRESHOLD = 2`, a probe alone could flag an atom stalled
+before anyone had worked it.
+
+**Why a parked atom is drawn at all is not a defect.** Parked atoms are `loop_stage: idle`, and the
+idle DISCOVER/FRAME lane draws them on purpose (EPOCH_GATING_AND_ATOM_AUTHORSHIP: parked means
+parked for BUILD only). H45, the finding's example, was last drawn 2026-10-15.
+
+**The repair** (`background/supervisor.py`): `_probe_only` sets a context flag around both probes.
+Under it, `_record_atom_draw_and_check_stall` returns the tracker's current `(stalled, count)` and
+writes nothing. The probes still read the tracker, so their verdicts are the draw's own. On the live
+copy the verdicts came out the same before and after, and the tracker stayed byte-identical.
+
+**Control** (`tests/background/test_a_probe_is_not_a_draw.py`): one map, with a real draw that
+counts, a probe that sees the work and does not count, and a real draw that counts again. Plus a
+probe-only call of each production probe. Four mutations, each red: decorator dropped from
+`_is_drained_and_gated`, dropped from `authorized_set_enumeration`, guard forced on (silences every
+draw), guard forced off.
+
+**What this does not reach.** The live counters are not reset. They fall back to 1 on each atom's
+next progressed fingerprint, and until then the brief reads them as floors. A real refill draw
+whose grant is then dropped (`_drop_lane_blocked`, the fan-out cap) still counts as drawn. Whether
+that is material has not been measured.

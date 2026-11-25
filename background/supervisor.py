@@ -235,6 +235,33 @@ STUCK_SINCE_FIELDS = ("first_seen_at",)   # PW4 -- the episode start guard_episo
 ATOM_STALL_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".atom_stall_tracker.json"
 ATOM_STALL_THRESHOLD = 2  # consecutive same-fingerprint draws before deprioritising
 
+# A PROBE IS NOT A DRAW (2026-11-25, seat finding "the draw's refusals, and its draws of parked
+# atoms, reach only the supervisor journal", defect 3). The rest-legitimacy checks
+# (`_is_drained_and_gated`, `authorized_set_enumeration`) ask the real draws "is there work?" with
+# `exclude_stalled=True`, and every one of those calls wrote a draw into the stall tracker with no
+# work dispatched behind it. Measured on a copy of the live tracker that day: one enumeration
+# bumped three atoms (SITE6 10458 -> 10459), one drained-and-gated check bumped one. So the
+# thousands-high counters the finding reported counted probes, not ticks, and at a threshold of 2
+# a probe alone could flag an atom stalled before anyone had worked it. Inside `_probe_only` the
+# draws still read the tracker (so the emptiness verdict is the draw's own); they never write it.
+import contextvars as _contextvars  # noqa: E402
+import functools as _functools  # noqa: E402
+
+_PROBING_ONLY: _contextvars.ContextVar[bool] = _contextvars.ContextVar("_PROBING_ONLY", default=False)
+
+
+def _probe_only(fn):
+    """Run `fn` with the stall tracker read-only: an emptiness question, never a recorded draw."""
+    @_functools.wraps(fn)
+    def _wrapped(*args, **kwargs):
+        token = _PROBING_ONLY.set(True)
+        try:
+            return fn(*args, **kwargs)
+        finally:
+            _PROBING_ONLY.reset(token)
+    return _wrapped
+
+
 # ANTI_LIVELOCK_AND_WIDTH.md item 2 ("use the width you built"):
 # _maturity_map_draw_concurrent() already grants multiple disjoint BUILD
 # atoms per cycle (MULTI_ATOM_DRAW.md); the idle-tier DISCOVER/FRAME draw
@@ -3727,6 +3754,7 @@ def forward_discovery_law_status_line(register_path: Path | None = None) -> str:
     )
 
 
+@_probe_only
 def authorized_set_enumeration() -> dict:
     """The WHOLE authorized set enumerated PER LEVEL with its drawable/empty verdict (director ruling
     2026-07-23, R17 class fix §2: 'Rest-legitimacy must enumerate the WHOLE authorized set -- core,
@@ -6553,6 +6581,7 @@ def _self_refill_draw_unshadowed() -> str | None:
     return delivery or ladder
 
 
+@_probe_only
 def _is_drained_and_gated() -> bool:
     """DRAINED-AND-GATED predicate (ADVISOR_STEER_IDLE_TREADMILL_AND_GHOST_WORKTREE_2026-07-18,
     item 1). True iff there is NO below-target buildable work anywhere -- the BUILD, SITE and
@@ -7165,6 +7194,8 @@ def _record_atom_draw_and_check_stall(atom_id: str, fingerprint: str,
     state, prior = _load_atom_stall_state_classified()
     entry = state.get(atom_id, {})
     entry = entry if isinstance(entry, dict) else {}   # a per-atom row can be unreadable on its own
+    if _PROBING_ONLY.get():   # a rest-legitimacy probe asked; nothing was drawn -- see _probe_only
+        return bool(entry.get("stalled")), int(entry.get("consecutive_unchanged") or 0)
     # PW4: the episode closes on PROGRESS, not on any fingerprint difference (see
     # _atom_fingerprint_progressed).
     # ...AND AN UNREADABLE PRIOR IS NOT PROGRESS (2026-09-04, the absent-vs-unreadable sweep).
