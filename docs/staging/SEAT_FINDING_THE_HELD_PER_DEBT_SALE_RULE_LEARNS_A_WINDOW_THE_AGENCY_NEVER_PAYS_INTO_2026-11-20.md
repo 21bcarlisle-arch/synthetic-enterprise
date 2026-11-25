@@ -313,3 +313,48 @@ I1 to I5 stay ungraded. Grading belongs to the live continuation
 `grade-knife3-i1-to-i5-on-the-first-book-carrying-1624411d2`, held until 09:00 on 2026-11-21. That
 continuation already supersedes `knife3-the-run-publishes-its-write-off-refs-remittances-and-learned-cells`.
 This draw duplicated it, so it is dropped here rather than worked twice.
+
+## I1 to I5, graded on book f2c6979d01 (2026-11-25; the predictions above are unrevised)
+
+Book: `docs/reports/run_output_f2c6979d01_20261124T215935Z.json`. Its `producing_commit` is f2c6979d01, which
+descends from 1624411d2 (checked with `git merge-base --is-ancestor`). It is the first published book that
+does. 6a588a832f was the only earlier candidate, and it predates the publish build. Everything below reads
+`run_output["company_debt_recovery"]`, `as_of` 2025-06-07.
+
+- **I1 (>= 95% of the GBP written off carries an `invoice_ref`): HELD.** All 455 write-offs carry a ref:
+  GBP 11,248.82 of GBP 11,248.82, a share of 1.0. There are 95 accounts, and every write-off has the reason
+  `uneconomic_to_pursue`.
+- **I2 (one learned lag in [200, 240], centre 210): HELD.** `remittance_lag_days` = 210. All 440 remittances
+  land exactly 210 days after their write-off. Read what this shows: the world's cascade has one fixed
+  terminal date, so the learner recovering 210 proves the plumbing works. It does not prove the learner can
+  estimate a lag that varies.
+- **I3 (aged in [0.04, 0.09], young in [0.10, 0.15], aged < young): HELD.** The aged cell reads 0.0647
+  (GBP 66.45 recovered of GBP 1,047.32 over 41 debts; the raw ratio is 0.0634). The young cell reads 0.122
+  (GBP 1,191.48 of GBP 9,765.97 over 400 debts; the raw ratio is 0.1220). Aged is below young. Caveat: the
+  young cell's value is the same as the 0.122 prior, so its value alone cannot show it was learned. What
+  shows the learner is working is the aged cell moving off the prior, with 441 debts resolved. The young
+  cell's raw ratio also equals the prior, because the world's young rate is that same register value.
+- **I4 (at 0.054 nothing sold; at 0.070 and 0.093 every aged debt sold, every young one worked): HELD.**
+  Of 455 decisions, 42 are aged and carry 0.0647, and 413 are young and carry 0.122. At 0.054, 0 are sold.
+  At 0.070 and at 0.093, all 42 aged debts are sold and none of the 413 young ones are. There are 42 aged
+  decisions but only 41 aged learned debts. The 14 debts written off in the last 210 days (GBP 435.53) have
+  had no remittance yet, so the learner leaves them out. They still get a decision.
+- **I5 (< 5% of remitted GBP lost to a ref the company did not write off): HELD, and cannot fail as built.**
+  GBP 1,257.93 was remitted and GBP 1,257.93 of it landed on a ref the company wrote off, so 0% was lost.
+  But `LivePaymentTriad._agency_remits` (`background/live_payment_triad.py`) places only the company's own
+  `WRITE_OFF_CREDIT` events, and quotes their own ref. The risk this line named was the world remitting on
+  an invoice it left unpaid that differs from the one the company wrote off. Increment 2 designed that risk
+  out before it could happen. So this measures an equivalence, not a test that survived. The question I5
+  stood for has moved: does the company's oldest-first allocation pick the same invoice the world's record
+  calls unpaid? `_agency_remits` reads the age from `_bill_due_by_ref` of the company's chosen ref. So if
+  the two disagree, the world works the company's choice instead of its own, and no published field shows
+  that.
+
+**Tally: 5 held, 0 missed**, plus I6 held on 6a588a832f. That makes all six in-run predictions held. The
+in-run per-debt learner does learn the world's age gradient (0.065 aged against 0.122 young), and the held
+sale rule acts on it as predicted: it sells aged debts at 0.070 and above and works young ones. Two of the
+five held lines (I2, I5) confirm plumbing more than learning, as set out above. The open question about
+invoice identity is left as a named residue, not a grade. It matters only if the allocation and the
+world's unpaid invoice can diverge. Nothing in this book can show whether they do.
+
+S1 and B8's flip were gated on this verdict. The verdict is in: held.
