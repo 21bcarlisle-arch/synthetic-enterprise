@@ -281,14 +281,6 @@ def max_supported_rate_increase_pct() -> float:
     return max(steps)
 
 
-#: Payment-behaviour scores that mean this household is in difficulty. Taken from the company's
-#: OWN ledger, which is where a real supplier sees it.
-DISTRESS_SCORES = (BehaviourScore.POOR, BehaviourScore.CRITICAL)
-
-#: Bill shocks that count as distress on their own, for an account with no behaviour score yet.
-#: Two rather than one: a single shock is a cold winter.
-DISTRESS_BILL_SHOCKS = 2
-
 #: A customer with no usable lifetime estimate is priced at ONE period rather than at the book's
 #: average. Borrowing the average would let a brand-new account inherit a long lifetime it has
 #: given no evidence for, which is the direction that flatters the value arm — it would justify
@@ -1619,6 +1611,13 @@ def renewal_margin_uplift(
             # the churn hazard (Ofgem CIM w6 Table 56); the unpaid BILLS move the bad-debt cost
             # (`receivable_provision_rates`); the credit-risk segment moves the provision on the
             # bill to come. All four are the company's own records, read at `term_start`.
+            #
+            # NOT THE PAYMENT-BEHAVIOUR SCORE, ON PURPOSE (2026-11-25). It enters the churn term as
+            # a floor that does not move with price, so the arm prices UP across it: a CRITICAL
+            # payer would be offered up to GBP 30/MWh more margin than a clean one: cost loaded onto a
+            # household in difficulty by an unsourced +0.20. The state above already carries the
+            # sourced effect. Measured and reasoned in
+            # docs/market_research/what_the_payment_score_counts_beside_the_arrears_state_2026-11-25.md.
             arrears_state=arrears_state,
             credit_risk=credit_risk,
             unpaid_bills_by_age=unpaid_bills_by_age,
