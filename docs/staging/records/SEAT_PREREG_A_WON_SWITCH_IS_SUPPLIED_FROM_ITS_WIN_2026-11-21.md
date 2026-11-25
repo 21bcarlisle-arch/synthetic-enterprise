@@ -73,3 +73,46 @@ The published book is still the 20 Nov run (producing commit 6a588a832f), which 
 from f80fe3951, so it cannot grade P2-P5. sim-runner has deferred every cycle behind the queued
 s.12g rankq value test. The grade row is held until 25 Nov 09:00 and re-checks the producing
 commit before reading anything.
+
+## P2-P5 graded, 25 Nov 09:20 GMT, on the f2c6979d01 book
+
+Book: `docs/reports/run_output_latest.json`, `producing_commit.commit` = f2c6979d01 (resolved
+24 Nov 21:59Z); `git merge-base --is-ancestor f80fe3951 f2c6979d01` holds. Compared against
+`run_output_6a588a832f_20261120T134224Z.json`. Between the two books are 384 commits, 45 of them
+touching `simulation/` or `company/`. Three of those also change wins: a525847e98 (a gas-only win is
+supplied as gas, not refused), f3c6a45cbd (the growth campaign asks for the first-term quote
+before the win, so some quotes are withheld) and 5e6a8b70d2 (a won first term is contracted at the
+strike it was quoted). So this book tests f80fe3951 **together with** those commits, not on its own.
+
+- **P2: holds in substance, but the count was wrong.** 14 wins, and all 14 have revenue
+  (£33 to £28,393) and meter reads (2 to 84). None has a zero bill. The 12 electricity wins carry
+  a demand provider. The 2 gas-only wins (SYN-2016-163_3, SYN-2016-585_3) are now supplied as gas
+  by a525847e98, not refused, so `won_switches_not_supplied` is `[]`. The "14 of 16" figure fails
+  because the set of wins changed: PROS-2018-0214_3 and PROS-2019-0255_3 are no longer won, and no
+  new id is. Revenue and meter reads are my evidence for a bill; the book has no per-bill log for me
+  to count.
+- **P3: refuted.** 14 wins, against 16 before. I predicted 18 to 22. Supplied wins do churn and
+  move: 4 are in `churned_billing_accounts`, 4 in `home_move_outs`, 2 in `svt_departures`. But the
+  funnel also changed (3,356 attempts became 3,200; spend went from £74,353 to £69,525), so the fall
+  cannot be blamed on the supply change. My mechanism ("churn goes back to market, so wins rise")
+  is not seen in this book. I cannot yet say whether it is absent or is being masked by f3c6a45cbd.
+- **P4: outside its range, and I cannot attribute it.** `total_net_gbp` went from 725,626 to
+  706,654, a change of -£18,972 against a predicted -£15k..+£15k. The split asked for above:
+  - the per-won-id net, summed, is **+£11,900** (it was £0 before, because no win was supplied);
+  - acquisition spend fell by £4,828.
+  The wins' own contribution is positive, larger than the central +£4k, and in the predicted
+  direction. Supply can be at most 80 customer-years (each win counted to the end of 2025; churn
+  makes the real figure smaller), and the wins earned about £150 net per customer-year. The rest of
+  the move, about -£31k to -£36k depending on how acquisition spend enters the net, comes from
+  outside the won ids, over 45 commits to world and company code. Under R5 this book cannot grade
+  P4 as a claim about f80fe3951. A one-variable test would need f80fe3951 against its own parent,
+  run in full; that run is not worth the compute for a ±£15k question when the wins' own net is
+  already measured directly.
+- **P5: holds.** `switching_gsop_payments` = `[]` (0), and both `erroneous_gains_returned` and
+  `erroneous_gains_not_returned` are `[]`. This is what the 0.065 expectation on about 13 pre-CSS wins
+  predicts. Like the earlier 6C probe, it says nothing about rates.
+
+**What this book settles:** a won switch is now supplied and billed, and the wins earn money in total
+(+£11,900 over 14 ids). **What it does not settle:** whether supplying wins changes the number of
+wins or the company's total net. Both questions are mixed up with the funnel changes that landed in
+the same window.
