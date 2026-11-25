@@ -285,7 +285,7 @@ section covers the years after it.*
     consecutive Settlement Units" whose six hour-long IMRP periods are negative. The February 2017
     draft (tracked against August 2014) keeps both clauses. So the "current rule" that BEIS's 2020
     response describes covers the rounds signed on the 2015-2017 terms (AR2-AR3) [inference from the
-    dates; the AR2/AR3 contracts' own term versions were not read].
+    dates when written; AR3's own Version 3 terms were read 25 Nov and carry it, below].
   - **The FID-enabling investment contracts (DECC, *Investment Contract ... laid before Parliament
     pursuant to Paragraph 1 of Schedule 2 to the Energy Act 2013*, May 2014; the four ZIPs on gov.uk's
     *Final Investment Decision (FID) Enabling for Renewables - Investment Contracts*, 10 June 2014,
@@ -297,8 +297,19 @@ section covers the years after it.*
     hash). Part 5A's Baseload Difference Amount has the same shape, with RQM and CHPQM. None of the
     fourteen has "negative price", "rolling negative" or "price is negative" anywhere. So the
     investment contracts are paid in every hour, like AR1.
-  - **Not read (narrowed GAP).** The AR4, AR5 and AR7 terms. That AR4-AR7 carry AR6's one-hour wording follows from the
-    2020 decision [inference], not from their text.
+  - **AR3, AR4, AR5, AR7 and AR8 (the round Standard Terms on gov.uk: Version 3, 1 May 2019; Version 4,
+    25 Nov 2021; Version 5, 16 Mar 2023; Version 7, 24 Jul 2025; Version 8, 6 Jul 2026; OGL; read 25 Nov,
+    replacing the inference that stood here).** AR3 carries the six-hour rule in the October 2015 wording:
+    "“Intermittent Rolling Negative Price Period” means a period of six (6) or more consecutive Settlement
+    Units ... in respect of which the Intermittent Market Reference Price is negative (that is, less than
+    £0/MWh)", with Baseload at "twelve (12) or more". AR4, AR5, AR7 and AR8 carry AR6's rule: "“Intermittent
+    Negative Price Period” means any period of one (1) or more Settlement Units in respect of which the
+    Intermittent Market Reference Price is negative (that is, less than £0/MWh)". That definition, and the
+    Part 5B proviso that zeroes the difference in it, are identical in all four (whitespace-normalised, by
+    hash). Baseload (Part 5A) tests the hourly IMRP in all four, as in AR6. AR8's IMRP still names the APX
+    and N2EX intermittent indices. The prediction filed before reading (AR3 six-hour; AR4, AR5 and AR7
+    one-hour) held. AR8 was not in the prediction. AR2's round-specific terms were not read: the six-hour
+    rule is in both the October 2015 and February 2017 drafts that bracket it [inference that AR2 carries it].
   **So a forward levy carries three rules by vintage:** AR1 and the investment contracts are paid in every hour, AR2-AR3 are zeroed only
   inside six-hour negative runs, and AR4 onwards are zeroed in any negative hour. The 2027-29 tranche
   mixes them: the fleet page has AR3 and AR4 offshore phases starting then, so a forward levy applies
@@ -926,7 +937,7 @@ Fifteen of twenty-two predictions held. The seven misses stay beside the outcome
 3. ~~The CfD Standard Terms' negative-price clauses by round (§3).~~ Read 24 Nov for AR6 and for the pre-AR4
    six-hour rule; AR1 (Aug 2014, no rule) and the six-hour rule's first text (Oct 2015) read the same day.
    The investment contracts were read the same day: none has a rule, across all fourteen phase contracts. Still
-   open: the AR4/AR5/AR7 texts (§3). ~~LCCC's reconciliation amounts for
+   open: ~~the AR4/AR5/AR7 texts (§3)~~ (read 25 Nov with AR3 and AR8: AR3 six-hour, AR4 onwards one-hour), and AR2's own terms (inferred six-hour). ~~LCCC's reconciliation amounts for
    2021-23~~ are held, as daily payments per unit and reconciled levy rates from the LCCC Data Portal (24 Nov).
    Still open for item 5: the forward CfD fleet (`cfd-contract-portfolio-status`, `forecast-cfd-generation`,
    not yet read).

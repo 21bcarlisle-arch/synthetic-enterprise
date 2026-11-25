@@ -106,8 +106,8 @@ each factor needs a source:
 4. **The reference price:** the world's own forward price. That price must be graded before a levy is
    built on it (item 4's work, still open).
 5. **The negative-hour rules by round:** read 24 Nov (electricity page §3). From AR4, no difference in
-   any hour the day-ahead reference is below £0. In AR2-AR3, none only from six consecutive negative
-   hours. AR1 (Aug 2014) and the fourteen FID-enabling investment contracts (May 2014) have no rule and
+   any hour the day-ahead reference is below £0 (AR4, AR5, AR6, AR7 and AR8 terms each read from text,
+   25 Nov). In AR2-AR3, none only from six consecutive negative hours (AR3's terms read; AR2 inferred). AR1 (Aug 2014) and the fourteen FID-enabling investment contracts (May 2014) have no rule and
    are paid in every hour (read 24 Nov, electricity page §3). The world has no hourly day-ahead price
    to test the rule on (GAP 3). Its nearest series, MID, goes negative in 1.6-2.3 times the auction's
    hours in 2022-24 (measured 24 Nov, electricity page §3), so it cannot stand in unadjusted.
