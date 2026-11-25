@@ -8,7 +8,7 @@ class: standard
 severity: LATENT
 source: finding
 evidence:
-- docs/staging/SEAT_FINDING_THE_PAYMENT_SCORE_REACHES_THE_CHURN_BELIEF_AND_THE_RETENTION_GUARD_PRICES_IT_AS_IF_THE_DEBTOR_PAYS_2026-10-07.md
+- docs/staging/done/SEAT_FINDING_THE_PAYMENT_SCORE_REACHES_THE_CHURN_BELIEF_AND_THE_RETENTION_GUARD_PRICES_IT_AS_IF_THE_DEBTOR_PAYS_2026-10-07.md
 knowledge_gap: null
 insight: null
 decider: machine
@@ -16,12 +16,12 @@ director_rank: null
 atom: C29_decisions_stop_being_lookup_tables
 blocked_by: []
 occurrences: 1
-state: open
+state: done
 opened_at: '2026-10-07T00:00:00+00:00'
 chosen_at: null
-closed_at: null
+closed_at: '2026-11-25T05:43:38+00:00'
 chosen_by: null
-done_evidence: null
+done_evidence: 6870d3c8b
 parked: null
 obsolete: null
 finding_lane: C_customer_ops
