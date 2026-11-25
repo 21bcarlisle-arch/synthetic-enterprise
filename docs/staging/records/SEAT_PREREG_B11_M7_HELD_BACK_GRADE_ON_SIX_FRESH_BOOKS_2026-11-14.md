@@ -152,3 +152,122 @@ as `s12g-rankq-watch`.
 **Reverse:** `systemctl --user stop b11m7-watch`, then stop any `longjob-seed-family-m7-*`.
 **Next read:** grade `readout.json`'s `b11_within_segment` under the 19 Oct rule. Append the result
 at the end of this file under `## Grade, read <date>`, without editing any line above it.
+
+## Grade, read 2026-11-25
+
+Read at origin `86b52aa88c` from `/var/tmp/b11m7/readout.json` (written 02:50Z, `readout rc=0`,
+`readout.err` empty, `refused_members: []`) and the six `member_*.json` stamps beside it.
+
+**Order** (`order.log`): rankq ended 20:03Z on 24 Nov. The owed book was
+`run_output_f2c6979d01_20261124T215935Z.json`, logged 23:48Z. The land10 wait returned rc=0 at
+01:00Z. Then wave 61113–61115 ran at 01:00Z, wave 61116–61118 at 01:50Z, and the readout at
+02:50Z. So the owed book ran before any member did.
+
+**The pin check. The SHAs differ from the pin, but the code is the pin's, so no member is
+refused.** No member stamps `16e8323701`. Members 61113–61115 stamp `71930d4d04` and members
+61116–61118 stamp `35aa0e8172`. Both commits are `SALVAGE(auto)` descendants of the pin, made in
+the pinned worktree while the members ran (01:36Z and 02:26Z, with `df2bbb82f5` between them).
+`git diff --stat 16e8323701 35aa0e8172` touches six files, none of them code:
+`docs/context-handshake-latest.md`, `docs/observability/{book_growth_campaign,
+book_subset_verdict, coupled_gap_ledger, fidelity_evidence_ledger}.json` and `token-log.md`. The
+two `simulation/live_population.py` records (`_CAMPAIGN_RECORD`, `_SUBSET_VERDICT_RECORD`) are
+written and never read (`git grep` at the pin finds only `write_text` uses). So the salvage
+committed the members' own outputs. The six members ran the pin's code, and refusing them would
+refuse the pin itself. Read literally, the rule refuses all six, which leaves M7 at "cannot
+tell" with 0 of 6 books. I read it by its purpose, and say so here. The worktree has since been
+removed (`/var/tmp/b11m7-tree` is absent), so re-running needs a fresh worktree at the pin.
+
+**Per member** (within term: key minus flat, 95% interval; the member's own `b11_ranking`):
+
+| seed | 2020 graded / departed | 2020 within | 2022 within | 2023 within | whole − within (2020, 2022, 2023) | pairs excluded |
+|---|---|---|---|---|---|---|
+| 61113 | 132 / 54 | +0.006 [−0.048, +0.059] | +0.067 [−0.016, +0.149] | **+0.095 [+0.017, +0.173]** | −0.009, **−0.051**, **−0.038** | 2022: 10 |
+| 61114 | 125 / 60 | +0.048 [−0.009, +0.105] | +0.008 [−0.081, +0.096] | −0.022 [−0.112, +0.069] | **−0.030**, +0.004, −0.020 | 2020: 6 |
+| 61115 | 130 / 60 | +0.056 [−0.007, +0.119] | −0.028 [−0.123, +0.068] | +0.042 [−0.049, +0.132] | +0.009, +0.012, +0.012 | 2020: 1 |
+| 61116 | 139 / 67 | +0.049 [−0.008, +0.106] | +0.059 [−0.022, +0.140] | **+0.092 [+0.025, +0.159]** | −0.022, +0.005, −0.018 | 2023: 9 |
+| 61117 | 129 / 54 | **+0.060 [+0.007, +0.113]** | −0.051 [−0.154, +0.051] | +0.063 [−0.028, +0.153] | +0.022, +0.027, **+0.030** | 2022: 8; 2023: 9 |
+| 61118 | 124 / 55 | −0.006 [−0.080, +0.068] | −0.063 [−0.169, +0.044] | +0.057 [−0.030, +0.144] | +0.002, +0.021, −0.011 | 2020: 6 |
+
+**Pooled** (`b11_within_segment`, six books; no book is unpooled). The 98.3% bound is the 95% se
+times z = 2.394:
+
+| cut | pairs | point | 95% | 98.3% | under the 19 Oct rule |
+|---|---|---|---|---|---|
+| 2020 | 14,339 | +0.035 | [+0.010, +0.059] | [+0.004, +0.065] | **clears 98.3%** |
+| 2022 | 13,997 | +0.002 | [−0.035, +0.040] | [−0.044, +0.049] | cannot tell |
+| 2023 | 21,026 | +0.057 | [+0.023, +0.091] | [+0.015, +0.099] | **clears 98.3%** |
+
+**Verdict under the rule: "the key clears flat".** The pooled within-segment term clears zero at
+98.3% at two of the three cuts, 2020 and 2023. It does not clear at 2022. On campaign-win-heavy
+40-founder `all_wins` books, out of sample, the switch key ranks who leaves better than flat
+within segment. That is a ranking result, and it is small: about 3.5 to 6 points of AUC. It does
+not say the key's departure level is calibrated. That level is the annual report's held-back
+grade, and the member does not stamp it.
+
+**Predictions**, filed blind on 19 Oct and 14 Nov, graded as written:
+
+- **Q1: refuted.** Graded at 2020 was 124–139 on every book, inside 60–250, so that part held.
+  "Departers under 60 on every book" failed on three books: 60, 60 and 67. Departers ran 54–67,
+  not the 27–33 this record's size re-read expected. The re-read used a home-level fold
+  (`first_settled + tenure_days`, not still supplied). Re-run on these six books, that fold gives
+  24–37 departers. The backtest's departer is an *account* whose last month is before
+  `book_end` (`forward_clv.py`, `AccountForecast(..., a.last_month < book_end)`). **I cannot yet
+  say** what the extra departers are; the definitions differ by about 1.7×. More departers make
+  the interval narrower than the re-read sized it. That is one reason the pooled 95% half-width
+  came out at 0.025 at 2020, not the 0.033–0.039 predicted.
+- **Q2: held.** At 2020, 5 of 6 books cannot tell (61117 clears 95%).
+- **Q3: held, on all three parts.** The pooled point is +0.035, inside 0.00…+0.08 (~65%). The 95%
+  lower bound is above zero (~40%). The 98.3% lower bound is above zero (~25%), so the
+  least-likely leg came in.
+- **Q4: refuted.** 2022 cannot tell, as predicted. 2023 clears 98.3%. The "switching collapse
+  after 2021 leaves few departers" did not happen in the account count: 29–44 departers per book
+  at 2023, and 21,026 within pairs, the most of any cut.
+- **Q5: refuted, narrowly.** Exact |whole − within| ≤ 0.03 at every cut held on 3 of 6 books
+  (61115, 61116, 61118), against "at least 4". 61113 fails at 2022 (−0.051) and 2023 (−0.038).
+  61114 fails at 2020 (−0.0305). 61117 fails at 2023 (+0.0302). Most whole-minus-within terms
+  are negative (whole below within), which is the opposite sign to the dual books' flat
+  cross-segment credit. So that credit did not recur as a systematic positive term. The
+  ±0.03 band as written fails.
+- **Q6:** dropped (one arm).
+- **Q7: held in count; its segment clause is unread.** All six books exclude pairs at some cut
+  (`pairs_excluded` > 0). By `_ranking_within_segment`, that is a segment with fewer than two
+  departers or two stayers. The stamp keeps the pair count but not `segments_excluded`, so
+  "almost always `resi gas`" cannot be read from it.
+- **The 16 Oct headline**, "cannot tell on each book; pooled point positive, interval includes
+  0": its first part held at 2020 (5 of 6) but not at 2023 (2 of 6 clear 95%). The second held.
+  The third was refuted: the pooled interval excludes 0 at two cuts.
+
+**Founder leg, counts only** (home-level fold, the same approximate fold as the size re-read,
+not the backtest's count). Founders on the book, then founders supplied on 2020-12-01, then those
+of them not still supplied:
+
+| seed | 61113 | 61114 | 61115 | 61116 | 61117 | 61118 |
+|---|---|---|---|---|---|---|
+| founders | 36 | 36 | 36 | 36 | 36 | 35 |
+| graded at 2020 | 11 | 13 | 11 | 15 | 11 | 15 |
+| departed | 3 | 0 | 1 | 1 | 1 | 2 |
+
+That is 76 graded founders and 8 departures in total. As filed, M7 is a campaign-win grade. The
+founders cannot carry a ranking.
+
+**End-to-end.** The result agrees with the dual books' within term at 2020 (+0.065, interval
++0.005 to +0.125), at about half its size. That is the "transfers, smaller" case: the
+pre-registered rule applies, and it clears. These are the explanations the evidence allows,
+ranked by evidence:
+
+1. **The key carries real within-segment information.** This is consistent with every per-book
+   point except 61118's 2020 and the 2022 cut.
+2. **Partly an artefact of the departer definition.** An account-month departer may count leg
+   ends that are not departures (the 1.7× gap). That should add noise to the departer set and
+   pull the term toward zero, not manufacture a positive term. But an artefact that correlates
+   with being on default at the cut could inflate it, and I have not excluded that.
+3. **2022 is the crisis regime.** Departures there are driven by supplier failure and price caps,
+   not by the household's own switching hazard. A null there is expected, not a contradiction.
+
+The open item that would most change this verdict is (2). It goes into B11's record as the next
+check, not a precondition: the rule was fixed with this instrument, and the instrument's
+departer definition is the one used on every B11 read since 11 Oct.
+
+**B11 moves 2 → 3** on this grade, recorded self-certified (`gate_authorizations.jsonl`). Reverse
+it by reverting the commit that carries this section; the members stay on disk at
+`/var/tmp/b11m7/m7/`.
