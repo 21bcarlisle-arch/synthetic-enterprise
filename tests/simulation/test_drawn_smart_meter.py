@@ -171,3 +171,49 @@ def test_a_meter_that_does_not_communicate_is_still_a_SMART_meter():
     `meter_reads` already models that separately. Folding them would have told a household with
     a smart meter that it had none."""
     assert smart_meter_penetration(2024) > smart_read_share(2024)
+
+
+# --------------------------------------------------------------------------- #
+# Who holds one: the tenure tilt (EHS 2022-23 AT3.7), default off              #
+# --------------------------------------------------------------------------- #
+
+def _share_by_tenure(year: int, n: int = 12_000) -> dict:
+    from simulation.household_segments import tenure_for_customer
+
+    hits, counts = collections.Counter(), collections.Counter()
+    for i in range(n):
+        cid = f"PROS-{year}-{i:05d}"
+        t = tenure_for_customer(cid)
+        counts[t] += 1
+        hits[t] += pd._draw_smart_meter(cid, SEED, year, "resi")
+    return {t: hits[t] / counts[t] for t in counts}, sum(hits.values()) / n
+
+
+def test_on_a_private_renter_is_drawn_smart_less_often_and_the_national_mean_holds(monkeypatch):
+    """MUTATION (must fire): drop the tilt in `_draw_smart_meter` and the renter gap closes.
+    The national mean must not move: the tilt says WHO is read by hand, not how many."""
+    from simulation.household_segments import TenureType
+
+    monkeypatch.setattr(pd, "SMART_METER_TILTED_BY_TENURE", True)
+    by, overall = _share_by_tenure(2024)
+    owner, renter = by[TenureType.OWNER_OCCUPIER], by[TenureType.PRIVATE_RENTER]
+    # EHS: 56.1% against 43.0%, a ratio of 0.77. Three standard errors on ~2,300 renters is ~3pp.
+    assert renter / owner == pytest.approx(43.0 / 56.1, abs=0.06)
+    assert overall == pytest.approx(smart_meter_penetration(2024), abs=0.015)
+
+
+def test_off_by_default_every_tenure_is_drawn_on_the_one_national_curve():
+    """The switch is a world change that waits its turn on the standing book. Keyed to the property
+    (off means no tenure separates the shares), not to a pinned count."""
+    from simulation.household_segments import TenureType
+
+    assert pd.SMART_METER_TILTED_BY_TENURE is False
+    by, _ = _share_by_tenure(2024)
+    assert by[TenureType.PRIVATE_RENTER] == pytest.approx(by[TenureType.OWNER_OCCUPIER], abs=0.04)
+
+
+def test_the_tenure_ratios_keep_the_world_mix_at_the_national_mean():
+    from simulation.household_segments import TENURE_POPULATION_SHARE
+
+    mean = sum(w * pd.smart_meter_tenure_ratio(t) for t, w in TENURE_POPULATION_SHARE.items())
+    assert mean == pytest.approx(1.0, abs=1e-12)

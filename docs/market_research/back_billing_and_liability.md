@@ -1154,3 +1154,40 @@ count, so on the 2016-2025 run the no-volume path was reachable only through
   2026, fetched 20 Nov 2026.
 - HMRC, Revenue and Customs Brief 10 (2026), https://www.gov.uk/government/publications/revenue-and-customs-brief-10-2026-temporary-zero-rate-of-vat-for-domestic-electricity-in-great-britain/temporary-zero-rate-of-vat-for-domestic-electricity-in-great-britain.
   Published 8 Sep 2026, fetched 20 Nov 2026.
+
+## 19. Who holds a smart meter, by tenure (2026-11-25)
+
+*Closes the open (c) row of §10 on smart-meter exposure. Read from the primary table on 2026-11-25:
+English Housing Survey 2022-23 energy report (MHCLG, 18 Jul 2024), Chapter 3 annex tables, AT3.7
+(electricity) and AT3.9 (gas), full household sample, England,
+<https://assets.publishing.service.gov.uk/media/66914cf849b9c0597fdafc19/Energy_Chapter_3_Annex_Tables.ods>.* **[H]**
+
+**What is measured.** Whether the resident *says* the home has a smart meter. That is self-report, and
+it says nothing about smart mode. It is not DESNZ's meter count, which is what the world's national
+curve (`premise_population.smart_meter_penetration`, DESNZ Table 5a) is.
+
+| Tenure | Households (000) | Electricity smart, yes (000) | Electricity % | Gas % |
+|---|---:|---:|---:|---:|
+| Owner occupied | 15,805 | 8,869 | 56.1 | 45.5 |
+| Private rented | 4,595 | 1,975 | 43.0 | 32.2 |
+| Local authority | 1,531 | 862 | 56.3 | 46.5 |
+| Housing association | 2,475 | 1,249 | 50.5 | 38.7 |
+| **Social rented, combined** | 4,006 | 2,111 | **52.7** (derived from the counts) | 41.7 (derived) |
+| All households | 24,406 | 12,955 | 53.1 | 42.4 |
+
+**Established.** In 2022-23, a private renter is about 0.81 times as likely as the average household to
+have an electricity smart meter. An owner occupier is about 1.06 times as likely, and a social renter
+0.99 times.
+
+**Design choice (`simulation/population_draw._draw_smart_meter`, switch
+`SMART_METER_TILTED_BY_TENURE`).** Each tenure's share is the national curve times that tenure's EHS
+ratio. The ratios are normalised so that, over the world's own tenure mix
+(`household_segments.TENURE_POPULATION_SHARE`), the mean still equals the published national curve.
+This moves *who* is read by hand, not *how many*. The table is electricity. The world draws one smart
+flag per supply point, so electricity is the ratio used. Gas tilts the same way and more steeply
+(private renters are 0.76 times as likely, against 0.81).
+
+**GAP: the ratio across the rollout.** Only 2022-23 is read. Holding the ratio constant from 2016 to
+2025 is a stated belief, not a measurement. The tilt could be steeper early in the rollout or could
+converge late, and the EHS for other years would settle it (not read here). A ratio, not an additive
+gap, is used so no share leaves [0, 1] at the 2016 end (10.6%).

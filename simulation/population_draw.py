@@ -1016,6 +1016,37 @@ def _load_cohort_curriculum(path: Optional[Path] = None) -> dict:
 _MANDATED_HH_SEGMENTS = (INDUSTRIAL_AND_COMMERCIAL,)
 
 
+# WHO HOLDS A SMART METER, BY TENURE. EHS 2022-23 energy report, Annex Table 3.7 (electricity), full
+# household sample, England, thousands of households: (have an electricity smart meter, all).
+# docs/market_research/back_billing_and_liability.md s.19. Social rented is local authority plus
+# housing association, summed from the counts (862 + 1,249 of 1,531 + 2,475).
+EHS_2022_23_ELECTRICITY_SMART_BY_TENURE: Dict[TenureType, Tuple[int, int]] = {
+    TenureType.OWNER_OCCUPIER: (8_869, 15_805),
+    TenureType.PRIVATE_RENTER: (1_975, 4_595),
+    TenureType.SOCIAL_RENTER: (2_111, 4_006),
+}
+EHS_2022_23_ELECTRICITY_SMART_ALL_HOUSEHOLDS = (12_955, 24_406)
+
+#: OFF BY DEFAULT: a world change, so it goes on the standing book one change at a time (the order
+#: is in docs/staging/records/SEAT_RECORD_THE_DEFAULT_OFF_SWITCHES_AND_THE_ORDER_THEY_FLIP_IN_2026-11-24.md).
+#: On, a private renter is drawn smart at about 0.81x the national curve, and the national mean holds.
+SMART_METER_TILTED_BY_TENURE = False
+
+
+def smart_meter_tenure_ratio(tenure: TenureType) -> float:
+    """This tenure's smart share over the national one, normalised so the world's tenure mix keeps
+    the national mean. The ratio is read in 2022-23 only and held across the rollout: a stated
+    belief, GAP in s.19."""
+    from simulation.household_segments import TENURE_POPULATION_SHARE
+
+    def share(t: TenureType) -> float:
+        yes, all_ = EHS_2022_23_ELECTRICITY_SMART_BY_TENURE[t]
+        return yes / all_
+
+    mean = sum(w * share(t) for t, w in TENURE_POPULATION_SHARE.items())
+    return share(tenure) / mean
+
+
 def _draw_smart_meter(customer_id: str, base_seed: int, year: int, segment: str) -> bool:
     """Does this drawn supply point have a smart (or HH) meter at acquisition?
 
@@ -1029,7 +1060,10 @@ def _draw_smart_meter(customer_id: str, base_seed: int, year: int, segment: str)
     from simulation.premise_population import smart_meter_penetration
 
     roll = _cohort_substream(customer_id, base_seed, "smart_meter").random()
-    return roll < smart_meter_penetration(int(year))
+    share = smart_meter_penetration(int(year))
+    if SMART_METER_TILTED_BY_TENURE:
+        share = min(1.0, share * smart_meter_tenure_ratio(tenure_for_customer(customer_id)))
+    return roll < share
 
 
 def _draw_tariff_type(
