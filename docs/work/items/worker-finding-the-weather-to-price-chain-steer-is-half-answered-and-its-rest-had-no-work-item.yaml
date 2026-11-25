@@ -1,0 +1,35 @@
+id: worker-finding-the-weather-to-price-chain-steer-is-half-answered-and-its-rest-had-no-work-item
+title: The weather-to-price chain steer is half answered, and the rest of it had no
+  work item
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: BLOCKING
+source: finding
+evidence:
+- docs/staging/WORKER_FINDING_THE_WEATHER_TO_PRICE_CHAIN_STEER_IS_HALF_ANSWERED_AND_ITS_REST_HAD_NO_WORK_ITEM_2026-11-24.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: parked
+opened_at: '2026-11-24T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked:
+  reason: '1-3 and 6 landed; item 5''s GAP 2b closed 25 Nov (CfD terms v4/v6: each
+    contract paid on its own Facility''s metering, capped at its MCC; no sharing).
+    What is left cannot move this week by this lane: item 4''s build is carried by
+    worker-finding-the-sap-splice-was-decided-its-hold-lapsed-on-19-nov-and-no-queue-carries-the-switch,
+    and item 5''s forward levy waits on the director''s open row the-forward-world-has-bands-for-gas
+    (DIRECTION.yaml for_the_director). Revisit at Sunday 29 Nov''s weekly review,
+    which is the steer''s own item 7 placement.'
+  revisit: '2026-11-29'
+obsolete: null
+finding_lane: G_data_learning
