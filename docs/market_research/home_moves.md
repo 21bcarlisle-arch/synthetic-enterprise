@@ -1383,6 +1383,47 @@ balance equals the amount netted.
     Control: `tests/background/test_a_final_bill_reads_the_last_bill_issued_before_it_whether_or_not_it_is_due.py`.
     With the due-only filter restored, it reads a credit of 50 where the ledger owes 10.
 
+#### 8.8g No level direct debit before a payer is named (added 2026-11-25, before the build)
+
+**What the evidence shows.** The f2c6979d01 book has 30 switch-away level legs where the world's final bill takes
+more credit than the page nets. Graded against everything the page nets on a final bill (the credit-bill credit and
+the level surplus together), 23 final bills disagree in that direction, by GBP 675.99. Three figures need keeping
+apart:
+- **The world's credit** is `final_month_nets.ledger_balance_gbp`: the supplier ledger's bills at face, less all
+  the level cash the world collected, less credit notes.
+- **The page's credit** is what `balance_settlement_from_outcomes` nets. It covers the bills some named payer is
+  asked for (`payer_ask_gbp`), and only the level cash reconciled against those bills.
+- **The gap** between them is level cash in months whose bill no named payer is asked for.
+
+19 of the 23 are `OCC-` legs. OCC-3c914ee8cef5g is an example. Its January to March 2016 bills are wholly inside the
+unnamed-occupier window (occupier share 1.0), so nobody is asked for them. The world still collected the GBP 39.55
+level amount in each of those months. The world's credit was 162.66 and the page's 44.01. The difference is
+118.65 = 3 x 39.55. Book-wide, 137 legs paid GBP 27,134.55 by level DD in months like these. The page never counts
+that cash, so it is never refunded.
+
+**What the rules say.** A direct debit is collected under the payer's Direct Debit Instruction, set up through
+AUDDIS (`payments_and_direct_debit_2026-10-25.md` s.3). If a payment is taken without that authority, the payer's
+bank refunds it under the Direct Debit Guarantee. The unnamed-occupier window is by definition the time before the
+supplier knows who the payer is (s.1 case B: "The Occupier", identity unknown; B7 slice 5's `occupier_debt_gbp`). An owner's void has no occupying payer
+at all. In both cases there is no instruction to collect under. So a level DD collected in such a month is money
+this world could not take.
+
+*Choice.*
+31. *A month whose bill names no payer presents no level collection.* "Names no payer" means the occupier and void
+    shares cover the whole bill, the same test `payer_ask_gbp` uses to ask nobody. The test reads the bill before
+    the pre-bill gate. A bill the gate held still names its payer, and a level DD collects whatever the bill says.
+    The month's row leaves the schedule (`InLoopLevelCollection.withdraw`), so the page, the world's ledger and the
+    final bill read the same cash. This choice says which side was wrong: the world, which collected the cash. The
+    page was right not to count it.
+
+**GAP G8.19.** These cases are not handled here:
+- When an occupier is later named, does a real supplier back-bill them for the window from their move-in date?
+  `back_billing_and_liability.md` treats the window as the occupier's debt. If they are back-billed, the window's
+  bills would be the named payer's and their level DD could start from move-in.
+- The balance book still sizes the level amount from bills that include the window months.
+- Four of the 23 disagreeing final bills are not `OCC-` legs: SYN-2016-099, SYN-2016-144g, PROS-2017-0293g and
+  PROS-2024-0270g, GBP 74.63 together. Their cause is not yet attributed.
+
 ---
 
 ## Sources

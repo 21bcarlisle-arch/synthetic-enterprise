@@ -29,6 +29,7 @@ not an A/B test of this change.
 | Refunds on matched legs | 9,244.83 | moves by less than GBP 50 | 9,373.28, **+128.45**. On the 40 legs with identical face and page-net it is +21.31 (19 legs moved) | **CLAUSE TRIPPED, confounded** (see below) |
 | `netted_ledger_credit_legs` | 84, GBP 1,768.48 | 200 to 260, GBP 4,700 to 6,200 | **270, GBP 7,508.01** | **OVER BAND** |
 | Reverse legs (world nets more than the page) | 8, GBP 201.03 | 6 to 12, under GBP 300 | **30, GBP 585.17** | **REFUTED** |
+| *Correction, 25 Nov:* the same row against everything the page nets on the final bill, credit-bill credit included | | | **23, GBP 675.99**. 19 of the 23 are level DDs presented in no-payer months | `SEAT_FINDING_THE_WORLD_PRESENTS_A_LEVEL_DD_BEFORE_A_PAYER_IS_NAMED_2026-11-25.md` |
 | Addendum: debit-half rows not in `home_move_outs` | 0 | more than 0 (direction only) | **147 legs, GBP 11,434.11 debit asked**. All 44 baseline debit rows were movers | **CONFIRMED (direction)** |
 
 **The refund clause.** The prereg said a refund move of GBP 50 or more would mean the change reached the page or

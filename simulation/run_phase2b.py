@@ -175,7 +175,7 @@ from sim.system_prices_history import SHORT_RECORD_REASON as SSP_SHORT_RECORD_RE
 from sim.system_prices_history import get_system_prices_range
 from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd, relocate_premise_sky
 from simulation.acquisition_funnel import run_acquisition_funnel
-from simulation.arrears_engine import bill_due_date, payer_ask_gbp
+from simulation.arrears_engine import bill_due_date, names_no_payer, payer_ask_gbp
 from simulation.bad_debt_incidence import world_bad_debt_incidence
 from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
 from simulation.churn_journey import ChurnJourneyRegister
@@ -2963,6 +2963,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             household_legs=len(_fuels_of_household.get(household_of(cid), ())) or 1,
             level_collection=None if left else _level_row,
             closing=left,
+            # No payer named, no mandate: the window's level row is withdrawn below (s.8.8g ch.31).
+            names_a_payer=_level_row is None or not names_no_payer(
+                _dd_stop_board.bill_for(cid, held["month"], churned=left)),
         )
         # The page's schedule holds only what the world presented (`InLoopLevelCollection.withdraw`).
         if _level_row is not None and _payment_triad.last_level_presented is not _level_row:
