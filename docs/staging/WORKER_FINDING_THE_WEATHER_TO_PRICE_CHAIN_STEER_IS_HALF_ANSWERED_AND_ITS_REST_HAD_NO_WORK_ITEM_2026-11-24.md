@@ -853,3 +853,21 @@ will re-fire the hold, so the next re-arm should move the file aside itself.
 - **What is left of 1-6:** item 4's build (carried by the SAP splice finding). For item 5: GAP 2b, the
   investment-contract terms, the auction's hourly series, and the forward levy, which waits on the
   director's `the-forward-world-has-bands-for-gas` row and the forward price.
+
+## Progress, 24 Nov (worker, item 5: the investment contracts' negative-hour rule, read)
+
+- **Read from primary text.** The gov.uk page is DECC's *FID Enabling for Renewables - Investment Contracts*
+  (10 June 2014). Its four ZIPs hold the contracts as laid before Parliament in May 2014: fourteen phase
+  contracts across eight projects. They are Beatrice P1-P2, Burbo Bank Extension, Dudgeon P1-P3, Hornsea
+  One P1-P3 and Walney Extension P1-P2 (offshore wind), and Drax, Lynemouth and Teesside (MGT) (biomass).
+  The earlier "page returns 404" was the wrong URL.
+- **None has a negative-price rule.** In each IC Conditions Part 5B, the Intermittent Difference Amount
+  is "Difference × MAX (MIN (Qt × ht × TLMt , Mt ),0 )", with no proviso. That text and the 25 lines after
+  it are byte-identical across all fourteen (compared by hash). Part 5A, for baseload, has the same shape.
+  None of the fourteen has "negative price", "rolling negative" or "price is negative". So the investment
+  contracts pay in every hour, like AR1. Electricity page §3 and §13 and fleet page item 5 are updated.
+- **For the levy:** the rules by vintage are now IC and AR1 every hour, AR2-AR3 six-hour runs, and AR4+
+  any hour. Their share of the live offshore fleet is not computed here.
+- **What is left of 1-6:** item 4's build (carried by the SAP splice finding). For item 5: GAP 2b, the
+  AR4/AR5/AR7 texts (inferred to match AR6), the auction's hourly series, and the forward levy, which
+  waits on the director's `the-forward-world-has-bands-for-gas` row and the forward price.

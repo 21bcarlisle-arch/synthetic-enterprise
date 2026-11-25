@@ -286,10 +286,20 @@ section covers the years after it.*
     draft (tracked against August 2014) keeps both clauses. So the "current rule" that BEIS's 2020
     response describes covers the rounds signed on the 2015-2017 terms (AR2-AR3) [inference from the
     dates; the AR2/AR3 contracts' own term versions were not read].
-  - **Not read (narrowed GAP).** The FID-enabling investment contracts (gov.uk's page for them returns
-    404), and the AR4, AR5 and AR7 terms. That AR4-AR7 carry AR6's one-hour wording follows from the
+  - **The FID-enabling investment contracts (DECC, *Investment Contract ... laid before Parliament
+    pursuant to Paragraph 1 of Schedule 2 to the Energy Act 2013*, May 2014; the four ZIPs on gov.uk's
+    *Final Investment Decision (FID) Enabling for Renewables - Investment Contracts*, 10 June 2014,
+    OGL; read 24 Nov).** No negative-price rule. There are fourteen phase contracts across eight
+    projects: Beatrice P1-P2, Burbo Bank Extension, Dudgeon P1-P3, Hornsea One P1-P3, Walney Extension
+    P1-P2 (offshore wind, Part 5B), and Drax, Lynemouth and Teesside (MGT) (biomass, Part 5A). Each IC
+    Conditions Part 5B defines "Intermittent Difference Amount = Difference × MAX (MIN (Qt × ht × TLMt ,
+    Mt ),0 )". The text and the 25 lines after it are byte-identical in all fourteen (text layer, by
+    hash). Part 5A's Baseload Difference Amount has the same shape, with RQM and CHPQM. None of the
+    fourteen has "negative price", "rolling negative" or "price is negative" anywhere. So the
+    investment contracts are paid in every hour, like AR1.
+  - **Not read (narrowed GAP).** The AR4, AR5 and AR7 terms. That AR4-AR7 carry AR6's one-hour wording follows from the
     2020 decision [inference], not from their text.
-  **So a forward levy carries three rules by vintage:** AR1 is paid in every hour, AR2-AR3 are zeroed only
+  **So a forward levy carries three rules by vintage:** AR1 and the investment contracts are paid in every hour, AR2-AR3 are zeroed only
   inside six-hour negative runs, and AR4 onwards are zeroed in any negative hour. The 2027-29 tranche
   mixes them: the fleet page has AR3 and AR4 offshore phases starting then, so a forward levy applies
   the rule per unit by round, never one rule to the tranche.
@@ -915,7 +925,8 @@ Fifteen of twenty-two predictions held. The seven misses stay beside the outcome
    explicit-allocation loss (§5).
 3. ~~The CfD Standard Terms' negative-price clauses by round (§3).~~ Read 24 Nov for AR6 and for the pre-AR4
    six-hour rule; AR1 (Aug 2014, no rule) and the six-hour rule's first text (Oct 2015) read the same day.
-   Still open: the investment-contract terms, and the AR4/AR5/AR7 texts (§3). ~~LCCC's reconciliation amounts for
+   The investment contracts were read the same day: none has a rule, across all fourteen phase contracts. Still
+   open: the AR4/AR5/AR7 texts (§3). ~~LCCC's reconciliation amounts for
    2021-23~~ are held, as daily payments per unit and reconciled levy rates from the LCCC Data Portal (24 Nov).
    Still open for item 5: the forward CfD fleet (`cfd-contract-portfolio-status`, `forecast-cfd-generation`,
    not yet read).
