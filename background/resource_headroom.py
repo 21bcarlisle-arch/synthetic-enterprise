@@ -707,7 +707,10 @@ def running_long_jobs(records_path: Path | None = None, residents: list | None =
     for unit, peak in sorted(declared.items()):
         pids = sorted(r["pid"] for r in residents if r.get("unit") == unit)
         if pids:
-            job = {"unit": unit, "peak_mb": peak, "pids": pids}
+            # resident_mb is the census's PSS sum, so a caller can count the growth still to
+            # come (declared peak less what is held now) instead of the whole declared peak.
+            resident = sum(float(r.get("rss_mb") or 0) for r in residents if r.get("unit") == unit)
+            job = {"unit": unit, "peak_mb": peak, "pids": pids, "resident_mb": round(resident, 1)}
             launched_at, minutes = durations.get(unit, (None, None))
             try:
                 started = datetime.datetime.fromisoformat(str(launched_at).replace("Z", "+00:00"))

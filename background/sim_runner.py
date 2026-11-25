@@ -1024,6 +1024,12 @@ def pause_owed_from_a_previous_process(*, now=None, path=None) -> tuple[float, s
 DEFERRAL_RETRY_SECONDS = 300
 
 
+#: The margin a cycle beside a long job leaves for a resident that arrives after it starts. ORIGIN:
+#: the 19:07Z oom-kill (commit 38ee201e60): a third, undeclared 5.2 GiB worker (5.2 x 1024 = 5,325
+#: MB) arrived beside a cycle and a declared long job. The largest late arrival on record.
+LATE_ARRIVAL_MB = 5325
+
+
 def cycle_admission(**admit_kwargs) -> dict:
     """Ask `resource_headroom.admit` whether a cycle may start beside what is running now.
 
@@ -1032,11 +1038,14 @@ def cycle_admission(**admit_kwargs) -> dict:
     refuses to start a job beside residents, but this daemon never launches through it -- so the
     cycle asks here, and a long job's declared peak counts before it has been reached.
 
-    A cycle YIELDS to any resident long job, even when the declared arithmetic says both fit.
-    At an honest ~7 GB weight an 11.2 GB ab6 pass plus a cycle fits the 23 GB budget, but 19:07Z
-    died on a third, undeclared 5.2 GiB worker the arithmetic cannot see. A long job is a thesis
-    run hours in; a cycle is cheap to defer. This rule used to be carried by accident, by a stale
-    13,824 MB weight -- it is stated here so a correct weight cannot silently remove it.
+    Beside a resident long job a cycle runs only if MEASURED room still holds, after the cycle's
+    weight and each long job's growth still to come (declared peak less its PSS now, the honest
+    worst case: A4's RSS rose and fell 6.1 -> 10.4 -> 7.3 GB, so a high-water mark under-counts),
+    one more late arrival the size of 19:07Z's plus the floor. 19:07Z died on a third, undeclared
+    5.2 GiB worker that arrived AFTER the cycle started (MemAvailable read 18,000 MB at the start),
+    so no start-time reading sees it: the margin has to be left for it. Until 2026-11-25 this was
+    an unconditional yield, which a serial driver of 75-minute long jobs (etarms, twelve arms)
+    turned into a ~24-hour hold on a box with 19 GB free -- a cycle is cheap to defer ONCE.
 
     A refusal is logged with its reason (the units and pids it yields to) and receipted in the
     deferral log. The caller skips the cycle and asks again later; nothing is cancelled.
@@ -1047,15 +1056,24 @@ def cycle_admission(**admit_kwargs) -> dict:
         decision = {"job_class": "sim_run", "admitted": False,
                     "reason": f"the admission check raised {type(exc).__name__}: {exc}"}
     if decision["admitted"] and decision.get("long_jobs"):
+        jobs = decision["long_jobs"]
         named = "; ".join(
-            f"{j['unit']} declared {j['peak_mb']:.0f} MB, pid(s) {', '.join(str(p) for p in j['pids'])}"
-            f"{resource_headroom._overrun_note(j)}"
-            for j in decision["long_jobs"])
-        decision = {**decision, "admitted": False, "reason": (
-            f"yielding to a resident long job ({named}): the declared arithmetic fits "
-            f"({decision['committed_mb']:.0f}+{decision['weight_mb']:.0f} <= "
-            f"{decision['budget_mb']:.0f} MB) but cannot see undeclared residents, and a cycle "
-            f"is the cheaper thing to defer")}
+            f"{j['unit']} declared {j['peak_mb']:.0f} MB, holds {j.get('resident_mb', 0):.0f} MB, "
+            f"pid(s) {', '.join(str(p) for p in j['pids'])}{resource_headroom._overrun_note(j)}"
+            for j in jobs)
+        growth = sum(max(0.0, j["peak_mb"] - float(j.get("resident_mb") or 0)) for j in jobs)
+        left = decision["available_mb"] - growth - decision["weight_mb"] - LATE_ARRIVAL_MB
+        sums = (f"{decision['available_mb']:.0f} MB available - {growth:.0f} MB long-job growth "
+                f"still to come - {decision['weight_mb']:.0f} MB cycle - {LATE_ARRIVAL_MB} MB "
+                f"late arrival = {left:.0f} MB")
+        if left < resource_headroom.RESERVE_FOR_UNDECLARED_MB:
+            decision = {**decision, "admitted": False, "reason": (
+                f"yielding to a resident long job ({named}): {sums}, under the "
+                f"{resource_headroom.RESERVE_FOR_UNDECLARED_MB} MB floor")}
+        else:
+            decision = {**decision, "reason": (
+                f"{decision['reason']}; beside a resident long job ({named}): {sums}, over the "
+                f"{resource_headroom.RESERVE_FOR_UNDECLARED_MB} MB floor")}
     if decision["admitted"]:
         # FIRST IN, FIRST OUT: refused by the hold, the runner takes its place in the landings
         # register, and landings that register after it wait behind it (2026-11-08: a stream of

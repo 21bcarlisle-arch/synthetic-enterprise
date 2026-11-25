@@ -537,14 +537,16 @@ def test_a_cycle_defers_beside_a_declared_long_job_and_names_the_pids_it_yields_
     assert receipts == [deferred]
 
 
-@pytest.mark.parametrize("weight_mb", [1024, 7066, 13824])
+@pytest.mark.parametrize("weight_mb", [7066, 13824])
 def test_a_cycle_yields_to_an_ab6_pass_whatever_sim_run_is_declared_at(tmp_path, monkeypatch, weight_mb):
     """THE DEFECT: the deferral beside a long job rested on a stale 13,824 MB weight. At an honest
     ~7 GB, an 11,200 MB ab6 pass plus a cycle fits the budget, and the undeclared third resident
-    that killed 19:07Z is invisible to the arithmetic. So the yield is a stated rule, and this
-    holds it at any weight -- including one small enough that admit() alone certainly admits.
+    that killed 19:07Z is invisible to the arithmetic. So the yield must not rest on the weight.
 
-    Fires on: cycle_admission dropping the yield (the 1024 and 7066 legs admit)."""
+    (A 1,024 MB leg used to be here. Under the measured rule it admits -- 18,000 - 7,500 growth -
+    1,024 - 5,325 late arrival leaves 4,151 MB -- and that is correct, not a regression.)
+
+    Fires on: cycle_admission dropping the yield (the 7066 leg admits)."""
     import json
 
     monkeypatch.setattr(sim_runner, "log", lambda m: None)
@@ -559,6 +561,46 @@ def test_a_cycle_yields_to_an_ab6_pass_whatever_sim_run_is_declared_at(tmp_path,
 
     assert not decision["admitted"], decision["reason"]
     assert "longjob-ab5-runa2b.service" in decision["reason"] and "1033543" in decision["reason"]
+
+
+def _the_etarms_box(tmp_path, *, arm_holds_mb):
+    """2026-11-25 20:5xZ, measured: one etarms arm (declared 7,500 MB, measured peaks 5.3-6.4 GB by
+    its unit summaries) of a twelve-arm serial driver, 18,311 MB available on a 24,034 MB guest."""
+    import json
+
+    box = _the_1907z_box(tmp_path, leg_running=False)
+    box["launch_records_path"].write_text(json.dumps([{
+        "job": "etarms-s3", "unit": "longjob-etarms-s3", "claim": "live", "peak_mb": 7500.0,
+    }]), encoding="utf-8")
+    box["meminfo_path"].write_text(f"MemTotal: {24034 * 1024} kB\nMemAvailable: {18311 * 1024} kB\n",
+                                   encoding="utf-8")
+    box["residents"] = [{"pid": 2989110, "rss_mb": arm_holds_mb, "unit": "longjob-etarms-s3.service",
+                         "command": "python3 -m tools.per_customer_switch_arms"}]
+    return box
+
+
+def test_a_cycle_beside_a_long_job_runs_when_measured_room_holds_its_growth_and_a_late_arrival(
+        tmp_path, monkeypatch):
+    """THE DEFECT (2026-11-25): the yield to any resident long job was unconditional, so a serial
+    driver of twelve 75-minute arms held the book ~24 hours on a box with 18 GB free.
+
+    The partition, on one box: with the arm holding 3,016 MB (its growth still to come is 4,484),
+    18,311 - 4,484 - 7,066 - 5,325 = 1,436 MB is over the floor and the cycle runs. With the arm just
+    launched (holding nothing, all 7,500 still to come) it leaves -1,580 MB and the cycle yields.
+
+    Fires on: the yield left unconditional (the 3,016 leg defers); growth counted as the whole
+    declared peak (the 3,016 leg defers); growth not counted at all (the 0 leg runs); the late-
+    arrival margin dropped (the 0 leg runs: 18,311 - 7,500 - 7,066 = 3,745)."""
+    monkeypatch.setattr(sim_runner, "log", lambda m: None)
+    monkeypatch.setattr(sim_runner.resource_headroom, "record_deferral", lambda d: None)
+    monkeypatch.setattr(sim_runner.resource_headroom, "landing_hold_reason", lambda **k: None)
+
+    runs = sim_runner.cycle_admission(**_the_etarms_box(tmp_path, arm_holds_mb=3016.0))
+    yields = sim_runner.cycle_admission(**_the_etarms_box(tmp_path, arm_holds_mb=0.0))
+
+    assert runs["admitted"] and not yields["admitted"], (runs["reason"], yields["reason"])
+    assert "longjob-etarms-s3.service" in runs["reason"] and "1436 MB, over" in runs["reason"]
+    assert "2989110" in yields["reason"] and "under the 1024 MB floor" in yields["reason"]
 
 
 def test_a_cycle_on_an_empty_box_runs_and_leaves_no_receipt(tmp_path, monkeypatch):

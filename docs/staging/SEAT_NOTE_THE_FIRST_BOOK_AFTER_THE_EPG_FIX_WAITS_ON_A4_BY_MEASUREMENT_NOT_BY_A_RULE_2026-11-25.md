@@ -77,3 +77,28 @@ Nothing new is owed until A4 exits (expected by ~18:08Z).
 - This re-draw changes nothing. The 05:25Z prediction stands: the first cycle after A4 exits
   (expected by about 18:08Z) logs `Starting` or `admitted`, with no `DEFERRED` line. The item is
   handed on with a time gate after that.
+
+## 20:5xZ (worker tick): A4 exited and the prediction is refuted. The yield is the defect, now fixed at its class
+
+- **The prediction was wrong.** A4 ended (journal: 10 h 54 min wall, 11.1G memory peak, 980M swap
+  peak). No cycle admitted after it. Every cycle from then to 20:41Z deferred on the same yield,
+  now naming `longjob-etarms-driver.service` and its current arm. That driver is the six-seed
+  ending-term prereg: twelve 75-minute arms, run in series, each about 100 minutes measured. Nine
+  arms remained at 20:36Z, so the unconditional yield would have held the book until about midday
+  on 26 Nov.
+- **Measured, the box has room.** MemAvailable was 18,311 MB. The current arm holds 3,016 MB PSS
+  against 7,500 declared. Finished arms peaked at 5.3, 5.6 and 6.4G, from their unit summaries.
+- **The fix** (`background/sim_runner.py::cycle_admission`). Beside a resident long job, a cycle
+  runs only if this leaves at least the 1,024 MB floor: MemAvailable, less each long job's growth
+  still to come (its declared peak less its PSS now), less the cycle's weight, less
+  `LATE_ARRIVAL_MB` = 5,325. The 5,325 is 19:07Z's third worker. It arrived after that cycle had
+  started, when MemAvailable read 18,000 MB, so no reading taken at the start could see it.
+  `running_long_jobs` now carries `resident_mb`. On the live box the rule reads
+  18,311 − 4,772 − 7,066 − 5,325 = 1,148 MB, over the floor, so the cycle admits. The 19:07Z box
+  still yields: 18,000 − 6,745 − 7,066 − 5,325 = −1,136.
+- **Controls.** There is a partition test on tonight's box: the arm holding 3,016 MB admits, the
+  same arm just launched yields. Four mutations were run and each went red: the yield left
+  unconditional, growth counted as the whole peak, growth ignored, and the late-arrival margin
+  dropped. One leg of the old yield test, the 1,024 MB weight, asserted the old rule, and it is
+  removed with the reason stated in place.
+- **Still owed:** the book itself, then the bills grade and `domain_invariants` on it.
