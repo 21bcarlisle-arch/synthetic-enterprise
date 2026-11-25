@@ -44,7 +44,7 @@
    "question": "For accounts opened under the price cap, does sizing the first direct debit from an estimate beat waiting for the first bill?",
    "status": "held",
    "finding": "Once a fabric premise's registry EAC is its own reads in the record the DD opening reads, the estimate beats the first bill on the households opened under the price cap: the matched mean change in distance from square goes negative, with a 95% interval that excludes zero.",
-   "why_this_status": "a prediction filed on 2026-10-01, before the run, which the run did not refute: across 95 matched accounts the estimate moved the direct debit £154.50 closer to the bill on average (95% interval £61.50 to £236.08 closer), on the billed clock",
+   "why_this_status": "a prediction filed on 2026-10-01, before the run, which the run did not refute: across 285 matched accounts the estimate moved the direct debit £197.55 closer to the bill on average (95% interval £157.96 to £236.07 closer), on the billed clock",
    "dated": "2026-10-01",
    "source": "site/data/dd_opening_arms.json",
    "page": "../capabilities/#dd-opening"

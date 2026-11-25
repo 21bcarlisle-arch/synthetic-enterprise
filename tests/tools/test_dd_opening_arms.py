@@ -11,6 +11,7 @@ from tools.dd_opening_arms import (
     _basis_and_rate_by_customer,
     _matched_window0,
     _split_credit_debit,
+    accounts_from_bills,
     basis_precedence_view,
     build_arm,
     closed_supply_points,
@@ -433,7 +434,8 @@ def test_the_filed_predictions_verdict_follows_the_interval_and_every_verdict_is
 
 
 def _monthly(cid: str, n: int) -> list[dict]:
-    return [{"customer_id": cid, "period_end": f"{2020 + i // 12:04d}-{i % 12 + 1:02d}-28",
+    return [{"customer_id": cid, "period_start": f"{2020 + i // 12:04d}-{i % 12 + 1:02d}-01",
+             "period_end": f"{2020 + i // 12:04d}-{i % 12 + 1:02d}-28",
              "total_amount_gbp": 50.0, "payment_channel": "direct_debit"} for i in range(n)]
 
 
@@ -472,3 +474,32 @@ def test_each_earlier_claim_published_a_difference_its_like_for_like_rerun_canno
         rlo, rhi = r["mean_change_in_abs_drift_ci95_gbp"]
         assert rlo <= r["mean_change_in_abs_drift_gbp"] <= rhi and rlo < 0 < rhi, c
         assert c["published_on"] < c["withdrawn_on"] and c["the_words"] and c["why"]
+
+
+def test_every_billed_account_is_placed_from_its_own_bills_and_never_from_a_fresh_draw():
+    """DEFECT: the cohort split graded a prediction over the accounts a fresh draw could place.
+
+    On 2026-10-07, 60 of 129 matched households were absent from a fresh `live_population()`,
+    so the cap cohort shrank from 95 to 18. The opening date each account was placed by must
+    be the one its own bills carry, and the earliest of them. Mutating `<` to `>` in
+    `accounts_from_bills`, or reading `period_start` ahead of `account_held_from`, turns this red.
+    """
+    bills = [
+        {"customer_id": "P", "account_held_from": "2018-06-01", "period_start": "2018-06-01",
+         "commodity": "gas"},
+        {"customer_id": "P", "account_held_from": "2018-06-01", "period_start": "2018-07-01",
+         "commodity": "gas"},
+        {"customer_id": "Q", "account_held_from": "2020-02-14", "period_start": "2020-03-01",
+         "commodity": "electricity"},
+        {"customer_id": "R", "period_start": "2021-05-01"},
+        {"customer_id": "R", "period_start": "2021-04-01"},
+    ]
+    rows = {r["customer_id"]: r for r in accounts_from_bills(bills)}
+    assert set(rows) == {"P", "Q", "R"}
+    assert rows["P"]["acquisition_date"] == "2018-06-01" and rows["P"]["commodity"] == "gas"
+    assert rows["Q"]["acquisition_date"] == "2020-02-14"
+    assert rows["R"]["acquisition_date"] == "2021-04-01"
+    basis = _basis_and_rate_by_customer(list(rows.values()), {"P": 9000.0, "Q": 2700.0})
+    # Both sides of the cap boundary are reachable from bills alone.
+    assert basis["P"]["has_published_rate"] is False
+    assert basis["Q"]["has_published_rate"] is True and basis["R"]["has_published_rate"] is True

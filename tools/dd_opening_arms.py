@@ -23,13 +23,13 @@ both arms are pure functions of one run's issued bills, and running the ~100-min
 twice would add nondeterminism rather than fidelity: the two runs would differ in committee
 decisions before they differed in direct debits, and the diff would be unattributable.
 
-THE CONTROL THAT MAKES THE FLAT ARM TRUSTWORTHY
------------------------------------------------
-`docs/reports/run_output_latest.json` was produced on 2026-09-01, BEFORE the organ landed. Its
-own `dd_balance_book` and `annual_dd_review` therefore ARE the flat arm as the real run computed
-it. `--check-flat-reproduces` re-derives the flat arm here and compares. If it does not
-reproduce, the reconstruction is wrong and every number this module prints is void -- which is
-why the check runs first and its verdict is printed above the diff.
+THE CONTROL THAT MAKES THE ARMS TRUSTWORTHY
+-------------------------------------------
+The arm sized the way the run sized its openings must reproduce the run's own `dd_balance_book`
+and `annual_dd_review` byte for byte: the flat arm on a pre-organ substrate, the estimate arm on
+every run since. Both arms are built with the run's own book terms (`run_book_terms`), and every
+account is placed from the run's own bills (`accounts_from_bills`), never a fresh population
+draw. If the matching arm does not reproduce, every number this module prints is void.
 
 THE EPISTEMIC WALL
 ------------------
@@ -39,11 +39,13 @@ run uses, fed the same registration facts. The household's realised annual consu
 parameter of anything in this file.
 
 USAGE
-    python3 -m tools.dd_opening_arms --json docs/reports/dd_opening_arms.json
+    python3 -m tools.dd_opening_arms --json docs/reports/dd_opening_arms.json \\
+        --publish site/data/dd_opening_arms.json   # reads the TRACKED run_output_latest.json.gz
 """
 from __future__ import annotations
 
 import argparse
+import gzip
 import hashlib
 import json
 from datetime import date
@@ -51,7 +53,10 @@ from pathlib import Path
 from typing import Any, Mapping
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_RUN_OUTPUT = REPO_ROOT / "docs" / "reports" / "run_output_latest.json"
+#: The TRACKED copy. The plain `.json` beside it is untracked and rewritten by every run, so
+#: an artefact citing it cannot be reproduced once it moves (2026-10-07: the cited file was
+#: gone). The digest recorded is of the decompressed bytes.
+DEFAULT_RUN_OUTPUT = REPO_ROOT / "docs" / "reports" / "run_output_latest.json.gz"
 DEFAULT_ARTEFACT = REPO_ROOT / "docs" / "reports" / "dd_opening_arms.json"
 
 #: The three run-output keys the opening rule can reach, from the call-site read
@@ -207,7 +212,8 @@ def closed_supply_points(payload: Mapping[str, Any], bills: list[dict]) -> tuple
 
 def build_arm(bills: list[dict], opening_for_book: Mapping[str, float],
               opening_for_review: Mapping[str, float],
-              closed_ids: set[str] | None = None) -> dict:
+              closed_ids: set[str] | None = None,
+              book_terms: Mapping[str, Any] | None = None) -> dict:
     """The three DD run-output keys, exactly as `run_phase4c_on_phase2b.main()` builds them.
 
     Exactly only when `closed_ids` is the run's own closure set: the run passes it to both the
@@ -215,11 +221,14 @@ def build_arm(bills: list[dict], opening_for_book: Mapping[str, float],
     """
     from company.interfaces.dd_review import annual_dd_review_view
     from simulation.dd_balance_book import build_dd_balance_book
-    from simulation.dd_level_collection_book import build_dd_level_collection_book
+    from simulation.dd_level_collection_book import (
+        build_dd_level_collection_book,
+        supply_starts,
+    )
 
     review = annual_dd_review_view(bills, dict(opening_for_review), closed_ids)
-    book = build_dd_balance_book(bills, dict(opening_for_book), closed_ids)
-    level = build_dd_level_collection_book(book)
+    book = build_dd_balance_book(bills, dict(opening_for_book), closed_ids, **(book_terms or {}))
+    level = build_dd_level_collection_book(book, supply_starts(bills))
     return {
         "annual_dd_review": review,
         "dd_balance_book": book.serialise(),
@@ -434,6 +443,25 @@ def per_account_comparison(flat_arm: dict, est_arm: dict,
             basis_resolved["not_in_population"] = (
                 basis_resolved.get("not_in_population", 0) + 1)
 
+    matched_all = _matched_window0(flat_w, est_w)
+    by_cohort = {
+        name: _matched_window0(
+            {c: w for c, w in flat_w.items()
+             if c in basis and basis[c]["has_published_rate"] is capped},
+            {c: w for c, w in est_w.items()
+             if c in basis and basis[c]["has_published_rate"] is capped})
+        for name, capped in (("opened_before_the_price_cap", False),
+                             ("opened_under_the_price_cap", True))
+    }
+    # ONE PARTITION. The cohorts must account for every matched household; an account the
+    # basis pass could not place is in neither and would silently shrink both.
+    n_in_cohorts = sum(v.get("n_matched_accounts", 0) for v in by_cohort.values())
+    by_cohort["partition"] = {
+        "n_matched_accounts": matched_all.get("n_matched_accounts", 0),
+        "n_in_a_cohort": n_in_cohorts,
+        "holds": n_in_cohorts == matched_all.get("n_matched_accounts", 0),
+    }
+
     return {
         "n_customers_with_opening": {"flat": len(flat_open), "estimate": len(est_open)},
         "n_same_opening_amount_to_the_penny": len(same_amount),
@@ -470,20 +498,12 @@ def per_account_comparison(flat_arm: dict, est_arm: dict,
         # block holds the population fixed, so only this block can attribute a
         # difference to the opening rule. The unmatched pair is kept beside it
         # because it is what each arm would actually publish.
-        "window0_end_balance_drift_matched_population": _matched_window0(flat_w, est_w),
+        "window0_end_balance_drift_matched_population": matched_all,
         # The same matched figure split by whether a GB price cap was published on the day
         # the account opened (the cap began in January 2019). The two cohorts reached the
         # estimate arm by different routes, and the pre-registered prediction of 2026-10-01
-        # is stated over the capped one. An account with no basis row is in neither.
-        "window0_matched_by_opening_cohort": {
-            name: _matched_window0(
-                {c: w for c, w in flat_w.items()
-                 if c in basis and basis[c]["has_published_rate"] is capped},
-                {c: w for c, w in est_w.items()
-                 if c in basis and basis[c]["has_published_rate"] is capped})
-            for name, capped in (("opened_before_the_price_cap", False),
-                                 ("opened_under_the_price_cap", True))
-        },
+        # is stated over the capped one. `partition` says whether they sum to the whole.
+        "window0_matched_by_opening_cohort": by_cohort,
         "all_window_end_balance_drift": {
             "flat": _split_credit_debit(
                 [v for w in flat_w.values() for v in w.values()]),
@@ -497,16 +517,56 @@ def per_account_comparison(flat_arm: dict, est_arm: dict,
 # Entry
 # ---------------------------------------------------------------------------
 
+def accounts_from_bills(bills: list[dict]) -> list[dict]:
+    """Each billed account as the basis pass needs it, read from the RUN'S OWN BILLS.
+
+    Until 2026-11-25 this list came from a fresh `live_population() +
+    successor_supply_points()` drawn in this process. The run's book is not what a fresh
+    draw produces: on 2026-10-07, 60 of 129 matched accounts had no basis row, so the
+    cap-cohort split counted 83 accounts and graded the filed prediction over the 18 the
+    instrument could place. A bill's `account_held_from` is the opening date both parties
+    hold, and its `commodity` is the supply point's, so neither needs a draw.
+    """
+    out: dict[str, dict] = {}
+    for b in bills:
+        cid = b.get("customer_id")
+        opened = b.get("account_held_from") or b.get("period_start")
+        if not cid or not opened:
+            continue
+        row = out.setdefault(cid, {"customer_id": cid, "acquisition_date": opened,
+                                   "commodity": b.get("commodity", "electricity")})
+        if opened < row["acquisition_date"]:
+            row["acquisition_date"] = opened
+    return list(out.values())
+
+
+def run_book_terms(payload: Mapping[str, Any]) -> dict:
+    """The terms the run handed `build_dd_balance_book` beyond bills, openings and closures.
+
+    An arm built without them is not the run's book: on the 18 Nov substrate the bare
+    rebuild missed 92 dual-fuel offsets and every off-DD spell, so neither arm reproduced it.
+    """
+    from simulation.dd_balance_book import dd_spells_from_run, forecast_inputs_from_run
+    from simulation.run_phase4c_on_phase2b import dual_fuel_offset_request
+
+    return {**forecast_inputs_from_run(payload),
+            "dd_spells": dd_spells_from_run(payload),
+            "offsets_dual_fuel_legs": dual_fuel_offset_request(None)}
+
+
+def _read_substrate(run_output_path: Path) -> bytes:
+    raw = run_output_path.read_bytes()
+    return gzip.decompress(raw) if run_output_path.suffix == ".gz" else raw
+
+
 def run(run_output_path: Path) -> dict:
-    payload = json.loads(run_output_path.read_text())
+    substrate = _read_substrate(run_output_path)
+    payload = json.loads(substrate)
     bills = payload.get("bills") or []
     if not bills:
         raise SystemExit(f"{run_output_path} carries no bills; nothing to run two arms over")
 
-    from company.interfaces.supply_book import successor_supply_points
-    from simulation.live_population import live_population
-
-    customers = live_population() + successor_supply_points()
+    customers = accounts_from_bills(bills)
 
     flat_for_book = flat_opening_by_customer(bills, direct_debit_only=True)
     flat_for_review = flat_opening_by_customer(bills, direct_debit_only=False)
@@ -515,16 +575,17 @@ def run(run_output_path: Path) -> dict:
         customers, payload.get("opening_registry_kwh_by_customer"))
 
     closed, closure_basis = closed_supply_points(payload, bills)
-    flat_arm = build_arm(bills, flat_for_book, flat_for_review, closed)
-    est_arm = build_arm(bills, est_open, est_open, closed)
+    terms = run_book_terms(payload)
+    flat_arm = build_arm(bills, flat_for_book, flat_for_review, closed, terms)
+    est_arm = build_arm(bills, est_open, est_open, closed, terms)
 
-    # The control, run and reported BEFORE any diff: does the reconstructed flat
-    # arm reproduce the book the pre-organ run actually published?
-    published_flat = {k: payload.get(k) for k in ("annual_dd_review", "dd_balance_book")}
+    # The control, run and reported BEFORE any diff: does the arm that uses the run's own
+    # openings reproduce the book the run published? On a pre-organ substrate that arm is
+    # the flat one; on every run since, the estimate. A NO voids every number below.
+    published = {k: payload.get(k) for k in ("annual_dd_review", "dd_balance_book")}
     reproduces = {
-        k: published_flat[k] == flat_arm[k]
-        for k in published_flat
-        if published_flat[k] is not None
+        name: {k: published[k] == arm[k] for k in published if published[k] is not None}
+        for name, arm in (("flat", flat_arm), ("estimate", est_arm))
     }
 
     whole_flat = {k: v for k, v in payload.items()}
@@ -550,12 +611,13 @@ def run(run_output_path: Path) -> dict:
             # exactly what made it dangerous: the next honest republish would have
             # deleted a true provenance field and looked like the removal was
             # deliberate.
-            "substrate_sha256": hashlib.sha256(run_output_path.read_bytes()).hexdigest(),
+            "substrate_sha256": hashlib.sha256(substrate).hexdigest(),
+            "substrate_producing_commit": payload.get("producing_commit"),
             "n_bills": len(bills),
             "basis": "one-seed, two-arm; both arms are pure functions of these bills",
             "closure": closure_basis,
         },
-        "flat_arm_reproduces_the_published_pre_organ_book": reproduces,
+        "arm_reproduces_the_published_book": reproduces,
         "whole_run_output_diff": diff_run_outputs(whole_flat, whole_est),
         "per_account": per_account_comparison(
             flat_arm, est_arm, flat_for_book, est_open, basis),
@@ -875,9 +937,10 @@ def main(argv: list[str] | None = None) -> int:
 
     result = run(args.run_output)
 
-    print("FLAT ARM REPRODUCES THE PUBLISHED PRE-ORGAN BOOK:")
-    for k, v in result["flat_arm_reproduces_the_published_pre_organ_book"].items():
-        print(f"  {k}: {'YES' if v else 'NO'}")
+    print("ARM REPRODUCES THE PUBLISHED BOOK:")
+    for arm, keys in result["arm_reproduces_the_published_book"].items():
+        for k, v in keys.items():
+            print(f"  {arm} {k}: {'YES' if v else 'NO'}")
 
     # A bare NO cannot tell the reader WHICH failure they are looking at, and the two have
     # opposite repairs: a wrong reconstruction means this module's numbers are void, while a

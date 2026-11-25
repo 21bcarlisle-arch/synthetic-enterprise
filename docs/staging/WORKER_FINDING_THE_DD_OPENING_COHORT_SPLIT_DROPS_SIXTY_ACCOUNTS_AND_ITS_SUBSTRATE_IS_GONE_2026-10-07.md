@@ -51,3 +51,23 @@ Read each account's opening date from the run output itself (its first bill's `p
 held by both parties), not from a fresh draw. Then republish both artefacts from a TRACKED substrate,
 and re-grade the 2026-10-01 prediction. The control is one partition: the two cohorts' n must sum to the
 matched n. Today 65 + 18 = 83 against 129.
+
+## Resolution (worker, 2026-11-25)
+
+- **Defect 2.** Every account is now placed from the run's own bills (`accounts_from_bills`: the
+  earliest `account_held_from` and the bill's `commodity`), not from a fresh draw. EAC comes from
+  the run's `opening_registry_kwh_by_customer`. `window0_matched_by_opening_cohort.partition`
+  states whether the two cohorts add up to the matched n. On the republished substrate they do:
+  645 + 285 = 930.
+- **A third defect found while fixing it.** The arms built the book without the run's own terms
+  (forecast inputs, off-DD spells, dual-fuel offsets), so on a current substrate *neither* arm
+  reproduced the run's book. The bare rebuild had no dual-fuel offsets where the run had 92. With
+  `run_book_terms`, the estimate arm (the one sized the way the run sizes openings) reproduces
+  `dd_balance_book` and `annual_dd_review` exactly. The control now reports both arms.
+- **Defect 1.** The default substrate is the tracked `docs/reports/run_output_latest.json.gz`
+  (producing commit `6af7fd0bfd`, decompressed sha256 `f2c35f2e…`), and its producing commit is
+  recorded in `clock`.
+- **Re-grade of the 2026-10-01 prediction:** it **held**. Over 285 matched cap-era households the
+  matched mean change in |drift| is −£197.55, 95% interval [−236.07, −157.96]. The 18-account
+  "refuted" reading of 7 Oct was produced by the instrument (which accounts it could place), as
+  explanation 1 said.
