@@ -92,3 +92,67 @@ only be downward.**
 - `rm -r /var/tmp/vtn-out/ep1`
 - `git worktree remove /var/tmp/value-test-ep1`
 - revert this file.
+
+## 6. The grade (25 Nov 2026, from `/var/tmp/vte-driver/grade_ep1.out`, written 14:02Z)
+
+The run finished on both seeds (`/var/tmp/vtn-out/ep1/`, producing commit `3872eb0c28`, the patched
+`/var/tmp/value-test-ep1` tree). The grader was unchanged from the pinned `grade_ep1.py`.
+
+- **V1: HOLDS.** 0 control-arm households' net moved, and 0 seeds' control decisions differ.
+- **V2: HOLDS.** All 266 value-arm renewals dated before 2023-10-01 are decided exactly as A's, and
+  so are all 1,320 scored decisions. **The run is VALID** as a one-variable arm.
+- **P1: REFUTED, on the direction leg.**
+  - The share leg held: 24 of 324 shadow-priced renewals moved, which is 0.074. That is inside 0.25
+    and also inside the point guess of under 0.10.
+  - The direction leg failed: **4 moved up** (+£0.25/MWh) and 20 down. The moves ran from −0.50 to
+    +0.25 £/MWh. The up-moves were PROS-2023-0273 (seed 13131), and PROS-2023-0350, SYN-2016-550 and
+    PROS-2020-0022 (seed 14141).
+  - §2's "a move can only be downward" is therefore wrong.
+  - The shadow is sound. For every one of the 24 terms, its flat-rate margin equals the margin A's own
+    run logged for that term (`renewal_decisions_by_arm`). The dated margin is the one that was
+    contracted (`unit_rate_contracted` = `unit_rate_after`).
+- **P2: STRADDLE, but degenerate.** ep1 − A whole advantage is **+£0.000 [+0.000, +0.000]** on 0
+  moved units. Not one value-arm household's net differs from A's, even to the penny, although 22 of
+  the 24 moved terms were retained households billed through the term.
+  - The mechanical prediction (under £0.10) holds trivially.
+  - The interval contains only zero, so it does not "span" zero in the sense meant. **P2 is not
+    evidence that the dated rate makes no decision difference.** It is evidence that the decisions
+    it moved do not reach a bill.
+
+**Why the gap is exactly zero.** This is the leading explanation, from the code. I have not confirmed
+it term by term.
+
+- All 24 moved offers are far above any 2023–25 default: 30–44 p/kWh for electricity and 15–25 p/kWh
+  for gas, ex VAT.
+- In the world, a household offered a fix above its default does not take the fix. It stays on the
+  default and is billed the default (SLC 22C, as written at `company/pricing/value_based_renewal.py`
+  around line 936).
+- A ±£0.25/MWh change to an offer that nobody contracts at leaves the bill unchanged. The change to
+  P(stay) on the offer is too small to cross either churner's roll (0.82 and 0.67 against p ≈ 0.03).
+- On this policy the value arm does not know this. `renewal_stayer_pays_at_most_default` is `True`
+  only on `value_arm_capped` (`company/pricing/decision_policy.py:499`). So the arm scores margin
+  that no stayer pays, which the code comment there puts at about 90% of its renewals. The dated rate
+  acts entirely inside that region.
+
+**What §4 now says.** The branch "P1 REFUTED, with an upward move" applies, and it outranks STRADDLE.
+
+- No arm takes `renewal_discount_rate_dated=True` until the defect finding on `decide_margin` is
+  resolved:
+  `SEAT_FINDING_THE_DATED_RATE_MOVES_FOUR_VALUE_ARM_MARGINS_UP_AND_NONE_OF_ITS_MOVES_REACH_A_BILL_2026-11-25.md`.
+- The knowledge case for the dated rate still stands. 12.3% is sourced for post-Oct-2023 terms, and
+  0.10 is not.
+- What is withheld is adoption in an arm whose objective has a known mis-specification on exactly
+  the decisions the switch moves.
+- The standing switch stays off.
+
+**Prediction scorecard (kept beside the claim):**
+
+| Prediction | Result |
+|---|---|
+| Moved share under 0.10 | Right (0.074) |
+| No upward move | Wrong (4 moved up) |
+| A gap within ±0.50 | Right, but vacuously |
+| Gap sign negative, low confidence | Untestable: the gap is exactly 0 |
+
+What was not foreseen is that the moves would sit only on uncontracted above-default offers. I should
+have caught that from §2, because the stayer rule was already in the code.
