@@ -32,7 +32,7 @@ world's own answer at the offered rate, unscaled. The 0.20 it used to multiply i
 """
 from __future__ import annotations
 
-from simulation.customer_events import churn_roll_for_renewal
+import simulation.customer_events as _customer_events
 from simulation.save_on_loss_notice import household_takes_save
 
 
@@ -76,7 +76,11 @@ def answer_retention_offer(full_event: dict, offered_event: dict, *,
     full-rate event's: comparing the company's pre-offer belief against a probability that already
     holds its own discount would make it look wrong exactly when the offer worked (Phase QA).
     """
-    roll = churn_roll_for_renewal(full_event["customer_id"], full_event["event_date"])
+    # Read through the MODULE, at call time. A by-name import bound the function at import, so the
+    # floor's churn-roll redraw (a `setattr` on `customer_events`) re-rolled the full-rate decision
+    # but not this one: an offered leaver was answered on an independent die and stayed at about
+    # P(stay), not at the offer's uplift (s.12g, 25 Nov finding).
+    roll = _customer_events.churn_roll_for_renewal(full_event["customer_id"], full_event["event_date"])
     p_full = full_event["effective_retention_probability"]
     p_offered = offered_event["effective_retention_probability"]
     stays = stays_at_offer(roll, p_full, p_offered, framing_multiplier)

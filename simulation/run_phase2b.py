@@ -26,6 +26,7 @@ from collections import defaultdict
 from datetime import date, datetime, time, timedelta
 
 import sim.risk_committee_agent as risk_committee_agent
+import simulation.customer_events as _customer_events
 import simulation.dd_shock_response as _dd_shock_response
 import simulation.payment_method_dynamics as _method_dynamics
 import simulation.world_payment_truth as _world_payment_truth
@@ -184,7 +185,6 @@ from simulation.customer_events import (
     DEPARTURE_OCCASION_SVT_SEGMENT,
     RENEWAL_CHURNED,
     RENEWAL_DECLINED_FIX,
-    churn_roll_for_renewal,
     declined_fix_event,
     departure_decision_leg,
     departure_event,
@@ -5150,7 +5150,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _saved = _asked is not None and (
                     _asked["event_type"] == "renewed" if _save_scale == 1.0
                     else household_takes_save(
-                        churn_roll_for_renewal(billing_account, term_start_str),
+                        _customer_events.churn_roll_for_renewal(billing_account, term_start_str),
                         event["effective_retention_probability"],
                         _asked["effective_retention_probability"], _save_scale))
                 save_on_loss_notice_log.append({
@@ -5696,7 +5696,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     else:
                         _p_carried = (_renewal_event_this_term or {}).get(
                             "effective_retention_probability")
-                        _next_roll = churn_roll_for_renewal(
+                        _next_roll = _customer_events.churn_roll_for_renewal(
                             billing_account, _next_renewal_str[:10])
                     move_with_us_log[-1].update({
                         "take_up_scale": _move_with_us_k,

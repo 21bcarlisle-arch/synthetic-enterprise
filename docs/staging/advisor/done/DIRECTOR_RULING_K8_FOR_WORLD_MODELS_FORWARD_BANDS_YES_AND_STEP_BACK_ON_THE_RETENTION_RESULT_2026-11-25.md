@@ -51,3 +51,13 @@ closed `no`. Its work is handed off as
 `the-retention-result-decomposed-and-checked-against-reality`, due 27 Nov. This file stays here until
 that answer lands, because its three questions are open in the question register. A reader drawing
 this file should do part 3 and nothing else.
+
+## Done
+
+Part 3 answered 25 Nov from the s.12g records; no run launched. The decomposition, cause, thesis and a re-grade
+proposal (predictions filed) are in
+`docs/staging/SEAT_FINDING_AN_OFFERED_LEAVER_IS_ANSWERED_ON_A_DIE_THE_FLOOR_DID_NOT_REDRAW_2026-11-25.md`. The
+knowledge check is `docs/market_research/what_happens_at_the_end_of_a_fix_and_whether_the_world_does_it_2026-11-25.md`.
+In short: offering less should make more money, and the world's stated physics agrees. The run said otherwise
+because an offer was answered on a die the noise floor did not re-draw (`simulation/retention_offer.py`, fixed).
+The three questions are closed in `docs/observability/open_question_register.json`.
