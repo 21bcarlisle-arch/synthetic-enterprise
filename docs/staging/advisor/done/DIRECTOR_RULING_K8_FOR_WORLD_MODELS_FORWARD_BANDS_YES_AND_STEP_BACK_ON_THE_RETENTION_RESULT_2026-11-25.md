@@ -61,3 +61,5 @@ knowledge check is `docs/market_research/what_happens_at_the_end_of_a_fix_and_wh
 In short: offering less should make more money, and the world's stated physics agrees. The run said otherwise
 because an offer was answered on a die the noise floor did not re-draw (`simulation/retention_offer.py`, fixed).
 The three questions are closed in `docs/observability/open_question_register.json`.
+
+Decision: none -- his words answer three for_the_director rows, each coded on its row when parts 1-3 were actioned (11a4387c6: yes, yes, no); coding this file as well would count them twice
