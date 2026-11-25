@@ -76,6 +76,7 @@ from saas.ledger import (
     make_broker_commission_event,
     make_cost_to_serve_event,
     make_dd_back_billing_write_off_event,
+    make_epg_receipt_event,
     make_read_visit_cost_event,
 )
 
@@ -100,6 +101,27 @@ class AccountingClose:
     events: list[dict[str, Any]]
     pnl: dict[str, float]
     meta: dict[str, Any]
+
+
+def held_bill_epg_receipts(
+    bills: list[dict[str, Any]], held_bills: list[Any]
+) -> list[dict[str, Any]]:
+    """The Treasury's EPG receipt on each bill the issuance gate held, booked anyway.
+
+    The scheme paid the supplier on SETTLED volume, from settlement data reconciled to RF, and
+    never on the bill (`docs/market_research/default_tariff_cap_and_epg_on_the_bill.md`, "How the
+    supplier was paid"). A held bill withholds the household's charge, not the month's supply, so
+    its `epg_support_gbp` is cash the Treasury paid all the same. Booking it off issued bills only
+    lost GBP 1,338.06 on f2c6979d01's book: SYN-2016-175_3's Dec 2022 and Mar 2023 bills, held
+    by `vat_by_segment` (SEAT_FINDING_THE_EPG_GAP_IS_TWO_HELD_BILLS_2026-11-25.md).
+    """
+    held = {(h.customer_id, h.period_end) for h in held_bills}
+    return [
+        make_epg_receipt_event(b)
+        for b in bills
+        if (b.get("customer_id"), b.get("period_end")) in held
+        and (b.get("hmt_epg_receipt_gbp") or b.get("epg_support_gbp"))
+    ]
 
 
 def close_the_books(
@@ -163,6 +185,7 @@ def close_the_books(
             make_read_visit_cost_event(event["month"], event["amount_gbp"])
             for event in read_visit_cost_schedule(bills)
         ]
+        + held_bill_epg_receipts(bills, held_bills)
     )
 
     events = build_ledger(
