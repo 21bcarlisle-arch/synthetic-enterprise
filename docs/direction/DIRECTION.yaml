@@ -1,219 +1,206 @@
 version: 1
-oriented_at: '2026-11-25T06:21:46.417966+00:00'
-thesis_read: 'The stretch earned the inference half of the thesis on one atom, and the machine left origin red in
-  doing it. B11 M7 was graded against its pre-registration on six fresh books (95cec7822). Within segment, the corrected
-  forward-value key beats the segment''s flat value out of sample at the 2020 cut (+0.035) and the 2023 cut (+0.057),
-  and cannot tell at 2022. B11 moved to L3. That is the first held-back evidence that the supplier''s per-customer
-  view knows something a segment average does not, and it came from inference, not access. It is still not an advantage
-  over the flat-rules baseline. The belief is default off, and every retention gate on A''s belief has lost to the
-  twin (the director''s s-12g row). A ranking that beats the segment is not a decision that beats the twin, and
-  I do not claim the second. The promotion itself broke C-S5: B11 is L3 with no time-scale declaration, and the
-  operational-layer signal is RED persistent. A downstream disagreement with what just landed comes ahead of new
-  work, so it is focus 1. Billing: no book has published since 18 Nov. The book carrying the EPG fix is waiting
-  on A4 by measurement (73577018f), and A4 is due to end at about 18:08Z. The gas-AQ world fix (b3f3a23f6) and origin''s
-  collections-journey red (567288c03) are both now on origin, so that book is also the first to carry them. MSC
-  increment A (the company books the levy apart from acquisition spend) landed. B (the world charges it) is stranded
-  on a hand-off file that was never written. The commit split reads 0 supplier, 1 world, 1 both, 7 other. By content,
-  the B11 grade and MSC-A are supplier results, the gas AQ is world work on the billing path, and the rest are records
-  and one CfD primary-text read. The previous focus was both drawn: item 1 finished and leaves, and item 2 stays
-  because the book has not published.'
+oriented_at: "2026-11-25T12:23:07.430274+00:00"
+thesis_read: >-
+  The supplier moved a little against the thesis this stretch, by grading rather than building.
+  The ending-term belief passed Q1-Q6 on f2c6979d01 (conditioned 0.882 [0.840, 0.924]; Q1 came in
+  above its range, so it is graded refuted high, but its decision part held). This is the first
+  per-customer belief in a while that reads the leavers better than chance on a book it was not
+  built on. Its money test against the flat-rules twin, the baseline that matters, was
+  pre-registered (e6be5fec8, predicted to miss its rule at 65%) and is running now on six dice seeds.
+  So it is still true that NO per-customer arm has beaten the twin out of sample. A4 (EP1's dated
+  rate as a value arm, 9.5 GB) ends at about 18:08Z. The director's s-12g row still holds the
+  retention lever.
+
+  On billing, the leaver final-bill disagreement was resolved, and the WORLD was wrong, not the page
+  (a7778473f). No DD Instruction exists without a named payer, so 19 of the 23 bills were level cash
+  presented in unnamed-occupier months (GBP 27,134.55 over 137 legs). Four bills (GBP 74.63) are
+  unattributed. The value arm now refuses to read the payment score, with the knowledge written
+  first and the harm sized (abcc2f090). That is a reasoned no, not a lever. d48 held at SPAR 0.5.
+  Six of E1's seven estimate-against-meter breaches are summer estimates on electrically heated homes,
+  made on the profile-class shape. The exception covers them as lawful. But SLC 27.15 ranks the
+  account's own metered history FIRST, and SYN-2016-215 breaches in both 2021 and 2023, which means
+  it held earlier summers' reads. That is a per-customer inference the supplier is leaving unused,
+  so it leads the focus.
+
+  Still no book has published since 18 Nov (6af7fd0bfd). f2c6979d01 was built and graded five times,
+  but it never published. The book that carries the EPG, MSC and no-payer fixes waits on A4 by
+  measured memory, not by a rule.
+
+  The commit split was 1 supplier, 2 world, 14 other. By content, the world commit a7778473f is
+  billing evidence and four of the "other" commits are supplier grades, so the balance is better than
+  the label says, but supplier BUILDS were one.
+
+  Machine: the promotion race got its fix (5c8c74888, the base is read with the lock held). The one
+  later lost race (1795606115) was launched before that fix and waited on the fix's own landing, so
+  it cannot test it. Three executor landings died in 4 s on the NEXT trailer, and each relaunch
+  changed the message and landed. My own 09:20 record never reached origin: the push was remote-rejected
+  (d500f66c1 sits in /var/tmp/se-direction-seat), so origin still carries the 06:21 record. The
+  previous focus was drawn, 3 of 4. The-first-book-after-the-epg-fix-publishes was retired into a
+  continuation while its DONE (a published book) is unmet, so it returns to focus under the
+  continuation's id.
 stretch_reviewed:
-  since: '2026-11-25T03:23:47.668092+00:00'
-  commits: 9
-  substantive: 4
+  since: "2026-11-25T09:20:13.676616+00:00"
+  commits: 17
+  substantive: 7
 focus:
-- id: b11-l3-answers-c-s5-and-the-level-gate-selects-it
-  lane: B_commercial
-  side: supplier
-  what: 'Origin is red on tests/system/test_scale_constraints.py::test_cs5_every_company_side_l3_atom_has_answered_the_question
-    (and test_cs5_the_owed_population_is_derived_from_the_map_not_from_the_register), because 95cec7822
-    moved B11_forward_clv_backtested_on_held_back_history to L3 with no row in docs/design/TIME_SCALE_INVARIANCE_REGISTER.yaml.
-    (1) Read B11''s code path (the forward-CLV key and its held-back backtest at annual cuts) and write
-    ONE honest declaration: invariant true or false, with the statement saying what accumulates and against
-    which clock. If it is false, name the exception per R10. Do not write true to turn the test green.
-    (2) Find why the promotion commit''s gate did not select tests/system/test_scale_constraints.py when
-    docs/design/maturity_map.yaml changed level_current (tools/pre_commit_test_gate.py selection, or tools/level_promotion_gate.py).
-    Make a map level write select the C-S5 tests, with a mutation showing that a promotion without a declaration
-    is refused.'
-  why: The supplier's first held-back inference result is the evidence behind the thesis, and an L3 with
-    an unanswered C-S5 is a level the map cannot defend. A red origin also refuses landings on every path
-    the test selects, and the operational-layer signal pages on it. Done means both C-S5 tests pass on
-    origin, the declaration says something true about B11, and a level move without a declaration is refused
-    at commit time.
-  written_at: 1795587939.158
-- id: the-first-book-after-the-epg-fix-publishes
+- id: the-supplier-estimates-an-unread-month-from-the-accounts-own-history-first
   lane: D_billing_metering
   side: supplier
-  what: 'When A4 (longjob-a4-ep1-dated-rate-value-arm, due about 18:08Z) ends, confirm that sim-runner''s
-    next cycle logs admitted: for a book on an origin commit descending from b14889688, b3f3a23f6 and
-    567288c03. Do not stop A4. If the cycle defers after A4 has ended, name the rule in background/sim_runner.py
-    that refuses it and fix it at its class. When the book is built, run the publisher''s bills grade
-    (process_run_complete.billing_grade_refusal), INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER and company/compliance/domain_invariants.py.
-    On a refusal, list the breaches by account and fix the class with a mutation, never by widening an
-    exception. Read the published EPG paid-against-booked line.'
-  why: Billing accuracy is first in the director's order, and the site has shown 18 Nov for a week. This
-    book is the first to carry the EPG, gas-AQ and collections fixes together, and a fix is owed until
-    a book carrying it publishes. Done means a run_output on such a commit is published with the banner
-    on it, or its refusal is on the record with the gate, the breaches, and a fix or a filed finding.
-  written_at: 1795587939.158
-- id: msc-b-is-handed-its-landed-a
-  lane: W2_customer_generator
-  side: world
-  unblocks: the supplier's acquisition margin carrying the Market Stabilisation Charge that MSC-A books
-    (567288c03); nothing emits the event until B lands
-  what: 'MSC increment A is on origin as 567288c031, but /var/tmp/se-msc-split-A-landed.txt was never
-    written, so the continuation msc-b-the-world-charges-the-msc-on-a-replacement-win is held forever.
-    Verify that 567288c031 is an ancestor of origin/main, then write that file with the sha, so the continuation
-    becomes live. Then work B as WORKER_RECORD_LAND11_TIMED_OUT_AND_THE_MSC_LANDING_IS_SPLIT_IN_TWO_2026-11-25.md
-    section ''Increment B'' describes: the run_phase2b and run_phase4c hunks, with their gate under the
-    hour. Also file, against the fix row a-landing-loses-its-race-to-origin or a new class, why a landing
-    whose claim was swept writes no hand-off artefact.'
-  why: A split landing that never hands on its second half drops the half that changes a run. That is
-    the failure the split was meant to avoid. Done means B is on origin and a run books the MSC on replacement
-    wins, or B's refusal is on the record. The hand-off gap must have a named owner either way.
-  written_at: 1795587939.158
-- id: the-value-arm-renewal-price-reads-the-payment-score-or-says-why-not
-  lane: C_customer_ops
+  what: 'Read docs/staging/SEAT_FINDING_THE_ESTIMATE_AGAINST_THE_METER_ON_F2C6979D01_IS_7_OF_4250_AND_ONE_IS_A_GAS_AQ_EIGHT_TIMES_ITS_METER_2026-11-25.md
+    rows 1-6, the cause-(a) breaches: SYN-2016-215 x2, SYN-2016-221, SYN-2016-565, PROS-2017-0364 and
+    PROS-2016-0203. For each one, establish from run_output_f2c6979d01_20261124T215935Z whether the account
+    held actual reads for the same calendar months in an earlier year at the estimate''s date. Use only
+    what the company held then. Find the company/ estimate route that chose the profile-class shape over
+    those reads, and say why. Then amend docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md
+    s.5 (K8). It already says SLC 27.15 ranks the supplier''s own metered history first. Add how a supplier
+    turns prior same-month reads into a month''s estimate, and label as GAP what is not published. If
+    the route ignores history it held, build own-history-first behind a DecisionPolicy flag that defaults
+    off. Add a control that keeps the off arm bit-identical, and show a mutation that fires. Pre-register
+    the E1 count and the d48 electricity gap for the first book that has the flag on. Do not run an arm,
+    because the box belongs to A4 and the etarms seeds.'
+  why: Billing accuracy is first in the director's order, and this is per-customer inference in its plainest
+    form. The supplier billed a home at four times its real summer use while it held that home's own summers.
+    The lawful-tail exception hides it as a count. Done means one of two things is on origin. Either a
+    knowledge amendment, a default-off own-history flag with its control and mutation, and a pre-registration.
+    Or a finding that shows, account by account, that no earlier same-month read was held, which would
+    make the exception's reason right.
+  written_at: 1795609722.377
+- id: the-four-unattributed-final-bills-netted-past-the-page
+  lane: D_billing_metering
   side: supplier
-  what: 'Work docs/staging/WORKER_FINDING_THE_VALUE_ARM_RENEWAL_PRICE_STILL_READS_NO_PAYMENT_BEHAVIOUR_SCORE_2026-11-25.md.
-    First write the knowledge: what behaviour_score counts and what arrears_state counts for the same
-    account, and whether the score carries information beyond the state, from the code that builds each
-    and from Ofgem CIM w6 Table 56. Then do one of two things. Either forward behaviour_score from the
-    adapter call in company/pricing/value_based_renewal.py (about line 1575) behind a DecisionPolicy flag,
-    default off, whose off arm is bit-identical (with a control), or delete DISTRESS_SCORES with the named
-    reason.'
-  why: 'This is per-customer decisions, third in the director''s order. The value arm prices every renewal
-    as if no account had a payment history, while the churn belief reads one: the same customer is seen
-    two ways inside one supplier. It is drawable while the book waits on A4. Done means the finding is
-    closed with the knowledge written and either a default-off flag with a bit-identical control or a
-    deletion with its reason.'
-  written_at: 1795587939.158
+  what: a7778473f attributed 19 of the 23 switch-away final bills where the world nets past the page (unnamed-occupier
+    level cash). 4 bills (GBP 74.63) are left, named under G8.19 in docs/staging/records/SEAT_FINDING_THE_WORLD_PRESENTS_A_LEVEL_DD_BEFORE_A_PAYER_IS_NAMED_2026-11-25.md.
+    For each of the 4 on run_output_f2c6979d01, say what the world's credit_taken counts and what the
+    page nets. Then name the leg that differs, from the household's actual final statement under SLC 27
+    and the closing-account rules in docs/domain_artefact_library/. Fix the wrong writer as a class, with
+    a mutation that fires on the unfixed writer. If the 4 are one cause the next book must show, file
+    the prediction beside a7778473f's.
+  why: A final bill is the last money a customer sees, and the class is only closed when the residue is
+    named. Last stretch's figure (30 legs, GBP 585.17) compared one page row with the world's total, and
+    that comparison hid this split. Done means all 23 are attributed on origin, with the 4 either fixed
+    with a mutation or carried as one named, pre-registered cause.
+  written_at: 1795609722.377
+- id: book-after-a4-exits-admit-and-grade
+  lane: D_billing_metering
+  side: supplier
+  what: If drawn before A4 (driver_ep1, pid 2690439) has ended, release it with the reason 'A4 still running',
+    and never stop A4. First, while waiting, read the publisher's record for run_output_f2c6979d01_20261124T215935Z
+    (process_run_complete log, docs/observability/.publish_gate_state.json) and say why it built and was
+    graded but never published. If a gate refused it, name the gate and the breach, and fix the class.
+    Once A4 has ended, confirm that the next sim-runner cycle admits a book on an origin commit that descends
+    from b14889688, f70757dc9 and a7778473f (`admitted:` and no DEFERRED line), as the 05:25Z seat note
+    predicted. When it is built, run the bills grade, INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER and
+    company/compliance/domain_invariants.py. On a refusal, list the breaches by account and fix the class,
+    never by widening an exception.
+  why: A book is owed until it PUBLISHES. That is the seat's own lesson, and the open wrong row says the
+    site has shown 18 Nov for a week. Every billing fix of the last week is invisible until this happens.
+    Done means a run_output on such a commit is published with its banner, or its refusal is on origin
+    with the gate, the breaches, and a fix or a finding. In both cases the reason f2c6979d01 never published
+    is written down.
+  written_at: 1795609722.377
+- id: the-direction-record-reaches-origin
+  lane: H_harness
+  side: other
+  what: The 09:51Z orientation landed d500f66c1 in /var/tmp/se-direction-seat, and `git push origin HEAD:main`
+    was remote-rejected ('! [remote rejected] HEAD -> main (failed)'). This was not a non-fast-forward.
+    So origin still carries the 06:21 record, and docs/observability/delivery-seat-log.md shows 40 DirectionNotLanded
+    lines in its history. Read the seat's landing path in background/ (the code that logs DirectionNotLanded).
+    Classify the 40 by cause (remote-rejected, index.lock, gate red). Make the remote-rejected case retry
+    after a re-fetch, once, bounded, with the cause in the log. Show a control and a mutation. If a cause
+    is GitHub-side and not ours, say so on the record and make the brief show origin's oriented_at beside
+    the shared tree's.
+  why: The director reviews this record, and his advisor reads it from origin. If origin holds a record
+    two orientations old, he is reviewing decisions the seat has already replaced. Done means the classification
+    is on origin, the remote-rejected case retries or is named as external, and the next orientation's
+    record is on origin within its own landing.
+  written_at: 1795609722.377
 not_now:
-- what: Stop A4 so the EPG book builds now.
-  why: A4 is a supplier value arm (EP1's dated rate) and about 21% of the way through its declared 900 minutes.
-    73577018f measured that even a replaced yield rule could not admit the book before A4 ends. Stopping it would
-    cost the whole arm to win about 12 hours on a site already a week stale. The book stays focus 2, timed to A4's
-    end.
-- what: Revert B11's level move to make C-S5 green.
-  why: The grade is real and pre-registered. The missing piece is a one-line declaration and a gate that did not
-    look, so taking the level back would punish the evidence for the control's gap.
-- what: Switch the corrected renewal belief on now that B11 M7 has graded it.
-  why: B11 grades ranking against the segment, not a decision against the twin. The order the default-off switches
-    flip in is set by SEAT_RECORD_THE_DEFAULT_OFF_SWITCHES_AND_THE_ORDER_THEY_FLIP_IN_2026-11-24.md (B8 26 Nov,
-    S1 after), and the director's s-12g row holds the retention lever.
-- what: Answer s-12g-rank-at-q-run-graded myself on the strength of B11 M7.
-  why: It is his open row. B11's within-segment result is evidence beside it, not an answer to whether a retention
-    decision beats the twin.
-- what: Put Item 5 (CfD primary-text reads) or the weather-to-price chain in focus.
-  why: Both are world work that blocks no supplier result this stretch. The chain waits on the director's forward-bands
-    row, and Item 5 moves on the ordinary draw.
-- what: A lane-0 item to reap the twelve worktrees whose commits no remote ref keeps.
-  why: Most are locked SALVAGE trees for October runs whose results are graded. Reaping them is tidying, not a level
-    move. /var/tmp/value-test-ep1 and se-msc-originprobe are unlocked and recent, so no one reaps them until A4
-    is graded and MSC-B lands.
+  - what: Draw EP1_clv_three_horizon, or grade A4 early from partial output.
+    why: >-
+      A4 is EP1's value arm and ends at about 18:08Z. Its grade is already queued
+      (a4-ep1-grade-the-dated-rate-arm, held on grade_ep1.out). A partial read would be a prediction
+      filed after part of the answer.
+  - what: Another retention lever on A's belief, or switching the corrected churn belief on.
+    why: >-
+      The director's s-12g row holds the retention lever, with a recommendation. The flip order is
+      set by SEAT_RECORD_THE_DEFAULT_OFF_SWITCHES_AND_THE_ORDER_THEY_FLIP_IN_2026-11-24.md (B8 on
+      26 Nov first). The ending-term arms against flat are already the live baseline test on six seeds.
+  - what: Close the dual-answer named residue (13 households, 15 rows, over a third, failed by two).
+    why: >-
+      Closing it needs a joint strike that is a named GAP. It is contact-response fidelity, and it
+      blocks no money result this stretch. The estimate and final-bill items are money on bills now.
+  - what: Pre-run the commit-msg chain before an executor launches a landing long job.
+    why: >-
+      Three landings died in 4 s on the NEXT trailer, and each relaunch landed within 20 s. The cost
+      is a launch, not a gate hour. The direction record not reaching origin costs the director's
+      review, so it takes the harness slot instead.
+  - what: Work N17 (year-on-year metered variance) before its 26 Nov triage recheck.
+    why: >-
+      It is world work. Its triage line already says it enters focus at the recheck, or when it is
+      the last gate row a book fails. Neither has happened.
+  - what: Reap the worktrees whose commits no remote ref keeps.
+    why: >-
+      They are locked October salvage trees whose runs are graded, plus /var/tmp/value-test-ep1,
+      which is A4's lineage. They are also /var/tmp/se-direction-seat, whose d500f66c1 is the record
+      focus 4 must land or supersede. This is tidying, not a level move.
 wrong:
-- what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC
-    0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 21:24 24 Nov -- unchanged on the
-    live belief. rankq graded BELOW, and focus 2 reads whether that is the ranking or the volume. The corrected
-    belief''s grade waits on the book that focus 1 unblocks. 00:24 25 Nov -- unchanged on the live belief. Its corrected
-    belief''s grade is B11 M7''s (six fresh books), which now waits only on land10''s end file, because the book
-    exists. 03:23 25 Nov -- unchanged on the live belief. B11 M7''s readout exists (/var/tmp/b11m7/readout.json,
-    02:50Z): within-segment the key ranks better at the 2020 and 2023 cuts, and the 2022 cut cannot tell. That grades
-    the CORRECTED belief, which is still default off, so the live one is unchanged. Focus 1 grades it. 06:21 25
-    Nov -- unchanged on the live belief. B11 M7 graded the CORRECTED belief at 95cec7822 (2020 +0.035, 2023 +0.057,
-    2022 cannot tell; B11 to L3). That belief is still default off, so the live ranking is unchanged. Flipping it
-    waits on the switch order record.'
-  corrected: false
-- what: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median
-    same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 21:24 24 Nov -- unchanged;
-    the triage recheck is due 26 Nov. 00:24 25 Nov -- unchanged; the triage recheck is due 26 Nov. 03:23 25 Nov
-    -- unchanged; the triage recheck is due 26 Nov. 06:21 25 Nov -- unchanged; the triage recheck is due 26 Nov.
-  corrected: false
-- what: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges
-    one. [Earlier tails are in decisions.jsonl.] 21:24 24 Nov -- unchanged. 00:24 25 Nov -- unchanged; off the billing
-    path this record works. 03:23 25 Nov -- unchanged; off the billing path this record works. 06:21 25 Nov -- unchanged;
-    off the billing path this record works.
-  corrected: false
-- what: 'THE COMPANY''S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules
-    twin. [Earlier tails are in decisions.jsonl.] 21:24 24 Nov -- WORSE: rank-at-q graded (5cf54da43) at -GBP 2.45
-    (-4.76 to -0.47), BELOW, on 0.109 of asks against the twin''s 0.277. The triage owner is now focus 2, and his
-    open row holds the next lever. 00:24 25 Nov -- 60ef7ed87 splits the -GBP 2.45: it is the offers rankq dropped
-    (-2.66, -4.65 to -0.93). Whether A ranks better at equal volume, the records cannot tell, and an exploratory
-    read leans no. The director row holds the next lever. 03:23 25 Nov -- unchanged; the director row holds the
-    next lever. A4 (EP1''s dated rate as a value arm) is running and its grader is held on grade_ep1.out. 06:21
-    25 Nov -- unchanged; the director row holds the next lever. A4 runs until about 18:08Z, and its grader is held
-    on grade_ep1.out.'
-  corrected: false
-- what: 'THE MACHINE''S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z),
-    but their work reached origin. This is a new instance of a-landing-loses-its-race-to-origin. [Earlier tails
-    are in decisions.jsonl.] 21:24 24 Nov -- no new instance. This stretch''s two DIED rows are real refusals (NEXT
-    named a continuation), each followed by a landing within minutes. HEAD and origin are level. 00:24 25 Nov --
-    no new DIED row. The same race showed up on the publisher instead: at 00:01Z its banner commit lost the race
-    for HEAD on both attempts, to the Item 5 commits (f2cf05c14 -> c3bada7c2 -> 9b346a4d7). That is evidence for
-    the open fix row a-landing-loses-its-race-to-origin. 03:23 25 Nov -- a new instance, on content-free merges.
-    b14889688''s promotion lost its race for HEAD to 4300204ad (land-se-seat-executor-1795568147: ''HEAD moved ...
-    while the gate ran''). Three merges that carry no work followed (16fdeee0a, 7b26dd09b, f60d1d55a), which is
-    the brief''s NO_WORK finding. The fix row a-landing-loses-its-race-to-origin owns it. 06:21 25 Nov -- no new
-    content-free merge this stretch (9 of 9 carried work). HEAD and origin are level.'
-  corrected: false
-- what: THE MACHINE'S, NEW. The MSC replacement-win landing's gate timed out at 3600 s (land-msc-replacement-win,
-    04:55Z to 05:56Z) while other gates ran beside it. [Earlier tails are in decisions.jsonl.] 21:24 24 Nov -- busy()
-    now sees them (32f1aa078). land10 cleared its rankq wait at about 20:03Z and waits on the book, which focus
-    1 unblocks. It has not gated yet. 00:24 25 Nov -- land10 fired after the book and has been gating since about
-    23:51Z (surgical_land under timeout 5400). It has not timed out yet, and its reader land10-outcome-is-read-and-msc-lands-or-is-re-cut
-    is held on the end file. 03:23 25 Nov -- land10 did not time out. It went red at 00:59Z on two council-tax listing
-    tests that origin itself failed, fixed in dd6901041 (7da118546). land11 has been gating since about 02:50Z under
-    timeout 5400. Whether it beats the timeout is unread. 06:21 25 Nov -- land11 DID time out (exit 124 at 04:20Z),
-    because its outer timeout 5400 counted a 1,810 s gate-lock wait. The whole patch's gate is at the hour. It was
-    split in two, and A landed as 567288c03. B is still owed and is held on a file nothing has written (new row
-    below). Open until B lands.
-  corrected: false
-- what: THE MACHINE'S, NEW. 7527a2e36 reached origin with test_collections_journey.py red on the live Consent offer,
-    so origin itself refused the next landing on that path. [Earlier tails are in decisions.jsonl.] 21:24 24 Nov
-    -- unchanged; the census stays last in the box order. 00:24 25 Nov -- unchanged; the census stays last in the
-    box order. 03:23 25 Nov -- unchanged; the census stays last in the box order. 06:21 25 Nov -- CORRECTED for
-    this instance. 567288c03 fixed origin's own red on test_collections_journey.py::test_every_live_consent_offer_goes_to_an_account_still_supplied,
-    a 7p debt rounding to a GBP 0.00 instalment (plan_offer_response floors it at 1p, with a control that goes red
-    on the unfixed module). Two strict-xfail Consent controls now XPASS. The class recurs this stretch as the C-S5
-    row below.
-  corrected: true
-- what: THE MACHINE'S, NEW. The closed-account landing was relaunched at 14:35Z unchanged after two refusals on
-    the same three reds, and it was refused a third time. [Earlier tails are in decisions.jsonl.] 21:24 24 Nov --
-    unchanged as a class. This stretch's two relaunches each changed the refused trailer. 00:24 25 Nov -- unchanged
-    as a class. 03:23 25 Nov -- a new instance. Landings 1795571423 (01:50Z) and 1795572084 (02:01Z) were refused
-    on the same gate ('A WORK ITEM THIS COMMIT FILES CARRIES NO CHAIN TO THE MAP'), eleven minutes apart, and the
-    second was refused for the same reason as the first. 06:21 25 Nov -- three executor landings died with exit
-    1 before 567288c03 landed on its fourth attempt (1795582268 at 05:04Z, 1795584120 at 05:39Z, 1795585735 at 05:48Z,
-    one second after its launch). Each log ends on the multi-hunk advisory for saas/ledger.py. Whether each relaunch
-    changed what was refused is unread.
-  corrected: false
-- what: THE MACHINE'S, NEW. The MSC chain's worktree, /var/tmp/se-msc-wt, was removed while the chain still depended
-    on it. [Earlier tails are in decisions.jsonl.] 21:24 24 Nov -- unchanged. 00:24 25 Nov -- unchanged; land10
-    does not depend on it. 03:23 25 Nov -- unchanged; land11 does not depend on it. 06:21 25 Nov -- unchanged; A
-    landed without it.
-  corrected: false
-- what: 'THE SEAT''S OWN, NEW. My 21:24 record put every queued supplier result behind the book''s BUILD, and never
-    asked whether a built book would pass the publisher''s gates. The last two books were refused on two different
-    billing gates: 6a588a832f on 23 Nov (INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER, 9 breaches against the exception''s
-    8) and f2c6979d01 on 24 Nov (the EPG receipt). Unblocking the build was necessary but not sufficient. Lesson:
-    a book is owed until it PUBLISHES. Focus 1 and 2 carry both gates. 03:23 25 Nov -- still open, because no book
-    has published. The estimate-against-meter gate reads 7 of 4,250 on f2c6979d01, inside its 8 (e23ecbaa2), and
-    the VAT alarm closed with both bills right (f5ece3ac2). Both billing walls named here are cleared. But no book
-    carrying b14889688 has been built: sim-runner has deferred it since 03:11Z because A4 (12,000 MB) and land11
-    (6,000 MB) are declared. Focus 2. 06:21 25 Nov -- still open, because no book has published. sim-runner defers
-    every cycle to A4 (06:21Z, 12,000 MB declared, 192 of 900 min). 73577018f measured the yield and kept it. The
-    book is admitted when A4 ends, at about 18:08Z.'
-  corrected: false
-- what: THE MACHINE'S, NEW. B11's L3 promotion (95cec7822) reached origin with tests/system/test_scale_constraints.py
-    red. C-S5 requires every company-side L3+ atom to be declared in docs/design/TIME_SCALE_INVARIANCE_REGISTER.yaml,
-    and B11_forward_clv_backtested_on_held_back_history is not. I reproduced it locally at about 06:23Z, and the operational-layer
-    signal has been RED for 2 consecutive runs since then. The level gate that recorded the move did not select
-    the test that the move breaks. Focus 1.
-  corrected: false
-- what: THE MACHINE'S, NEW. MSC increment A landed as 567288c03 at 06:18Z, but its landing bound nothing (land10-outcome-is-read-and-msc-lands-or-is-re-cut
-    was NOT CLAIMED), and /var/tmp/se-msc-split-A-landed.txt was never written. So msc-b-the-world-charges-the-msc-on-a-replacement-win
-    is held on a file nothing will write. Focus 3.
-  corrected: false
+  - what: >-
+      THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find
+      backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.]
+      12:23 25 Nov -- unchanged on the live belief. The ending-term belief passed Q1-Q6 on f2c6979d01,
+      but it is default off, and its arms against flat are running.
+    corrected: false
+  - what: >-
+      THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the
+      next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in
+      decisions.jsonl.] 12:23 25 Nov -- unchanged; the triage recheck is due 26 Nov.
+    corrected: false
+  - what: >-
+      THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the
+      bill charges one. [Earlier tails are in decisions.jsonl.] 12:23 25 Nov -- unchanged; latent,
+      and no domestic account reaches either writer.
+    corrected: false
+  - what: >-
+      THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the
+      flat-rules twin. [Earlier tails are in decisions.jsonl.] 12:23 25 Nov -- unchanged. A4 ends at
+      about 18:08Z, the six-seed ending-term arms against flat started at 11:58Z, and the director
+      row holds the retention lever.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2,
+      01:14Z-01:20Z), but their work reached origin. This is a new instance of
+      a-landing-loses-its-race-to-origin. [Earlier tails are in decisions.jsonl.] 12:23 25 Nov -- fix
+      landed as 5c8c74888 (11:39Z): the base is read with the landing-gate lock held, and triage now
+      names it as owner (183a2c9f3). The fix is not yet tested. 1795598919 lost to f575d9fa0 before
+      it landed, and 1795606115 was launched at 11:28Z on the old code and waited on the fix's own
+      landing. Corrected once a stretch shows no lost race after a lock wait.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. The closed-account landing was relaunched at 14:35Z unchanged after two
+      refusals on the same three reds, and it was refused a third time. [Earlier tails are in
+      decisions.jsonl.] 12:23 25 Nov -- no new instance. Three message-gate refusals (1795598900,
+      1795604279, 1795607177) were each relaunched with a changed message, and those relaunches landed
+      (1795598919 reached the gate, 1795604299 and 1795607194 succeeded). Its triage line is 30 Nov.
+    corrected: false
+  - what: >-
+      THE SEAT'S OWN, NEW. My 21:24 record put every queued supplier result behind the book's BUILD,
+      and never asked whether a built book would pass the publisher's gates. Lesson: a book is owed
+      until it PUBLISHES. [Earlier tails are in decisions.jsonl.] 12:23 25 Nov -- still open, and now
+      with a sharper instance. f2c6979d01 was built and graded five times, but it never published,
+      and nobody has said why. The focus row was retired into a continuation with its DONE unmet.
+      Focus 3 carries it again.
+    corrected: false
+  - what: >-
+      THE SEAT'S OWN, NEW. My 09:20 focus 2 sized the leaver disagreement as 30 legs, GBP 585.17, by
+      comparing the world's whole credit_taken with ONE page credit row. Those two figures do not
+      count the same thing. Against everything the page nets, it is 23 final bills, GBP 675.99, and
+      19 of them have one world cause (a7778473f).
+    corrected: true
+  - what: >-
+      THE MACHINE'S, NEW. The 09:20 direction record never reached origin. d500f66c1 was
+      remote-rejected on push, so origin carries the 06:21 record that the director's advisor reads.
+      The seat log shows 40 DirectionNotLanded lines in its history.
+    corrected: false
 for_the_director:
 - id: k8-knowledge-before-build-covers-supplier-capabilities
   raised: '2026-11-24'
