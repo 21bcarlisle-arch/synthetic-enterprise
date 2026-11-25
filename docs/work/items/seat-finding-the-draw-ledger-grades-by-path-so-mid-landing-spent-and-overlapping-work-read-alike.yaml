@@ -8,7 +8,7 @@ class: standard
 severity: LATENT
 source: finding
 evidence:
-- docs/staging/SEAT_FINDING_THE_DRAW_LEDGER_GRADES_BY_PATH_SO_MID_LANDING_SPENT_AND_OVERLAPPING_WORK_READ_ALIKE_2026-10-07.md
+- docs/staging/done/SEAT_FINDING_THE_DRAW_LEDGER_GRADES_BY_PATH_SO_MID_LANDING_SPENT_AND_OVERLAPPING_WORK_READ_ALIKE_2026-10-07.md
 knowledge_gap: null
 insight: null
 decider: machine
@@ -16,12 +16,12 @@ director_rank: null
 atom: null
 blocked_by: []
 occurrences: 1
-state: open
+state: done
 opened_at: '2026-10-07T00:00:00+00:00'
 chosen_at: null
-closed_at: null
+closed_at: '2026-11-25T08:25:22+00:00'
 chosen_by: null
-done_evidence: null
+done_evidence: 1961c22d57
 parked: null
 obsolete: null
 finding_lane: H_harness

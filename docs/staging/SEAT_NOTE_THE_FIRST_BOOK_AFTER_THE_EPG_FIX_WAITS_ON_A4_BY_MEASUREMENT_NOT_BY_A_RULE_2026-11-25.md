@@ -45,3 +45,13 @@ logs is the next thing to fix.
 Run the bills grade (`process_run_complete.billing_grade_refusal` →
 `tools/grade_svt_invoices_over_ceiling.py`) and `company/compliance/domain_invariants.py` on that
 book. If either refuses it, list the breaches by account and fix the class with a mutation.
+
+## Re-measured 08:25Z (worker tick): the prediction still stands
+
+A4's child (pid 2690439) is at 10,452 MB RSS, with a 10,663 MB high-water mark and 387 MB swapped,
+so about 1,160 MB of its declared 12,000 is still to come. It grew as this note said it would.
+MemAvailable is 9,036 MB, and a transient 1 GB operational pytest is part of what holds it. The
+replacement rule gives 9,036 − 1,160 − 7,066 = 810 MB, which is below the 1,024 floor. It still
+refuses. Between 07:21Z and 08:21Z the log alternated between `measured memory too tight` (7.5–7.9 GB
+available) and the long-job yield. Both describe the same full box. The yield stays in place.
+Nothing new is owed until A4 exits (expected by ~18:08Z).
