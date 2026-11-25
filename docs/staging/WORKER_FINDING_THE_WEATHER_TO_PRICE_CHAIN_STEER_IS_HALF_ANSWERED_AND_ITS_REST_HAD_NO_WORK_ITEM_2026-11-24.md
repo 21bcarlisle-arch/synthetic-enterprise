@@ -871,3 +871,17 @@ will re-fire the hold, so the next re-arm should move the file aside itself.
 - **What is left of 1-6:** item 4's build (carried by the SAP splice finding). For item 5: GAP 2b, the
   AR4/AR5/AR7 texts (inferred to match AR6), the auction's hourly series, and the forward levy, which
   waits on the director's `the-forward-world-has-bands-for-gas` row and the forward price.
+
+## Progress, 25 Nov (worker, item 5: the AR3-AR8 negative-hour rules, read)
+
+- **Read from primary text**, the round Standard Terms on gov.uk: AR3 (v3, 1 May 2019), AR4 (v4, 25 Nov 2021),
+  AR5 (v5, 16 Mar 2023), AR7 (v7, 24 Jul 2025) and AR8 (v8, 6 Jul 2026). Electricity page §3 and §13 and
+  fleet page item 5 are updated. The prediction was filed before reading: AR3 six-hour, AR4, AR5 and AR7
+  one-hour. It held.
+- **AR3 has the six-hour rule** ("six (6) or more consecutive Settlement Units"; Baseload twelve). **AR4, AR5,
+  AR7 and AR8 have AR6's one-hour rule.** The definition and the zeroing proviso are identical across the
+  four (by hash). The AR4-AR7 inference is replaced by text. AR2's own terms were not read, and AR2 is
+  still inferred six-hour from the 2015 and 2017 drafts.
+- **What is left of 1-6:** item 4's build (carried by the SAP splice finding). For item 5: GAP 2b, AR2's
+  terms, the auction's hourly series, and the forward levy, which waits on the director's
+  `the-forward-world-has-bands-for-gas` row and the forward price.
