@@ -915,6 +915,11 @@ plus the catch-up are the true supply, and their VAT lies between the reduced an
 (exact at the reduced rate for a domestic run). That check is
 `tools/independent_bill_validator.catchup_vat_breach`.
 
+*Added 2026-11-25.* The hourly comparison (`tools/bill_validation_comparison.compare_bill`) was the
+one reader still charging the catch-up at the carrying month's rate. It filed C5/110 (+£28.05) and
+C5/113 (−£23.63) as biller defects for 21 days. It now grades the month's VAT on the month's own
+lines, and grades the catch-up's VAT with `catchup_vat_breach`.
+
 *Added 2026-11-13.* The same bill was reported again from the page
 (`SEAT_FINDING_AN_SME_CATCH_UP_BILLS_VAT_FITS_NO_RATE_2026-11-13`, now closed): Explore printed
 one VAT figure, -£20.02, and no rate fits it. The ledger was right, as above. The page now prints

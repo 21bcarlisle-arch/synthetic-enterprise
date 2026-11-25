@@ -107,7 +107,7 @@ def _line_by_label(lines: list[dict], label: str) -> dict | None:
 
 
 def compare_bill(reconstructed: dict, issued: dict, *, statutory_vat: dict,
-                 read_volume_kwh: float | None) -> list[dict]:
+                 read_volume_kwh: float | None, catchup_vat_why=None) -> list[dict]:
     """Every claim about ONE bill that can be settled, each with its own verdict.
 
     THE UNCHECKABLE CLAIMS ARE EMITTED, NOT SKIPPED. A comparison that returns only what it could
@@ -253,16 +253,43 @@ def compare_bill(reconstructed: dict, issued: dict, *, statutory_vat: dict,
         # `bill_total_gbp` claim below goes red rather than this one going quietly wrong.
         # Corrected 2026-10-29: a catch-up printed BEFORE VAT (`vat_basis` "before_vat") is in the
         # base although it is printed below the VAT line; its VAT is in the VAT line.
+        #
+        # Corrected 2026-11-25, beside the claim: that base was right for the TOTAL and wrong for
+        # the RATE. A catch-up re-prices months already billed, so its VAT is at THOSE months'
+        # rates (VAT Notice 700 s18.2.5; back_billing_and_liability.md s15), not the carrying
+        # month's. Grading it at this month's 5% filed C5/110 (+28.05) and C5/113 (-23.63) as
+        # biller defects for 21 days; both were right. The month's own VAT is graded on the
+        # month's own lines, and the catch-up's VAT by the run check the commons names.
         index = b_lines.index(vat_line)
+        catchup_vat = None
+        for ln in b_lines[index + 1:]:
+            inputs = ln.get("inputs") or {}
+            if inputs.get("vat_basis") == "before_vat" and inputs.get("catchup_vat_gbp") is not None:
+                catchup_vat = (catchup_vat or 0.0) + inputs["catchup_vat_gbp"]
         base = round(sum(ln.get("amount_gbp") or 0.0 for ln in b_lines[:index])
-                     + sum(ln.get("amount_gbp") or 0.0 for ln in b_lines[index + 1:]
-                           if (ln.get("inputs") or {}).get("vat_basis") == "before_vat"), 2)
+                     + (0.0 if catchup_vat is not None else
+                        sum(ln.get("amount_gbp") or 0.0 for ln in b_lines[index + 1:]
+                            if (ln.get("inputs") or {}).get("vat_basis") == "before_vat")), 2)
+        own = charged if catchup_vat is None else round(charged - catchup_vat, 2)
         expected = round(base * rate, 2)
         claims.append(_claim(
-            "vat_gbp", AGREED if abs(charged - expected) < PENNY else DISAGREED,
-            expected=expected, observed=charged,
-            how="statutory {:.0%} on GBP {:.2f} of pre-VAT lines".format(rate, base),
+            "vat_gbp", AGREED if abs(own - expected) < PENNY else DISAGREED,
+            expected=expected, observed=own,
+            how="statutory {:.0%} on GBP {:.2f} of pre-VAT lines{}".format(
+                rate, base, "" if catchup_vat is None else
+                " (this month's; the VAT line less the catch-up's GBP {:.2f})".format(catchup_vat)),
             why=statutory_vat.get("why", "")))
+        if catchup_vat is not None:
+            breach = None if catchup_vat_why is None else catchup_vat_why()
+            claims.append(_claim(
+                "catchup_vat_gbp",
+                UNCHECKABLE if catchup_vat_why is None else DISAGREED if breach else BOUNDED,
+                observed=catchup_vat,
+                how="the corrected run's VAT, billed plus correction, against the reduced and "
+                    "standard rates of its net (independent_bill_validator.catchup_vat_breach)",
+                why=breach or ("no run check was supplied for this bill" if catchup_vat_why is None
+                               else "each corrected month keeps its own rate (Notice 700 s18.2.5); "
+                                    "the run is inside the range the rates allow")))
 
     # -- the biller's own internal identity -----------------------------------------------------
     total = issued.get("total_amount_gbp")
@@ -314,6 +341,9 @@ def compare_account(customer_id: str, record: dict, *, raw_of=None, reconstruct=
     rebuilt = reconstruction.get("periods") or []
     issued = statement.get("issued_bills") or []
     bills: list[dict] = []
+    # The run check reads the corrected months' issued lines, which are the ledger's own.
+    ledger_invoices = record.get("invoices") or []
+    invoices_by_number = {inv.get("invoice_number"): inv for inv in ledger_invoices}
     for i, bill in enumerate(issued):
         if i >= len(rebuilt):
             bills.append({"invoice_number": bill.get("invoice_number"),
@@ -330,10 +360,16 @@ def compare_account(customer_id: str, record: dict, *, raw_of=None, reconstruct=
             segment=segment, commodity=period.get("commodity") or "electricity",
             kwh=volume or 0.0, days=period.get("days_in_period") or 0.0,
             on=period.get("period_start"))
+        ledger_bill = invoices_by_number.get(bill.get("invoice_number"))
+        catchup_vat_why = (
+            None if ledger_bill is None or ledger_bill.get("catchup_vat_gbp") is None
+            else (lambda lb=ledger_bill: validator.catchup_vat_breach(
+                segment=segment, invoices=ledger_invoices, bill=lb)))
         bills.append({
             "invoice_number": bill.get("invoice_number"),
             "period_start": bill.get("period_start"), "period_end": bill.get("period_end"),
-            "claims": compare_bill(rebuilt[i], bill, statutory_vat=vat, read_volume_kwh=volume),
+            "claims": compare_bill(rebuilt[i], bill, statutory_vat=vat, read_volume_kwh=volume,
+                                   catchup_vat_why=catchup_vat_why),
         })
     # A PERIOD WITH NO BILL IS THE OTHER DIRECTION AND IS ALSO FILED. The export knows about a
     # period we never billed for; that is either a missing bill or an export that invents periods,
