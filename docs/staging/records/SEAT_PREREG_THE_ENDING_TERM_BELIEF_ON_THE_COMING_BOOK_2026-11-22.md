@@ -111,3 +111,114 @@ would void the grade rather than pass it.
 shared-tree files. It now yields to `longjob-value-test-cut012-new-book.service`, started 09:58 UTC
 with 2,100 minutes declared. That job writes `/var/tmp/vtn-driver/grade_new_book.out` when it ends.
 The read is handed on, gated on that file.
+
+## 5. The read: graded on `f2c6979d01`, 25 Nov
+
+**Book:** `docs/reports/run_output_f2c6979d01_20261124T215935Z.json` (149.9 MB, written 24 Nov 23:45).
+Its `producing_commit` is `f2c6979d01`. `git merge-base --is-ancestor` confirms that it descends from
+`c09847b7c` (this record's landing) and from `59cd5ebda`, `c41e70832`, `1624411d2` and `da34c45c1`.
+So it is the qualifying book §4 names. Baseline: `SEAT_RECORD_THE_RENEWAL_BELIEFS_ON_HELD_BACK_YEARS_2026-11-23.md`
+(20 Nov world, rows rebuilt from renewal events).
+
+### 5.1 The grader, unedited
+
+`python3 -m tools.grade_ending_term_belief_on_a_book <book>`, 2.1 s:
+
+```json
+{
+  "states": 259, "leavers": 54, "accounts": 166, "producing_commit": "f2c6979d01",
+  "auc_live": 0.395, "auc_live_95": [0.312, 0.475],
+  "auc_conditioned": 0.882, "auc_conditioned_95": [0.84, 0.924],
+  "paired_conditioned_minus_live": 0.487, "paired_95": [0.416, 0.564],
+  "bootstrap_draws_used": 1000,
+  "leavers_at_fix_end_share": 1.0,
+  "by_type": {"fixed": {"states": 97, "leavers": 54},
+              "default": {"states": 155, "leavers": 0},
+              "default_after_declined_fix": {"states": 7, "leavers": 0}},
+  "multiplier_for_2019": {"fixed": 0.8863269853801622, "default": 0.027394103317504224,
+                          "default_after_declined_fix": 0.9998631999162344},
+  "secondary_2019_only": {"auc_live": 0.3659476117103236, "auc_conditioned": 0.7935285053929122,
+                          "paired": 0.4275808936825886},
+  "secondary_left_at_roll": {"auc_live": 0.39498644986449866, "auc_conditioned": 0.8823848238482385}
+}
+```
+
+(Only the whitespace is reflowed. Every key and value is as printed.)
+
+### 5.2 Verdicts against §2
+
+| | predicted | read | verdict |
+|---|---|---|---|
+| **Q1** | point 0.78, range 0.68–0.86, lower bound > 0.5 | 0.882 [0.840, 0.924] | **decision part held** (lower bound 0.840). **Range refuted, high**: the point is above 0.86 |
+| **Q2** | 0.45, range 0.30–0.58 | 0.395 [0.312, 0.475] | **held** |
+| **Q3** | paired lower bound > 0 | 0.487 [0.416, 0.564] | **held** |
+| **Q4** | fix-end share ≥ 0.75 | 1.0 | **held** |
+| **Q5** | default < 0.5; fixed 0.8–1.3 | default 0.027, fixed 0.886 | **held** |
+| **Q6** | ≥ 150 states, ≥ 25 leavers | 259 / 54 | **held** |
+
+Not void. **Q1's lower bound > 0.5 and Q3's lower bound > 0, so §3's first branch applies.** The
+follow-on is to pre-register §14's paired arms against flat, with 6 seeds, on a book that descends
+from `c09847b7c`, and to queue the launch as a costed run. Nothing here flips the switch.
+
+### 5.3 The 23 Nov record's §4.4 asks
+
+Per-year figures, `within_fixed` and the secondary outcome were computed after the grade, by the 23 Nov
+appendix script adapted to read the book's own `desk_belief_log` instead of rebuilding rows. The
+script is at `/var/tmp/se-seat-executor-probe/per_year.py`, outside the repository.
+
+**1. Against the baseline.** Pooled live 0.395 [0.312, 0.475] against the baseline's 0.452
+[0.377, 0.528]: the intervals overlap. Conditioned 0.882 [0.840, 0.924] against 0.857 [0.811, 0.901]:
+they overlap. Paired 0.487 [0.416, 0.564] against 0.405 [0.341, 0.470]: they overlap. Every point
+moved the same way, with the live belief worse and the conditioned belief better, but no figure fell
+outside its baseline interval. **I cannot say that the commits since `6a588a832f` moved the
+ranking.** The baseline was also read from rebuilt rows, not real ones (item 2), so two things
+changed at once.
+
+| year | states | leavers | live | conditioned | paired | live within `fixed` |
+|---|---|---|---|---|---|---|
+| 2019 | 70 | 11 | 0.366 [0.207, 0.533] | 0.794 [0.682, 0.890] | 0.428 [0.298, 0.560] | 0.556 [0.322, 0.772] (29 / 11) — void |
+| 2020 | 58 | 17 | 0.402 [0.256, 0.562] | 0.857 [0.746, 0.943] | 0.456 [0.321, 0.591] | 0.712 [0.512, 0.869] (32 / 17) — **graded** |
+| 2021 | 59 | 12 | 0.647 [0.491, 0.800] | 0.900 [0.820, 0.971] | 0.253 [0.128, 0.390] | 0.782 [0.560, 0.962] (21 / 12) — void |
+| 2022 | 0 | 0 | — | — | — | no desk state this year |
+| 2023 | 23 | 0 | — | — | — | void, no leaver |
+| 2024 | 49 | 14 | 0.147 [0.024, 0.306] | 0.918 [0.822, 1.000] | 0.771 [0.602, 0.928] | 0.143 (15 / 14, one stayer: not a figure) — void |
+
+**2. Rebuild check: it fails for one type.**
+- The baseline's shares were 105 / 173 / 28 of 306, which is 34.3% / 56.5% / 9.2%.
+- This book's real rows give 97 / 155 / 7 of 259, which is 37.5% / 59.8% / 2.7%.
+- `fixed` is 9% high and `default` is 6% high, both inside the 10% line.
+- `default_after_declined_fix` is 71% low: 7 states, where ≈ 24 were expected.
+
+So either the 23 Nov rebuild (its "the last occasion was `declined_fix`" rule) mistyped about 17
+rows as declined-fix defaults, or the world since 20 Nov offers fewer declined fixes. One read on
+one book cannot separate the two. Under §4.4's own rule, **cite the 23 Nov record for its counts
+only**, and do not use its `default_after_declined_fix` figures (multiplier 0.808 there, 0.9999
+here, where the ledger has almost no rows of this type to learn from).
+
+**3. `within_fixed` beside Q1.** Pooled live AUC within the fix-ending states is **0.670
+[0.560, 0.782]** on 97 states / 54 leavers. The baseline was 0.648. Q1's 0.882 and Q3's 0.487 are
+again mostly the type split: every leaver ended a fix, and no default state left inside the grader's
+outcome. Inside the type at risk, the live belief ranks leavers better than chance but well short of
+the conditioned pooled figure. A better belief *within* fix-ending states is still owed. That is the
+retrain's subject (14 Nov prereg). This switch does not touch it, because `condition_on_ending_term`
+preserves the order within a type.
+
+**4. Drift exits are still only in `svt_departures`.**
+- The book has **252** `svt_departures` rows.
+- It has 111 `churned` rows in `customer_events`, all with `departure_occasion` `renewal`.
+- No `svt_departures` row (customer and date) appears among them.
+
+So the grader's 365-day outcome cannot see a default household leaving by drift. Adding
+`svt_departures` as a secondary outcome brings only 2 more leavers into the window, both
+`default` (one in 2019, one in 2021). Pooled live becomes 0.413 [0.332, 0.495], conditioned 0.871
+[0.825, 0.915] and paired 0.459 [0.378, 0.542]. Its lower bound stays above 0 under either outcome.
+
+### 5.4 What the arms will measure, said before they are pre-registered
+
+The departure channel that §14's arms grade is money. That money comes from the desk treating
+default-anniversary households as low-risk. On this book, the world never rolls a departure at that
+moment (P10c), and only 2 of 252 drift exits land inside a desk state's 365-day window. A
+positive arms result would therefore partly grade the world's no-departure-at-default rule, not the
+company's skill. The arms pre-registration has to state this. Its outcome should also count drift
+exits, so the arms cannot win on a channel the world has switched off. Whether P10c is true of GB
+households is a fidelity question, and this read does not answer it.
