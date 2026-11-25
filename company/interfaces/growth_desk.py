@@ -271,6 +271,24 @@ def book_acquisition_spend(
     return make_acquisition_spend_event(billing_account, event_date, amount_gbp, won, segment)
 
 
+def book_market_stabilisation_charge(
+    *,
+    billing_account: str,
+    event_date: str,
+    fuel: str,
+    amount: float,
+) -> dict[str, Any]:
+    """The supplier books the MSC the industry charged it on a win, as it would book an invoice.
+
+    The amount is the world's: Ofgem's weekly rate times the meter's EAC or AQ
+    (`simulation.market_stabilisation_charge`). The company receives the charge, never the rate
+    table, so nothing here can price a quote off it.
+    """
+    from saas.ledger import make_market_stabilisation_charge_event
+
+    return make_market_stabilisation_charge_event(billing_account, event_date, fuel, amount)
+
+
 def book_acquisition_gate(
     *,
     billing_account: str,

@@ -367,7 +367,9 @@ def pause_resume_fails(account_id: str, agreed_on: dt.date, stress_at_end: Optio
 def _own_instalment(debt_gbp: float, basis: PlanResponseBasis) -> float:
     if basis.monthly_instalment_gbp is not None:
         return basis.monthly_instalment_gbp
-    return debt_gbp / _months_to_recover(basis.weeks_to_recover)
+    # Nobody pays less than a penny: spread over the months to recover, a few pence of debt rounds
+    # to a GBP 0.00 instalment, a plan that never repays (ACC-SYN-2016-356, GBP 0.07, Nov 2016).
+    return max(debt_gbp / _months_to_recover(basis.weeks_to_recover), 0.01)  # one penny
 
 
 def answer_plan_offer(account_id: str, offered_on: dt.date, debt_gbp: float, *,

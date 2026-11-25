@@ -129,6 +129,7 @@ def close_the_books(
     bills: list[dict[str, Any]],
     *,
     acquisition_spend_events: list[dict[str, Any]] | None = None,
+    market_stabilisation_charge_events: list[dict[str, Any]] | None = None,
     fixed_cost_events: list[dict[str, Any]] | None = None,
     cost_to_serve_ledger_events: list[dict[str, Any]] | None = None,
     broker_commission_events: list[dict[str, Any]] | None = None,
@@ -146,6 +147,8 @@ def close_the_books(
         the gate that prevents it belongs next to the posting it guards.
     `acquisition_spend_events` / `fixed_cost_events` — pre-built events the run
         emitted (Phase 8a growth mandate).
+    `market_stabilisation_charge_events` — the SLC 24A charge on each domestic win, booked apart
+        from acquisition spend so a count of acquisition attempts never counts a levy.
     `cost_to_serve_ledger_events` — the customer-value layer's monthly
         per-account cost-to-serve schedule (`{month, amount_gbp}`), shaped into
         account-6100 events here so account 6100 stops netting to zero.
@@ -170,6 +173,7 @@ def close_the_books(
 
     extra_events = (
         list(acquisition_spend_events or [])
+        + list(market_stabilisation_charge_events or [])
         + list(fixed_cost_events or [])
         + [
             make_cost_to_serve_event(event["month"], event["amount_gbp"])

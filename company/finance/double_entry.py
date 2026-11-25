@@ -193,6 +193,12 @@ def _entry_in_the_normal_direction(event: dict[str, Any]) -> dict[str, Any] | No
         return _entry(eid, ts, "6300", "1001", amount,
                       f"Broker trail commission: {event.get('month', ts)}", et)
 
+    # Levied on each domestic win (SLC 24A, 2022-04-14 to 2024-03-31): a cost of acquiring the
+    # customer, so 6300, under its own event type because the rules charged it, not the company.
+    if et == "market_stabilisation_charge_event":
+        return _entry(eid, ts, "6300", "1001", amount,
+                      f"Market Stabilisation Charge ({event.get('fuel')}): {cid}", et)
+
     if et == "fixed_cost_event":
         return _entry(eid, ts, "6200", "1001", amount,
                       f"Fixed overheads: {event.get('month', ts)}", et)

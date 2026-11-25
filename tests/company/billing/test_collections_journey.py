@@ -347,17 +347,12 @@ LIVE_WINDOW_END = "2016-12-31"
 #: each is dated three to four months after that household's final bill. So these controls are
 #: non-vacuous here only because of a defect: the desk offers a prepayment meter to a household that
 #: has left (SEAT_FINDING_THE_DESK_OFFERS_A_PREPAYMENT_METER_TO_A_HOUSEHOLD_THAT_HAS_LEFT_2026-11-23.md).
-#: Fixed 2026-11-23 (the gate's `account_still_supplied` column): all three are now withheld, so this
-#: window holds NO Consent offer and the two answered controls below are vacuous here. They are held
-#: open strictly until a window with an offer to a SUPPLIED account is measured; that measurement
-#: could not be admitted in the fixing turn (the box was full), so it runs as a long job and the
-#: re-key is handed on. `test_every_live_consent_offer_goes_to_an_account_still_supplied` is live.
+#: Fixed 2026-11-23 (the gate's `account_still_supplied` column): all three are now withheld, and the
+#: two answered controls below were held strict-xfail until the window held an offer to a SUPPLIED
+#: account. On 25 Nov (origin 95cec7822b plus the penny floor on a household's own instalment) both
+#: XPASSed with the leaver guard green, so the marks are dropped. `made` asserts the offer exists, so
+#: if the window empties again these go red rather than vacuous.
 ANSWERED_WINDOW_END = "2017-12-31"
-_NO_SUPPLIED_OFFER_IN_WINDOW = (
-    "OPEN: the answered window to 2017-12-31 holds no Consent offer once a closed account is refused "
-    "(its three offers were all to leavers, SEAT_FINDING_THE_DESK_OFFERS_A_PREPAYMENT_METER_TO_A_"
-    "HOUSEHOLD_THAT_HAS_LEFT_2026-11-23.md). Re-key ANSWERED_WINDOW_END to a measured window with an "
-    "offer to a supplied account, then drop this mark.")
 
 
 @pytest.fixture(scope="module")
@@ -456,7 +451,6 @@ def test_a_live_run_withholds_the_prepayment_offer_at_the_ninety_day_rung(live_j
                for s in shipped), [s["decision"][:80] for s in shipped]
 
 
-@pytest.mark.xfail(strict=True, reason=_NO_SUPPLIED_OFFER_IN_WINDOW)
 def test_an_answered_live_run_decides_the_consent_offer_both_ways(answered_live_run):
     """With the world's answers on, some household is offered, and no withhold says "never asked"
     or "no watch" (W2_43): the desk asks the S&RP questions and holds its own 27A watch."""
@@ -469,7 +463,6 @@ def test_an_answered_live_run_decides_the_consent_offer_both_ways(answered_live_
             assert NO_SELF_DISCONNECTION_WATCH not in s["decision"], s["decision"]
 
 
-@pytest.mark.xfail(strict=True, reason=_NO_SUPPLIED_OFFER_IN_WINDOW)
 def test_the_world_counts_every_consent_offer_the_company_made(answered_live_run):
     """The world-side concealing count is over every offer the desk made, the end-of-run advance's
     included: taken before the journeys' last advance it counted 4 of 5 (C32 tenth pass). Defect:

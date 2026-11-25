@@ -61,6 +61,19 @@ def test_a_sourced_basis_reaches_both_answers_and_both_instalment_outcomes():
     assert [i["due"] for i in jan31] == ["2017-02-28", "2017-03-31"]
 
 
+
+def test_a_debt_of_a_few_pence_is_agreed_at_a_payable_instalment():
+    """Defect: the household's own instalment is the debt over the months to recover, so 7p rounds
+    to a GBP 0.00 plan that never repays, and the company's book refuses the agreement (origin
+    95cec7822b, ACC-SYN-2016-356). Asserts the yes is reachable before asserting what it carries."""
+    basis = dataclasses.replace(PUBLISHED_BASIS, take_up_rate=1.0, instalment_keep_rate=0.5,
+                                monthly_instalment_gbp=None, weeks_to_recover=70.0)
+    for debt in (0.01, 0.07, 0.99, 40.0):
+        answer = answer_plan_offer("C1", OFFERED, debt, basis=basis)
+        assert answer.accepted is True
+        assert 0.01 <= answer.instalment <= debt, (debt, answer.instalment)
+    assert answer_plan_offer("C1", OFFERED, 40.0, basis=basis).instalment == round(40.0 / (70 * 12 / 52), 2)
+
 def test_the_live_seam_carries_the_worlds_answer():
     seam = LiveSimInterface()
     world = answer_plan_offer("C1", OFFERED, 40.0)

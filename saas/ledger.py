@@ -176,6 +176,28 @@ def make_acquisition_spend_event(
 
 
 
+def make_market_stabilisation_charge_event(
+    billing_account: str,
+    event_date: str,
+    fuel: str,
+    amount_gbp: float,
+) -> dict[str, Any]:
+    """Cash out: the Market Stabilisation Charge (SLC 24A) owed on one fuel of one domestic win.
+
+    Its own event type, booked to the same account as acquisition spend because it is a cost of
+    winning the customer, and kept apart because it is levied, not chosen: a reader is entitled to
+    tell what the company spent from what the rules charged it.
+    """
+    return {
+        "transaction_id": _tid("market_stabilisation_charge", f"{billing_account}_{fuel}", event_date),
+        "event_type": "market_stabilisation_charge_event",
+        "timestamp": event_date,
+        "billing_account": billing_account,
+        "fuel": fuel,
+        "amount_gbp": -amount_gbp,
+    }
+
+
 def make_retention_cost_event(
     billing_account: str,
     event_date: str,
@@ -730,12 +752,17 @@ def derive_pnl(events: list[dict[str, Any]]) -> dict[str, float]:
         result["revenue_restated_gbp"] = sum(e["restated_gbp"] for e in restatement_events)
         result["revenue_restatement_count"] = len(restatement_events)
 
-    if acq_events or fixed_events or cts_events or visit_events:
+    msc_events = [e for e in events if e["event_type"] == "market_stabilisation_charge_event"]
+    if msc_events:
+        result["market_stabilisation_charge_gbp"] = -sum(e["amount_gbp"] for e in msc_events)
+
+    if acq_events or fixed_events or cts_events or visit_events or msc_events:
         acq = result.get("acquisition_spend_gbp", 0.0)
         fixed = result.get("fixed_cost_gbp", 0.0)
         cts = result.get("cost_to_serve_gbp", 0.0)
         visits = result.get("read_visit_cost_gbp", 0.0)
-        result["operating_net_margin_gbp"] = net - acq - fixed - cts - visits
+        msc = result.get("market_stabilisation_charge_gbp", 0.0)
+        result["operating_net_margin_gbp"] = net - acq - fixed - cts - visits - msc
 
     return result
 
