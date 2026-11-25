@@ -243,3 +243,64 @@ either end. Then the switch goes back to `None` with the grade beside it.
 
 **Published as a range:** the book's electricity gap at SPAR 0.5 to 3, beside its hold. Never a
 point. Graded with `Graded: d48 held=<n> missed=<n>` over predictions 2, 3 and 4.
+
+## Graded 2026-11-25 on f2c6979d01: the first book built with the switch on. Held 2, missed 1; the switch stays on
+
+*Filed by the delivery lane `d48-grade-the-first-book-descending-from-59cd5ebda-with-the-blend-at-0-5`.
+Nothing above this line was edited.*
+
+**The book.** `run_output_f2c6979d01_20261124T215935Z.json`. It descends from 59cd5ebda, so SPAR 0.5
+was its default. Read-only:
+`python3 -m tools.d48_spar_blend_counterfactual --book <book> --ends --book-spar 0.5`. The book's
+own gap comes from `python3 -m tools.couple_w2_36_d48 --book <book>`, origin/main's copy. The
+shared tree's copy is another lane's work and was not run.
+
+| SPAR | elec gap | elec \|residual\| kWh | no-skill kWh | C6 \|res\| kWh | E1 breaches / runs | flags | hold bills re-billed | held as billed (opening unrecoverable) |
+|---|---|---|---|---|---|---|---|---|
+| 0 (hold, reconstructed) | **0.398** | 58,753 | 147,771 | 15,712 | 7 / 4,250 | 33 | 3,267 | **2** (SYN-2016-110, SYN-2016-492) |
+| **0.5 (the book)** | **0.381** | 56,264 | 147,771 | 13,218 | 7 | 32 | 0 | 0 |
+| 3 | **0.295** | 43,635 | 147,771 | 2,502 | 7 | 32 | 3,267 | 2 |
+
+**1. Calibration (precondition).** The book's half holds. At the book's own SPAR, the harness
+re-bills nothing, so 0.381 is the book's figure as billed. The hold-book half is **not checked**,
+because no hold-arm book from a descendant commit exists. Two accounts are held as billed at
+SPAR 0 and 3, the same two that the 23 Nov pre-flight named. Their first actual read came more
+than two years after opening, so the opening figure cannot be un-blended. The hold row
+therefore carries them as the book billed them, not as the hold would have.
+
+**2. HELD.** The gap at 0.5 is below the reconstructed hold: 0.398 → 0.381, a fall of **4.3%**.
+That is inside [4%, 10%], but near the floor; the two earlier books showed 6.9% and 7.0%. The
+level, 0.381, is inside [0.33, 0.39].
+
+**3. HELD.** The SPAR-3 end falls **25.9%** from the reconstructed hold, inside [22%, 34%]. The
+earlier books showed 29.0% and 28.9%.
+
+**4. MISSED, as worded.** The breach half holds. The breach set is identical to the hold's at both
+ends: 7 breaches. The 2 that sit on moved accounts (SYN-2016-215 June–July 2021 and July–August 2023)
+are both in the hold too, so the blend adds no breach. The flag set is **not** identical. It
+loses one flag at both ends: PROS-2024-0345, electricity, 2025-01-01 to 2025-04-30 (4 bills). The
+blend clears that flag; it adds none. The prediction said "equal", so it is graded missed, even
+though the move is in the safe direction. The runner half (`docs/reports/domain_invariants.json`
+on this book) is **not checked**: the file on disk is from 6a588a832f, dated 23 Nov, and is not
+this book's.
+
+**5. What the harness cannot see.** The book's own electricity gap (W2_36 ↔ D48) is **0.3955**,
+CI95 [0.2715, 0.5119], over 763 accounts. The harness's row 2 gives 0.381. The difference is
+0.015, under the 0.02 line, so this book raises no finding about the engine's advances against the
+harness's. The two measures differ: one is over whole accounts, the other over residual bills.
+The CI is wide enough to hold either figure.
+
+**Refuted?** No. The gap at 0.5 is below the reconstructed hold, and E1 adds no breach at either
+end. **The default stays 0.5.**
+
+**Published as a range:** on f2c6979d01 the electricity gap is **0.295–0.381** across SPAR
+[0.5, 3], against a reconstructed hold of 0.398. The book itself, at 0.5, couples at 0.3955
+[0.27, 0.51]. No point value of SPAR is stated.
+
+**For the next prediction.** The fall at 0.5 was 4.3%, against 6.9% and 7.0% before. On this book
+the hold's residual is 58,753 kWh, against 56,295 on 67d454905c, and the 0.5 end removes 2,490 kWh
+(3,923 before). I cannot yet say why the 0.5 end removed less here. This is a different world draw and a longer
+book, and on this book the hold is itself a reconstruction. The one-variable check is a hold-arm
+book from f2c6979d01, with `bill_estimate_blends_the_eac_at_spar=None`. It would also finish
+precondition 1's second half. It is not queued here; on the evidence so far it would not change
+the decision.
