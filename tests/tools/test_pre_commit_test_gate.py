@@ -292,6 +292,16 @@ def test_level_surface_and_code_change_runs_both_sets():
     assert set(gate.LEVEL_SENSITIVE_TESTS) <= set(targets)
 
 
+def test_a_level_write_in_either_map_half_or_the_register_selects_c_s5():
+    # C-S5's owed population is derived from the map's levels, so every file that can change who
+    # owes or who answers must select it. 95cec7822 moved B11 to L3 in the closed half and landed
+    # with origin red on C-S5, because no map file and not the register selected it.
+    cs5 = "tests/system/test_scale_constraints.py"
+    for subject in (*[f for f in gate.LEVEL_SURFACE_FILES if "maturity_map" in f],
+                    "docs/design/TIME_SCALE_INVARIANCE_REGISTER.yaml"):
+        assert cs5 in gate.select_targets([subject]), subject
+
+
 def test_level_sensitive_test_files_all_exist():
     for t in gate.LEVEL_SENSITIVE_TESTS:
         assert (ROOT / t).exists(), f"level-sensitive test missing: {t}"

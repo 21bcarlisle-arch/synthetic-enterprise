@@ -696,6 +696,10 @@ LEVEL_SENSITIVE_TESTS = [
     # hours later by the publish gate. It recurs at MINT RATE, which is why the fix is the DRAIN
     # (unmintable at commit time) and not the two map lines the instance needed.
     *STORE_CONTRACT_TESTS,
+    # C-S5's owed population is every company-side atom at L3+ IN THE MAP, so a level write is the
+    # edit that turns it red -- and 95cec7822 moved B11 to L3 with no declaration and landed green,
+    # because nothing here named this file (the register reaches it by the data route). ~3s.
+    "tests/system/test_scale_constraints.py",
 ]
 
 # THE PER-ATOM STORE SURFACE (2026-08-10, the other direction of the same contract). The store
@@ -1292,10 +1296,16 @@ def data_surface_tests(path: str) -> list[str]:
         if ref.startswith("site/"):
             continue
         if ref.startswith("tests/"):
-            # a fixture/conftest that names the path is not itself a runnable guard
-            if Path(ref).name.startswith("test_") and _names_it_outside_comments(
-                    ref, (path, p.name)):
+            # a fixture/conftest that names the path is not itself a runnable guard, but a helper
+            # module that READS it is the body of the tests named for it: the C-S5 register is
+            # opened by tests/system/scale_constraints.py, so this branch dropped its only reader.
+            name = Path(ref).name
+            if not _names_it_outside_comments(ref, (path, p.name)):
+                continue
+            if name.startswith("test_"):
                 targets.add(ref)
+            elif name != "conftest.py":
+                targets.update(tests_for(ref))
         elif ref.startswith(CODE_PREFIXES) and _names_it_outside_prose(ref, (path, p.name)):
             targets.update(tests_for(ref))
     # THE THIRD ROUTE: modules that name no file because they open `base / f"{world_id}.yaml"`.

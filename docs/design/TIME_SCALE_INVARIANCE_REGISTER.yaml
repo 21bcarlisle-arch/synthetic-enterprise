@@ -31,6 +31,15 @@ declarations:
       Rounding a computed bill to printed figures and refusing a bill that does not foot is a
       pure function of that bill's own amounts; it does not depend on when, or how fast,
       bills are produced.
+  - atom_id: B11_forward_clv_backtested_on_held_back_history
+    invariant: true
+    statement: >-
+      Everything accumulates against the book's own calendar month: margin is summed per supplied
+      month from per_customer_monthly, hazards are departures over months at risk, tenure counts
+      months from the account's first, the cut and the regime boundary are calendar months, and
+      the book ends at its last supplied month. company/analytics/forward_clv.py reads no wall
+      clock and no count of steps, so a book produced in nine minutes or nine years grades the same.
+      What it does assume is monthly resolution: a move mid-month is binned to the month it lands in.
 
 # ── exceptions: logic KNOWN not to be time-scale invariant, named per R10 ─────
 exceptions:
