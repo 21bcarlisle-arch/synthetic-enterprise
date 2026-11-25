@@ -195,3 +195,21 @@ def test_cs5_the_owed_population_is_derived_from_the_map_not_from_the_register()
         "independence check cannot distinguish 'derived from the map' from 'derived "
         "from the register' — seed the register with an out-of-population entry"
     )
+
+
+def test_cs5_refuses_a_promotion_that_brings_no_declaration():
+    """The 95cec7822 shape: an atom reaches L3 in a company-side lane and the register is
+    untouched. Take the real record and drop one real declaration, so the atom is owed and
+    unanswered; the coverage check must refuse it. The partition must also be takeable: the
+    real record passes, so the refusal is the missing row and not a check that refuses all."""
+    import pytest
+
+    record = sc.probe_time_scale_declarations()
+    sc.assert_time_scale_declarations_cover_the_population(
+        record, frozen_baseline=FROZEN_CS5_BASELINE)
+    promoted = sorted(record["owed"] & record["declared"])
+    assert promoted, "no declared company-side L3+ atom to withdraw a declaration from"
+    unanswered = dict(record, declared=record["declared"] - {promoted[0]})
+    with pytest.raises(AssertionError, match=promoted[0]):
+        sc.assert_time_scale_declarations_cover_the_population(
+            unanswered, frozen_baseline=FROZEN_CS5_BASELINE)
