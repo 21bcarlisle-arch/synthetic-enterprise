@@ -837,6 +837,7 @@ items:
     match: ["MSC increment A landed as 567288c03 at 06:18Z, but its landing bound nothing"]
     first_seen: "2026-11-25"
     fate: fix
-    status: open
+    status: already_fixed
+    fixed_by: "55db7de6f"
     owner: "continuation a-landing-unit-writes-its-own-landed-signal (background/bounded_landing.py: forward SE_LANDED_SIGNAL like WORK_ID_ENV; _run_in_unit writes the landed sha after promote_until_landed returns 0)"
-    reason: "Triaged 2026-11-25 by the delivery seat. Not a-landing-loses-its-race-to-origin: here the landing won, and only what was meant to follow it was dropped. This instance was recovered by hand (the file was written at 06:26Z, and B landed as f70757dc9f). Corrected when a unit-finished landing writes its caller's signal file with no turn alive, under a control whose mutation drops the write. See docs/staging/SEAT_FINDING_A_LANDING_FINISHED_BY_ITS_OWN_UNIT_HANDS_NOTHING_ON_2026-11-25.md."
+    reason: "Triaged 2026-11-25 by the delivery seat. Not a-landing-loses-its-race-to-origin: here the landing won, and only what was meant to follow it was dropped. This instance was recovered by hand (the file was written at 06:26Z, and B landed as f70757dc9f). Corrected when a unit-finished landing writes its caller's signal file with no turn alive, under a control whose mutation drops the write. See docs/staging/SEAT_FINDING_A_LANDING_FINISHED_BY_ITS_OWN_UNIT_HANDS_NOTHING_ON_2026-11-25.md. Fixed by 55db7de6f (2026-11-25): bounded_landing forwards SE_LANDED_SIGNAL to the unit, which writes the landed sha after promote_until_landed returns 0; control test_a_landing_unit_writes_its_own_landed_signal, three mutations each fire; the seat_executor brief tells a turn to arm its own landing signal through the variable."
