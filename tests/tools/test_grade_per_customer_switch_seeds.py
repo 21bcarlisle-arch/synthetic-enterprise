@@ -15,9 +15,10 @@ import tools.grade_per_customer_switch_seeds as g
 import tools.per_customer_switch_arms as arms
 
 
-def _run(events, gross, net, hh_net=None):
+def _run(events, gross, net, hh_net=None, drift=()):
     hh_net = hh_net or {}
     return g.reduce_run({
+        "svt_departures": [{"customer_id": c, "event_date": d, "commodity": f} for c, d, f in drift],
         "customer_events": [
             {"customer_id": c, "event_date": d, "commodity": f, "event_type": t, "departure_occasion": o}
             for c, d, f, t, o in events],
@@ -105,3 +106,24 @@ def test_a_seed_that_reached_no_dice_is_refused_and_one_that_did_is_not():
     assert "no renewal roll" in arms.dice_refusal(1, {}, 5, offers=0)
     assert "none read the seeded roll" in arms.dice_refusal(1, {"simulation.customer_events": 9}, 5, 2)
     assert "no payment draw" in arms.dice_refusal(1, ok, 0, offers=2)
+
+
+def test_a_drift_exit_in_one_arm_only_is_a_departure_and_is_counted_apart():
+    # Defect: a household that drifts off the standard variable product exists only in
+    # `svt_departures`; read from `customer_events` alone it is a stayer and its lost margin is
+    # graded as `same_choice`. Both sides of the partition at once: R1 drifts in one arm only,
+    # R2 drifts in both and is no difference at all.
+    a = _run([], {"R1": 0.0, "R2": 0.0}, 0.0, {"R1": 0.0, "R2": 0.0},
+             drift=[("R1", "2019-05-01", "electricity"), ("R2", "2019-06-01", "electricity")])
+    b = _run([], {"R1": 200.0, "R2": 0.0}, 0.0, {"R1": 90.0, "R2": 0.0},
+             drift=[("R2", "2019-06-01", "electricity")])
+    r = g.split(a, b)
+    assert r["channels"]["departure"] == {"households": 1, "gross_gbp": -200.0, "net_gbp": -90.0}
+    assert r["channels"]["same_choice"]["households"] == 0
+    assert r["drift_departure"] == {"households": 1, "gross_gbp": -200.0, "net_gbp": -90.0}
+
+
+def test_a_run_that_never_wrote_its_drift_exits_is_refused():
+    with pytest.raises(SystemExit, match="svt_departures"):
+        g.reduce_run({"customer_events": [], "per_cid_pnl": {}, "provisioned_net_gbp": 0.0,
+                      "churned_billing_accounts": []})

@@ -16,7 +16,9 @@ that does not keep the channels apart would publish it as retention value.
 
 THE CHANNELS, one per household, decided in this order on its renewal rows paired by
 (household, roll date, fuel) in `customer_events`:
-  * `departure` -- its set of departures differs between the arms.
+  * `departure` -- its set of departures differs between the arms. A drift exit off the standard
+                   variable product (`svt_departures`) is a departure too, and is ALSO counted
+                   apart as `drift_departure`, inside this channel, never added to it.
   * `parity`    -- it stayed in both, and at some roll one arm fixed where the other declined the
                    fix (`declined_fix`). The edge section 13 found. A fix is a rolled `renewal` OR
                    an `svt_conversion`: `run_phase2b` writes the latter for a household that was
@@ -68,12 +70,26 @@ def reduce_run(d: dict) -> dict:
     rows = collections.defaultdict(dict)
     for e in d["customer_events"]:
         rows[household(e["customer_id"])][(e["event_date"][:10], e["commodity"])] = outcome(e)
+    # A DRIFT EXIT IS A DEPARTURE, AND `customer_events` NEVER HOLDS ONE. A household on the
+    # standard variable product leaves by drift into `svt_departures` alone (`run_phase2b`), so
+    # before 2026-11-25 a household that drifted out in one arm only fell into `same_choice` or
+    # `other` and its lost margin was graded as anything but a departure. On f2c6979d01 that list
+    # held 252 rows and none appeared in `customer_events`. Refused when absent, because a run that
+    # never wrote the list would otherwise read as one where nobody drifted.
+    if "svt_departures" not in d:
+        raise SystemExit("REFUSED: this run output carries no `svt_departures`, so its drift exits "
+                         "cannot be counted and every one would be graded as a stay")
+    drift = collections.defaultdict(set)
+    for e in d["svt_departures"]:
+        key = (e["event_date"][:10], e["commodity"])
+        rows[household(e["customer_id"])][key] = "left"
+        drift[household(e["customer_id"])].add(key)
     gross = collections.defaultdict(float)
     hh_net = collections.defaultdict(float)
     for cid, pnl in d["per_cid_pnl"].items():
         gross[household(cid)] += pnl["gross"]
         hh_net[household(cid)] += pnl["net"]
-    return {"rows": dict(rows), "gross": dict(gross), "hh_net": dict(hh_net),
+    return {"rows": dict(rows), "drift": dict(drift), "gross": dict(gross), "hh_net": dict(hh_net),
             "net": d["provisioned_net_gbp"],
             "offers": len(d.get("retention_log") or ()),
             "departures": len(d["churned_billing_accounts"]),
@@ -93,6 +109,7 @@ def split(a: dict, b: dict) -> dict:
     """a - b, by channel. Every household with a renewal row or a pnl line in either arm is in
     exactly one channel, so the channels' gross and net each sum to the total difference."""
     out = {c: {"households": 0, "gross_gbp": 0.0, "net_gbp": 0.0} for c in CHANNELS}
+    drift = {"households": 0, "gross_gbp": 0.0, "net_gbp": 0.0}
     for h in set(a["rows"]) | set(b["rows"]) | set(a["gross"]) | set(b["gross"]):
         c = channel(a["rows"].get(h, {}), b["rows"].get(h, {}))
         dg = a["gross"].get(h, 0.0) - b["gross"].get(h, 0.0)
@@ -101,11 +118,17 @@ def split(a: dict, b: dict) -> dict:
             out[c]["households"] += 1
         out[c]["gross_gbp"] += dg
         out[c]["net_gbp"] += dn
+        if a["drift"].get(h, set()) != b["drift"].get(h, set()):
+            # Inside `departure` already; kept apart so the channel's drift share is readable.
+            drift["households"] += 1
+            drift["gross_gbp"] += dg
+            drift["net_gbp"] += dn
     gross = sum(v["gross_gbp"] for v in out.values())
     hh_net = sum(v["net_gbp"] for v in out.values())
     net = a["net"] - b["net"]
     return {"net_gbp": net, "gross_gbp": gross, "unattributed_gbp": net - gross,
             "household_net_gbp": hh_net, "book_level_gbp": net - hh_net, "channels": out,
+            "drift_departure": drift,
             "departures": (a["departures"], b["departures"]), "offers": (a["offers"], b["offers"])}
 
 
@@ -134,7 +157,10 @@ def grade(seeds: dict[str, dict[str, str]]) -> dict:
                         **{c: mean_interval([r["channels"][c]["gross_gbp"] for r in rows])
                            for c in CHANNELS},
                         **{f"{c}_net": mean_interval([r["channels"][c]["net_gbp"] for r in rows])
-                           for c in CHANNELS}}
+                           for c in CHANNELS},
+                        "drift_departure": mean_interval([r["drift_departure"]["gross_gbp"] for r in rows]),
+                        "drift_departure_net": mean_interval([r["drift_departure"]["net_gbp"]
+                                                              for r in rows])}
     return {"per_seed": per_seed, "summary": summary, "seeds": len(per_seed)}
 
 
@@ -160,11 +186,15 @@ def cli(argv: list[str]) -> None:
             print(f"  {x}-{y}: net {r['net_gbp']:+.2f} (gross {r['gross_gbp']:+.2f}, unattributed "
                   f"{r['unattributed_gbp']:+.2f}; household net {r['household_net_gbp']:+.2f}, book-level "
                   f"{r['book_level_gbp']:+.2f}) departures {r['departures']} offers {r['offers']}\n    {ch}")
+            dd = r["drift_departure"]
+            print(f"    of departure, drift exits apart: {dd['households']}h gross {dd['gross_gbp']:+.2f} "
+                  f"net {dd['net_gbp']:+.2f}")
     print(f"across {g['seeds']} seed(s), mean ± 95% half-width:")
     for key, s in g["summary"].items():
         print(f"  {key}: net {_fmt(s['net_gbp'])}  book-level {_fmt(s['book_level_gbp'])}")
         for c in CHANNELS:
             print(f"    {c:<12} gross {_fmt(s[c])}  net {_fmt(s[c + '_net'])}")
+        print(f"    {'(drift)':<12} gross {_fmt(s['drift_departure'])}  net {_fmt(s['drift_departure_net'])}")
 
 
 if __name__ == "__main__":
