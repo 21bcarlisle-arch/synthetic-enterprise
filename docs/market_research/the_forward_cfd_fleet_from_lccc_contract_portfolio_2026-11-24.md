@@ -317,6 +317,31 @@ about £0.40m a year for each percentage point of the farm's load factor [calc].
 one farm is not read** (new GAP 2b). The AR4 and AR6 terms' metering or apportionment provisions are
 where to look.
 
+**2b, read (worker, 25 Nov): nothing is shared.** Read from primary text: Standard Terms v4 (AR4,
+25 Nov 2021, text sha256 `a9fc1ed7…`) and v6 (AR6, 13 Mar 2024, text sha256 `ea54831b…`), the same
+three clauses word for word in both.
+
+- "Loss Adjusted Metered Output" is "the BM Unit Metered Volume **for the Facility** ... as measured by
+  the Facility Metering Equipment", and "Facility Metering Equipment" is "the Metering Equipment
+  measuring the flows of electricity associated with the Facility, its Metering System and its
+  associated BM Unit(s)". Each contract is paid on its own Facility's own meters and BM Units. The terms
+  contain no apportionment of one meter's output between two contracts. The only "apportion" in either
+  text is about dispute amounts and shared expert costs.
+- Paid volume is capped by settlement unit: "Intermittent Difference Amount = Difference ×
+  MAX(MIN(Qt × ht × TLMt, Mt), 0)", where Qt is the contract's Maximum Contract Capacity. That is the
+  Installed Capacity Estimate, and after the Start Date the Final Installed Capacity, which "shall not,
+  in any event, exceed the Installed Capacity Estimate" (Condition 7.1).
+- So Hornsea Three's 2,955 MW is split between the two contracts by **which turbines each Facility
+  holds**. That is a physical assignment in each CfD Agreement's Facility description, which is not
+  published. It is not split by any sharing rule. The AR4 contract's paid capacity becomes whatever it
+  commissions under its own Facility (Condition 7). The "cut" of 2a-ii is the AR4 Final Installed
+  Capacity coming in below 2,146.1 MW, or the AR6 Facility commissioning less than 1,080 MW.
+- **Correction, beside the inference above.** "A CfD pays on metered output, not on contract capacity"
+  is now read, and it is incomplete. A CfD pays on the smaller of its own Facility's metered output and
+  its Maximum Contract Capacity × hours, in every settlement unit. The build rule stands, with each
+  contract as its own Facility: paid MWh = min(MCC × h, that Facility's output). The farm total is
+  ≤ 2,955 MW, and the two-order bound above is the open turbine assignment (2a-ii).
+
 ## 5. GAPs
 
 1. **Slippage history.** Expected start dates as at each earlier date. Candidates are LCCC's own
@@ -329,7 +354,10 @@ where to look.
    worker): AR4 held plus AR6 is 3,226.1 MW against a 2,955 MW farm, so 271.1 MW of contract capacity has
    no turbine behind it. The levy caps the project at 2,955 MW. Which contract the cut falls on is open.
    2b. **How metered output is shared between two CfDs on one farm** (AR4 and AR6 Permitted Reduction
-   units). Not read. It decides which strike the shared output is paid at.
+   units). **Closed** in §4c (25 Nov, worker), from the AR4 and AR6 terms. Nothing is shared. Each
+   contract is paid on its own Facility's BM Unit metered volume, capped by settlement unit at its
+   Maximum Contract Capacity. Which strike the farm's output earns is decided by which turbines each
+   Facility holds, and that is 2a-ii's open question, not a sharing rule.
 3. **First power against CfD start for each phased offshore unit,** and the AR4 rule that allows
    deferral. This decides how far the two fleets of §0 differ in 2022-2026.
 4. **Capacity not under any CfD** (RO, merchant, FiT). This is needed to split the curriculum's one
