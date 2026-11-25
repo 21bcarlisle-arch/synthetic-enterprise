@@ -1062,10 +1062,15 @@ def test_the_council_tax_listing_feed_can_answer_listed_and_can_decline():
     """Defect: the listing feed answers None for every account (a wrong key into live_premises),
     so `release_confirmed_domestic` can never release a held bill and the genuine domestic tail
     (PROS-2016-0098, a 6-bed pre-1919 direct-electric house) stays held for ever -- or it answers
-    True for an address the world drew no dwelling for. Both branches must be reachable."""
-    from simulation.run_phase4c_on_phase2b import simulated_council_tax_listing
+    True for an address the world drew no dwelling for. Both branches must be reachable.
 
-    assert simulated_council_tax_listing({"customer_id": "PROS-2016-0098"}) is True
+    The listed account is any one the world drew a dwelling for, not a named id: pinned to
+    PROS-2016-0098, this went red on 24 Nov when the growth campaign's wins changed and that
+    prospect left the drawn book, though the feed was right."""
+    from simulation.run_phase4c_on_phase2b import _listed_dwellings, simulated_council_tax_listing
+
+    drawn = min(_listed_dwellings())
+    assert simulated_council_tax_listing({"customer_id": drawn}) is True
     assert simulated_council_tax_listing({"customer_id": "NO-SUCH-PREMISE"}) is None
     assert simulated_council_tax_listing(None) is None
 
@@ -1077,8 +1082,9 @@ def test_the_council_tax_listing_is_asked_about_the_dwelling_an_occupier_moved_i
     chain of moves; an occupier at a dwelling the world holds no premise for still reads None."""
     import simulation.run_phase4c_on_phase2b as mod
 
+    drawn = min(mod._listed_dwellings())
     book = [
-        {"customer_id": "OCC-A", "incoming_occupant_of": "PROS-2016-0098"},
+        {"customer_id": "OCC-A", "incoming_occupant_of": drawn},
         {"customer_id": "OCC-B", "incoming_occupant_of": "OCC-A"},
         {"customer_id": "OCC-C", "incoming_occupant_of": "NO-SUCH-PREMISE"},
     ]
