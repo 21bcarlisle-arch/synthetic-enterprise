@@ -1502,6 +1502,7 @@ class LivePaymentTriad:
         period_end: Optional[str] = None,
         level_collection: Optional[dict] = None,
         closing: bool = False,
+        names_a_payer: bool = True,
     ) -> dict:
         """Generate the ONE canonical W2_11 payment event for this
         (customer, period), cross the seam + feed the company consumer LIVE,
@@ -1533,7 +1534,12 @@ class LivePaymentTriad:
         its own act: it set the amount.
 
         `closing` says this is the leg's final bill because its account closed, a switch-away
-        included. A home move also says so through `moved_out_on`; a switch sets no move date."""
+        included. A home move also says so through `moved_out_on`; a switch sets no move date.
+
+        `names_a_payer` False is a month whose bill no named payer is asked for (the unnamed
+        occupier's window or an owner's void, `arrears_engine.names_no_payer`). Nobody has given a
+        Direct Debit Instruction, so no level collection is presented (home_moves.md s.8.8g choice
+        31). Presented, it was cash the page never counts: 137 legs, GBP 27,134.55 on f2c6979d01."""
         self._deliver_settlements_through(due_date)
         bill_month = bill_month or due_date.isoformat()[:7]
         period_index = _period_index_for(bill_month)
@@ -1574,7 +1580,7 @@ class LivePaymentTriad:
             period_end is not None and date.fromisoformat(period_end[:10])
             >= date.fromisoformat(moved_out_on[:10]) - timedelta(days=1))
         level = (level_collection if method == DIRECT_DEBIT and level_collection is not None
-                 and not final_month else None)
+                 and not final_month and names_a_payer else None)
         self.last_level_presented = level
         presented_on = (date.fromisoformat(level["collection_date"]) if level is not None
                         else due_date)

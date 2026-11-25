@@ -1035,6 +1035,16 @@ LEG_CLOSE = "close"
 LEG_STATUTE_BAR = "statute_bar"
 
 
+def names_no_payer(bill: dict | None) -> bool:
+    """True when the occupier's and the owner's void shares cover the whole bill, so no named payer
+    is asked for it (`payer_ask_gbp`) and no Direct Debit Instruction exists to collect under: no
+    level collection is presented that month (home_moves.md s.8.8g choice 31). A bill the pre-bill
+    gate held still names its payer; pass the bill before the gate. None (nothing billed) names one."""
+    if bill is None:
+        return False
+    return bill.get("occupier_share", 0.0) + bill.get("void_owner_share", 0.0) >= 1.0 - 1e-9
+
+
 def payer_ask_gbp(bill: dict) -> float | None:
     """What the named payer is asked for on an issued bill, or None for a bill nobody named is asked
     for. The engine's ask and the desk's in the loop (`run_phase2b._post_month_bill`) are this one
@@ -1053,9 +1063,9 @@ def payer_ask_gbp(bill: dict) -> float | None:
         owed_after_scheme_credit,
         printed_total,
     )
-    occupier_share = bill.get("occupier_share", 0.0) + bill.get("void_owner_share", 0.0)
-    if occupier_share >= 1.0 - 1e-9:
+    if names_no_payer(bill):
         return None
+    occupier_share = bill.get("occupier_share", 0.0) + bill.get("void_owner_share", 0.0)
     # The total the bill prints, its lines each rounded to the penny. The unrounded total, rounded
     # once, sat a penny away on a bill in three, and the desk chased one penny per open bill above
     # what the page said was owed (2,328 steps on the 209c3350ab book).

@@ -338,6 +338,14 @@ class StopNoticeBoard:
         return next((b for b in self.issued_bills_before(supply_point, cutoff, churned)
                      if b["period_end"][:7] == month), None)
 
+    def bill_for(self, supply_point: str, month: str, churned: bool = False) -> dict | None:
+        """The bill assembled for this supply point's `month`, before the pre-bill gate; None if
+        nothing was billed. Whether it names a payer is the bill's, not the gate's."""
+        y, m = int(month[:4]), int(month[5:7])
+        cutoff = f"{y + m // 12:04d}-{m % 12 + 1:02d}-01"
+        return next((b for b in self.bills_before(supply_point, cutoff, churned)
+                     if b["period_end"][:7] == month), None)
+
     def observe(self, records: list[dict]) -> None:
         """Take a term's settled records as the run settles them."""
         from simulation.household import household_of
