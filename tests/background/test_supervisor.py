@@ -175,6 +175,21 @@ def _isolate(tmp_path, monkeypatch):
     # isolated lane needs its own line here, because isolating the lane does not isolate what the
     # lane reads. The continuation-first ordering itself is proven in test_delivery_lane.py.
     monkeypatch.setattr(seat_continuation_module, "STORE", tmp_path / ".seat_continuation.json")
+    # Same rule, two more real-tree reads (2026-11-25). RUNG 4b's `_stale_gap_row_draw` runs the
+    # gap-ledger reconcile over the live repo (~140 subprocesses a call) and LANE 0's
+    # `_area_stops` AST-walks the live code through `learning_loop.measures`: ~15s of the 21s
+    # `test_find_work_drained_and_gated_settles_quiet_not_harden_treadmill` took, scaling with the
+    # tree and the box's load -- which is why the operational-layer signal timed out there on some
+    # runs and passed on others. Each stub is its function's own empty answer; both rungs are
+    # proven in their own test files.
+    monkeypatch.setattr(supervisor, "_stale_gap_row_draw", lambda work=None: None)
+    monkeypatch.setattr(delivery_lane_module, "_area_stops", lambda: {})
+    # And the tick's stretch-report alarm reads the real stretch log every cycle (~4.7s of a
+    # 62-cycle escalation test) and, whenever a report IS owed, pages the REAL `notify` channel
+    # from inside a unit test. Its behaviour is proven in tests/tools/ beside it.
+    import tools.stretch_log as _stretch_log
+    monkeypatch.setattr(_stretch_log, "raise_stretch_report_owed",
+                        lambda log_fn=None, notify_fn=None: {"owed": False, "logged": False, "paged": False})
     (tmp_path / "staging").mkdir()
     _reset_supervisor_state()
     yield
