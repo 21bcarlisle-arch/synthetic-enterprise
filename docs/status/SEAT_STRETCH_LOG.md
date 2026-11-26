@@ -8,6 +8,60 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-26 — orientation: Against the thesis this stretch held its ground
+
+<!-- head: 4df2b4f892ed -->
+
+*Written by the orientation seat from its own record (2026-11-26T09:20:40.633951+00:00; 12 commits, 2 substantive, since 2026-11-26T03:24:00.725039+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 0 both, 12 other.
+
+## What the stretch meant
+
+Against the thesis this stretch held its ground. It did not advance, and the reason is the pace, not the work. The slow tick mode set on 25 Nov at 12:47Z ran until 09:05Z today. That is why none of the four previous focus items was drawn. The steer did not fail to bite: the machine was barely ticking. The advisor's 39% reading lifted slow mode, so this focus is the first one that will actually be worked at normal pace. The work the seat did do went at the publish wall. 10bf51c37 keys the EPG unit-rate exception to the read-tenths class, so it is no longer a count of one book's size. All 362 breaches sit inside the tenths bound, and both mutations fire. fbb4ba43e shows that the 8 EBSS breaches are the two classes the exception already covers. That one needs the occupier and void shares in the raw export before it can be keyed the same way. 4df2b4f89 shows that the gas-repeat legs are a real repeat in heating months (PROS-2017-0192g repeats nine months to 0.1 kWh) and not the excepted class. The cb93f7760c grade shows billing and EPG clean on 23,777 invoices. Even so, no book has published since 18 Nov. The book now building (001e4f680a) carries the EPG fix and none of the others, so it will be refused again unless causes 2-5 land first. On the thesis's own test, a per-customer supplier against the flat baseline, there is still NO valid comparison. The director answered the open row at 05:47Z ("Yes. But watch out for weird energy crisis years"). The fidelity check by his four regimes is done (3e032230b): before the cap the world agrees, the crisis years and the years after 2024 fail, and the re-grade is pre-registered to rest on regimes 1-2, read separately. But fix 0, the FTC window from 2021-10-01, has not landed. Meanwhile the etarms chain that my last record ordered stopped is still running on e6be5fec8. I checked: the arms tool counts calls into simulation.retention_offer, and a189c2824 changes that file, so the chain is void by the fix's own rule. Yet s5 all_on (03:36Z) and s6 flat (08:59Z) launched anyway, and the s6 arm is using 3.4 GB right now. The commit split was 12 "other" commits and 0 supplier, world or both, with 2 substantive. The split mislabels billing invariant work as "other", but even read generously the supplier moved only on the publish gate. Of the Lane 0 misses, msc-b-the-world-charges-the-msc-on-a-replacement-win appears already spent: B landed as f70757dc9, per wrong_triage. Whoever next touches it should bind it with --landed-under rather than redo it.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 09:20 26 Nov -- unchanged on the live belief. The money test of its ending-term replacement waits on focus 1's re-grade on fixed code.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 09:20 26 Nov -- unchanged; triage owns it.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one. [Earlier tails are in decisions.jsonl.] 09:20 26 Nov -- unchanged; latent, and no domestic account reaches either writer.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. [Earlier tails are in decisions.jsonl.] 09:20 26 Nov -- unestablished, not corrected. a189c2824 voided the grade it rests on, and the re-grade on fixed code is focus 1 step 2.
+- NOT corrected: THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z), but their work reached origin. This is a new instance of a-landing-loses-its-race-to-origin. [Earlier tails are in decisions.jsonl.] 09:20 26 Nov -- no new lost race this stretch, but the stretch was slow-mode and lightly loaded, so that is not yet evidence the race has gone.
+- NOT corrected: THE MACHINE'S, NEW. The closed-account landing was relaunched at 14:35Z unchanged after two refusals on the same three reds, and it was refused a third time. [Earlier tails are in decisions.jsonl.] 09:20 26 Nov -- 0 died this stretch and no unchanged relaunch seen. The earlier seven DIED landings are still unread, and its triage line is 30 Nov.
+- NOT corrected: THE SEAT'S OWN, NEW. My 21:24 record put every queued supplier result behind the book's BUILD, and never asked whether a built book would pass the publisher's gates. Lesson: a book is owed until it PUBLISHES. [Earlier tails are in decisions.jsonl.] 09:20 26 Nov -- still open. The EPG cause was fixed as a class (10bf51c37), but EBSS, estimate-follows, gas-repeat and three single accounts still refuse, and nothing has published since 18 Nov. Focus 2 carries it.
+- NOT corrected: THE SEAT'S OWN, NEW. My 12:23 record kept the six-seed ending-term-against-flat arms running on e6be5fec8. After a189c2824 (21:42Z) voided offer-decided comparisons, no one asked whether those arms were among them. [Earlier tails are in decisions.jsonl.] 09:20 26 Nov -- still not corrected, and it got worse. My 03:24 record ordered the chain stopped, but under slow mode no tick drew it, so s5 all_on (03:36Z) and s6 flat (08:59Z) launched anyway. Voidness is now confirmed: the arms tool reaches simulation.retention_offer, and a189c2824 changes it. Focus 1 step 1 stops the chain.
+- NOT corrected: THE SEAT'S OWN, NEW. My 03:24 record wrote four Lane 0 focus items, and an urgent stop, into a stretch where tick_mode was slow until 09:05Z, and never read the tick mode. None of the four was drawn, and the stop that most needed to be prompt did not happen. Lesson: read background.tick_mode before writing focus, and when the machine is slow, put a time-critical stop in the seat's own hands rather than in Lane 0.
+
+## Chosen against
+
+- Let the etarms chain finish its last three seeds and read it as a bound.
+- Launch the rankq re-grade now on a189c2824 without waiting for fix 0.
+- Raise EBSS's max_breached from 7 to 8, or the gas-repeat ceiling from 1, so 001e4f680a publishes.
+- Draw b8-flip-the-blind-holdout-on-after-the-five-grades, s1-contract-the-first-term-at-its-quote, and the gas-AQ grade (all ripe today).
+- Pull the forward bands and the K8-for-world one-leg test (director commitments, due 2 Dec) into focus now.
+- Spend the restored pace on the 25 live repeating alarms (worktree-undeclared 72 days, fork-orphan 54 days).
+
+## Focus for the next stretch
+
+- `the-void-etarms-chain-is-stopped-and-the-rankq-regrade-launches-on-fixed-code`
+- `the-publish-wall-causes-two-to-five-are-closed-before-the-001e4f680a-book-is-graded`
+- `the-ftc-withdrawal-window-starts-at-the-published-zero-gap-quarter`
+- `the-four-unattributed-final-bills-netted-past-the-page`
+
+---
+
+## 2026-11-26 — orientation skipped: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-11-26T03:25Z, next from 2026-11-26T15:25Z
+
+<!-- head: 001e4f680aef -->
+
+*Written by the orientation seat from its own record (2026-11-26T06:22:11.605390+00:00; 10 commits, 1 substantive, since 2026-11-26T03:24:00.725039+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 0 both, 10 other.
+
+The seat did not orient, so there is no reading of this stretch against the thesis. Its recorded reason: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-11-26T03:25Z, next from 2026-11-26T15:25Z
+
+---
+
 ## 2026-11-26 — orientation: Against the thesis this stretch went backwards in what we can claim and forwards in what we know
 
 <!-- head: cb93f7760c6f -->
