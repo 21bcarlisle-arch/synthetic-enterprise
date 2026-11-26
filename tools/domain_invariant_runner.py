@@ -2795,10 +2795,23 @@ def ev_unit_rate_epg_household(inv, book):
             if not (row["_from"] <= start and end <= row["_to"]) or rate is None or nc is None or not kwh:
                 tally.unbounded += 1
                 continue
+            tol = 0.5 / kwh + _half_last_digit(p.get("unit_rate_p_per_kwh")) + 0.0005
+            before = len(tally.breaches)
             tally.band("{} {} {}".format(a.cid, p["commodity"], p["period_start"]), rate + nc / 10.0,
-                       _num(row.get("lower")), _num(row.get("upper")),
-                       tol_abs=0.5 / kwh + _half_last_digit(p.get("unit_rate_p_per_kwh")) + 0.0005)
+                       _num(row.get("lower")), _num(row.get("upper")), tol_abs=tol)
+            hit = tally.breaches[before] if len(tally.breaches) > before else None
+            if hit and hit["side"] == "above" and hit["value"] <= hit["bound"] + tol + READ_TENTHS_KWH * rate / kwh:
+                hit["cls"] = PRINTED_KWH_READ_TENTHS
     return tally
+
+
+#: The printed kWh is the difference of two reads each printed to a tenth, so it can sit up to 0.1
+#: kWh off the volume the energy line was priced on, and the printed rate (line over printed kWh)
+#: moves by up to the rate x 0.1 / kWh. A breach no larger is that quantisation, not a price over
+#: the EPG: all 362 of the 3d3a8ee691 book's 362 sit inside it (26 Nov). Labelled, never passed:
+#: the row still grades the bill as printed, and a breach past the tenths carries no class.
+READ_TENTHS_KWH = 0.1
+PRINTED_KWH_READ_TENTHS = "printed_kwh_off_the_priced_kwh_by_the_two_read_tenths"
 
 
 def _half_last_digit(v) -> float:

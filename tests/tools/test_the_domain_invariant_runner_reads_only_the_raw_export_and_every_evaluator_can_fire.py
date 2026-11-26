@@ -1282,6 +1282,22 @@ def test_every_leg_of_the_epg_row_is_reachable():
     assert _grade_one(row, _account("E", "electricity", rate=27.5, year=2021), inv=inv)[0] == "UNREACHED"
 
 
+def test_an_epg_breach_is_labelled_read_tenths_only_inside_the_tenths():
+    """Catches the class being written on every breach, or on none. 250 kWh at 27.39p + 5p is 32.39p,
+    past the print tolerance over 32.381p and inside 0.1 kWh x 27.39p / 250 kWh (0.011p): labelled,
+    and the class exception lifts it. 27.41p is past the tenths: no class, and the gate refuses."""
+    inv = {"rows": [{"from": "2022-10-01", "to": "2023-06-30", "commodity": "electricity", "upper": 32.381}]}
+    row = "INV_UNIT_RATE_EPG_HOUSEHOLD"
+    exception = {"exceptions": [{**{f: "x" for f in runner.EXCEPTION_FIELDS},
+                                 "invariant": row, "class": runner.PRINTED_KWH_READ_TENTHS}]}
+
+    def graded(rate):
+        r = runner.run([dict(inv, id=row)], {"E": _account("E", "electricity", rate=rate, year=2022)})
+        return r[0].get("breached"), r[0].get("breached_by_class"), runner.gate(r, exception)["refuse"]
+    assert graded(27.39) == (3, {runner.PRINTED_KWH_READ_TENTHS: 3}, False)
+    assert graded(27.41) == (3, None, True)
+
+
 def _estimated(runs, actual_month=None):
     acct = _account("G", "gas", rate=3.0, read_type="E", kwh_per_month=900.0)
     if actual_month is not None:

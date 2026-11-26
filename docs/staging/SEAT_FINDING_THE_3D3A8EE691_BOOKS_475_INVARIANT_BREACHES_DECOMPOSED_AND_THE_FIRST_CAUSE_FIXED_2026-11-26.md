@@ -74,6 +74,16 @@ the ceiling at a listed dwelling, with no actual read in its tenure.
    keyed to one book's size. That is the "key a control to today's answer" shape: it refuses a
    larger, cleaner book. Either fix its `retired_by` (price the energy line on the printed kWh) or key
    the exception to a share. Decide which; do not raise the number.
+   **Taken 26 Nov, keyed to the class.** The cause is measured. The printed kWh is the difference of
+   two reads, each printed to a tenth, so it can sit up to 0.1 kWh off the volume the energy line was
+   priced on. The printed rate then moves by up to rate x 0.1 / kWh. All 362 of the cb93f7760c
+   book's 362 breaches sit inside that bound, and none sits past it. The evaluator now labels a
+   breach inside the tenths `printed_kwh_off_the_priced_kwh_by_the_two_read_tenths`. The exception
+   lifts that class only, and `max_breached` is dropped. A breach past the tenths carries no class
+   and refuses. Control: `test_an_epg_breach_is_labelled_read_tenths_only_inside_the_tenths`. Both
+   legs were mutation-checked: dropping the label goes red, and so does labelling every breach.
+   `retired_by` is unchanged. Pricing the line on the printed kWh still retires the row.
+   Re-graded on the same book with the change, the gate no longer names this row.
 2. **EBSS 10 against 7, on 8 accounts (6 OCC).** Monthly EBSS credits of 0 on OCC bills in Oct
    2022-Mar 2023. Check whether an occupier admitted mid-scheme is outside the EBSS crediting loop.
 3. **INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS, 44 on 17 accounts, no exception.** New in this

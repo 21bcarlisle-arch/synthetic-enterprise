@@ -211,10 +211,13 @@ exceptions:
       term rate less the Treasury's share per kWh lands on 32.38p (electricity) and 9.829p (gas). The breaching bills are
       the upper half of a symmetric scatter of the printed energy line against the printed kWh (about 1,050 bills above
       term-less-receipt and 1,090 below, past the penny tolerance), so the line is not priced on exactly the kWh printed
-      beside it. The row grades the bill as printed, so it is kept, at this count.
+      beside it. The row grades the bill as printed, so it is kept. 26 Nov: keyed to the class, not a count. The
+      350 ceiling refused the 3d3a8ee691 and cb93f7760c books at 361 and 362 while the breach share fell (11.1% to
+      10.8%), because the book grew. The printed kWh is two reads printed to a tenth apart, up to 0.1 kWh off the
+      priced volume; all 362 of 362 sit inside rate x 0.1 / kWh. Any breach past the tenths carries no class and refuses.
     filed: 2026-10-30
     retired_by: the printed energy line priced on the printed kWh (the same volume the Treasury's share is computed on), graded 0 on a fresh run
-    max_breached: 350
+    class: printed_kwh_off_the_priced_kwh_by_the_two_read_tenths
   # 2026-11-04: three rows written blind for the seventh cold read's N14, N15 and N16 grade the published 0a6391d186
   # book (and its published cast) for the first time. Each ceiling is that book's count. The fresh b3ce2a4e73 book,
   # graded by the same evaluators, reads 4, 11 and 0.
