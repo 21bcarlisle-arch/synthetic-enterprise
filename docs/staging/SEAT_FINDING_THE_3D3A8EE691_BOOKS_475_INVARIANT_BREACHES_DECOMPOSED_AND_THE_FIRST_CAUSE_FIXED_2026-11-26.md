@@ -100,6 +100,21 @@ the ceiling at a listed dwelling, with no actual read in its tenure.
 3. **INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS, 44 on 17 accounts, no exception.** New in this
    book. Check whether D48's `same_period_estimate` (11a4387c6f, default off) or the BSC blend moved
    this.
+   **Taken 26 Nov: the BSC blend moved it, and the row graded a policy the company no longer
+   declares.** All 44 are electricity quote-rung bills. Each meter prints two flat annual figures, one
+   on each side of its first actual read. For example, OCC-5c90c6dd919a reads 37.4 for Oct 2024-Jan
+   2025, then has a Feb read, then reads 32.3 for Mar-Jun. Since 2026-11-20, every standing policy has
+   blended a hold-route PC1/PC3 electricity month's registry EAC toward the held reads at SPAR 0.5
+   (`bill_estimate_blends_the_eac_at_spar`). So on the quote rung, a read moves the figure. The row
+   still took one median per meter. `same_period_estimate` is off and is not the cause. The row now
+   declares `quote_figure_moves_at_each_read` (electricity, PCs 1 and 3, held equal to the company's
+   switch and `BSC_BLEND_PROFILE_CLASSES` by the control), and takes the median per read segment.
+   Re-graded on the same book: 0 of 30,768, against 44 of 30,927. The 159 bills that are no longer
+   graded each sit alone in their segment, so no figure in force can be compared with them. That is a
+   real loss of coverage. Grading them would need the blend's own value, and FYC is not on the page.
+   Control: `test_a_read_moves_the_quote_figure_where_the_supplier_blends_the_eac_toward_it`. Three
+   mutations go red: one segment for all bills, one segment per bill, and dropping `profile_class`
+   from `load_printed`. A step inside a segment, a PC2 meter and gas still breach.
 4. **INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR, 7 against 1.** Five are on new PROS gas legs.
    b3f3a23f6f re-based gas AQ registration, which may be the cause.
    **Read 26 Nov on the cb93f7760c book: not the excepted class, and not a missing cell.** The six legs

@@ -1116,6 +1116,45 @@ def test_the_estimate_row_grades_both_rungs_of_the_declared_policy():
     assert hit == {"Q", "R"}, hit
 
 
+def test_a_read_moves_the_quote_figure_where_the_supplier_blends_the_eac_toward_it(tmp_path):
+    """Since 2026-11-20 the company bills a hold-route electricity month on PC1 or PC3 from the
+    registry EAC blended toward each read it holds (FYC x SPAR, BSC Annex S-2 4.3.7). So a first read
+    90 days in moves the quote figure. Graded as one figure per meter, that step breached 44 bills on
+    the cb93f7760c book. The row grades one figure per read segment where the policy declares it.
+    A step inside a segment still breaches, gas is not declared and still grades one figure, and the
+    declaration is held equal to the company's switch and classes. Mutation: keying every bill to
+    one segment reds the first assert, and keying each bill to its own segment reds the second."""
+    import dataclasses
+
+    from company.billing.unread_month_estimate import BSC_BLEND_PROFILE_CLASSES
+    from company.policy.decision_policy import DecisionPolicy
+    i = "INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS"
+    inv = next(r for r in runner.load_invariants() if r["id"] == i)
+    moves = inv["declared_policy"]["quote_figure_moves_at_each_read"]
+    spar = next(f.default for f in dataclasses.fields(DecisionPolicy) if f.name == "bill_estimate_blends_the_eac_at_spar")
+    assert (moves["fuels"] == ["electricity"]) == (spar is not None)
+    assert tuple(moves["profile_classes"]) == tuple(BSC_BLEND_PROFILE_CLASSES)
+
+    def acct(fuel, after, may=None, pc=1):
+        d = runner._d
+
+        def e(start, end, a):
+            return runner._shape(fuel, d(start), d(end)) * a * ((d(end) - d(start)).days + 1)
+        return _printed_account("B", fuel, {"profile_class": pc, "invoices": [
+            _bill("2020-01-01", "2020-01-31", e("2020-01-01", "2020-01-31", 3650.0), "E",
+                  opening_read_kwh=0.0, days_in_period=31),
+            _bill("2020-02-01", "2020-02-29", e("2020-02-01", "2020-02-29", 3650.0), "E", days_in_period=29),
+            _bill("2020-03-01", "2020-03-31", 250.0, "A", close=800.0),
+            _bill("2020-04-01", "2020-04-30", e("2020-04-01", "2020-04-30", after), "E", days_in_period=30),
+            _bill("2020-05-01", "2020-05-31", e("2020-05-01", "2020-05-31", may or after), "E", days_in_period=31)]})
+    assert _grade_one(i, acct("electricity", 3000.0), inv=inv)[:2] == ("CLEAN", [])
+    assert _grade_one(i, acct("electricity", 3000.0, may=3600.0), inv=inv)[:2] == ("BREACHED", ["above", "below"])
+    assert _grade_one(i, acct("electricity", 3000.0, pc=2), inv=inv)[0] == "BREACHED"
+    assert _grade_one(i, acct("gas", 3000.0), inv=inv)[0] == "BREACHED"
+    (tmp_path / "B.json").write_text(json.dumps({"profile_class": 3, "invoices": []}))
+    assert runner.load_printed(tmp_path)["B"]["profile_class"] == 3
+
+
 def test_the_estimate_row_dates_the_switch_from_the_supply_start_when_the_first_bills_were_held(tmp_path):
     """SYN-2016-582 on the 08f267b666 book: supplied from 10 Dec 2016, its Dec-Mar bills held before
     issue, so the page's bills start in April. Its 31 Jul read is 234 days into the supply, so its

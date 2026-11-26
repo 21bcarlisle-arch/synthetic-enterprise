@@ -113,6 +113,7 @@ def load_printed(customers_dir: Path) -> dict[str, dict]:
             "commodity": d.get("commodity"),
             "household": d.get("base_account_id"),
             "acquisition_date": d.get("acquisition_date"),
+            "profile_class": d.get("profile_class"),
             # "N of D bills paid, R returned, M missed" at the page's as-of date, as the page file
             # carries it (`generate_payment_ledger_data`). Before 2026-11-08 nothing built it here,
             # so INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE read NOT_IN_EXPORT on every book.
@@ -2524,6 +2525,12 @@ def ev_estimate_follows_reads(inv, book):
     policy = inv.get("declared_policy") or {}
     switch_days = int(policy.get("switch_days", 182))
     quote_q = float(policy.get("quote_q", 0.05))
+    # Where the supplier blends its registry figure toward each read it holds (the BSC's FYC*SPAR
+    # weight), the quote rung's one figure holds only between two reads: a read moves it. Graded as one
+    # figure per meter, the blend's step at the first read breached 44 bills on 17 cb93f7760c accounts.
+    moves = policy.get("quote_figure_moves_at_each_read") or {}
+    moves_fuels = set(moves.get("fuels") or ())
+    moves_classes = {str(c) for c in moves.get("profile_classes") or ()}
     tally = Tally("estimated bill on a rung its declared policy grades")
     for a in book:
         if a.printed is None or a.fuel not in MONTHLY_SHARE:
@@ -2531,6 +2538,7 @@ def ev_estimate_follows_reads(inv, book):
         t = float(t_of[a.fuel])
         first_bill = _printed_bills(a)[0]["period_start"] if _printed_bills(a) else None
         acquired = a.printed.get("acquisition_date")
+        figure_moves = a.fuel in moves_fuels and str(a.printed.get("profile_class")) in moves_classes
         for serial, bills in _by_serial(a).items():
             reads = _meter_reads(bills)
             # The supply starts on the page's acquisition date where that is earlier than the first
@@ -2547,7 +2555,7 @@ def ev_estimate_follows_reads(inv, book):
             by_register = {_d(i["period_end"]): _register_reads(i) for i in bills
                            if i.get("read_type") in ACTUAL_READ_TYPES}
             by_register[supply_start] = _register_reads(bills[0], "opening_read_kwh")
-            quote = []
+            quote = defaultdict(list)
             for n, i in enumerate(bills):
                 if i.get("read_type") != "E":
                     continue
@@ -2564,7 +2572,7 @@ def ev_estimate_follows_reads(inv, book):
                 if not held or (held[-1][1] - supply_start).days < switch_days:
                     here = _shape(a.fuel, start, _d(i["period_end"]), total_share)
                     if here > 0:
-                        quote.append(("{} {} {} bill {} to {}".format(
+                        quote[held[-1][1] if figure_moves and held else None].append(("{} {} {} bill {} to {}".format(
                             a.cid, a.fuel, serial, i["period_start"], i["period_end"]), e / here))
                     continue
                 if len(held) < 2:
@@ -2597,9 +2605,11 @@ def ev_estimate_follows_reads(inv, book):
                 if len(tally.breaches) == before and (
                         (s_short > s_long and e < 0.9 * s_long) or (s_short < s_long and e > 1.1 * s_long)):
                     tally.hit("flag", where, round(e, 3), round(s_long, 3), "wrong direction")
-            if len(quote) >= 2:
-                med = statistics.median(v for _, v in quote)
-                for where, v in quote:
+            for figure in quote.values():
+                if len(figure) < 2:
+                    continue
+                med = statistics.median(v for _, v in figure)
+                for where, v in figure:
                     tally.band(where, round(v, 1), round((1 - quote_q) * med, 1), round((1 + quote_q) * med, 1))
     return tally
 
