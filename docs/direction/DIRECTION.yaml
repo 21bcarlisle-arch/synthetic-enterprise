@@ -190,14 +190,42 @@ wrong:
       advances.
     corrected: false
 for_the_director:
-  - id: the-world-s-91-day-arrears-stock
-    raised: "2026-11-26"
-    kind: vision
-    decision_kind: fidelity
-    what: "The world's >91-day arrears stock (2019: 10.0%, 1.96x Ofgem's 5.1%) is not concentrated in households that cannot absorb a shock: RR 1.42 [0.70, 2.66] for the thinnest 30% of budgets against the survey's 3.6 [2.8, 4.6]. The financially-vulnerable state V2 drives nothing (RR 0.57 [0.18, 1.16]). Pre-registered 25 Nov; Q2 failed."
-    proposal: "One financial state, not two: derive V2 from the household budget (the 30% least able to absorb a shock) and let sustained non-payment run through that budget, so the gradient lands near 3.6 and the stock comes back toward 5.1%. The transient income_stress draw keeps only short, self-curing failures. K8 first: knowledge page, then a one-variable build graded on a fresh 2019 capture."
-    recommendation: "I recommend you say yes to the proposal. Erring against the thesis: today's world scatters sustained debt almost at random with respect to resilience, the reverse of the survey on who is behind, and a supplier graded on that world is tested on the wrong households. It is reversible, and the world change is decided blind to company results."
-    based_on: a3b2a7a0c8
-    status: open
-    resolution: ""
-    evidence: docs/staging/SEAT_FINDING_THE_WORLDS_ARREARS_RUN_OFF_INCOME_STRESS_NOT_THE_FINANCIAL_STATE_AND_SIT_FAR_ABOVE_THE_SURVEY_2026-10-08.md (section 'The run, graded')
+- id: the-world-s-91-day-arrears-stock
+  raised: '2026-11-26'
+  kind: vision
+  decision_kind: fidelity
+  what: 'The world''s >91-day arrears stock (2019: 10.0%, 1.96x Ofgem''s 5.1%) is not concentrated in
+    households that cannot absorb a shock: RR 1.42 [0.70, 2.66] for the thinnest 30% of budgets against
+    the survey''s 3.6 [2.8, 4.6]. The financially-vulnerable state V2 drives nothing (RR 0.57 [0.18, 1.16]).
+    Pre-registered 25 Nov; Q2 failed.'
+  proposal: 'One financial state, not two: derive V2 from the household budget (the 30% least able to
+    absorb a shock) and let sustained non-payment run through that budget, so the gradient lands near
+    3.6 and the stock comes back toward 5.1%. The transient income_stress draw keeps only short, self-curing
+    failures. K8 first: knowledge page, then a one-variable build graded on a fresh 2019 capture.'
+  recommendation: 'I recommend you say yes to the proposal. Erring against the thesis: today''s world
+    scatters sustained debt almost at random with respect to resilience, the reverse of the survey on
+    who is behind, and a supplier graded on that world is tested on the wrong households. It is reversible,
+    and the world change is decided blind to company results.'
+  based_on: a3b2a7a0c8
+  status: open
+  resolution: ''
+  evidence: docs/staging/SEAT_FINDING_THE_WORLDS_ARREARS_RUN_OFF_INCOME_STRESS_NOT_THE_FINANCIAL_STATE_AND_SIT_FAR_ABOVE_THE_SURVEY_2026-10-08.md
+    (section 'The run, graded')
+- id: dd4b-s-complaint-share-at-a-material
+  raised: '2026-11-26'
+  kind: canon_intent
+  decision_kind: curriculum
+  what: DD4b's complaint share at a material DD rise ships at 0, below the evidence's low end (0.02).
+    Now that DD4b answers the in-loop review (71c324b6d) and was graded at its range ends (SEAT_PREREG_DD4B...,
+    11 of 13 hold, placebo clean), the frozen world could take that low end.
+  proposal: 'Set dd4b_complaint_share_at_shock default from 0.0 to 0.02 in the assumption toggles. Leave
+    cancel and failure uplift at 0: their low ends are floors, not measurements, so 0 is a legitimate
+    sensitivity end for them.'
+  recommendation: I recommend setting it to 0.02. 0 says a DD rise causes no complaints at all, and the
+    evidence says that is wrong (K2). The low run moved total net by under 0.3%. It is reversible with
+    a one-line toggle edit.
+  based_on: 2100f84f85
+  status: open
+  resolution: ''
+  evidence: docs/staging/done/WORLD_FREEZE_DD_SHOCK_SAVE_AND_MOVER_AT_THEIR_RANGE_ENDS_2026-10-12.md s1;
+    docs/staging/records/SEAT_PREREG_DD4B_AT_THE_IN_LOOP_REVIEW_LOW_AND_HIGH_2026-10-12.md
