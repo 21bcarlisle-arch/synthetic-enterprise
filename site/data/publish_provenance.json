@@ -24,8 +24,8 @@
     "run_retained": true,
     "verified_at": "2026-11-18T10:20:38Z"
   },
-  "paused_gate": "Refused by the domain-invariant check: 7 of its rules are broken and no dated exception covers them. [INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23]: broken on 8 of 2,339 checked (unit: account-month on supply, Oct 2022 to Mar 2023); [INV_OVERDUE_WITHIN_BALANCE]: broken on 1 of 953 checked (unit: collections journey opening); [INV_EBSS_CREDIT_ON_THE_BILL]: broken on 8 of 2,339 checked (unit: bill covering a qualifying 1st, Oct 2022 to Mar 2023); [INV_OVERDUE_WITHIN_PAGE_BALANCE]: broken on 8 of 5,674 checked (unit: household collections step printing an overdue figure); [INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS]: broken on 44 of 30,927 checked (unit: estimated bill on a rung its declared policy grades); and 2 more, named in docs/reports/DOMAIN_INVARIANTS.md.",
-  "paused_reason": "domain-invariant breaches at git=cb93f7760c that no exception covers: INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23 8 (8 breaches exceed the exception's max_breached 7); INV_OVERDUE_WITHIN_BALANCE 1 (no exception); INV_EBSS_CREDIT_ON_THE_BILL 8 (8 breaches exceed the exception's max_breached 7); INV_OVERDUE_WITHIN_PAGE_BALANCE 8 (no exception); INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS 44 (no exceptio",
+  "paused_gate": "Refused by the domain-invariant check: 4 of its rules are broken and no dated exception covers them. The overdue amount on an account is part of what the\u2026 [INV_OVERDUE_WITHIN_BALANCE]: broken on 2 of 953 checked (unit: collections journey opening); Every overdue amount the customer page prints on a\u2026 [INV_OVERDUE_WITHIN_PAGE_BALANCE]: broken on 8 of 5,674 checked (unit: household collections step printing an overdue figure); Domestic gas use is mostly space heating, and space heating\u2026 [INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR]: broken on 7 of 136 checked (unit: gas leg with a measured month a year after another); When a household's fuel leg is refunded on closing, the\u2026 [INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT]: broken on 8 of 161 checked (unit: refund line on a fuel leg whose household prints another fuel leg).",
+  "paused_reason": "domain-invariant breaches at git=001e4f680a that no exception covers: INV_OVERDUE_WITHIN_BALANCE 2 (no exception); INV_OVERDUE_WITHIN_PAGE_BALANCE 8 (no exception); INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR 7 (7 breaches exceed the exception's max_breached 1); INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT 8 (1 of 8 breaches are outside the exception's class other_leg_debt_collected_after",
   "paused_since": "2026-11-23T04:24:16Z",
   "schema": 1,
   "showing_run": {
@@ -41,5 +41,5 @@
     "verified_at": "2026-11-18T10:20:38Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-11-26T05:17:14Z"
+  "written_at": "2026-11-26T11:47:23Z"
 }
