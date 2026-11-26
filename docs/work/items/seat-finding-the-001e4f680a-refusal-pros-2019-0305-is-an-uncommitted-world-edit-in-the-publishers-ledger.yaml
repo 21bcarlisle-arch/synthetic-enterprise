@@ -1,0 +1,31 @@
+id: seat-finding-the-001e4f680a-refusal-pros-2019-0305-is-an-uncommitted-world-edit-in-the-publishers-ledger
+title: 'The 001e4f680a refusal: PROS-2019-0305''s breach comes from an uncommitted
+  world edit in the publisher''s ledger, not from the desk'
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: BLOCKING
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_001E4F680A_REFUSAL_PROS_2019_0305_IS_AN_UNCOMMITTED_WORLD_EDIT_IN_THE_PUBLISHERS_LEDGER_2026-11-26.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used
+blocked_by: []
+occurrences: 1
+state: parked
+opened_at: '2026-11-26T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked:
+  reason: 'the guard is claimed and in flight as delivery-lane the-publisher-grades-a-book-on-the-bytes-its-run-ran
+    (14:34Z 26 Nov); close --done on its commit. The prediction is graded in the finding:
+    the 91c32797b3 refusal''s breaches are all fixed at origin or are ledger skew'
+  revisit: '2026-11-28'
+obsolete: null
+finding_lane: D_billing_metering
