@@ -1694,9 +1694,13 @@ class LivePaymentTriad:
                 y, m = int(bill_month[:4]), int(bill_month[5:7])
                 month_end = date(y + m // 12, m % 12 + 1, 1) - timedelta(days=1)
                 period_end = min(month_end, last_supplied).isoformat()
+            # THE EXIT IS DRAWN ON WHAT THE BILL ASKED, not its face: a gone household part-pays
+            # the balance it is told (SLC 31H.12), so on the face OCC-cede70b10116g "part-paid"
+            # 57.23 of a bill that asked 3.61 and was refunded the rest (91c32797b3 book). The
+            # outcome draw does not read the amount, so only the part's size moves.
             final_exit = mover_final_bill_outcome(
                 {"moved_out_on": moved_out_on}, customer_id, period_end[:10], fuel,
-                amount_gbp, world_payment_truth.engine_method(method), stress.upper(), 42)
+                ask_gbp, world_payment_truth.engine_method(method), stress.upper(), 42)
         if final_exit is not None:
             outcome, exit_days_late, part_paid = final_exit
             if outcome == "success":
@@ -1708,10 +1712,10 @@ class LivePaymentTriad:
                                             payment_date=None,
                                             dd_failure_reason=event.dd_failure_reason
                                             or INSUFFICIENT_FUNDS)
-                if amount_gbp > 0 and part_paid > 0:
+                if ask_gbp > 0 and part_paid > 0:
                     final_part_gbp = round(part_paid, 2)
                     self._final_bill_part_share[(customer_id, bill_month)] = (
-                        part_paid / amount_gbp)
+                        part_paid / ask_gbp)
 
         # THE BUDGET DECIDES WHETHER THE BILL CAN BE PAID (`simulation/household_budget.py`, behind
         # its switch). A credit bill the household's margin and savings cannot cover is not paid,
