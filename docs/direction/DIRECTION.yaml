@@ -1,87 +1,84 @@
 version: 1
-oriented_at: "2026-11-26T18:20:55.805856+00:00"
+oriented_at: "2026-11-26T21:21:16.808064+00:00"
 thesis_read: >-
-  Against the thesis nothing moved this stretch. There is still no valid comparison of the per-customer supplier
-  against the flat-rules baseline, and the one ruled comparison (the rankq re-grade, due 3 Dec) is exactly as
-  deadlocked as three hours ago. /var/tmp/se-fix0-capture does not exist, no capture_departure_factors process is on
-  the box, and seat_continuation still holds the refit on its own output. The steer did not bite: the previous focus
-  named four items and the draw took NONE of them. The ledger shows why. Every draw after 15:16Z went to the
-  continuation queue (is-a-gas-premises-registered-aq, the-page-resolves-a-final-bill-on-the-worlds-ask,
-  which-seasonal-normal-is-a-registry-gas-aq-put-on), and the continuation-first order the director asked for
-  consults focus only once the queue has nothing drawable. That work was real: b4ba8cb4f fixes a class of mover final
-  bills the page printed wrong, and 6fa76dd34 and 1fb692d10 established that the over-billing of new gas accounts is a
-  world defect (the registry AQ sits on the national 1991-2020 HDD, about 9% too cold for each meter's own cell). So
-  last stretch's focus 3 is answered on the which-side question and leaves focus; its build is the queued
-  continuation put-the-registry-gas-aq-on-the-meters-own-cell. The queue now holds one drawable row (that build) and
-  every other row is embargoed, so focus is next in line after it. The one thing that DID change is the book. Sim-runner
-  finished run_output_76f894811d at 17:42Z. That commit carries d688a224a, 7f90f9563 and fcd2facdc, all three fixes for the
-  91c32797b3 refusal, and it descends from e4dda28119, the commit every parked BLOCKING finding has been waiting for. But
-  the publisher grading it (pid 3500795, up since about 17:42Z) runs from the shared checkout, whose HEAD lacks
-  fcd2facdc and b4ba8cb4f. That is the stale-bytes ledger defect fcd2facdc exists to remove, so a refusal from this
-  publish proves nothing about PROS-2019-0305. The checkout is now 4 ahead and 17 behind, and the mwu-m5 landing was
-  refused at 18:22Z for that reason. The commit split was 0 supplier, 2 world, 14 other. Read honestly, b4ba8cb4f and
-  the gas-AQ work are billing accuracy, but "supplier first" failed again in the count, and nine of the sixteen commits
-  are parks or obsoletes. The book that could unpark them now exists, so the supplier half of this focus is to grade it
-  on the code it was built from.
+  Against the thesis, the per-customer supplier still has no valid comparison with the flat-rules baseline. The
+  one ruled comparison, the rankq re-grade due 3 Dec, is as deadlocked as it was at 18:20. /var/tmp/se-fix0-capture
+  does not exist, no capture_departure_factors process is on the box, and seat_continuation still holds the refit
+  on its own output. What DID move is the book. run_output_76f894811d (1,382 accounts, 54,463 bills) VERIFIED at
+  21:11:58Z. It is the first verified book since 18 Nov, and it carries d688a224a, 7f90f9563, fcd2facdc and
+  a1eee4d92 (S1). It got there because the stretch's three substantive commits were publish-wedge fixes:
+  bbc9c1a8e (the renewal dice count per calling module), 214241ed8 (a full sha written into the ledger checkout's
+  HEAD) and 44bf4cd13 (the Channel F re-freeze). The 19:28 merge (0f1057120) levelled the checkout, so HEAD now
+  carries fcd2facdc and is 1 ahead and 0 behind origin. The re-driven publisher (pid 4171222) graded the book with
+  that code. That corrects two machine rows. But the verification exists only in this working tree. Its provenance
+  commit and 44bf4cd13 are not on origin yet, so the book is still owed until it reaches origin. The steer did not
+  bite for a second stretch: 0 of 4 focus items were drawn, and no Lane 0 or atom draw happened at all. The cause
+  this time looks different. One worker tick (pid 3899464) has been running for 1h48m on the publish wedge, rather
+  than the queue starving focus. I cannot yet say which explanation holds, and the next stretch is the test. The
+  commit split was 0 supplier, 0 world and 13 other. Read honestly, it was all publish plumbing and parks, none of
+  it supplier decisions. The verified book is what converts that into supplier results. It unparks the BLOCKING
+  billing findings and S1's R1-R5 grade, which is why both lead this focus.
 stretch_reviewed:
-  since: "2026-11-26T15:20:25.879194+00:00"
-  commits: 16
-  substantive: 6
+  since: "2026-11-26T18:20:55.805856+00:00"
+  commits: 13
+  substantive: 3
 focus:
+- id: the-76f894811d-book-reaches-origin-and-the-blocking-billing-findings-are-graded-on-it
+  lane: D_billing_metering
+  side: supplier
+  what: 'First, wait for process_run_complete pid 4171222 to end; use tools/wait_for.py, never pgrep.
+    Then confirm on origin/main that site/data/publish_provenance.json names last_verified git_commit
+    76f894811d and that 44bf4cd13 is an ancestor of origin/main. Land either one if it is missing: python3
+    -m tools.surgical_land from a worktree at origin/main, then tools.promote_worktree_landing. Then claim
+    continuation grade-the-first-book-at-or-after-7f90f9563 with seat_work_in_hand --claim, and do its
+    work on the 76f894811d book: 76f894811d descends from 7f90f9563 and e4dda28119, and the 02:00 embargo
+    existed only to wait for a book. Grade the filed predictions in the BLOCKING findings SEAT_FINDING_A_CREDIT_BILL_ON_ONE_LEG_PAID_THE_OTHER_LEGS_SCHEME_DEBIT...,
+    SEAT_FINDING_THE_CB93F7760C_BOOK_GRADED..., SEAT_FINDING_THE_3D3A8EE691_BOOKS_475_INVARIANT_BREACHES...,
+    SEAT_FINDING_THE_001E4F680A_REFUSAL_PROS_2019_0305..., SEAT_FINDING_PROS_2023_0338G_IS_NOT_N29...
+    and SEAT_FINDING_SYN_2016_099... (fixed at the world by d688a224a). Write each result beside its prediction,
+    held or missed, with a Graded: trailer. Close or re-park each work item with background.work_items,
+    then retire the continuation. b4ba8cb4f is not in this book, so leave grade-the-final-bill-ask-on-the-first-book-after-b4ba8cb4f
+    queued for the 2100f84f85 book that is building now.'
+  why: The book verified, but only in this tree. A book is owed until it is on origin, and six BLOCKING
+    billing findings wait on exactly this book. Done means origin serves 76f894811d as last_verified,
+    and each of the six findings carries a graded result on it, with its work item closed or re-parked
+    on a named later cause.
+  written_at: 1795728329.094
 - id: fix-0-capture-runs-now-and-its-continuation-stops-waiting-on-its-own-output
   lane: W2_customer_generator
   side: world
   unblocks: The rankq-against-twin re-grade on fixed code (continuation the-rankq-regrade-launches-on-the-refit-fix-0-world).
-    It is the thesis's only pending per-customer-vs-flat comparison, ruled for by the director 26 Nov
-    05:47, commitment due 3 Dec.
-  what: 'Unchanged from 15:20, and still undrawn. Do the work of continuation fix-0-capture-and-2021-anchor-refit-on-the-moved-window
-    NOW; do not wait for it to release, because its hold (/var/tmp/se-fix0-capture/departure_factors_fix0.json)
-    is its own output. At 18:20Z no capture_departure_factors process was on the box and the directory
-    did not exist; re-check both first. On a fresh detached worktree at origin/main (which descends from
-    daf6029e9), launch through background.launch_long_job ONE run of python3 tools/capture_departure_factors.py
-    /var/tmp/se-fix0-capture/departure_factors_fix0.json. When it exists, run tools/fit_year_level_anchor.py
-    on it to refit the 2021 anchor. Land the refit with SE_LANDED_SIGNAL=/var/tmp/se-fix0-anchor-refit-landed.sha,
-    and grade the filed prediction beside its finding (un-offered 2021-Q4 fix-end rolls 29 -> 0). Then
-    fix the class in background/seat_continuation.py: a ''DO NOT DRAW BEFORE <path>'' that sits inside
-    a conditional hand-off clause, or that names a path the item itself writes, must not become the row''s
-    hold. Add a control over that property, with a mutation that fires.'
-  why: The whole chain to the ruled comparison is blocked on a file no process will ever write. Done means
-    the refit is on origin with its signal file written, the rankq re-grade is RUNNING through launch_long_job
-    on a worktree that descends from it, and the parser fix has landed with its mutation.
-  written_at: 1795717535.258
-- id: the-76f894811d-book-is-published-on-the-code-it-was-built-from
-  lane: D_billing_metering
+    It is the thesis's only pending per-customer-vs-flat comparison, ruled by the director 26 Nov 05:47,
+    with the commitment due 3 Dec.
+  what: 'Unchanged and undrawn for two stretches. Do the work of continuation fix-0-capture-and-2021-anchor-refit-on-the-moved-window
+    NOW. Do not wait for it to release, because its hold (/var/tmp/se-fix0-capture/departure_factors_fix0.json)
+    is its own output. At 21:21Z neither the directory nor any capture_departure_factors process existed;
+    re-check both first. On a fresh detached worktree at origin/main, launch ONE run through background.launch_long_job:
+    python3 tools/capture_departure_factors.py /var/tmp/se-fix0-capture/departure_factors_fix0.json. When
+    the file exists, run tools/fit_year_level_anchor.py on it to refit the 2021 anchor. Land the refit
+    with SE_LANDED_SIGNAL=/var/tmp/se-fix0-anchor-refit-landed.sha, and grade the filed prediction beside
+    its finding (un-offered 2021-Q4 fix-end rolls 29 -> 0). Then fix the class in background/seat_continuation.py:
+    a ''DO NOT DRAW BEFORE <path>'' inside a conditional hand-off clause, or one naming a path the item
+    itself writes, must not become the row''s hold. Add a control over that property, with a mutation
+    that fires.'
+  why: The whole chain to the ruled comparison is blocked on a file no process will ever write, and the
+    3 Dec date leaves room for one capture and one re-grade, not two. Done means the refit is on origin
+    with its signal file written, the rankq re-grade is RUNNING through launch_long_job on a worktree
+    that descends from it, and the parser fix has landed with its mutation.
+  written_at: 1795728329.094
+- id: s1-r1-to-r5-are-graded-on-the-76f894811d-book
+  lane: B_commercial
   side: supplier
-  what: 'run_output_76f894811d_20261126T155009Z.json is the first book carrying d688a224a, 7f90f9563 and
-    fcd2facdc. The publisher grading it (process_run_complete pid 3500795) runs from the shared checkout,
-    whose HEAD b1399c108 lacks fcd2facdc. Do not stop it. When it ends: if it published with its banner,
-    record that and stop here. If it refused, read the refusal, and treat any row on PROS-2019-0305 or
-    any ledger-skew row as void, because it was graded by code without fcd2facdc. Re-take the publish
-    on a detached worktree at origin/main, through background.launch_long_job, on the same run_output.
-    Separately, level the checkout: land the four HEAD-only commits (e6db0425c, 9acfa16aa, a3b2a7a0c,
-    b1399c108) from a worktree on origin/main with python3 -m tools.surgical_land then python3 -m tools.promote_worktree_landing,
-    never merge-tree, so the reconciler can fast-forward main and every daemon runs origin code.'
-  why: A book is owed until it PUBLISHES, and this is the first book that can. Done means the 76f894811d
-    book is either published with its banner, or refused by origin code with every row a filed cause with
-    a count and no exception widened; and HEAD and origin/main are no longer diverged.
-  written_at: 1795717535.258
-- id: the-parked-billing-findings-are-graded-on-the-76f894811d-book
-  lane: D_billing_metering
-  side: supplier
-  what: 'Draw grade-the-first-book-at-or-after-7f90f9563 now: its 02:00 embargo existed only to wait for
-    a book, and 76f894811d is that book (it descends from 7f90f9563 and e4dda28119). Grade on it, with
-    the ledger built by origin code, the predictions filed in the BLOCKING findings that wait on it: SEAT_FINDING_A_CREDIT_BILL_ON_ONE_LEG_PAID_THE_OTHER_LEGS_SCHEME_DEBIT_SO_THE_DESK_DUNNED_IT_EARLY_2026-11-26.md,
-    SEAT_FINDING_THE_CB93F7760C_BOOK_GRADED_CAUSE_ONE_CLEARS_AND_THE_WEDGE_IS_THE_FIVE_CAUSES_LEFT_2026-11-26.md,
-    SEAT_FINDING_THE_3D3A8EE691_BOOKS_475_INVARIANT_BREACHES_DECOMPOSED_AND_THE_FIRST_CAUSE_FIXED_2026-11-26.md
-    and SEAT_FINDING_THE_001E4F680A_REFUSAL_PROS_2019_0305_IS_AN_UNCOMMITTED_WORLD_EDIT_IN_THE_PUBLISHERS_LEDGER_2026-11-26.md.
-    Write each result beside its prediction, held or missed, with a Graded: trailer. Then close or re-park
-    each work item with background.work_items, and retire the continuation. b4ba8cb4f is NOT in this book,
-    so grade-the-final-bill-ask-on-the-first-book-after-b4ba8cb4f stays queued.'
-  why: Four BLOCKING billing findings are parked on "the first book at or after e4dda28119", and that
-    book exists. Leaving them parked means billing correctness is graded nowhere. Done means each of the
-    four carries a graded result on 76f894811d, and its work item is closed or re-parked on a named, later
-    cause.
-  written_at: 1795717535.258
+  what: 'Only once focus item 1 has 76f894811d on origin: claim continuation grade-s1-r1-to-r5-on-the-first-book-descending-from-a1eee4d92
+    with seat_work_in_hand --claim and do its work on 76f894811d, which descends from a1eee4d92 (S1, CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE
+    = True) and is the first verified book that does. Its 28 Nov 12:00 embargo existed only to wait for
+    such a book. Grade R1-R5 against SEAT_RECORD_THE_DEFAULT_OFF_SWITCHES_AND_THE_ORDER_THEY_FLIP_IN_2026-11-24.md
+    s.3, each held or missed, with a Graded: trailer, and retire the continuation. Do not flip anything:
+    S2 and the B8 blind-holdout flip stay queued, and their STEP 0 reads this grade.'
+  why: S1 is the first default-off supplier switch to reach a published book, and the S2 and B8 flips
+    are sequenced behind its grade. Without it, the levers-in-merit-order chain cannot move. Done means
+    R1-R5 are graded on origin and the continuation is retired, so S2's STEP 0 can read it.
+  written_at: 1795728329.094
 - id: the-director-commitments-due-2-dec-are-queued-and-built
   lane: A_strategy_governance
   side: other
@@ -98,73 +95,75 @@ focus:
     result this week.
   written_at: 1795706687.756
 not_now:
-  - what: Keep last stretch's focus 3 (new gas accounts over-billed 6-11%) in focus.
+  - what: Hold focus item 1's grade for the 2100f84f85 book, which is building now (pid 3959032) and also carries b4ba8cb4f.
     why: >-
-      Its question, which side is wrong, is answered: 6fa76dd34 and 1fb692d10 trace the whole gap to the registry AQ's
-      national 1991-2020 weather basis, which is a world defect. The build is already the queue's one drawable row
-      (put-the-registry-gas-aq-on-the-meters-own-cell), so a focus copy would only race it.
+      The six findings' predictions were filed against the first book at or after e4dda28119, and 76f894811d is that
+      book and is verified now. 2100f84f85 has not been graded by any publisher, so waiting would trade a graded book
+      for an ungraded one. The final-bill ask stays queued for 2100f84f85, where b4ba8cb4f is present.
   - what: >-
-      Change delivery_lane's continuation-first order so focus outranks the queue.
+      Raise a proposal to change delivery_lane's continuation-first order, as the 18:20 not_now said I would if focus
+      drew 0 again.
     why: >-
-      The director asked for that order, and the queue's draws this stretch were real billing work. The starvation is
-      temporary, because only one queue row is drawable now. It becomes a proposal if the next stretch again draws 0 of
-      the named focus while the queue holds rows.
-  - what: Stop the stale publisher (pid 3500795) and re-run it on origin code now.
+      The condition was "0 drawn WHILE the queue holds rows", and this stretch the queue's one drawable row
+      (put-the-registry-gas-aq-on-the-meters-own-cell) was not drawn either. Nothing was drawn: one tick spent 1h48m on
+      the publish wedge. That points to tick occupancy, not the order. If the next stretch draws a queue row and still
+      no focus item, the proposal goes in.
+  - what: Pull S2 (cap-hold deletion) and the B8 blind-holdout flip forward onto 76f894811d alongside S1's grade.
     why: >-
-      Killing a running publish is not reversible inside its own run. If it publishes, the book is out. If it refuses,
-      the re-take on origin code costs one publish cycle. Waiting costs at most that cycle.
-  - what: >-
-      Pull b8-flip-the-blind-holdout-on, grade-s1-r1-to-r5 and s2-the-cap-hold-deletion forward (they ripen 27-28 Nov).
+      Both are flips, and their STEP 0 reads S1's grade. Flipping before R1-R5 are read stacks changes no reader could
+      attribute.
+  - what: Put the N17 year-to-year electricity variance (W2_30) into focus, now that its 26 Nov recheck date has arrived.
     why: >-
-      Each reads a PUBLISHED book carrying S1, and none has published. Flipping switches before then stacks changes
-      no reader could attribute.
-  - what: Spend the stretch on the 26 live repeating alarms or the locked worktrees holding SALVAGE commits.
+      W2_30 is still director-gated behind W1_14, which sits on the coupled-triad L3 wall. It is not the last gate row
+      the 76f894811d book failed, because that book verified. It stays a triaged fix with its owner.
+  - what: Spend the stretch on the 26 live repeating alarms or the eleven worktrees holding unpushed SALVAGE commits.
     why: >-
-      They are locked and losing nothing, and they are machine hygiene. The value-test trees become disposable only
-      after the rankq re-grade reads. The tree-divergence alarm is the one that matters, and focus 2 levels it.
+      They are locked and losing nothing, and they are machine hygiene. The tree-divergence alarm, the one that mattered,
+      is down to a single HEAD-only commit, and focus 1 lands it. The value-test trees become disposable only after
+      the rankq re-grade reads.
 wrong:
   - what: >-
       THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333
-      on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:20 26 Nov -- unchanged on the live belief.
-      Its money test waits on the rankq re-grade, which is still deadlocked behind the fix-0 capture (focus 1, undrawn).
+      on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 21:21 26 Nov -- unchanged on the live belief.
+      Its money test waits on the rankq re-grade, which is still deadlocked behind the fix-0 capture (focus 2, undrawn twice).
     corrected: false
   - what: >-
       THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median
-      same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:20 26 Nov -- unchanged;
-      triage owns it.
+      same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 21:21 26 Nov -- unchanged;
+      triage owns it, and its 26 Nov recheck finds it still held behind W1_14.
     corrected: false
   - what: >-
       THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one.
-      [Earlier tails are in decisions.jsonl.] 18:20 26 Nov -- unchanged; latent, and no domestic account reaches either
+      [Earlier tails are in decisions.jsonl.] 21:21 26 Nov -- unchanged; latent, and no domestic account reaches either
       writer.
     corrected: false
   - what: >-
       THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin.
-      [Earlier tails are in decisions.jsonl.] 18:20 26 Nov -- unestablished, not corrected. The grade it rests on is void
+      [Earlier tails are in decisions.jsonl.] 21:21 26 Nov -- unestablished, not corrected. The grade it rests on is void
       (a189c2824), and the re-grade has not launched.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z), but
       their work reached origin. This is a new instance of a-landing-loses-its-race-to-origin. [Earlier tails are in
-      decisions.jsonl.] 18:20 26 Nov -- four landings finished this stretch, all success, none DIED, and no lost race
-      was logged. That is weak evidence for 5c8c74888 and not yet a correction.
+      decisions.jsonl.] 21:21 26 Nov -- no landing DIED and no lost race was logged for a second stretch. That is still
+      weak evidence for 5c8c74888 and not yet a correction.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The closed-account landing was relaunched at 14:35Z unchanged after two refusals on the same
-      three reds, and it was refused a third time. [Earlier tails are in decisions.jsonl.] 18:20 26 Nov -- no unchanged
+      three reds, and it was refused a third time. [Earlier tails are in decisions.jsonl.] 21:21 26 Nov -- no unchanged
       relaunch this stretch. The earlier seven DIED landings are still unread, and the triage line is 30 Nov.
     corrected: false
   - what: >-
       THE SEAT'S OWN, NEW. My 21:24 record put every queued supplier result behind the book's BUILD, and never asked
       whether a built book would pass the publisher's gates. Lesson: a book is owed until it PUBLISHES. [Earlier tails
-      are in decisions.jsonl.] 18:20 26 Nov -- closer still. 76f894811d is built on code carrying all three fixes, but
-      its publish is being graded by checkout code that lacks fcd2facdc. Focus 2 carries it.
+      are in decisions.jsonl.] 21:21 26 Nov -- closer still. 76f894811d verified at 21:11Z, but only in this working
+      tree; it is not on origin. Focus 1 carries it.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. seat_continuation.live() held fix-0-capture-and-2021-anchor-refit-on-the-moved-window on
-      /var/tmp/se-fix0-capture/departure_factors_fix0.json. That is the item's own capture output, taken from a conditional
-      hand-off clause in its prose. The item can never release, and the rankq re-grade behind it is deadlocked. 18:20 26
-      Nov -- still held, and still nothing writing it. Focus 1 fixes the class.
+      /var/tmp/se-fix0-capture/departure_factors_fix0.json. That is the item's own capture output, taken from a
+      conditional hand-off clause in its prose. The item can never release, and the rankq re-grade behind it is
+      deadlocked. 21:21 26 Nov -- still held, and still nothing writing it. Focus 2 fixes the class.
     corrected: false
   - what: >-
       THE SEAT'S OWN, NEW. My 12:23 record said "as soon as fix 0 is on origin, the same tick should draw" the re-grade
@@ -172,23 +171,30 @@ wrong:
       is read file by file, writer to waiter, before it is trusted.
     corrected: false
   - what: >-
-      THE MACHINE'S, NEW. The shared checkout diverged from origin (3 commits ahead, 1 behind on background/process_run_complete.py).
-      All eight declared daemons, including sim-runner and the publisher, run code that lacks fcd2facdc. Focus 2 levels
-      it before the next book. 18:20 26 Nov -- worse: 4 ahead and 17 behind. The publisher grading 76f894811d runs without
-      fcd2facdc, and the mwu-m5 landing was refused at 18:22Z on the same divergence.
-    corrected: false
+      THE MACHINE'S, NEW. The shared checkout diverged from origin (3 commits ahead, 1 behind on
+      background/process_run_complete.py). All eight declared daemons, including sim-runner and the publisher, run
+      code that lacks fcd2facdc. Focus 2 levels it before the next book. 21:21 26 Nov -- corrected. 0f1057120 (19:28Z)
+      merged origin into the checkout. HEAD now carries fcd2facdc and is 1 ahead (44bf4cd13) and 0 behind.
+    corrected: true
   - what: >-
-      THE SEAT'S OWN, NEW. My 15:20 record put the fix-0 capture first as a Lane 0 item "done by hand, not by waiting on
-      the queue", and never checked that Lane 0 is consulted only once the continuation queue has nothing drawable. The
-      queue held drawable rows all stretch, so 0 of 4 focus items were drawn. Lesson: before relying on focus, count
-      the drawable continuation rows ahead of it.
+      THE SEAT'S OWN, NEW. My 15:20 record put the fix-0 capture first as a Lane 0 item "done by hand, not by waiting
+      on the queue", and never checked that Lane 0 is consulted only once the continuation queue has nothing drawable.
+      The queue held drawable rows all stretch, so 0 of 4 focus items were drawn. Lesson: before relying on focus, count
+      the drawable continuation rows ahead of it. 21:21 26 Nov -- 0 of 4 drawn again. This time nothing at all was
+      drawn: one tick held the box for 1h48m.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. process_run_complete is publishing run_output_76f894811d from the shared checkout, whose code
       lacks fcd2facdc ("the publisher writes the billing ledger on the run's commit"). It is the stale-bytes ledger class
       repeating on the first book that carries the fix, because the fix only reaches the publisher when the checkout
-      advances.
-    corrected: false
+      advances. 21:21 26 Nov -- corrected. The re-drive (pid 4171222, from 20:58Z) runs a checkout carrying fcd2facdc
+      and 214241ed8, and it verified the book at 21:11:58Z.
+    corrected: true
+  - what: >-
+      THE SEAT'S OWN, NEW. My 18:20 record told a worker to "draw now" grade-the-first-book-at-or-after-7f90f9563, a
+      continuation with a clock embargo, and gave no claim step, so a Lane 0 worker and the queue could both have graded
+      the same book. Focus 1 and focus 3 now claim the continuation before doing its work.
+    corrected: true
 for_the_director:
 - id: the-world-s-91-day-arrears-stock
   raised: '2026-11-26'
