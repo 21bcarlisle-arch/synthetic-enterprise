@@ -138,12 +138,33 @@ def bill_generation_delay_days(customer_id: str, period_end: str) -> int:
     return max(0, round(delay_rng.expovariate(1.0 / BILL_GENERATION_DELAY_MEAN_DAYS)))
 
 
+#: How many earlier monthly periods a bill's issue day is held behind. A month's run would have to
+#: slip more than ~28 days per period skipped to bind, and P(delay > 84) at mean 3 is ~e^-28.
+_ISSUE_ORDER_LOOKBACK_PERIODS = 3
+
+
+def _own_issue_date(customer_id: str, period_end: date) -> date:
+    return period_end + timedelta(days=bill_generation_delay_days(customer_id, period_end.isoformat()))
+
+
 def bill_issue_date(customer_id: str, period_end: str) -> date:
     """The day this leg's bill for the period ending `period_end` is issued: after the period's
     generation run. The ledger prints it, billing caps a catch-up at it (SLC 21BA.1), and GSoP reg 6D's
-    refund clock starts on it for a final bill (home_moves.md s.8.8 choice 2, corrected 2026-11-12)."""
-    return (date.fromisoformat(period_end[:10])
-            + timedelta(days=bill_generation_delay_days(customer_id, period_end[:10])))
+    refund clock starts on it for a final bill (home_moves.md s.8.8 choice 2, corrected 2026-11-12).
+
+    A LEG'S BILLS ARE ISSUED IN PERIOD ORDER, so no bill comes out before the leg's bill for an
+    earlier period (home_moves.md s.8.8h choice 32). Each delay is drawn on its own, so a 1-day stub
+    final bill could beat the regular bill before it out of the door: SYN-2016-099's final bill for 1
+    Mar 2017 was issued 2 Mar and its February bill 5 Mar. The world then netted the final bill against
+    a level surplus February had not yet been billed against, while the page and desk billed both.
+    Periods are calendar months, so the earlier periods end at the preceding month-ends."""
+    pe = date.fromisoformat(period_end[:10])
+    issued = _own_issue_date(customer_id, pe)
+    month_end = pe.replace(day=1) - timedelta(days=1)
+    for _ in range(_ISSUE_ORDER_LOOKBACK_PERIODS):
+        issued = max(issued, _own_issue_date(customer_id, month_end))
+        month_end = month_end.replace(day=1) - timedelta(days=1)
+    return issued
 
 
 def bill_due_date(customer_id: str, period_end: str) -> date:

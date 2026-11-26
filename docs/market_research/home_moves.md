@@ -1423,6 +1423,32 @@ this world could not take.
 - The balance book still sizes the level amount from bills that include the window months.
 - Four of the 23 disagreeing final bills are not `OCC-` legs: SYN-2016-099, SYN-2016-144g, PROS-2017-0293g and
   PROS-2024-0270g, GBP 74.63 together. Their cause is not yet attributed.
+  *(Added 26 Nov: SYN-2016-099's share is attributed by choice 32 below.)*
+
+#### 8.8h A leg's bills are issued in period order (added 2026-11-26, before the build)
+
+**What the evidence shows.** On the 3d3a8ee691 book, SYN-2016-099's one-day final bill (1 Mar 2017) was issued on
+2 Mar, and its February bill on 5 Mar. Each bill's generation delay (`bill_generation_delay_days`, mean 3 days) was
+drawn on its own, so a stub could get out of the door before the bill for the period ahead of it. On 2 Mar the world's
+ledger held the leg's February level cash, but not the February bill. So the final bill netted a level surplus of
+15.89 that February would have used up, and asked nothing. The page and the desk billed both bills, and the page
+printed a 0.62 payment the world never collected (`INV_OVERDUE_WITHIN_PAGE_BALANCE`, 8 breaches). Of the ledger's
+54,278 bills, 54 are issued before an earlier-period bill on the same leg. All 54 are stubs.
+
+**What the rules say.** SLC 27.17 makes the final bill the bill that closes the account, and it states the one
+balance. No source found states the issue order of a supplier's bill run, and none was searched beyond the
+knowledge layer. This is stated as a belief from strong logic, not as a published rule: a billing run works through
+a leg's periods in order. A final bill raised before the previous period's regular bill would not be the account's
+final bill. It would also leave a regular bill issued after the account closed.
+
+32. *No bill is issued before the leg's bill for an earlier period.* `simulation/arrears_engine.bill_issue_date`
+    issues a bill on the later of its own generation day and the issue day of each of the three preceding
+    month-end periods. Billing periods are calendar months, so the earlier periods end at the preceding
+    month-ends. Three periods are enough: to bind from further back, a run would have to slip about 28 days per
+    period skipped. The world's final-bill net, the page and the desk then read the same set of issued bills.
+    Control: `tests/simulation/test_a_legs_bills_are_issued_in_period_order.py`. It fails when the lookback is 0.
+    **Not fixed by this:** SYN-2016-244 (Jan 2018, already on receipt). There, the page holds the level surplus
+    to the close instead of netting it against the paid final bill. That is a page-side shape and stays open.
 
 ---
 
