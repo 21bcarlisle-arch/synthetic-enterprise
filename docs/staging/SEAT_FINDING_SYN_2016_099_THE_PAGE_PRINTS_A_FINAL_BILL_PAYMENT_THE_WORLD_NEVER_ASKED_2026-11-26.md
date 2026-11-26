@@ -87,3 +87,18 @@ Check the knowledge layer (`docs/market_research/` final bills, home moves s.8.8
 
 SYN-2016-107 (`INV_OVERDUE_WITHIN_BALANCE`, 1) and PROS-2023-0338g (the 1 closing refund outside
 its class) stay with the delivery seat's chain claim (`the-epg-exception-is-keyed-to-a-share-not-a-count`).
+
+## Disposition (worker, 26 Nov 2026): fixed at the world, d688a224a
+
+The world-side alternative was taken. A leg's bills are now issued in period order:
+`simulation/arrears_engine.bill_issue_date` issues a bill no earlier than the leg's three preceding
+month-end bills (`home_moves.md` s.8.8h choice 32, strong logic, GAP on any published bill-run
+ordering rule). SYN-2016-099's final bill is now issued with its February bill on 5 Mar. The
+world's net then reads February's debit (same-day issue counts, `_leg_balance_on` `<= on`). On the
+current ledger, 54 of 54,278 bills move, and every one is a stub that had been issued before an
+earlier-period bill on its own leg.
+
+**Prediction, unchanged from above for this leg:** on the next book, INV_OVERDUE_WITHIN_PAGE_BALANCE
+goes from 8 to 0, and SYN-2016-099's page and desk close on the same balance. SYN-2016-244 is not
+fixed by this. It is split out as
+`SEAT_FINDING_SYN_2016_244_THE_PAGE_PRINTS_A_FINAL_BILL_REFUND_THE_WORLD_NEVER_MADE_2026-11-26.md`.

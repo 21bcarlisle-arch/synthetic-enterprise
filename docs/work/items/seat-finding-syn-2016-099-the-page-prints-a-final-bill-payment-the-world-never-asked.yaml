@@ -1,0 +1,27 @@
+id: seat-finding-syn-2016-099-the-page-prints-a-final-bill-payment-the-world-never-asked
+title: 'SYN-2016-099: the page prints a final-bill payment the world never asked for,
+  so the desk is right and the page is wrong'
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: BLOCKING
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_SYN_2016_099_THE_PAGE_PRINTS_A_FINAL_BILL_PAYMENT_THE_WORLD_NEVER_ASKED_2026-11-26.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used
+blocked_by: []
+occurrences: 1
+state: done
+opened_at: '2026-11-26T00:00:00+00:00'
+chosen_at: null
+closed_at: '2026-11-26T13:18:05+00:00'
+chosen_by: null
+done_evidence: d688a224a
+parked: null
+obsolete: null
+finding_lane: D_billing_metering
