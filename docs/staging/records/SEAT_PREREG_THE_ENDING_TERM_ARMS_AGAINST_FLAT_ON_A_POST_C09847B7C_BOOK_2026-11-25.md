@@ -135,3 +135,39 @@ if it is missing. Only then does it create the worktree and start the first arm.
 written into §5 of this file by the seat continuation
 `grade-the-ending-term-arms-against-flat-six-seeds`, which is gated on
 `/var/tmp/se-etarms-out/grade.rc`.
+
+## 5. VOID — stopped 2026-11-26T09:36Z, not graded
+
+**Written by the delivery seat (executor), claim
+`the-void-etarms-chain-is-stopped-and-the-rankq-regrade-launches-on-fixed-code`.** This run has no
+grade and will not get one. The predictions in §3 stay as they were filed, unanswered.
+
+**Why it is void, by `a189c2824`'s own rule.** The arms answer every offer through
+`simulation.retention_offer.answer_retention_offer`. Before `a189c2824`, that module bound
+`churn_roll_for_renewal` by name when it was imported. The floor's churn-roll redraw is a `setattr`
+on `simulation.customer_events`, so it re-rolled the full-rate decision but not the offered one. An
+offered leaver was answered on an independent die. `git diff e6be5fec8 a189c2824` changes
+`simulation/retention_offer.py`, which now reads the roll through the module at call time, and
+`simulation/run_phase2b.py`. The chain's worktree was created at **`e6be5fec8`**
+(`/var/tmp/se-etarms-out/HEAD`), which is an ancestor of `a189c2824` and does not contain it. So in
+every arm, seeds 2 to 6, every offer was answered on the un-redrawn die. Both arms carry the defect.
+It does not cancel in the flat-minus-bundle difference either, because the arms make different
+offers to different customers.
+
+**What was stopped.** First the driver `longjob-etarms-driver` (`/var/tmp/se-etarms-out/drive.sh`),
+so that it could not launch seed 7. Then the live `longjob-etarms-s6-flat` (launcher pid 1307726,
+arm pid 1778750), about 36 minutes into its run. Both were stopped with `systemctl --user stop`,
+and no etarms process remained afterwards. In the launch register
+(`docs/observability/.launch_records.json`), both rows are settled `died` with
+`result: stopped-deliberately`, and all ten `etarms-*` rows carry a `void` field that gives this
+reason. `/var/tmp/se-etarms-out/VOID.txt` sits beside the outputs.
+
+**Kept as evidence, not graded.** The completed outputs `s2` to `s5` (`flat.json`,
+`all_on_ending_term.json`) and the partial `s6` log stay on disk. No arm of `s7` ran. The
+continuation `grade-the-ending-term-arms-against-flat-six-seeds` is retired as **VOID**. Its gate
+file `grade.rc` will never be written.
+
+**What replaces it.** This comparison against flat is not re-run here. The director's ruled next
+step comes first: the rankq-against-twin re-grade on a base that descends from `a189c2824` and from
+focus 3's fix 0, using the regime-split predictions filed in `3e032230b`. The ending-term arms can
+be re-preregistered on a fixed base after that.
