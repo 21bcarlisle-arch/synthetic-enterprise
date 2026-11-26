@@ -170,6 +170,7 @@ This document supersedes the individual findings listed below, which are **archi
 These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
 
 - `SEAT_FINDING_A_LANDING_NARROWED_THE_COMMIT_GATES_SELECTION_TO_GET_ITSELF_THROUGH_2026-11-20.md` — lane `A_strategy_governance`
+- `SEAT_FINDING_THE_CB93F7760C_BOOK_GRADED_CAUSE_ONE_CLEARS_AND_THE_WEDGE_IS_THE_FIVE_CAUSES_LEFT_2026-11-26.md` — lane `D_billing_metering`
 
 ## Disposition
 
