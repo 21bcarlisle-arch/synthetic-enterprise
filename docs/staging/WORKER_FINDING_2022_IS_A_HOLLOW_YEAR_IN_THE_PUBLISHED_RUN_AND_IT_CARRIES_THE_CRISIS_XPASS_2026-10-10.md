@@ -82,3 +82,46 @@ is emergent, which is the affordability cluster's question, not this one. The ne
 where `years[y].bad_debt_gbp` takes its year: a write-off keyed to the year a debt started, or to
 the year before the run's 2022 reset, would produce this. The 2022 lifecycle red may be the same
 defect, with events keyed off the same wrong year. That is untested.
+
+## Re-read 2026-11-26 at HEAD b1399c1083: the hollow is gone, the year shift is not, and it is located
+
+**Both original reds are cleared.** On the current `docs/reports/run_output_latest.json`, the
+lifecycle test passes. The crisis test is an honest XFAIL, and since c0e3839087 its reason is the
+real record's write-offs, not this hollow. 2022 now books GBP 338.95 of bad debt, and 2021 books
+67.89.
+
+**The shift the "Result" section found is still in every year.** Below, the ledger's `WRITTEN_OFF`
+stages (`docs/state/billing_ledger.json`, built from run_output_76f894811d_20261126T155009Z) are
+set against the run's `years[y].bad_debt_gbp`:
+
+| year y | run bad_debt y | ledger write-offs y+1 | ledger write-offs y |
+|---|---:|---:|---:|
+| 2017 | 1,324.32 | 1,505.92 | 42.46 |
+| 2018 | 1,374.86 | 1,417.41 | 1,505.92 |
+| 2019 | 3,233.46 | 3,499.21 | 1,417.41 |
+| 2020 | 151.11 | 175.75 | 3,499.21 |
+| 2021 | 67.89 | 77.33 | 175.75 |
+| 2022 | 338.95 | 367.95 | 77.33 |
+| 2023 | 198.97 | 131.90 | 367.95 |
+| 2024 | 289.24 | 313.53 | 131.90 |
+| 2025 | 383.43 | 412.19 | 313.53 |
+
+The run's year y tracks the ledger's year y+1, at about 92% of the amount (the provision and
+write-off bases differ). The exception is 2023, where the run is above the ledger's 2024 (199 against 132).
+I cannot yet say why: a stayer provision on the C1 bucket is one candidate. It does not track the ledger's year y.
+
+**Mechanism.** `simulation/arrears_engine.py::_row_for` (line 1808). `compute_emergent_bad_debt`
+keys each write-off by (customer, write-off year), and its docstring says the apply step books a
+key dated after the account's last year "in that year". `_row_for` instead returns the account's
+**last settlement record**, which is in an earlier year. A leaver's write-off at close falls after
+its final settlement year, so it books into the P&L of the year before. `compute_debt_recovery`
+goes through the same `_row_for`, so its recoveries shift the same way. This is a clock defect in
+a published yearly series, not a basis difference.
+
+**What the fix needs (a design change, not a one-line fix).** The P&L needs a row, or a
+period-only line, in the write-off year for a customer who has no settlement row in that year, with
+the treasury carry following it. Booking on the last record was chosen to stop the figure being
+dropped silently (the 2026-09-27 balance-at-close record), so whatever replaces it must still not
+drop the figure. Prediction, filed before building: once the fix is in, the run's year y matches
+the ledger's year y within the basis gap (about 8%), and the 2019/2020 pair swaps to roughly
+1.4k/3.3k.
