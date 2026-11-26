@@ -16,12 +16,17 @@ director_rank: null
 atom: W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape
 blocked_by: []
 occurrences: 1
-state: open
+state: obsolete
 opened_at: '2026-10-09T00:00:00+00:00'
 chosen_at: null
-closed_at: null
+closed_at: '2026-11-26T16:53:34+00:00'
 chosen_by: null
 done_evidence: null
 parked: null
-obsolete: null
+obsolete: 'folded into W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape
+  by wrong_triage a-gas-heated-homes-electricity-has-no-season (fate fold, 2026-10-24),
+  which names this document as the atom''s evidence; re-read at a3b2a7a0c8 in d5ffa860c4:
+  level meets SERL (2,549/2,535), the miss is now wholly the winter (Jan -0.66 kWh/day),
+  no end use with a published season contradicts its source, so the winter term is
+  an unestablished gap the atom carries, not a buildable item'
 finding_lane: W1_market_weather
