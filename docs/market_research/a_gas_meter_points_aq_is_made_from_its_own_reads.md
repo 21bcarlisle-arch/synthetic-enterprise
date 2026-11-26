@@ -62,6 +62,13 @@ practice.
   For an acquisition before the run's first year is complete, the window is the run's first year,
   which is the electricity rule's `OWN_READS_FIRST_YEAR`. The world's level has no weather in it, so
   this figure is weather-normal by construction, as Xoserve's is after its correction.
+  **Correction (26 Nov 2026):** it is weather-normal on the *national* 1991-2020 England & Wales
+  normal (`REFERENCE_MONTHLY_HDD`), not on the meter's own weather. On the 001e4f680a book the
+  premise cells' HDD is median 0.911 of that normal, and a premise's first year of true use is
+  0.930 of its registered AQ. The world's demand is exactly `aq x multiplier x weather`
+  (measured / predicted 1.000). The AQ handed over is therefore ~7-8% above the meter's own year.
+  See GAP 4 and
+  `docs/staging/SEAT_FINDING_IS_A_GAS_PREMISES_REGISTERED_AQ_ITS_FIRST_YEAR_OF_TRUE_USE_2026-11-26.md`.
 - **Demand does not move.** The drawn level moves to `_WORLD_BASE_AQ_KWH`, and every world-side reader
   of the household's gas level reads it from there. Only what the registry hands the supplier changes.
 - **A lag-only model with zero read error**, as for electricity. A real AQ carries read and
@@ -76,5 +83,10 @@ practice.
 - **GAP 2: the size of the AQ's own error** (read error, weather-correction error, a 9-month read pair
   in an atypical year) is not published. It is carried as zero, which is the one value we know is
   wrong (K2), so it is named here and not hidden.
+- **GAP 4: which seasonal normal the AQ is put on.** Xoserve expresses the AQ on seasonal-normal
+  weather [H]. Not established: whether that normal is per LDZ, how it is built (the Seasonal Normal
+  Composite Weather Variable and its review cycle), and whether it is climate-adjusted toward recent
+  years. The build uses the national 1991-2020 normal, which is warmer-blind at an urban 1 km cell.
+  Until this is read, the registry AQ's weather basis is the build's choice, not the record's.
 - **GAP 3: UNC TPD Section G was not re-read this session.** The rolling-AQ arrangement in s1 is marked
   [L] for that reason. The design rests only on the [H] Xoserve line: the AQ is the meter's own use.
