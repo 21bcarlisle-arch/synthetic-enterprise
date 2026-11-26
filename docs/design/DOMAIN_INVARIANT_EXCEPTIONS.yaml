@@ -124,7 +124,7 @@ exceptions:
   # blind and graded on the 1a02c46116 book. Grade and causes beside the pre-registration,
   # docs/staging/records/SEAT_PREREGISTRATION_THE_SECOND_COLD_READS_CLASSES_GRADED_ON_THE_1A02C46116_BOOK_2026-10-28.md.
   - invariant: INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER
-    scope: 4 of 4,294 runs of estimated bills on the fresh cd4fc5b8d8 book (graded 30 Oct; 6 of 4,317 on 209c3350ab), all above 3 and all in summer (Jun to Oct), on PROS-2016-0263g (c), PROS-2017-0336 (a, one run), SYN-2016-396g (b) and SYN-2016-565 (a); PROS-2024-0010 and 0336's second run left with the E7 and PC2 builds
+    scope: 6 of 4,258 runs of estimated bills on the 001e4f680a book (graded 26 Nov, the gate's own record; the same six on 3d3a8ee691, the first book after b3f3a23f6f), all electricity, all above 3 and all in summer, all cause (a). SYN-2016-215 Jun-Jul 2021 and Jul-Aug 2023, SYN-2016-221 Jun-Jul 2021, SYN-2016-565 Jun-Jul 2019, PROS-2017-0364 Jun-Jul 2022, PROS-2016-0203 May-Aug 2022
     reason: >-
       Traced 2026-10-29 (E2 in the printed-register finding). The estimator bills the annualised advance
       spread by the class-average shape, and the world's aggregate shape matches it (Jun to Aug: gas 7.8%
@@ -151,9 +151,14 @@ exceptions:
       Sourced 2026-11-21 (how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 11): neither published
       electricity practice found (OVO bills the settlement EAC on the class shape; British Gas the previous period)
       shapes an electricity estimate by the home's own year, so (a) is a real supplier's misestimate too, a lawful tail.
+      Re-based 2026-11-26 DOWN from 8 to 6. On the f2c6979d01 book the count-only ceiling passed 7, and one of the 7 was
+      PROS-2021-0100 gas (9.48, a registry AQ 8x its meter), which no cause here licenses. b3f3a23f6f registers a gas
+      premise on its own meter's AQ, and the row left on the next book. The six that remain are (a) and nothing else.
+      PROS-2016-0203 is (a) by cause (two-rate electrically heated, Jun-Aug billed on the class shape). Grade in
+      docs/staging/SEAT_FINDING_THE_GAS_AQ_FIX_CLEARS_ITS_ROW_AND_TIPS_NEW_GAS_ACCOUNTS_TO_OVER_BILLING_2026-11-26.md.
     filed: 2026-10-29
-    retired_by: none. All eight on the 5200cd6239 book are (a) or (c), the row's lawful tail under a published practice (section 11). A gas run like (b) would leave under British Gas's same-period-last-year rule, which is not built (section 11)
-    max_breached: 8
+    retired_by: none. All six on the 001e4f680a book are (a), the row's lawful tail under a published practice (section 11). A gas run like (b) would leave under British Gas's same-period-last-year rule, which is not built (section 11)
+    max_breached: 6
   # 2026-10-30: two rows that read UNCHECKABLE on the raw export are graded (leg one reads the five uncheckable
   # rows), on the 9553d403b7 book. Each breach count below is that book's, to be re-based on the next fresh run's
   # grade. Grade, causes and the three rows that stay ungraded on the runner, with why, in
