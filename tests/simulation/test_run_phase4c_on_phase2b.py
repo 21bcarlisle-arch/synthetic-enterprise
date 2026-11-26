@@ -1153,6 +1153,26 @@ def test_the_council_tax_listing_is_asked_about_the_dwelling_an_occupier_moved_i
     assert mod.simulated_council_tax_listing({"customer_id": "OCC-A"}) is None
 
 
+def test_a_won_switch_and_its_occupier_are_asked_about_the_dwelling_the_win_was_made_at(monkeypatch):
+    """Defect: the address follows `incoming_occupant_of` only, so a fresh-market win (registered on
+    its predecessor's premise, `successor_of`) reads None, and so does every occupier after it: on
+    the 3d3a8ee691 book SYN-2016-175_3 (won at SYN-2016-175's listed dwelling) and its occupier
+    OCC-d5419b4a0f6e held twelve ceiling bills for good, and the gaps breached six invariants. A
+    win at an address the world holds no premise for still reads None."""
+    import simulation.run_phase4c_on_phase2b as mod
+
+    drawn = min(mod._listed_dwellings())
+    wins = [{"customer_id": drawn + "_3", "successor_of": drawn},
+            {"customer_id": "NO-SUCH-PREMISE_3", "successor_of": "NO-SUCH-PREMISE"}]
+    occupants = [{"customer_id": "OCC-AT-WIN", "incoming_occupant_of": drawn + "_3"}]
+    monkeypatch.setattr(mod, "ACQUIRED_CUSTOMERS", wins)
+    monkeypatch.setattr(mod, "incoming_occupant_supply_points", lambda: occupants)
+
+    assert mod.simulated_council_tax_listing(wins[0]) is True
+    assert mod.simulated_council_tax_listing(occupants[0]) is True
+    assert mod.simulated_council_tax_listing(wins[1]) is None
+
+
 def test_a_founder_authored_as_a_home_is_on_the_list_and_a_business_founder_is_not(monkeypatch):
     """Defect: the lookup reads only the drawn premises, so a hand-authored founder's home and every
     occupier after it read None, and their held actual-read bills are never released (D48:

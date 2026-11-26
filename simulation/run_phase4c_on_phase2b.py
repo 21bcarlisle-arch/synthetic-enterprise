@@ -384,13 +384,24 @@ def _authored_dwellings() -> frozenset:
 
 
 def _supply_address_of(customer_data: dict) -> str:
-    """The id of the dwelling an account is supplied at: its own, or the first account at it."""
-    occupants = {r["customer_id"]: r for r in incoming_occupant_supply_points()}
+    """The id of the dwelling an account is supplied at: its own, or the first account at it.
+
+    Two links lead back to an earlier account at the same dwelling: an incoming occupant's
+    `incoming_occupant_of`, and a successor's or a fresh-market win's `successor_of` (the win is
+    registered on its predecessor's premise record, `make_acquired_customer`). Following only the
+    first left SYN-2016-175_3 (a win at SYN-2016-175's listed dwelling) and its incoming occupant
+    OCC-d5419b4a0f6e unlisted, so ten actual-read ceiling bills stayed held and their gaps breached
+    six invariants on the 3d3a8ee691 book."""
+    roster = {r["customer_id"]: r for r in (CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS
+                                            + list(incoming_occupant_supply_points()))}
     address, record, seen = customer_data["customer_id"], customer_data, set()
-    while record.get("incoming_occupant_of") and address not in seen:
+    while address not in seen:
         seen.add(address)
-        address = record["incoming_occupant_of"]
-        record = occupants.get(address, {})
+        earlier = record.get("incoming_occupant_of") or record.get("successor_of")
+        if not earlier:
+            break
+        address = earlier
+        record = roster.get(address, {})
     return address
 
 
