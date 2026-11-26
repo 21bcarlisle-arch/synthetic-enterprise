@@ -10,18 +10,25 @@ source: finding
 evidence:
 - docs/staging/WORKER_FINDING_2022_IS_A_HOLLOW_YEAR_IN_THE_PUBLISHED_RUN_AND_IT_CARRIES_THE_CRISIS_XPASS_2026-10-10.md
 knowledge_gap: null
-insight: 'corrected 2026-11-26: the exit-year booking is the s.7.4 expected-loss-at-close basis, not a defect (do not build the write-off-year row); both original reds cleared; open on a one-signed GBP ~326 run-over-ledger residue across 2018-2023, test named in the doc'
+insight: 'corrected 2026-11-26: the exit-year booking is the s.7.4 expected-loss-at-close
+  basis, not a defect (do not build the write-off-year row); both original reds cleared;
+  open on a one-signed GBP ~326 run-over-ledger residue across 2018-2023, test named
+  in the doc'
 decider: machine
 director_rank: null
 atom: C_supply_start_consumer_routing
 blocked_by: []
 occurrences: 1
-state: open
+state: parked
 opened_at: '2026-10-10T00:00:00+00:00'
 chosen_at: null
 closed_at: null
 chosen_by: null
 done_evidence: null
-parked: null
+parked:
+  reason: the GBP ~326 residue's test needs a run keeping arrears lines by (customer,
+    year); no published artefact carries them and book_arrears_lines folds the year
+    away
+  revisit: '2026-12-10'
 obsolete: null
 finding_lane: H_harness

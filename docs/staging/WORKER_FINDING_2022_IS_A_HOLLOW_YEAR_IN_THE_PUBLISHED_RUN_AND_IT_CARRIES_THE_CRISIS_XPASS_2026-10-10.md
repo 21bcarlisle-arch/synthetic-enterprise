@@ -160,3 +160,18 @@ per-customer `bad_debt_gbp` for 2018 and 2023 by arrears line (`book_arrears_lin
 per customer against the ledger. Prediction, filed before looking: the residue sits on a handful of
 customers, and the statute-barred leg carries most of it. This item stays open for that residue.
 Its title question, the hollow 2022 and the spurious XPASS, is answered: both reds are cleared.
+
+## The residue's test cannot run on published bytes (worker tick, 2026-11-26 19:20)
+
+The one-variable test above needs each customer's `bad_debt_gbp` for 2018 and 2023, split by arrears
+line. No published artefact of run 76f894811d_20261126T155009Z carries that split.
+`years[y].per_customer` and `per_customer_monthly` have no bad-debt field. `per_customer_lifetime`
+has none either. `world_walk_truth_*` holds settlements, not lines. And
+`book_arrears_lines` (`simulation/arrears_engine.py`) folds `lines[name][(cid, year)]` into one
+lifetime row per customer, which only lives on `phase2b_result` in memory
+(`run_phase4c_on_phase2b.py:819`). So the year is lost even inside the run.
+
+**What unblocks it:** a run that keeps the lines keyed by (customer, year), either beside the
+lifetime fold or as a probe that re-books one run's `all_records`. The prediction filed above
+stands unchanged and unlooked-at: the residue sits on a handful of customers, and the
+statute-barred leg carries most of it.
