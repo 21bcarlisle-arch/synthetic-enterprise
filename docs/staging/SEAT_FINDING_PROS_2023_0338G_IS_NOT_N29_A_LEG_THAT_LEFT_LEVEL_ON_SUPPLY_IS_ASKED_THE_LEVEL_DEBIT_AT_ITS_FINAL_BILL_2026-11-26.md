@@ -105,3 +105,17 @@ INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT has **0 breaches outside its
 rows do not move.
 
 No exception is widened and no ceiling is raised here.
+
+## Disposition (delivery seat, 26 Nov 2026): the gate is built (home_moves.md s.8.8i choice 33)
+
+The census ran first, on the 001e4f680a book's `final_month_nets` joined to `level_dd_collections`. Of the 201
+final bills that asked a debit, 10 legs (GBP 1,358.64 of debit) were off level at their final bill. Those are
+SYN-2016-058/-058g, -356/-356g, -360, -512g, -406/-406g and PROS-2023-0338/-0338g. All 10 paid on receipt, and
+all 191 direct-debit legs were on level, so the partition is clean. The debit half is now gated on
+`_leg_level_floor`. The surplus half is unchanged, because a credit on the leg is the household's whether it
+is on level or not. Each row now records `on_level_at_final`. The control asserts both sides of the partition,
+and it was shown red with the gate reverted to `_legs_ever_level`.
+
+**Still open, and not this commit:** grading the first book built at or after this commit against the
+prediction above and choice 33's prediction. The book also tests d688a224a
+(INV_OVERDUE_WITHIN_PAGE_BALANCE 8 -> 0) and 91c32797b3. A book run is the publisher's, not this turn's.

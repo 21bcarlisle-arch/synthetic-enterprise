@@ -1618,7 +1618,16 @@ class LivePaymentTriad:
             # balance on this leg (bills at face, level cash, credit notes) already holds that
             # credit-bill excess, so it is the larger of the two, never their sum.
             waiting = max(waiting, -ledger_balance)
-            if FINAL_BILL_ASKS_THE_LEVEL_DEBIT and ledger_balance > 0.005:
+            # ONLY A LEG ON LEVEL AT ITS FINAL BILL IS ASKED THE DEBIT (s.8.8f choice 33). A leg
+            # that left level while supplied (S7) has had its closing statement and pays each bill
+            # on receipt, so its ledger balance is those bills, issued and not yet paid. Gated on
+            # "ever level", PROS-2023-0338's final bills asked their October bills again beside
+            # the face: paid twice, then refunded on both fuels (10 legs, GBP 1,358.64 asked on the
+            # 001e4f680a book; SEAT_FINDING_PROS_2023_0338G_IS_NOT_N29_..._2026-11-26.md). The
+            # surplus half above stays: a credit on the leg is the household's, on level or not.
+            # `_leg_level_floor` holds the leg iff its previous bill presented a level collection.
+            if (FINAL_BILL_ASKS_THE_LEVEL_DEBIT and ledger_balance > 0.005
+                    and customer_id in self._leg_level_floor):
                 # THE DEBIT HALF (s.8.8f choice 26). The ledger's balance already nets any credit
                 # note, so the waiting credit is inside it and is not taken again.
                 debit_asked, debit_barred = self._final_bill_debit(
@@ -1637,6 +1646,7 @@ class LivePaymentTriad:
             final_row = {
                 "leg": customer_id, "account_id": account_id, "bill_month": bill_month,
                 "method": method, "ever_level": customer_id in self._legs_ever_level,
+                "on_level_at_final": customer_id in self._leg_level_floor,
                 "face_gbp": round(amount_gbp, 2), "waiting_credit_gbp": round(waiting_before, 2),
                 "ledger_balance_gbp": ledger_balance,
                 "credit_taken_gbp": credit_taken, "ask_gbp": ask_gbp,

@@ -1450,6 +1450,38 @@ final bill. It would also leave a regular bill issued after the account closed.
     **Not fixed by this:** SYN-2016-244 (Jan 2018, already on receipt). There, the page holds the level surplus
     to the close instead of netting it against the paid final bill. That is a page-side shape and stays open.
 
+
+#### 8.8i Only a leg on level at its final bill is asked the debit (added 2026-11-26, with the build)
+
+**What the evidence shows (001e4f680a book).** PROS-2023-0338 went onto level DD on 17 Nov 2023. Both first
+collections failed, and from Jan 2024 the household paid on receipt. Gas had its 28-day closing statement
+(1 Feb 2024). Both legs moved out on 16 Nov 2024. Each final bill then asked a "level debit" (electricity 42.66,
+gas 37.16) beside its face. That debit was the leg's October regular bill, issued and not yet paid, which the
+household also paid on its own. So it paid twice, and the close refunded the excess on both fuels. The cause was
+the gate: the debit half (choice 26) read "has EVER presented a level collection", a set that is never cleared.
+Of the 201 final bills on that book that asked a debit, **10 legs (GBP 1,358.64 of debit)** were off level at
+their final bill. All 10 paid on receipt, and none of the 191 direct-debit legs was off level, so the partition
+is clean (SEAT_FINDING_PROS_2023_0338G_IS_NOT_N29_..._2026-11-26.md).
+
+**What the rules say.** This is s.8.8f's own answer, already on this page. The final bill is the closing demand of
+a leg that leaves level **at** that bill. A leg that left level while still supplied (S7) gets the 28-day closing
+statement, "and only that". After that it pays each bill on receipt, so its ledger balance is those bills, each
+with its own due date. It is not a scheme debit.
+
+*Choice.*
+33. *The final bill asks the level debit only of a leg whose previous bill presented a level collection*
+    (`background/live_payment_triad.py`, `_leg_level_floor`, which is set when a bill presents a level collection
+    and popped when one does not). The surplus half (choice 14) is unchanged: a credit on the leg is the
+    household's, on level or not, and SYN-2016-244's netted surplus is the world's right ask. A leg that left
+    level on supply keeps any real arrears on its ordinary bills, which the collections journey works. The run
+    records `on_level_at_final` on each `final_month_nets` row. Control:
+    `tests/background/test_a_leg_that_left_level_on_supply_is_asked_only_its_final_bills_face.py`. It asserts
+    both sides of the partition and fails when the gate reads `_legs_ever_level`.
+    **Prediction, filed before any book carries it:** on the first book at or after this commit, the 10 legs ask
+    their final bill's face. PROS-2023-0338 pays 16.02 and 37.89, and neither leg is refunded.
+    INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT has 0 breaches outside its class. The 191 on-level
+    debits do not move.
+
 ---
 
 ## Sources
