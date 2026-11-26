@@ -105,7 +105,15 @@ PASSIVE_CHURN_CAP = 0.10
 # direction is known and it runs against us — more households on SVT is a smaller reachable
 # surface for the value arm and less measured margin. Recorded here so that a later "it made
 # the numbers worse" cannot be read as a reason to undo it.
-FTC_WITHDRAWAL_WINDOW: tuple[date, date] = (date(2022, 1, 1), date(2023, 6, 30))
+# WHY THE START IS 2021-10-01 (fix 0, 26 Nov; K8 page `docs/market_research/what_happens_at_the_end_
+# of_a_fix_and_whether_the_world_does_it_2026-11-25.md` s.6). The start used to be 2022-01-01, the
+# "2022: near zero" sentence read as a calendar year, with no quarterly source. The published gap
+# series (`docs/domain_artefact_library/regulatory/gb_best_deal_gap_to_default.json`) is 0.0, an
+# established absence of any deal below the default, from 2021-Q4 to 2023-Q2 inclusive (2021-Q3
+# reads 0.246, 2023-Q3 0.048). Window = exactly that zero-gap interval, so both ends now rest on
+# quarterly availability evidence. Corroborated by DESNZ QEP 2.7.1: Q4 2021 transfers 579k, 0.40x the
+# 2020 quarterly mean. A partial year, so `fully_withdrawn_years()` is still {2022}.
+FTC_WITHDRAWAL_WINDOW: tuple[date, date] = (date(2021, 10, 1), date(2023, 6, 30))
 
 
 def ftc_withdrawn_at(term_start_str: str) -> bool:
