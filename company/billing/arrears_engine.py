@@ -479,7 +479,14 @@ def cash_leg(e: LedgerEvent) -> Optional[str]:
     """The supply leg a credit was paid to, or None where it names none. A crossing's reference starts
     with the leg, as a bill's does (`on_level_dd`): a direct debit's is the invoice it collects, and a
     push payment's is the leg's own account reference, invoice-ambiguous by design but not
-    leg-ambiguous. A plan instalment, a credit note or a write-off names no leg."""
+    leg-ambiguous. A credit bill's note names the leg it was issued on (`_credit_note_leg`), as the
+    triad's own leg balance already reads it. Pooled, SYN-2016-107's gas credit of GBP 31.70 met the
+    electricity scheme debit, which then fell due with the gas final bill on 15 Oct 2018 rather than
+    on its closing statement on 4 Nov, and the desk opened a journey on 16 Oct (cb93f7760c,
+    INV_OVERDUE_WITHIN_BALANCE). A plan instalment or a write-off names no leg."""
+    note_leg = _credit_note_leg(e)
+    if note_leg is not None:
+        return note_leg
     ref = e.remittance[0] if e.remittance else ""
     if not ref and e.event_type == LedgerEventType.PAYMENT_CREDIT and e.event_id.startswith(
             observed_cash_event_id("")):

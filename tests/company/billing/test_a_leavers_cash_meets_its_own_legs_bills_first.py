@@ -91,3 +91,37 @@ def test_a_legs_surplus_and_unnamed_cash_meet_the_other_legs_debit():
     assert (cash_leg(plan), cash_leg(surplus)) == (None, "E")
     left = left_level_asks(led, schedule, ON)
     assert (LEFT + dt.timedelta(days=CLOSING_STATEMENT_TERM_DAYS), 15.0) in left.asks, left.asks
+
+
+def _credit_note_ledger(note_id):
+    """SYN-2016-107 on cb93f7760c, in miniature. Electricity E is level at GBP 20 against bills of 20
+    and 45 and leaves on a GBP 5 final bill on 10 Dec, a GBP 25 scheme debit. Gas G is not level: a
+    GBP 30 bill its own collection paid, a GBP 30 credit bill, and a GBP 50 bill on 1 Dec, due 15 Dec,
+    met that day by GBP 20, which is all G owes."""
+    led = AccountLedger("ACC")
+    for e in (
+        _bill("E::1", D(2019, 10, 1), 20.0), _cash("E::1", D(2019, 9, 25), 20.0),
+        _bill("E::2", D(2019, 11, 1), 45.0), _cash("E::2", D(2019, 10, 25), 20.0),
+        _bill("E::3", LEFT, 5.0),
+        _bill("G::1", D(2019, 9, 5), 30.0), _cash("G::1", D(2019, 9, 19), 30.0),
+        LedgerEvent(note_id, "ACC", T.ADJUSTMENT_CREDIT, 30.0, D(2019, 10, 5), TS),
+        _bill("G::3", D(2019, 12, 1), 50.0), _cash("G::3", D(2019, 12, 15), 20.0),
+    ):
+        led.post(e)
+    return led, LevelSchedule(requests=((D(2019, 9, 25), 20.0, "E::1"), (D(2019, 10, 25), 20.0, "E::2")))
+
+
+def test_a_credit_bill_meets_its_own_legs_bills_not_the_other_legs_scheme_debit():
+    """A credit bill's note (`credit:<leg>:<period>`) is that leg's. Pooled, it met the electricity
+    scheme debit, so the gas bill was asked in full on its own due date and the debit was dunned the
+    day after the household paid what gas owed, a closing statement still three weeks from due. A note
+    that names no leg still nets against the account, so both legs of the partition are taken."""
+    on = D(2019, 12, 16)
+    named, unnamed = _credit_note_ledger("credit:G:2"), _credit_note_ledger("adj:G2")
+    note = next(e for e in named[0].events() if e.event_type == T.ADJUSTMENT_CREDIT)
+    assert cash_leg(note) == "G", note
+    assert (_overdue(*named, on), _overdue(*unnamed, on)) == (0.0, 25.0), (
+        "a gas credit bill must meet the gas leg's own bills, leaving the electricity scheme debit on "
+        "its closing statement; a credit naming no leg nets against the oldest debt")
+    left = left_level_asks(*named, on)
+    assert (LEFT + dt.timedelta(days=CLOSING_STATEMENT_TERM_DAYS), 25.0) in left.asks, left.asks
