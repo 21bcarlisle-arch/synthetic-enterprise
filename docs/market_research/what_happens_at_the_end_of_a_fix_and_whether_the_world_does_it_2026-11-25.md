@@ -163,3 +163,71 @@ and not proposed as a fix: an anchor refit is capture → refit → capture, and
 
 **What none of this changes.** §5 stands. These fixes lower the world's 2021 Q4 leave rate. That lowers what a
 retention offer is worth there, so the conclusion that offering less makes more money gets stronger, not weaker.
+
+## 7. The check by regime, forced apart from chosen, and the re-grade pre-registered (26 Nov ruling; no run launched)
+
+*The director, 26 Nov 05:47: "Yes. But watch out for weird energy crisis years." His regimes: pre-cap 2016–18, cap
+era 2019 to mid-2021, crisis mid-2021 to 2023, after 2024. Reader: `/var/tmp/vtn-driver/regime/by_regime.py`, the
+same s.12g control records as §3 and §6. Decided blind to company results.*
+
+**What the record can and cannot give each regime.** No source publishes a small supplier's end-of-fix leave rate in
+any regime (§2, the GAP). What the record does publish, per regime, is how hard the whole market was switching: DESNZ
+QEP 2.7.1, electricity transfers over accounts (`gb_domestic_switching_rate.json`; the 2021 halves from the quarterly
+sheet in §6). So the target each regime gets is a **ratio to the cap era**, not a level. That is a reading, and it
+assumes the share of switching that happens at a fix end is steady across regimes. It is labelled as such.
+
+| Regime | Record, switching a year | Record ÷ cap era | World un-offered fix ends (twin; rankq) | Left | World ÷ cap era | Verdict |
+|---|---|---|---|---|---|---|
+| 1 pre-cap 2016–18 | 15.8–19.1%, mean 17.7% | **0.86** | 202; 222 | 0.38; 0.37 | **0.84–0.90** | agrees |
+| 2 cap era 2019–H1 2021 | 20.8, 20.2, H1 2021 ≈ 19%; mean ≈ 20.5% | 1 | 133; 133 | 0.42; 0.44 | 1 | the reference |
+| 3 crisis H2 2021–2023 | H2 2021 ≈ 12.4% (Q4 alone ≈ 8%), 2022 3.1%, 2023 6.3% | **≈ 0.15–0.6** | 18; 20, all in 2021 H2 | 0.39; 0.45 | **0.93–1.02** | **wrong**, fix 0 (§6) |
+| 4 after 2024 | 9.0%, 10.4% | **0.47** | 46; 44 | 0.52; 0.50 | **1.14–1.24** | **wrong**, and in the wrong direction |
+
+The rankq and twin control arms share households, so the two columns are not independent samples. Regime 3's
+world rows are 18–20 decisions; a figure from that sample earns a wide bound, and the verdict rests on direction, not
+on the second decimal. The world holds no 2022–23 roll at all: those fix ends go to the SVT route
+(`CRISIS_PASSIVE_YEARS`, `FTC_WITHDRAWAL_WINDOW`), which is the right outcome for those years.
+
+**Forced apart from chosen.**
+- *In the world, on our book:* a SoLR move can only happen to a household that is not ours
+  (`supplier_failures_2021_22.solr_transfer_for`, "NOT the company's customer"), and the company does not fail. So
+  nothing forced is being counted as our churn. The forced outcome that IS on our book is the crisis roll onto the
+  default; fix 0 moves 2021 Q4 into it. What regime 3 still counts as chosen leaving is mostly `price_position`
+  (4 of 7; 5 of 9): households leaving for a rival who, on the record, had nothing cheaper (§6).
+- *In the record:* whether DESNZ counts SoLR moves as transfers is a GAP
+  (`gb_supplier_failures_and_solr_transfers_2021_22.md` Q4). One thing narrows it. The world's own failure table puts
+  2.20m customers through SoLR in H2 2021 (1.73m in Q3, 0.47m in Q4), of which 0.85–0.99 domestic, so 1.87–2.17m.
+  DESNZ records 1.80m electricity transfers in the whole of H2 2021. **If** Oxera's counts are households rather than
+  meter points of both fuels, the series cannot contain them, and regime 3's record is chosen switching. If they are
+  meter points, it may contain about half, and chosen switching in H2 2021 was lower still. Either way, the record's
+  chosen-switching ratio for regime 3 is at or below the table's figure, so the world's error there is at least as large
+  as shown. The GAP stays open. It is narrowed, not closed.
+
+**Regime 4 is the larger defect, and nobody had asked about it.** On the record, after 2024 the market switched at
+under half the cap era's rate. In the world, households leave 14–24% *more* often at a fix end than in the cap era.
+§6 already traced this to the level anchor (20.8, fitted on 4 decisions and borrowed by 2025). Read by regime, it is
+not a borrowed-anchor footnote: it is the one regime where the world is wrong by more than a factor of two, on 90
+decisions. It makes every offer after 2024 look worth more than it is.
+
+### The re-grade, pre-registered before any build or run
+
+**The thesis result rests on regimes 1 and 2, read separately.** They are the only regimes where the world's leave
+rate passes this check. They hold about 85% of the un-offered fix ends (335 of 399; 355 of 419). And they are a
+market with somewhere to go, which is what a retention offer is a bet on. Regimes 3 and 4 are reported beside them,
+each with its own figure, and never pooled into the headline:
+- regime 3, because it fails the check until fix 0 lands, holds about 20 decisions a run, and on the record is a
+  market in which leaving was close to impossible;
+- regime 4, because it fails the check by more than a factor of two until its level anchor is refit.
+
+**Predictions (the R1–R3 of the finding's s.4, now by regime).**
+- **R1a.** rankq − twin ≥ 0 in regime 1 and in regime 2, each on its own. If the two differ in sign, the result is
+  "we cannot tell", and that is what is published.
+- **R1b.** In regime 4 on today's world, the gap favours twin (more offers) more than in regimes 1–2, because the world
+  overstates who is leaving. Expected to shrink toward the regime 1–2 figure once the anchor is refit.
+- **R1c.** In regime 3, too few decisions to sign. Reported as a count and a bound, not a figure.
+- R2 and R3 stand as filed.
+
+**Order.** Fix 0 (the window start) first, then the capture → refit → capture it costs. The regime-4 anchor refit rides
+the same capture, because both are the same three-step change and two captures would cost twice. The re-grade runs on
+the refit world. Both are world fidelity changes, decided on the record above and blind to the s.12g result. Both run
+against the company (R13): fewer households reach a roll, so an offer reaches fewer of them.

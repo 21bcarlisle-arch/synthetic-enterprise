@@ -110,6 +110,12 @@ more money.
 It answers a money question only. The thesis question (§3) needs the utility measure, and no current run produces it
 for retention.
 
+**By regime (26 Nov ruling, "watch out for weird energy crisis years").** Pre-registered in the knowledge page §7
+before any build or run: the thesis result rests on regimes 1 (pre-cap) and 2 (cap era), read separately. Those are
+the two where the world's leave rate passes the check against the record. Regimes 3 (crisis) and 4 (after 2024) are
+reported beside them and never pooled in. R1 becomes R1a–R1c there. The re-grade runs after fix 0 and the regime-4
+anchor refit, on one capture → refit → capture.
+
 ## Correction beside a claim
 
 The direction item named the ruling's question keys as `b455c078aa40`, `30860a9d6e96` and `e500f915012f`. The

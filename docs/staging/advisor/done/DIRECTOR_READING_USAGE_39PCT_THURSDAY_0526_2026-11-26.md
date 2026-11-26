@@ -17,3 +17,10 @@
 
   Bookkeeping cuts can stay cut.
 - Good work on the wiring fault. A discount given to stayers worth 8.6x the margin it keeps, on the world's own physics, is the creation-versus-transfer evidence the 25 Nov ruling asked for.
+
+## Done
+
+26 Nov 09:05Z: `python3 -m background.tick_mode normal`. The slow mode set 25 Nov 12:47Z, due to revert 27 Nov 00:47Z,
+was lifted early. Every token-spending route may now spawn at its normal cadence, toward about 0.6–0.7 points an hour.
+To reverse it: `python3 -m background.tick_mode slow --for <d>`. The first item he named, the fidelity check, was done
+in the same commit (the ruling file beside this one). The re-grade waits on fix 0 and its refit.
