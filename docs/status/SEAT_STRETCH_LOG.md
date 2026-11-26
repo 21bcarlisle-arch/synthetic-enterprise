@@ -8,6 +8,98 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-26 — orientation: Against the thesis this stretch went backwards in what we can claim and forwards in what we know
+
+<!-- head: cb93f7760c6f -->
+
+*Written by the orientation seat from its own record (2026-11-26T03:24:00.725039+00:00; 16 commits, 5 substantive, since 2026-11-25T12:23:07.430274+00:00).*
+
+Commit split (product code by path): 0 supplier, 2 world, 1 both, 13 other.
+
+## What the stretch meant
+
+Against the thesis this stretch went backwards in what we can claim and forwards in what we know. a189c2824 found that the harness answered a retention offer on a die the noise floor had not re-drawn, so an offered leaver stayed about 60% of the time instead of about 5%. That voids every graded comparison where offers decide the result: the s.12g family, A4's EP1 grade (20b14f3ed), and, which the void list missed, the six-seed ending-term-against-flat arms. Those run on e6be5fec8, which is before the fix, and one side offers while flat does not, so the bias runs one way, toward the per-customer arm. So the honest position is not "the per-customer arm loses to the flat twin". It is that NO valid out-of-sample comparison against the flat baseline exists yet. The decomposition backs the director's intuition: on the world's real dice, offering less makes more. The fidelity check he asked for came first (cb93f7760): the world's 2021 end-of-fix rise is a withdrawal window that starts a quarter late, plus a price term against our own default. Fix 0 is queued. On billing, D48's own-season estimate landed default off (11a4387c6), and a won switch's dwelling is now looked up (f0c0e7889). But no book has published since 18 Nov. 3d3a8ee691 was refused on 475 invariant breaches, now decomposed into five ordered causes, and the cb93f7760c book is in process_run_complete now. The commit split was supplier 0, world 2, both 1, other 13. The two world commits were the die fix and a dwelling lookup that block supplier results, but the supplier itself got one substantive commit. Of the previous focus, 2 of 4 were drawn. D48 landed. The book item retired with its refusal named but not published. The four unattributed final bills were never drawn, and that steer is drifting. The direction record now reaches origin (48320dc39, 351da8e3f). I am proceeding on the director's open row by silence, in the order he was told: fidelity fix first, then one re-grade on fixed code.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 03:24 26 Nov -- unchanged on the live belief. The six-seed arms meant to test its ending-term replacement ran on pre-fix code and are void, so its money test restarts under focus 3.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 03:24 26 Nov -- unchanged; the triage recheck is due today, and triage owns it.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one. [Earlier tails are in decisions.jsonl.] 03:24 26 Nov -- unchanged; latent, and no domestic account reaches either writer.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. [Earlier tails are in decisions.jsonl.] 03:24 26 Nov -- not corrected, and not confirmed either. a189c2824 voided the grade it rests on, so the claim is now unestablished. The re-grade on fixed code is focus 3.
+- NOT corrected: THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z), but their work reached origin. This is a new instance of a-landing-loses-its-race-to-origin. [Earlier tails are in decisions.jsonl.] 03:24 26 Nov -- not corrected. Two more lost promotion races followed the 5c8c74888 fix: de28fdd59 (13:54Z) and 3d3a8ee69 (21:56Z). Both were folded with no work lost, but the race still happens.
+- NOT corrected: THE MACHINE'S, NEW. The closed-account landing was relaunched at 14:35Z unchanged after two refusals on the same three reds, and it was refused a third time. [Earlier tails are in decisions.jsonl.] 03:24 26 Nov -- I have identified no new unchanged relaunch. Seven executor landings DIED this stretch, and I have not read their causes. Its triage line is 30 Nov.
+- NOT corrected: THE SEAT'S OWN, NEW. My 21:24 record put every queued supplier result behind the book's BUILD, and never asked whether a built book would pass the publisher's gates. Lesson: a book is owed until it PUBLISHES. [Earlier tails are in decisions.jsonl.] 03:24 26 Nov -- still open. The refusal is now named for 3d3a8ee691 (475 breaches, decomposed; first cause fixed, f0c0e7889), but no book has published since 18 Nov. Focus 1 carries it.
+- corrected: THE MACHINE'S, NEW. The 09:20 direction record never reached origin. d500f66c1 was remote-rejected on push, so origin carries the 06:21 record that the director's advisor reads. The seat log shows 40 DirectionNotLanded lines in its history.
+- corrected: THE WORLD'S, NEW. The harness answered a retention offer on a die the noise floor had not re-drawn, so offered leavers stayed about twelve times too often, and every offer-decided grade in the s.12g family and A4 read that inflation as skill. Fixed and tested in a189c2824.
+- NOT corrected: THE SEAT'S OWN, NEW. My 12:23 record kept the six-seed ending-term-against-flat arms running on e6be5fec8. After a189c2824 (21:42Z) voided offer-decided comparisons, no one asked whether those arms were among them. Four more arms launched on the pre-fix tree (s3 all_on at 20:35Z was before the fix; s4 flat at 22:23Z, s4 all_on at 00:03Z and s5 flat at 01:48Z were after it). Lesson: a void rule is applied to every in-flight run that reaches the voided path, not only to the runs the finding lists. Focus 3 stops and re-grades them.
+
+## Chosen against
+
+- Let the etarms chain finish on e6be5fec8 and read it as a bound on the ending-term arm.
+- Re-grade straight away on a189c2824 without waiting for fix 0.
+- Raise the EPG or EBSS exception ceilings so the cb93f7760c book publishes tonight.
+- Draw b8-flip-the-blind-holdout-on-after-the-five-grades and s1-contract-the-first-term-at-its-quote (both ripe 09:00 26 Nov).
+- Build a bounded retry for a remote-rejected direction push.
+- Pull the forward bands and the K8-for-world one-leg test (director commitments, due 2 Dec) into focus now.
+- Reap /var/tmp/se-sim-runner-book or the October salvage worktrees.
+
+## Focus for the next stretch
+
+- `the-cb93f7760c-book-publishes-or-its-refusal-is-closed-cause-by-cause`
+- `the-ftc-withdrawal-window-starts-at-the-published-zero-gap-quarter`
+- `the-per-customer-retention-arms-are-re-graded-against-flat-on-fixed-code`
+- `the-four-unattributed-final-bills-netted-past-the-page`
+
+---
+
+## 2026-11-26 — orientation skipped: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-11-25T12:24Z, next from 2026-11-26T00:24Z
+
+<!-- head: 8ccc3b712760 -->
+
+*Written by the orientation seat from its own record (2026-11-26T00:20:41.747029+00:00; 14 commits, 3 substantive, since 2026-11-25T12:23:07.430274+00:00).*
+
+Commit split (product code by path): 0 supplier, 1 world, 1 both, 12 other.
+
+The seat did not orient, so there is no reading of this stretch against the thesis. Its recorded reason: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-11-25T12:24Z, next from 2026-11-26T00:24Z
+
+---
+
+## 2026-11-25 — orientation skipped: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-11-25T12:24Z, next from 2026-11-26T00:24Z
+
+<!-- head: 934ba954cc24 -->
+
+*Written by the orientation seat from its own record (2026-11-25T21:21:59.367783+00:00; 10 commits, 2 substantive, since 2026-11-25T12:23:07.430274+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 1 both, 9 other.
+
+The seat did not orient, so there is no reading of this stretch against the thesis. Its recorded reason: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-11-25T12:24Z, next from 2026-11-26T00:24Z
+
+---
+
+## 2026-11-25 — orientation skipped: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-11-25T12:24Z, next from 2026-11-26T00:24Z
+
+<!-- head: 9ad1fe94d833 -->
+
+*Written by the orientation seat from its own record (2026-11-25T18:20:18.627837+00:00; 9 commits, 1 substantive, since 2026-11-25T12:23:07.430274+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 1 both, 8 other.
+
+The seat did not orient, so there is no reading of this stretch against the thesis. Its recorded reason: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-11-25T12:24Z, next from 2026-11-26T00:24Z
+
+---
+
+## 2026-11-25 — orientation skipped: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-11-25T12:24Z, next from 2026-11-26T00:24Z
+
+<!-- head: de28fdd59a23 -->
+
+*Written by the orientation seat from its own record (2026-11-25T15:24:50.409314+00:00; 7 commits, 1 substantive, since 2026-11-25T12:23:07.430274+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 1 both, 6 other.
+
+The seat did not orient, so there is no reading of this stretch against the thesis. Its recorded reason: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-11-25T12:24Z, next from 2026-11-26T00:24Z
+
+---
+
 ## 2026-11-25 — orientation: The supplier moved a little against the thesis this stretch, by grading rather than building
 
 <!-- head: 6113a7615560 -->

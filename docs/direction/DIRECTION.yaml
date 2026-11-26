@@ -1,205 +1,192 @@
 version: 1
-oriented_at: "2026-11-25T12:23:07.430274+00:00"
+oriented_at: "2026-11-26T03:24:00.725039+00:00"
 thesis_read: >-
-  The supplier moved a little against the thesis this stretch, by grading rather than building.
-  The ending-term belief passed Q1-Q6 on f2c6979d01 (conditioned 0.882 [0.840, 0.924]; Q1 came in
-  above its range, so it is graded refuted high, but its decision part held). This is the first
-  per-customer belief in a while that reads the leavers better than chance on a book it was not
-  built on. Its money test against the flat-rules twin, the baseline that matters, was
-  pre-registered (e6be5fec8, predicted to miss its rule at 65%) and is running now on six dice seeds.
-  So it is still true that NO per-customer arm has beaten the twin out of sample. A4 (EP1's dated
-  rate as a value arm, 9.5 GB) ends at about 18:08Z. The director's s-12g row still holds the
-  retention lever.
-
-  On billing, the leaver final-bill disagreement was resolved, and the WORLD was wrong, not the page
-  (a7778473f). No DD Instruction exists without a named payer, so 19 of the 23 bills were level cash
-  presented in unnamed-occupier months (GBP 27,134.55 over 137 legs). Four bills (GBP 74.63) are
-  unattributed. The value arm now refuses to read the payment score, with the knowledge written
-  first and the harm sized (abcc2f090). That is a reasoned no, not a lever. d48 held at SPAR 0.5.
-  Six of E1's seven estimate-against-meter breaches are summer estimates on electrically heated homes,
-  made on the profile-class shape. The exception covers them as lawful. But SLC 27.15 ranks the
-  account's own metered history FIRST, and SYN-2016-215 breaches in both 2021 and 2023, which means
-  it held earlier summers' reads. That is a per-customer inference the supplier is leaving unused,
-  so it leads the focus.
-
-  Still no book has published since 18 Nov (6af7fd0bfd). f2c6979d01 was built and graded five times,
-  but it never published. The book that carries the EPG, MSC and no-payer fixes waits on A4 by
-  measured memory, not by a rule.
-
-  The commit split was 1 supplier, 2 world, 14 other. By content, the world commit a7778473f is
-  billing evidence and four of the "other" commits are supplier grades, so the balance is better than
-  the label says, but supplier BUILDS were one.
-
-  Machine: the promotion race got its fix (5c8c74888, the base is read with the lock held). The one
-  later lost race (1795606115) was launched before that fix and waited on the fix's own landing, so
-  it cannot test it. Three executor landings died in 4 s on the NEXT trailer, and each relaunch
-  changed the message and landed. My own 09:20 record never reached origin: the push was remote-rejected
-  (d500f66c1 sits in /var/tmp/se-direction-seat), so origin still carries the 06:21 record. The
-  previous focus was drawn, 3 of 4. The-first-book-after-the-epg-fix-publishes was retired into a
-  continuation while its DONE (a published book) is unmet, so it returns to focus under the
-  continuation's id.
+  Against the thesis this stretch went backwards in what we can claim and forwards in what we know.
+  a189c2824 found that the harness answered a retention offer on a die the noise floor had not re-drawn,
+  so an offered leaver stayed about 60% of the time instead of about 5%. That voids every graded
+  comparison where offers decide the result: the s.12g family, A4's EP1 grade (20b14f3ed), and, which
+  the void list missed, the six-seed ending-term-against-flat arms. Those run on e6be5fec8, which is
+  before the fix, and one side offers while flat does not, so the bias runs one way, toward the
+  per-customer arm. So the honest position is not "the per-customer arm loses to the flat twin".
+  It is that NO valid out-of-sample comparison against the flat baseline exists yet. The decomposition
+  backs the director's intuition: on the world's real dice, offering less makes more. The fidelity
+  check he asked for came first (cb93f7760): the world's 2021 end-of-fix rise is a withdrawal window that
+  starts a quarter late, plus a price term against our own default. Fix 0 is queued. On billing,
+  D48's own-season estimate landed default off (11a4387c6), and a won switch's dwelling is now looked
+  up (f0c0e7889). But no book has published since 18 Nov. 3d3a8ee691 was refused on 475 invariant breaches,
+  now decomposed into five ordered causes, and the cb93f7760c book is in process_run_complete now. The
+  commit split was supplier 0, world 2, both 1, other 13. The two world commits were the die fix and
+  a dwelling lookup that block supplier results, but the supplier itself got one substantive commit.
+  Of the previous focus, 2 of 4 were drawn. D48 landed. The book item retired with its refusal named
+  but not published. The four unattributed final bills were never drawn, and that steer is drifting.
+  The direction record now reaches origin (48320dc39, 351da8e3f). I am proceeding on the director's
+  open row by silence, in the order he was told: fidelity fix first, then one re-grade on fixed code.
 stretch_reviewed:
-  since: "2026-11-25T09:20:13.676616+00:00"
-  commits: 17
-  substantive: 7
+  since: "2026-11-25T12:23:07.430274+00:00"
+  commits: 16
+  substantive: 5
 focus:
-- id: the-supplier-estimates-an-unread-month-from-the-accounts-own-history-first
+- id: the-cb93f7760c-book-publishes-or-its-refusal-is-closed-cause-by-cause
   lane: D_billing_metering
   side: supplier
-  what: 'Read docs/staging/SEAT_FINDING_THE_ESTIMATE_AGAINST_THE_METER_ON_F2C6979D01_IS_7_OF_4250_AND_ONE_IS_A_GAS_AQ_EIGHT_TIMES_ITS_METER_2026-11-25.md
-    rows 1-6, the cause-(a) breaches: SYN-2016-215 x2, SYN-2016-221, SYN-2016-565, PROS-2017-0364 and
-    PROS-2016-0203. For each one, establish from run_output_f2c6979d01_20261124T215935Z whether the account
-    held actual reads for the same calendar months in an earlier year at the estimate''s date. Use only
-    what the company held then. Find the company/ estimate route that chose the profile-class shape over
-    those reads, and say why. Then amend docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md
-    s.5 (K8). It already says SLC 27.15 ranks the supplier''s own metered history first. Add how a supplier
-    turns prior same-month reads into a month''s estimate, and label as GAP what is not published. If
-    the route ignores history it held, build own-history-first behind a DecisionPolicy flag that defaults
-    off. Add a control that keeps the off arm bit-identical, and show a mutation that fires. Pre-register
-    the E1 count and the d48 electricity gap for the first book that has the flag on. Do not run an arm,
-    because the box belongs to A4 and the etarms seeds.'
-  why: Billing accuracy is first in the director's order, and this is per-customer inference in its plainest
-    form. The supplier billed a home at four times its real summer use while it held that home's own summers.
-    The lawful-tail exception hides it as a count. Done means one of two things is on origin. Either a
-    knowledge amendment, a default-off own-history flag with its control and mutation, and a pre-registration.
-    Or a finding that shows, account by account, that no earlier same-month read was held, which would
-    make the exception's reason right.
-  written_at: 1795609722.377
+  what: 'The book run_output_cb93f7760c_20261126T013243Z is in process_run_complete now (pid 844079);
+    never stop it. When its publish verdict lands in docs/observability/.publish_gate_state.json, first
+    grade f0c0e7889''s filed prediction: 8 actual-read holds release and 3 estimate holds stay. Then take
+    the still-open causes in the order of docs/staging/SEAT_FINDING_THE_3D3A8EE691_BOOKS_475_INVARIANT_BREACHES_DECOMPOSED_AND_THE_FIRST_CAUSE_FIXED_2026-11-26.md
+    s.Still open. (1) INV_UNIT_RATE_EPG_HOUSEHOLD''s exception is keyed to a count of one book''s size.
+    Re-key it to a share, or fix its retired_by by pricing the energy line on the printed kWh. Decide
+    which and record why. Never raise max_breached. (2) EBSS zero credits on OCC accounts, Oct 2022 to
+    Mar 2023: is an occupier admitted mid-scheme outside the crediting loop? (3) The 44 breaches of INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS:
+    did 11a4387c6 or the BSC blend move them? (4) The 7 repeats of INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR
+    against b3f3a23f6f. (5) Read each single-account breach. Fix each as a class in company/ or the world
+    writer, with a mutation that fires. For each fix, file the count the next book must show before that
+    book is built.'
+  why: A book is owed until it PUBLISHES, and the site has shown 18 Nov for eight days, so every billing
+    fix of the last week is invisible to the director. Done means one of two things is on origin. Either
+    a run_output on a commit carrying these fixes is published with its banner. Or every invariant left
+    in the latest refusal is fixed with its mutation, or named as one cause with a filed prediction. An
+    exception that was widened to pass does not count.
+  written_at: 1795663751.082
+- id: the-ftc-withdrawal-window-starts-at-the-published-zero-gap-quarter
+  lane: W2_customer_generator
+  side: world
+  unblocks: the one re-grade of per-customer retention against the flat twin on fixed code (focus 3).
+    Until this lands, that re-grade would run on a 2021 that the K8 page already shows is a quarter late.
+  what: 'Work the queued continuation of this id. Build fix 0 from docs/market_research/what_happens_at_the_end_of_a_fix_and_whether_the_world_does_it_2026-11-25.md
+    s.6: move simulation/renewal_engagement.FTC_WITHDRAWAL_WINDOW''s start from 2022-01-01 to 2021-10-01,
+    the commons'' first zero-gap quarter, and cite the page in the docstring and the commit (K8 now covers
+    world models). Add a control and show a mutation that fires. File s.6''s predicted move before any
+    book or arm runs on it. The price term "against our own default" is the second half of that section.
+    Leave it as a named GAP on the page and do not build it this stretch.'
+  why: The director's open row ordered the fidelity check before the re-grade. The check is done (cb93f7760),
+    and it names a one-constant defect with a sourced date. Done means fix 0 is on origin with its citation,
+    control, mutation and filed prediction. That is the base focus 3 launches from.
+  written_at: 1795663751.082
+- id: the-per-customer-retention-arms-are-re-graded-against-flat-on-fixed-code
+  lane: B_commercial
+  side: supplier
+  what: Step 1, now. Run `git diff e6be5fec8 a189c2824 -- simulation/retention_offer.py simulation/run_phase2b.py`
+    and confirm that tools/per_customer_switch_arms reaches the changed offer path under --dice-seed.
+    If it does, the etarms chain (driver longjob-etarms-driver; live job etarms-s5-flat, pid 692816; seeds
+    s5-s7 still to run) is void by a189c2824's own rule. Stop it with the reason recorded in the launch
+    register and in docs/staging/records/SEAT_PREREG_THE_ENDING_TERM_ARMS_AGAINST_FLAT_ON_A_POST_C09847B7C_BOOK_2026-11-25.md,
+    and retire continuation grade-the-ending-term-arms-against-flat-six-seeds as void, not graded. Keep
+    the s2-s4 outputs. Step 2, once focus 2 is on origin. On a worktree at an origin commit that descends
+    from a189c2824 and fix 0, launch through background.launch_long_job the one rankq-against-twin re-grade.
+    Use the same seeds and books, with R1-R3 as filed in SEAT_FINDING_AN_OFFERED_LEAVER_IS_ANSWERED_ON_A_DIE_THE_FLOOR_DID_NOT_REDRAW_2026-11-25.md
+    s.4. Then, as headroom allows, the ending-term-against-flat seeds 2-7, with new predictions filed
+    in the prereg before launch. One long job at a time unless resource_headroom shows room.
+  why: The thesis needs a valid comparison against the flat baseline, and none exists. The void runs were
+    costing about 9 more box-hours at a time when the advisor asked to trim to about 0.5. Done means the
+    void chain is stopped and recorded on origin, and the rankq re-grade is launched on the fixed base
+    with its predictions filed before launch. Its grade, and the etarms launch, can follow in the next
+    stretch.
+  written_at: 1795663751.082
 - id: the-four-unattributed-final-bills-netted-past-the-page
   lane: D_billing_metering
   side: supplier
-  what: a7778473f attributed 19 of the 23 switch-away final bills where the world nets past the page (unnamed-occupier
-    level cash). 4 bills (GBP 74.63) are left, named under G8.19 in docs/staging/records/SEAT_FINDING_THE_WORLD_PRESENTS_A_LEVEL_DD_BEFORE_A_PAYER_IS_NAMED_2026-11-25.md.
-    For each of the 4 on run_output_f2c6979d01, say what the world's credit_taken counts and what the
-    page nets. Then name the leg that differs, from the household's actual final statement under SLC 27
-    and the closing-account rules in docs/domain_artefact_library/. Fix the wrong writer as a class, with
-    a mutation that fires on the unfixed writer. If the 4 are one cause the next book must show, file
-    the prediction beside a7778473f's.
-  why: A final bill is the last money a customer sees, and the class is only closed when the residue is
-    named. Last stretch's figure (30 legs, GBP 585.17) compared one page row with the world's total, and
-    that comparison hid this split. Done means all 23 are attributed on origin, with the 4 either fixed
-    with a mutation or carried as one named, pre-registered cause.
-  written_at: 1795609722.377
-- id: book-after-a4-exits-admit-and-grade
-  lane: D_billing_metering
-  side: supplier
-  what: If drawn before A4 (driver_ep1, pid 2690439) has ended, release it with the reason 'A4 still running',
-    and never stop A4. First, while waiting, read the publisher's record for run_output_f2c6979d01_20261124T215935Z
-    (process_run_complete log, docs/observability/.publish_gate_state.json) and say why it built and was
-    graded but never published. If a gate refused it, name the gate and the breach, and fix the class.
-    Once A4 has ended, confirm that the next sim-runner cycle admits a book on an origin commit that descends
-    from b14889688, f70757dc9 and a7778473f (`admitted:` and no DEFERRED line), as the 05:25Z seat note
-    predicted. When it is built, run the bills grade, INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER and
-    company/compliance/domain_invariants.py. On a refusal, list the breaches by account and fix the class,
-    never by widening an exception.
-  why: A book is owed until it PUBLISHES. That is the seat's own lesson, and the open wrong row says the
-    site has shown 18 Nov for a week. Every billing fix of the last week is invisible until this happens.
-    Done means a run_output on such a commit is published with its banner, or its refusal is on origin
-    with the gate, the breaches, and a fix or a finding. In both cases the reason f2c6979d01 never published
-    is written down.
-  written_at: 1795609722.377
-- id: the-direction-record-reaches-origin
-  lane: H_harness
-  side: other
-  what: The 09:51Z orientation landed d500f66c1 in /var/tmp/se-direction-seat, and `git push origin HEAD:main`
-    was remote-rejected ('! [remote rejected] HEAD -> main (failed)'). This was not a non-fast-forward.
-    So origin still carries the 06:21 record, and docs/observability/delivery-seat-log.md shows 40 DirectionNotLanded
-    lines in its history. Read the seat's landing path in background/ (the code that logs DirectionNotLanded).
-    Classify the 40 by cause (remote-rejected, index.lock, gate red). Make the remote-rejected case retry
-    after a re-fetch, once, bounded, with the cause in the log. Show a control and a mutation. If a cause
-    is GitHub-side and not ours, say so on the record and make the brief show origin's oriented_at beside
-    the shared tree's.
-  why: The director reviews this record, and his advisor reads it from origin. If origin holds a record
-    two orientations old, he is reviewing decisions the seat has already replaced. Done means the classification
-    is on origin, the remote-rejected case retries or is named as external, and the next orientation's
-    record is on origin within its own landing.
-  written_at: 1795609722.377
+  what: Carried, and never drawn last stretch. a7778473f attributed 19 of the 23 switch-away final bills
+    where the world nets past the page. Four (GBP 74.63) are named under G8.19 in docs/staging/records/SEAT_FINDING_THE_WORLD_PRESENTS_A_LEVEL_DD_BEFORE_A_PAYER_IS_NAMED_2026-11-25.md.
+    For each one, on the newest built book (cb93f7760c if it has finished, else f2c6979d01), say what
+    the world's credit_taken counts and what the page nets. Name the leg that differs, using SLC 27 and
+    the closing-account rules in docs/domain_artefact_library/. Fix the wrong writer as a class, with
+    a mutation that fires. Or, if the 4 share one cause the next book must show, file that prediction
+    beside a7778473f's. Check first whether focus 1's closing-refund single account is one of them.
+  why: A final bill is the last money a customer sees, and the class is only closed when its residue is
+    named. Done means all 23 are attributed on origin. The 4 are either fixed with a mutation or carried
+    as one named, pre-registered cause.
+  written_at: 1795663751.082
 not_now:
-  - what: Draw EP1_clv_three_horizon, or grade A4 early from partial output.
+  - what: Let the etarms chain finish on e6be5fec8 and read it as a bound on the ending-term arm.
     why: >-
-      A4 is EP1's value arm and ends at about 18:08Z. Its grade is already queued
-      (a4-ep1-grade-the-dated-rate-arm, held on grade_ep1.out). A partial read would be a prediction
-      filed after part of the answer.
-  - what: Another retention lever on A's belief, or switching the corrected churn belief on.
+      The defect is one-sided. Flat makes no targeted offers, and the ending-term arm's offered leavers
+      stay about twelve times too often, so the run cannot bound the result in either direction. Nine
+      box-hours on a known-void answer lose to a re-grade on fixed code.
+  - what: Re-grade straight away on a189c2824 without waiting for fix 0.
     why: >-
-      The director's s-12g row holds the retention lever, with a recommendation. The flip order is
-      set by SEAT_RECORD_THE_DEFAULT_OFF_SWITCHES_AND_THE_ORDER_THEY_FLIP_IN_2026-11-24.md (B8 on
-      26 Nov first). The ending-term arms against flat are already the live baseline test on six seeds.
-  - what: Close the dual-answer named residue (13 households, 15 rows, over a third, failed by two).
+      That would save a few hours, but the re-grade would run on a 2021 that cb93f7760 already shows
+      starts a quarter late, and the 2021 end-of-fix window is where retention money moves. The
+      director was told fidelity first. Fix 0 is one constant.
+  - what: Raise the EPG or EBSS exception ceilings so the cb93f7760c book publishes tonight.
     why: >-
-      Closing it needs a joint strike that is a named GAP. It is contact-response fidelity, and it
-      blocks no money result this stretch. The estimate and final-bill items are money on bills now.
-  - what: Pre-run the commit-msg chain before an executor launches a landing long job.
+      A ceiling keyed to one book's count refuses a larger, cleaner book. That is the "keyed to today's
+      answer" shape, and raising the number repeats it. Publishing waits on the class fix.
+  - what: Draw b8-flip-the-blind-holdout-on-after-the-five-grades and s1-contract-the-first-term-at-its-quote (both ripe 09:00 26 Nov).
     why: >-
-      Three landings died in 4 s on the NEXT trailer, and each relaunch landed within 20 s. The cost
-      is a launch, not a gate hour. The direction record not reaching origin costs the director's
-      review, so it takes the harness slot instead.
-  - what: Work N17 (year-on-year metered variance) before its 26 Nov triage recheck.
+      Both gate on graded verdicts from a published book (S0's 4 of 5 are unwritten). Flipping
+      switches before any book since 18 Nov has published stacks changes no reader can attribute.
+  - what: Build a bounded retry for a remote-rejected direction push.
     why: >-
-      It is world work. Its triage line already says it enters focus at the recheck, or when it is
-      the last gate row a book fails. Neither has happened.
-  - what: Reap the worktrees whose commits no remote ref keeps.
+      It is 1 instance in 40 DirectionNotLanded lines, and two records have reached origin since. It
+      is tidying, against focus items that move money results.
+  - what: Pull the forward bands and the K8-for-world one-leg test (director commitments, due 2 Dec) into focus now.
     why: >-
-      They are locked October salvage trees whose runs are graded, plus /var/tmp/value-test-ep1,
-      which is A4's lineage. They are also /var/tmp/se-direction-seat, whose d500f66c1 is the record
-      focus 4 must land or supersede. This is tidying, not a level move.
+      Their work ids carry them, and they are due on 2 Dec. They enter focus at the 30 Nov orientation
+      if they have not landed by then. A forward band blocks no supplier result this stretch.
+  - what: Reap /var/tmp/se-sim-runner-book or the October salvage worktrees.
+    why: >-
+      se-sim-runner-book took salvage commits from 01:36Z to 03:07Z tonight, so it is a live book's
+      worktree, not debris. The October trees are graded and locked. Neither moves a level.
 wrong:
   - what: >-
       THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find
       backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.]
-      12:23 25 Nov -- unchanged on the live belief. The ending-term belief passed Q1-Q6 on f2c6979d01,
-      but it is default off, and its arms against flat are running.
+      03:24 26 Nov -- unchanged on the live belief. The six-seed arms meant to test its ending-term
+      replacement ran on pre-fix code and are void, so its money test restarts under focus 3.
     corrected: false
   - what: >-
       THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the
       next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in
-      decisions.jsonl.] 12:23 25 Nov -- unchanged; the triage recheck is due 26 Nov.
+      decisions.jsonl.] 03:24 26 Nov -- unchanged; the triage recheck is due today, and triage owns it.
     corrected: false
   - what: >-
       THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the
-      bill charges one. [Earlier tails are in decisions.jsonl.] 12:23 25 Nov -- unchanged; latent,
+      bill charges one. [Earlier tails are in decisions.jsonl.] 03:24 26 Nov -- unchanged; latent,
       and no domestic account reaches either writer.
     corrected: false
   - what: >-
       THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the
-      flat-rules twin. [Earlier tails are in decisions.jsonl.] 12:23 25 Nov -- unchanged. A4 ends at
-      about 18:08Z, the six-seed ending-term arms against flat started at 11:58Z, and the director
-      row holds the retention lever.
+      flat-rules twin. [Earlier tails are in decisions.jsonl.] 03:24 26 Nov -- not corrected, and not
+      confirmed either. a189c2824 voided the grade it rests on, so the claim is now unestablished. The
+      re-grade on fixed code is focus 3.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2,
       01:14Z-01:20Z), but their work reached origin. This is a new instance of
-      a-landing-loses-its-race-to-origin. [Earlier tails are in decisions.jsonl.] 12:23 25 Nov -- fix
-      landed as 5c8c74888 (11:39Z): the base is read with the landing-gate lock held, and triage now
-      names it as owner (183a2c9f3). The fix is not yet tested. 1795598919 lost to f575d9fa0 before
-      it landed, and 1795606115 was launched at 11:28Z on the old code and waited on the fix's own
-      landing. Corrected once a stretch shows no lost race after a lock wait.
+      a-landing-loses-its-race-to-origin. [Earlier tails are in decisions.jsonl.] 03:24 26 Nov -- not
+      corrected. Two more lost promotion races followed the 5c8c74888 fix: de28fdd59 (13:54Z) and
+      3d3a8ee69 (21:56Z). Both were folded with no work lost, but the race still happens.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The closed-account landing was relaunched at 14:35Z unchanged after two
       refusals on the same three reds, and it was refused a third time. [Earlier tails are in
-      decisions.jsonl.] 12:23 25 Nov -- no new instance. Three message-gate refusals (1795598900,
-      1795604279, 1795607177) were each relaunched with a changed message, and those relaunches landed
-      (1795598919 reached the gate, 1795604299 and 1795607194 succeeded). Its triage line is 30 Nov.
+      decisions.jsonl.] 03:24 26 Nov -- I have identified no new unchanged relaunch. Seven executor
+      landings DIED this stretch, and I have not read their causes. Its triage line is 30 Nov.
     corrected: false
   - what: >-
       THE SEAT'S OWN, NEW. My 21:24 record put every queued supplier result behind the book's BUILD,
       and never asked whether a built book would pass the publisher's gates. Lesson: a book is owed
-      until it PUBLISHES. [Earlier tails are in decisions.jsonl.] 12:23 25 Nov -- still open, and now
-      with a sharper instance. f2c6979d01 was built and graded five times, but it never published,
-      and nobody has said why. The focus row was retired into a continuation with its DONE unmet.
-      Focus 3 carries it again.
+      until it PUBLISHES. [Earlier tails are in decisions.jsonl.] 03:24 26 Nov -- still open. The
+      refusal is now named for 3d3a8ee691 (475 breaches, decomposed; first cause fixed, f0c0e7889),
+      but no book has published since 18 Nov. Focus 1 carries it.
     corrected: false
-  - what: >-
-      THE SEAT'S OWN, NEW. My 09:20 focus 2 sized the leaver disagreement as 30 legs, GBP 585.17, by
-      comparing the world's whole credit_taken with ONE page credit row. Those two figures do not
-      count the same thing. Against everything the page nets, it is 23 final bills, GBP 675.99, and
-      19 of them have one world cause (a7778473f).
-    corrected: true
   - what: >-
       THE MACHINE'S, NEW. The 09:20 direction record never reached origin. d500f66c1 was
       remote-rejected on push, so origin carries the 06:21 record that the director's advisor reads.
       The seat log shows 40 DirectionNotLanded lines in its history.
+    corrected: true
+  - what: >-
+      THE WORLD'S, NEW. The harness answered a retention offer on a die the noise floor had not
+      re-drawn, so offered leavers stayed about twelve times too often, and every offer-decided grade
+      in the s.12g family and A4 read that inflation as skill. Fixed and tested in a189c2824.
+    corrected: true
+  - what: >-
+      THE SEAT'S OWN, NEW. My 12:23 record kept the six-seed ending-term-against-flat arms running on
+      e6be5fec8. After a189c2824 (21:42Z) voided offer-decided comparisons, no one asked whether those
+      arms were among them. Four more arms launched on the pre-fix tree (s3 all_on at 20:35Z was before
+      the fix; s4 flat at 22:23Z, s4 all_on at 00:03Z and s5 flat at 01:48Z were after it). Lesson: a
+      void rule is applied to every in-flight run that reaches the voided path, not only to the runs
+      the finding lists. Focus 3 stops and re-grades them.
     corrected: false
 for_the_director:
 - id: k8-knowledge-before-build-covers-supplier-capabilities
