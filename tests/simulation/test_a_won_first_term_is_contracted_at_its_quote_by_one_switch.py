@@ -1,5 +1,5 @@
 """A won account's first fixed term is contracted on the strike it was quoted, by one switch, and the
-switch is off.
+switch is taken (S1, 26 Nov).
 
 `live_population.CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE` carries the campaign's quote onto the
 won electricity leg, and `renewals.contracted_first_term` contracts the first term on it
@@ -52,11 +52,14 @@ def _first_term(monkeypatch, quoted) -> dict:
     return terms[0]
 
 
-def test_the_switch_is_off_until_the_post_s12g_book_has_been_read(monkeypatch):
-    """Catches the switch taken before its book: B8's five grades read the post-s.12g book, and two
-    changes in one book cannot be told apart. Off, no won leg carries a quote."""
-    assert lp.CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE is False
+def test_the_switch_is_taken_by_default_and_off_still_carries_no_quote(monkeypatch):
+    """Catches the S1 flip reverted (the standing book back on the notice-date strike nobody was
+    shown, SLC 23) and an off arm that still carries a quote. Taken 26 Nov after B8's five grades
+    were written on the post-s.12g book f2c6979d01."""
+    assert lp.CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE is True
     monkeypatch.setattr(lp, "_won_fuel_arrangement", lambda prospect, seed: "dual")
+    assert [c["customer_id"] for c in lp._won_customer_dicts(_outcome()) if KEY in c] == ["PROS-A"]
+    monkeypatch.setattr(lp, "CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE", False)
     assert not any(KEY in c for c in lp._won_customer_dicts(_outcome()))
 
 

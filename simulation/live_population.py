@@ -1199,10 +1199,12 @@ def first_term_offer_fn(*, elec_daily, gas_daily):
 #: A domestic fixed contract is formed on the Principal Terms given before it is entered, and its
 #: price cannot rise during the fix (cheapest_fix_against_the_default_tariff_gb_2016_2025.md §13).
 #: Taken, the won electricity leg carries the quoted strike and its first term is contracted on it
-#: (`renewals.contracted_first_term`). Not taken before the post-s.12g book is read: B8's five
-#: grades read that book, and two changes in one book cannot be told apart. Predictions:
+#: (`renewals.contracted_first_term`). Taken 26 Nov, once B8's five grades were written on the
+#: post-s.12g book f2c6979d01 (S1 of the order in
+#: `docs/staging/records/SEAT_RECORD_THE_DEFAULT_OFF_SWITCHES_AND_THE_ORDER_THEY_FLIP_IN_2026-11-24.md`).
+#: Predictions R1-R5, graded on the first book descending from this flip:
 #: `docs/staging/records/SEAT_PREREG_THE_FIRST_TERM_CONTRACTED_AT_ITS_QUOTE_2026-11-24.md`.
-CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE: bool = False
+CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE: bool = True
 
 #: The key a won electricity leg carries its quoted ex-VAT strike under, when the switch is taken.
 QUOTED_FIRST_TERM_RATE_KEY = "quoted_first_term_unit_rate_gbp_per_mwh"

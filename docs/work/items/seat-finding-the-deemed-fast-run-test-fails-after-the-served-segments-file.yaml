@@ -1,0 +1,26 @@
+id: seat-finding-the-deemed-fast-run-test-fails-after-the-served-segments-file
+title: '`test_deemed_customer_in_fast_run` fails when run after `test_served_segments_curriculum.py`'
+lane: building
+kind: harness
+affects: null
+class: standard
+severity: LATENT
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_DEEMED_FAST_RUN_TEST_FAILS_AFTER_THE_SERVED_SEGMENTS_FILE_2026-11-26.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: null
+blocked_by: []
+occurrences: 1
+state: open
+opened_at: '2026-11-26T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked: null
+obsolete: null
+finding_lane: H_harness
