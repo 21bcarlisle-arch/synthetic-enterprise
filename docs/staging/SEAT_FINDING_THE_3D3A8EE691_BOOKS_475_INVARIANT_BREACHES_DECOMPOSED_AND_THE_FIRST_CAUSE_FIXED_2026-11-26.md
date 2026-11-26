@@ -161,3 +161,15 @@ the ceiling at a listed dwelling, with no actual read in its tenure.
 
 `/tmp/seat_inv/probe.py`, not committed. It wraps `EVALUATORS` to keep `t.breaches` whole, then runs
 `load_book(ledger_path=OUT_PATH, printed_path=site/data/customers)`.
+
+## Where it stands (worker tick, 26 Nov 15:00Z)
+
+Every numbered cause above is taken at origin. Item 5's two accounts were fixed later:
+SYN-2016-099 by d688a224a6 (issue order) and SYN-2016-107 by 91c32797b3. The 14:55Z publisher cycle
+re-graded the 91c32797b3 book and refused it on the same three rows the 001e4f680a finding's 14:50Z
+grading attributes to fixes that landed after that run: OVERDUE_WITHIN_BALANCE 1 (PROS-2019-0305),
+PAGE_BALANCE 8 (SYN-2016-099), refund 1 outside class (PROS-2023-0338g, 7f90f9563a). No book run at
+or after e4dda28119 exists yet. sim_runner is holding until about 15:50Z, so its next run will be
+at HEAD. Neither this item's predictions (Cause 1, item 4) nor that finding's can be graded before
+that book exists. I did not start a run beside the live publisher. Parked to 27 Nov: grade the
+predictions on that book, then close or reopen.

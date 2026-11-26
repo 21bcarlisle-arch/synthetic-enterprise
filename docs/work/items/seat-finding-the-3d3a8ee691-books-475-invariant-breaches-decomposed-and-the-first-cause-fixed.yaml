@@ -1,0 +1,31 @@
+id: seat-finding-the-3d3a8ee691-books-475-invariant-breaches-decomposed-and-the-first-cause-fixed
+title: The 3d3a8ee691 book's 475 invariant breaches, decomposed by account, and the
+  first cause fixed
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: BLOCKING
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_THE_3D3A8EE691_BOOKS_475_INVARIANT_BREACHES_DECOMPOSED_AND_THE_FIRST_CAUSE_FIXED_2026-11-26.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used
+blocked_by: []
+occurrences: 1
+state: parked
+opened_at: '2026-11-26T00:00:00+00:00'
+chosen_at: null
+closed_at: null
+chosen_by: null
+done_evidence: null
+parked:
+  reason: every cause is fixed at origin; the predictions (Cause 1 releases, item
+    4 gas repeats <=1) are graded on the first book run at or after e4dda28119, which
+    sim_runner starts ~15:50Z 26 Nov
+  revisit: '2026-11-27'
+obsolete: null
+finding_lane: D_billing_metering
