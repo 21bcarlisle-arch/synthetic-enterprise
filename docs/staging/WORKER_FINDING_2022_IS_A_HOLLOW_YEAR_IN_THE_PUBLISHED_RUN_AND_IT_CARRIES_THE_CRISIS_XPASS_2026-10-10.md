@@ -125,3 +125,38 @@ dropped silently (the 2026-09-27 balance-at-close record), so whatever replaces 
 drop the figure. Prediction, filed before building: once the fix is in, the run's year y matches
 the ledger's year y within the basis gap (about 8%), and the 2019/2020 pair swaps to roughly
 1.4k/3.3k.
+
+## Correction, same day (worker tick, 18:55): the "located mechanism" above is the declared basis, not a defect
+
+The section above reads `_row_for` booking a leaver's loss in its exit year as a clock defect. It is
+not one. It is the P&L basis stated in `docs/market_research/debt_and_collections.md` s.7.4
+(2026-10-29) and in `simulation/arrears_engine.BAD_DEBT_BASIS`. Under IFRS 9, a leaver's unpaid
+balance, net of its expected recovery, is charged at close: an **expected loss at close**. The
+write-off date, which `WRITE_OFF_DATE_CONVENTION` puts a year after the final bill, only
+derecognises it. So the run's year y lines up with the ledger's write-off year y+1 by design. The
+"about 92%" is the net-of-recovery charge: s.7.4 measured 87.8%. **The fix prescribed above
+("a row in the write-off year") would undo a sourced basis, and must not be built.** I withdraw
+the prediction filed with it. The 10 Oct "Result" section's "a whole year's shift is not a basis
+difference" was wrong for the same reason. It predates s.7.4.
+
+**The test, at real inputs.** The ledger's `WRITTEN_OFF` minus `RECOVERED`/`SOLD`, grouped by
+each account's EXIT year (the year of its last bill's `period_end`), was set against the run's
+`years[y].bad_debt_gbp`. Both were read from the same files the section above read. Ledger less
+run, in GBP:
+
+| 2016 | 2017 | 2018 | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 | 2025 |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 0.0 | -2.1 | -109.4 | -79.1 | -33.0 | 0.0 | -13.5 | -83.1 | -5.7 | 0.0 |
+
+On the stated basis the series reconciles exactly in three years and within GBP 6 in two more.
+
+**What is still open: a one-signed residue of about GBP 326 across 2018-2023.** In those years the
+run charges more than the ledger can account for, and nowhere does it charge less. It is not the
+desk's unposted write-offs: `desk_write_off_unposted` is empty. Candidates, unranked: the
+statute-barred leg (4a) dated in-life and booked on a different record; I&C dispute write-offs
+missing from the resi ledger walk; a placeholder `bad_debt_gbp` that `apply_emergent_bad_debt`
+does not fully release. **I cannot yet say** which. The one-variable test is to split the run's
+per-customer `bad_debt_gbp` for 2018 and 2023 by arrears line (`book_arrears_lines`) and diff it
+per customer against the ledger. Prediction, filed before looking: the residue sits on a handful of
+customers, and the statute-barred leg carries most of it. This item stays open for that residue.
+Its title question, the hollow 2022 and the spurious XPASS, is answered: both reds are cleared.
