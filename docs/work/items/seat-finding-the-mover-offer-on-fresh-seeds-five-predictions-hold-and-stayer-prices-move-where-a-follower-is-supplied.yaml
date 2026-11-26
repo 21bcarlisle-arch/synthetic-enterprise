@@ -8,7 +8,7 @@ class: standard
 severity: LATENT
 source: finding
 evidence:
-- docs/staging/SEAT_FINDING_THE_MOVER_OFFER_ON_FRESH_SEEDS_FIVE_PREDICTIONS_HOLD_AND_STAYER_PRICES_MOVE_WHERE_A_FOLLOWER_IS_SUPPLIED_2026-10-12.md
+- docs/staging/done/SEAT_FINDING_THE_MOVER_OFFER_ON_FRESH_SEEDS_FIVE_PREDICTIONS_HOLD_AND_STAYER_PRICES_MOVE_WHERE_A_FOLLOWER_IS_SUPPLIED_2026-10-12.md
 knowledge_gap: null
 insight: null
 decider: machine
@@ -16,12 +16,12 @@ director_rank: null
 atom: B7_customer_state_layer_moves_and_shocks
 blocked_by: []
 occurrences: 1
-state: open
+state: done
 opened_at: '2026-10-12T00:00:00+00:00'
 chosen_at: null
-closed_at: null
+closed_at: '2026-11-26T18:23:49+00:00'
 chosen_by: null
-done_evidence: null
+done_evidence: 2638bcf72
 parked: null
 obsolete: null
 finding_lane: C_customer_ops
