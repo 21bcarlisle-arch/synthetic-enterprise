@@ -222,3 +222,33 @@ verdict is unchanged by the band read: 1.220 fails every year's figure and also 
 *Re-checked 22:25 by the invocation that landed this section, which had not written it: every
 3 dp figure above was re-read from a fresh download of `SERL_Stats_Report_Aggregated_Tables_Vol_2.xlsx`
 (`Figure_4`, `Figure_7`) and matches. The ratios are 1.4585, 1.4144 and 1.3578 before rounding.*
+
+## Re-read at a3b2a7a0c8 (2026-11-26): the level now meets SERL, and the winter gap has doubled
+
+Same instrument (`python3 tools/couple_fabric.py --serl 3000`, seed 17, C1 2022, 2,412 homes),
+with month medians from `/var/tmp/gasseason/months.py` (the same `_serl_home` draw). Prediction
+written at 16:44:55Z, before either reading returned: January −0.60 to −0.10 against SERL 2022,
+S3 1.18–1.27, summer +0.4 to +0.9.
+
+| 2,412 homes | Jan | Feb | Mar | Apr | May | Jun | Jul | Aug | Sep | Oct | Nov | Dec |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| World median | 7.86 | 7.55 | 7.09 | 6.91 | 6.67 | 6.38 | 6.48 | 6.40 | 6.67 | 6.79 | 7.14 | 7.88 |
+| − SERL 2022 | **−0.66** | −0.45 | −0.27 | +0.11 | +0.29 | +0.24 | +0.30 | +0.38 | +0.48 | +0.18 | −0.08 | −0.10 |
+
+S1 0.137 fail, S2 0.477 pass, **S3 1.235 fail** (Dec/Jun), and S4 2,549 against SERL's 2,535
+(it was 2,676). **The prediction is refuted on two of its three legs.** S3 landed in its band. But
+January came in at −0.66, below the band, and the summer at +0.24 to +0.38, also below. The level
+fell by about 0.3 kWh/day in every month. The only change since 10-09 that touches this path is
+`aa8a7c444c` (active use rides with always-on). That is an attribution I cannot yet make by a
+one-variable run, so it stays a hypothesis. The `--serl` path calls `_trace_for` beneath the
+layer `bc34b39129`'s price response is applied in. So the summer here is still a world without a
+response, and its excess over SERL 2022 is now smaller than SERL's own 8–9% fall.
+
+**What this changes.** The summer is no longer the larger miss, and the annual sum now matches. That
+leaves the winter as the whole of S3's shortfall: the Jan − Jun swing is 1.48 against SERL's 2.38.
+One more fact about the record cuts the same way. The cap had already risen in October 2021
+(to £1,277), so SERL's January 2022 is not wholly before the response. If anything, the true
+no-response January sits *above* 8.52, so the world's shortfall is at least 0.66. No end use with a
+published season contradicts its source (table above), so the winter term that is missing is not
+established. It stays a named gap on `W2_30` (wrong_triage `a-gas-heated-homes-electricity-has-no-season`,
+fate fold, 2026-10-24), and this document is that atom's evidence. Nothing in the world was moved.
