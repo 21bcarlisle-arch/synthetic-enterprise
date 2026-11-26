@@ -113,3 +113,22 @@ Re-graded on HEAD a1eee4d921 over the cb93f7760c ledger before starting:
 under investigation in 4df2b4f892), INV_OVERDUE_WITHIN_PAGE_BALANCE 8 (SYN-2016-099),
 INV_OVERDUE_WITHIN_BALANCE 1 (SYN-2016-107), and INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT
 (1 outside its class).
+
+## Graded on the 76f894811d book (delivery seat, 26 Nov 2026 21:5xZ)
+
+Book: `run_output_76f894811d_20261126T155009Z.json`, 1,382 accounts, 54,463 bills. It descends from
+7f90f9563a, d688a224a, 91c32797b3, 9ed3dc9787 and e4dda28119. Its ledger was written in a clean
+checkout of 76f894811d (fcd2facdcd's route; sim-runner-log 21:02Z). The publisher's own gate,
+`docs/reports/DOMAIN_INVARIANTS.md` at 21:11Z, reads **0 unexcepted breaches across 0 invariants, 6
+excepted: the publish stands.** I re-ran the same runner (`load_book` with the printed customer files,
+then `run`, then `gate`) on a snapshot of that ledger and the completed customer files. It
+reproduced the table row for row. Probe outputs: `/var/tmp/grade76/` (not committed).
+
+| claim (filed here) | measured | grade |
+|---|---|---|
+| The publish is wedged by five causes, and closing them clears the refusal | Every row this finding named is clean or inside its exception: EPG 355, all in the read-tenths class; EBSS 0 and 0; estimate-follows-reads 0 breached; gas repeat 1; INV_OVERDUE_WITHIN_BALANCE 0; INV_OVERDUE_WITHIN_PAGE_BALANCE 0; closing refunds 6, all in class. Gate verdict: refuse=false | **held** |
+
+The book has not yet reached origin. Its publish commit was refused at 20:51Z by the stale-copy
+guard, a non-test gate, not by this suite. The 21:11Z attempt left no outcome line, and the
+publisher is re-running the marker (started 21:33Z, another lane). That is a landing cause, not a
+billing one, and it is not this finding's.

@@ -102,3 +102,23 @@ earlier-period bill on its own leg.
 goes from 8 to 0, and SYN-2016-099's page and desk close on the same balance. SYN-2016-244 is not
 fixed by this. It is split out as
 `SEAT_FINDING_SYN_2016_244_THE_PAGE_PRINTS_A_FINAL_BILL_REFUND_THE_WORLD_NEVER_MADE_2026-11-26.md`.
+
+## Graded on the 76f894811d book (delivery seat, 26 Nov 2026 21:5xZ)
+
+Book: `run_output_76f894811d_20261126T155009Z.json`, 1,382 accounts, 54,463 bills. It descends from
+7f90f9563a, d688a224a, 91c32797b3, 9ed3dc9787 and e4dda28119. Its ledger was written in a clean
+checkout of 76f894811d (fcd2facdcd's route; sim-runner-log 21:02Z). The publisher's own gate,
+`docs/reports/DOMAIN_INVARIANTS.md` at 21:11Z, reads **0 unexcepted breaches across 0 invariants, 6
+excepted: the publish stands.** I re-ran the same runner (`load_book` with the printed customer files,
+then `run`, then `gate`) on a snapshot of that ledger and the completed customer files. It
+reproduced the table row for row. Probe outputs: `/var/tmp/grade76/` (not committed).
+
+| prediction (filed here) | measured | grade |
+|---|---|---|
+| INV_OVERDUE_WITHIN_PAGE_BALANCE 8 -> 0 | 0 of 5,630 | **held** |
+| SYN-2016-099's page and desk close on the same balance | The world asks 1.30 at the final bill (0.62 face plus 0.68 debit) and collects it on 20 Mar 2017. Page closing balance 0.00. The desk opens no journey and writes nothing off | **held** |
+| (page-side rule) the page closes at 1.30, and SYN-2016-244 stops printing 26.71 | the page-side rule was superseded by d688a224a and never built | not graded |
+
+SYN-2016-244 still prints the 26.71 closing refund on this book, where the world asked 25.55 and took
+26.71 of credit. That belongs to its own finding
+(`SEAT_FINDING_SYN_2016_244_THE_PAGE_PRINTS_A_FINAL_BILL_REFUND_THE_WORLD_NEVER_MADE_2026-11-26.md`).

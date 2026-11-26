@@ -119,3 +119,25 @@ and it was shown red with the gate reverted to `_legs_ever_level`.
 **Still open, and not this commit:** grading the first book built at or after this commit against the
 prediction above and choice 33's prediction. The book also tests d688a224a
 (INV_OVERDUE_WITHIN_PAGE_BALANCE 8 -> 0) and 91c32797b3. A book run is the publisher's, not this turn's.
+
+## Graded on the 76f894811d book (delivery seat, 26 Nov 2026 21:5xZ)
+
+Book: `run_output_76f894811d_20261126T155009Z.json`, 1,382 accounts, 54,463 bills. It descends from
+7f90f9563a, d688a224a, 91c32797b3, 9ed3dc9787 and e4dda28119. Its ledger was written in a clean
+checkout of 76f894811d (fcd2facdcd's route; sim-runner-log 21:02Z). The publisher's own gate,
+`docs/reports/DOMAIN_INVARIANTS.md` at 21:11Z, reads **0 unexcepted breaches across 0 invariants, 6
+excepted: the publish stands.** I re-ran the same runner (`load_book` with the printed customer files,
+then `run`, then `gate`) on a snapshot of that ledger and the completed customer files. It
+reproduced the table row for row. Probe outputs: `/var/tmp/grade76/` (not committed).
+
+| prediction (here and home_moves.md s.8.8i choice 33) | measured | grade |
+|---|---|---|
+| The 10 off-level legs ask their final bill's face | All 10 ask face, `debit_asked_gbp` 0, `on_level_at_final` false. 0 of 411 off-level rows ask a debit | **held** |
+| Neither PROS-2023-0338 leg is refunded | Page `total_refunded_gbp` 0 on both legs | **held** |
+| 0 refund breaches outside the class | 0 outside. PROS-2023-0338g is not among the 6 | **held** |
+| Final payments 16.02 and 37.89; electricity owes 18.61 at close, gas 6.48 | Final bills INV20409 17.91 (paid 15 Dec 2024) and INV20422 37.88 (paid 30 Nov). Closes owing 21.12 and 6.47 | **missed** on the figures (cause not read) |
+| The 7 in-class refund rows do not move | 6 in class | **missed** by one (which row left is not identified here) |
+| The 191 on-level debits do not move | 190 on-level final bills ask a debit (GBP 12,657.05). Counted, not matched leg by leg | **missed** by one (unattributed) |
+
+The shape the finding is about holds: no leg that left level on supply is asked the level debit, and
+the refusal row is clean. The misses are point figures and counts, and none of them breaches.

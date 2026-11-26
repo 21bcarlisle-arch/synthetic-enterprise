@@ -173,3 +173,22 @@ or after e4dda28119 exists yet. sim_runner is holding until about 15:50Z, so its
 at HEAD. Neither this item's predictions (Cause 1, item 4) nor that finding's can be graded before
 that book exists. I did not start a run beside the live publisher. Parked to 27 Nov: grade the
 predictions on that book, then close or reopen.
+
+## Graded on the 76f894811d book (delivery seat, 26 Nov 2026 21:5xZ)
+
+Book: `run_output_76f894811d_20261126T155009Z.json`, 1,382 accounts, 54,463 bills. It descends from
+7f90f9563a, d688a224a, 91c32797b3, 9ed3dc9787 and e4dda28119. Its ledger was written in a clean
+checkout of 76f894811d (fcd2facdcd's route; sim-runner-log 21:02Z). The publisher's own gate,
+`docs/reports/DOMAIN_INVARIANTS.md` at 21:11Z, reads **0 unexcepted breaches across 0 invariants, 6
+excepted: the publish stands.** I re-ran the same runner (`load_book` with the printed customer files,
+then `run`, then `gate`) on a snapshot of that ledger and the completed customer files. It
+reproduced the table row for row. Probe outputs: `/var/tmp/grade76/` (not committed).
+
+| prediction (item 4, filed here) | measured | grade |
+|---|---|---|
+| The five PROS legs stop repeating | PROS-2017-0192g 0 of 9 pairs, PROS-2021-0396g 0 of 27, PROS-2023-0104g 0 of 13, PROS-2023-0169g 0 of 8, PROS-2023-0234g 0 of 9. All five are on the book and graded | **held** |
+| INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR at most 1 leg breach (SYN-2016-206g) | 1 breach, SYN-2016-206g: 4 repeats, 2019-07, 2022-06, 2022-07 and 2023-07, all warm months. Flags: PROS-2016-0188g 2, SYN-2016-258g 2 | **held** |
+| Book share below its 1% bound | 14 repeats in 3,808 pairs, 0.37% | **held** |
+
+Cause 1 (the actual-read holds) was graded on cb93f7760c. This book's ledger again holds no held bill
+that breaches contiguity: INV_PERIODS_CONTIGUOUS is 0 of 107,544.
