@@ -117,3 +117,47 @@ bytes it is graded on. Neither may be passed by widening an exception.
 `/tmp/seat_pw/` (not committed): `dump.py` (raw book), `probe.py` / `probe_head.py` (the full-breach
 wrapper over `domain_invariant_runner`, on the shared ledger and the committed regeneration), and
 `shift.py` (the `age_balance` replay at both datings).
+
+## Built, later on 26 Nov (claim `the-publisher-grades-a-book-on-the-bytes-its-run-ran`)
+
+The shape chosen: **the ledger is written on the run's commit, and the evaluator stays at HEAD.**
+Refusing outright was rejected because the static closure of `tools/generate_billing_ledger.py` is
+353 files and `simulation/arrears_engine.py` alone took 8 commits in the week before this. A refusal
+on "the closure differs from the run's commit" would refuse nearly every book, which is the
+always-red detector. Regenerating in a clean checkout of the run's commit is never refused for
+that reason.
+
+`background/process_run_complete.py::generate_ledger_on_run_commit` takes
+`code_closure.imports_off_commit(tools/generate_billing_ledger.py, <marker git hash>)` over the
+shared tree. That one `git diff <run commit>` reads both skews at once: an uncommitted edit, and a
+world edit landed after the run. Then:
+
+- measured identical: the ledger is written in-process, as before, at no extra cost;
+- off commit: it is written by a subprocess in a throwaway checkout of the run's commit
+  (`_materialise_head_into`, the gate's own checkout machinery), to the shared ledger path;
+- unmeasured, or the checkout failed: nothing is written, the step raises (so the publish-step
+  ledger records it), and the record carries the reason.
+
+`_domain_invariant_gate_permits_publish` now grades the live ledger only when this cycle's record
+says it was written for this run's commit. Otherwise it writes **NOT GRADED** with the reason and
+refuses while enforcing, the same as an ungradable book. Before this, a failed ledger step left the
+previous book's ledger on disk, and the gate graded that.
+
+Controls: `tests/background/test_the_publisher_grades_a_book_on_the_bytes_its_run_ran.py`. The
+first runs a real tiny repo whose world file is dirty and checks that the ledger reads the
+committed bytes. The second is a partition control: all three routes are reachable. The third
+checks that the gate does not grade an unproven ledger. Three mutations were run, and each one
+fired: "always in-process", "unmeasured treated as clean" and "provenance check dropped".
+
+What this does NOT cover, and is not yet measured:
+
+- The ledger step's position. It reads the step's `git_hash`, which is the marker's `Git:` line
+  (the run's commit). A marker with `unknown` is refused upstream by `stamp_not_on_origin_refusal`.
+- The other publisher steps. `generate_customer_data`, `generate_invoice_data` and
+  `domain_invariant_runner` have no `sim/` or `simulation/` file in their static closure, so they
+  are evaluator/presentation code and stay at HEAD. That claim rests on the static graph. A step
+  that re-asks the world through a lazy import the graph misses would not be seen.
+- The cost of the cold checkout on a live book has not been measured. The timeout is 1200s, which
+  is 20x the ~1 minute the in-process step took on the 26 Nov books.
+
+The uncommitted issue-order edit on the shared tree was not touched.
