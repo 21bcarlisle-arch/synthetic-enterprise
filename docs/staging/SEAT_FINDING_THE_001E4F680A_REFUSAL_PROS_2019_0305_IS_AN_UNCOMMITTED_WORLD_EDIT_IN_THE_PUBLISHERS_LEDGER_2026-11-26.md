@@ -117,3 +117,28 @@ bytes it is graded on. Neither may be passed by widening an exception.
 `/tmp/seat_pw/` (not committed): `dump.py` (raw book), `probe.py` / `probe_head.py` (the full-breach
 wrapper over `domain_invariant_runner`, on the shared ledger and the committed regeneration), and
 `shift.py` (the `age_balance` replay at both datings).
+
+## The prediction, graded (worker tick, 26 Nov 14:50Z)
+
+The 91c32797b3 book was graded at 14:28Z. By then the issue-order edit had LANDED as d688a224a6
+(13:17Z), so this was the second skew: a committed tree whose world code is newer than the run.
+I re-graded the shared ledger with the finding's own probe, `/tmp/w_pw/probe.py`, against
+`docs/state/billing_ledger.json.gz` at 14:18Z.
+
+- INV_OVERDUE_WITHIN_BALANCE **1, PROS-2019-0305** (journey opened 2020-10-16). SYN-2016-107 is gone
+  (91c32797b3). This matches the predicted "1 if the edit is on disk or has landed".
+- INV_OVERDUE_WITHIN_PAGE_BALANCE 8, all SYN-2016-099 (1.30 against 0.68). The book's desk ran
+  before d688a224a6, so the page still prints the old ordering.
+- INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT: 1 of 8 outside the class, PROS-2023-0338g.
+  7f90f9563a has since fixed that on origin.
+- Gas repeat 1, inside its exception, as 9ed3dc9787 predicted.
+
+So no breach on this book is a defect in code at origin/main e4dda28119. Each one is a fix that
+landed after the run, or a ledger graded on world bytes newer than the run's. **The unwedge is a
+book run at or after e4dda28119.** Predicted for that book: INV_OVERDUE_WITHIN_BALANCE 0,
+INV_OVERDUE_WITHIN_PAGE_BALANCE 0, refund rows all inside the class. Any breach on those three rows
+refutes this.
+
+The guard (grade world-writer steps on the run's producing_commit) is claimed by the delivery
+seat as `the-publisher-grades-a-book-on-the-bytes-its-run-ran` (claimed 14:34Z, in flight). This
+item closes on that build's commit, not here.
