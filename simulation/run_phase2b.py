@@ -718,6 +718,9 @@ _WORLD_BASE_AQ_KWH: dict[str, float] = {}
 #: What each roster record's `aq_kwh` was rewritten from and to, so a second run in one process (the
 #: records are module-level) re-reads the drawn level rather than multiplying the own-reads AQ again.
 _AQ_REWRITTEN: dict[str, tuple[float, float]] = {}
+#: Premises whose read year the GB station record does not cover, with why: their AQ divides out no
+#: departure (it is the meter's raw read year), named here rather than taking the normal silently.
+_AQ_STATION_UNREAD: dict[str, str] = {}
 
 
 def _world_gas_aq(customer: dict) -> float:
@@ -725,32 +728,55 @@ def _world_gas_aq(customer: dict) -> float:
     return _WORLD_BASE_AQ_KWH.get(customer["customer_id"], customer["aq_kwh"])
 
 
-def register_gas_premises_on_their_own_reads(customers, gas_multiplier_for, run_start: str):
+def register_gas_premises_on_their_own_reads(customers, gas_multiplier_for, run_start: str, *,
+                                             heating_fraction_for=None, hdd_for=None,
+                                             station_departure_over=None):
     """Hand each domestic gas premise the AQ Xoserve would: its own meter's use, weather-normal.
 
-    docs/market_research/a_gas_meter_points_aq_is_made_from_its_own_reads.md. The world settles a
-    gas year on `aq_kwh x gas_multiplier_for(cid, date)`, and the HDD moves only the daily shape, so
-    the meter's weather-normal year is the drawn level times the multiplier's mean over the 365 days
-    before acquisition (the run's first year when acquisition falls inside it, as the electricity
-    rule's OWN_READS_FIRST_YEAR). Before this the registry AQ was the drawn level itself: a heat-pump
-    home metering ~1,150 kWh was handed 9,542.5 (PROS-2021-0100). The drawn level moves to
-    `_WORLD_BASE_AQ_KWH` first, so the demand does not move. Clears the map, then yields
-    `(cid, drawn, own)` per premise.
+    docs/market_research/a_gas_meter_points_aq_is_made_from_its_own_reads.md s.3 and s.6. The read
+    year is the 365 days before acquisition (the run's first year when acquisition falls inside it,
+    as the electricity rule's OWN_READS_FIRST_YEAR). The meter's own use over it is what the world
+    settles, `drawn x multiplier x (f x HDD_cell / HDD_ref + (1 - f) / 365)` day by day, AT ITS OWN
+    CELL. Only that year's STATION departure from the normal is divided out, as AQMQ x 365 /
+    sum(ALP x (1 + DAF x WCF)) does: `use / (f x g + 1 - f)`, where g is the GB observed HDD over the
+    read year as a fraction of the 1991-2020 normal (`sim.weather_hdd.gb_hdd_departure_over`). So a
+    meter warmer than the station keeps its lower use, as a real one does. Until 26 Nov the AQ was
+    `drawn x mean multiplier`, the meter's year on the national normal: 0.915 of its first year.
+
+    `heating_fraction_for(cid, level)` is the household's own fitted share, None for the population
+    0.85; `hdd_for` and `station_departure_over` are the world's cell HDD and the GB departure,
+    injectable for controls. The drawn level moves to `_WORLD_BASE_AQ_KWH` first, so the demand
+    does not move. Clears the map, then yields `(cid, drawn, own)` per premise.
     """
+    from sim.weather_hdd import gb_hdd_departure_over
+    from simulation.gas_settlement import GAS_HDD_REFERENCE_ANNUAL
+    hdd_for = hdd_for or get_hdd
+    station_departure_over = station_departure_over or gb_hdd_departure_over
     _WORLD_BASE_AQ_KWH.clear()
+    _AQ_STATION_UNREAD.clear()
     first_year_close = date.fromisoformat(run_start) + timedelta(days=365)
     for customer in customers:
         if customer.get("segment") != "resi" or not customer.get("aq_kwh"):
             continue
         cid = customer["customer_id"]
         close = max(date.fromisoformat(customer["acquisition_date"]), first_year_close)
-        mean = sum(gas_multiplier_for(cid, (close - timedelta(days=i)).isoformat())
-                   for i in range(1, 366)) / 365
+        days = [(close - timedelta(days=i)).isoformat() for i in range(365, 0, -1)]
         drawn = float(customer["aq_kwh"])
         if cid in _AQ_REWRITTEN and _AQ_REWRITTEN[cid][1] == drawn:
             drawn = _AQ_REWRITTEN[cid][0]
         _WORLD_BASE_AQ_KWH[cid] = drawn
-        own = round(drawn * mean, 1)
+        mults = [gas_multiplier_for(cid, d) for d in days]
+        level = drawn * sum(mults) / 365
+        own_f = heating_fraction_for(cid, level) if heating_fraction_for else None
+        f = _GAS_BOILER_HEATING_FRACTION if own_f is None else own_f
+        use = sum(drawn * m * (f * hdd_for(d, cid) / GAS_HDD_REFERENCE_ANNUAL + (1.0 - f) / 365)
+                  for d, m in zip(days, mults))
+        try:
+            g = station_departure_over(days)
+        except KeyError as unread:  # a read year past the held GB record (a named future world)
+            g = 1.0
+            _AQ_STATION_UNREAD[cid] = str(unread)
+        own = round(use / (f * g + 1.0 - f), 1)
         customer["aq_kwh"] = own
         _AQ_REWRITTEN[cid] = (drawn, own)
         yield cid, drawn, own
@@ -2415,13 +2441,20 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         print(f"  registry EAC {_leg_cid} [legacy]: drawn {_drawn_eac} -> own reads "
               f"{_own_eac:.0f} kWh ({_own_basis[:22]})")
 
-    # ...AND ON A GAS PREMISE (2026-11-25): the registry AQ is the meter's own weather-normal year,
-    # its demand level stays the drawn one (`_WORLD_BASE_AQ_KWH`).
+    # ...AND ON A GAS PREMISE (2026-11-25): the registry AQ is the meter's own year at its own cell,
+    # with only the GB year's departure from normal divided out (26 Nov); its demand level stays
+    # the drawn one (`_WORLD_BASE_AQ_KWH`).
     if household_demand_register is not None:
         for _gas_cid, _drawn_aq, _own_aq in register_gas_premises_on_their_own_reads(
-                GAS_CUSTOMERS, household_demand_register.gas_eac_multiplier_for_date, REPORT_START):
+                GAS_CUSTOMERS, household_demand_register.gas_eac_multiplier_for_date, REPORT_START,
+                heating_fraction_for=lambda _c, _lvl: (
+                    gas_heating_fraction_by_customer[_c].heating_fraction_for(_lvl)
+                    if _c in gas_heating_fraction_by_customer else None)):
             if abs(_own_aq - _drawn_aq) > 0.1 * _drawn_aq:
                 print(f"  registry AQ {_gas_cid}: drawn {_drawn_aq} -> own reads {_own_aq:.0f} kWh")
+        if _AQ_STATION_UNREAD:
+            print(f"  registry AQ: {len(_AQ_STATION_UNREAD)} premise(s) read in a year past the GB "
+                  f"station record, no departure divided out: {sorted(_AQ_STATION_UNREAD)[:5]}")
 
     # A HALF-HOURLY ACCOUNT IS HANDED AN EAC TOO (2026-10-19). The HH roster records carry
     # `eac_kwh: None`, so before its first actual read the bill fell back to the TDCV MEDIUM

@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used` · **Item:** `which-seasonal-normal-is-a-registry-gas-aq-put-on`
 
+**Disposition (26 Nov 2026):** built. The registry AQ is on the meter's own cell, divided by the GB station year's departure from the 1991-2020 normal (knowledge page s6). The projected-basis part left over is GAP 5, and the ratio is pre-registered in `docs/staging/records/SEAT_PREREG_THE_GAS_AQ_ON_THE_METERS_OWN_CELL_FIRST_YEAR_RATIO_2026-11-26.md`.
+
 # A gas AQ's seasonal normal is per LDZ and projected forward, and the AQ keeps the meter's own climate (26 Nov 2026)
 
 Filed by the delivery seat. This follows

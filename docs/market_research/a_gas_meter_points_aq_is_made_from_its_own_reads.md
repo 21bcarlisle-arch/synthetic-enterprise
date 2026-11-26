@@ -87,6 +87,12 @@ practice.
   LDZ, at one primary weather station per LDZ, climate-projected forward over the five gas years it
   serves, and revised every five years. Still open: the SNCWV values themselves (UK Link secure area),
   so how far each basis in force over 2016-2025 sat from the 1991-2020 E&W normal is not sized.
+- **GAP 5 (opened 26 Nov 2026, s6): the basis's warm lean is not in the world's AQ.** The world divides
+  the station year's departure from the 1991-2020 normal, not from a forward-projected basis. A
+  2016-25 read year is warmer than that normal (GB 0.864-0.981 of it), so the AQ still carries an
+  upward bias of about f x (1 - g): ~1.6% on a 2016 read year and ~11% on a 2022-24 one. A real
+  projected basis removes most of it, and how much is not sized (the SNCWV values are secure-area).
+  The next read: ET 7.1 2002-2015 (a trailing, non-foresight basis) and the 2020 basis's construction.
 - **GAP 3: UNC TPD Section G was not re-read this session.** The rolling-AQ arrangement in s1 is marked
   [L] for that reason. The design rests only on the [H] Xoserve line: the AQ is the meter's own use.
 
@@ -153,6 +159,36 @@ the meter's own weather-normal year **at its own cell**, not at the national nor
 the meter's own use over the read year (the 365 days before acquisition, at its cell's weather). Then
 it should divide out only that year's departure from a normal, the way the AQMQ/WAALP formula does. The
 world has no LDZ CWV and no SNCWV values, so which normal it uses for that departure is the one open
-choice. It is handed on as a build item with that choice named (`docs/staging/SEAT_FINDING_A_GAS_AQS_SEASONAL_NORMAL_IS_PER_LDZ_PROJECTED_FORWARD_AND_KEEPS_THE_METERS_OWN_CLIMATE_2026-11-26.md`),
+choice. It is handed on as a build item with that choice named (`docs/staging/done/SEAT_FINDING_A_GAS_AQS_SEASONAL_NORMAL_IS_PER_LDZ_PROJECTED_FORWARD_AND_KEEPS_THE_METERS_OWN_CLIMATE_2026-11-26.md`),
 not picked here. Until the build lands, the registry AQ's national-normal basis is a named defect,
 not the record.
+
+## 6. The build (26 Nov 2026): the meter's own cell, the GB station's departure, the 1991-2020 normal
+
+`register_gas_premises_on_their_own_reads` (`simulation/run_phase2b.py`) now hands over
+
+    AQ = use_read_year / (f x g + 1 - f)
+    use_read_year = sum over the read year of drawn x multiplier x (f x HDD_cell / HDD_ref + (1 - f) / 365)
+    g = GB observed HDD over the read year / the 1991-2020 normal over the same days
+
+which is the s5 formula with its parts mapped onto what the world holds:
+
+- **AQMQ** is the meter's own use at its own cell, the same day-by-day form the world settles
+  (`resi_daily_gas_kwh`), on the household's own fitted heating fraction where it has one.
+- **The station is GB, not an LDZ.** The world has no LDZ CWV. The nearest held series on the same
+  Met Office station basis as the normal is DESNZ ET 7.1's observed GB HDD
+  (`sim.weather_hdd.GB_ANNUAL_HDD_OBSERVED`, held by year, so a read window straddling two years is
+  day-weighted by year). The meter-versus-station offset is therefore cell-versus-GB, wider than a
+  real cell-versus-LDZ-station offset. That is the same direction as s5 point 1, but larger.
+- **The normal is the 1991-2020 normal, not a projected basis.** This is the choice the item left
+  open. The candidates were read against s5. (a) A basis built from the cell's own record over the
+  five gas years it serves is the closest to "represents the five years it serves". But it is
+  realised future weather, handed to the supplier inside an observable, and a real basis is a
+  projection with error. That is a foresight leak through the seam, so it was refused (the epistemic
+  wall over fidelity). (b) A trailing basis from the record before the acquisition cannot be built:
+  the cell store starts 2016-01-01 and ET 7.1 is held here from 2016 only. (c) The 1991-2020 normal
+  is held, has no foresight, and is what a real basis is a revision of. (c) is taken, and its cost is
+  GAP 5.
+
+What this removes and what it keeps: the meter's local offset now stays in its AQ (s5 point 1). The
+basis's warm lean (s5 point 2) does not, and is GAP 5. No read or correction error is added (GAP 2).

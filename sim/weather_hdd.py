@@ -81,6 +81,39 @@ REFERENCE_MONTHLY_HDD: dict[int, float] = {
     12: 320.3,
 }
 
+#: GB annual HDD actually observed, base 15.5 C, on the same Met Office station basis as
+#: `REFERENCE_MONTHLY_HDD`: DESNZ Energy Trends table 7.1 (ET_7.1_OCT_26.xlsx, sheet "Data Heating
+#: Degree Days", daily average x days, summed by year), tabled in
+#: docs/market_research/the_domestic_gas_year_heats_on_about_85_percent_not_70_2026-11-19.md s.4.
+#: It is the world's stand-in for an LDZ station's CWV: the registry divides a read year's departure
+#: of THIS series from the normal out of a meter's AQ, and nothing else
+#: (docs/market_research/a_gas_meter_points_aq_is_made_from_its_own_reads.md s.6).
+GB_ANNUAL_HDD_OBSERVED: dict[int, float] = {
+    2016: 2021.0, 2017: 1889.0, 2018: 1992.0, 2019: 1983.0, 2020: 1865.0,
+    2021: 2021.0, 2022: 1790.0, 2023: 1800.0, 2024: 1781.0, 2025: 1797.0,
+}
+
+
+def gb_hdd_departure_over(days: list[str]) -> float:
+    """The GB station year's HDD over `days`, as a fraction of the 1991-2020 normal over the same
+    days: each day carries its calendar year's observed GB HDD per day of that year, against the
+    normal's own month per day. 1.0 is a normal year; 0.92 is a year 8% warmer than normal.
+
+    Day-weighted by calendar year because ET 7.1 is held here by year, not by month: a read window
+    straddling two years takes each year's mean, which loses the within-year timing of a cold
+    snap. Named on the knowledge page s.6 as the cost of holding annual values only. A day in a
+    year the table does not hold raises, never silently takes the normal."""
+    observed = normal = 0.0
+    for d in days:
+        year, month = int(d[:4]), int(d[5:7])
+        if year not in GB_ANNUAL_HDD_OBSERVED:
+            raise KeyError(f"no GB observed HDD held for {year}: extend GB_ANNUAL_HDD_OBSERVED "
+                           "from DESNZ ET 7.1 before registering an AQ read in it")
+        observed += GB_ANNUAL_HDD_OBSERVED[year] / (366 if year % 4 == 0 else 365)
+        normal += REFERENCE_MONTHLY_HDD[month] / monthrange(year, month)[1]
+    return observed / normal if normal > 0 else 1.0
+
+
 #: Opening words of the basis an `HddReading` carries when it could NOT read the premise's own
 #: weather and fell back to `REFERENCE_MONTHLY_HDD`. A caller asking "is this weather?" asks
 #: `HddReading.from_normal`; this prefix is for the reader of a printed record, and it is a
