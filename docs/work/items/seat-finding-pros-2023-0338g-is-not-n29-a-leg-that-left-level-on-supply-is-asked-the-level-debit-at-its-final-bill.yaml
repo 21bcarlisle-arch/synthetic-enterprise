@@ -1,0 +1,28 @@
+id: seat-finding-pros-2023-0338g-is-not-n29-a-leg-that-left-level-on-supply-is-asked-the-level-debit-at-its-final-bill
+title: 'PROS-2023-0338g is not the N29 class: a leg that left level DD on supply is
+  still asked the level debit at its final bill, so it pays an open bill twice and
+  is refunded the excess'
+lane: supplier
+kind: correctness
+affects: null
+class: standard
+severity: BLOCKING
+source: finding
+evidence:
+- docs/staging/SEAT_FINDING_PROS_2023_0338G_IS_NOT_N29_A_LEG_THAT_LEFT_LEVEL_ON_SUPPLY_IS_ASKED_THE_LEVEL_DEBIT_AT_ITS_FINAL_BILL_2026-11-26.md
+knowledge_gap: null
+insight: null
+decider: machine
+director_rank: null
+atom: D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used
+blocked_by: []
+occurrences: 1
+state: done
+opened_at: '2026-11-26T00:00:00+00:00'
+chosen_at: null
+closed_at: '2026-11-26T14:29:27+00:00'
+chosen_by: null
+done_evidence: 7f90f9563a
+parked: null
+obsolete: null
+finding_lane: D_billing_metering
