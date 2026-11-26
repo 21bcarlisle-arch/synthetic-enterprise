@@ -89,14 +89,25 @@ def test_one_seed_has_no_interval_and_two_do():
     assert m == 2.0 and h == pytest.approx(12.706 * 1.0)
 
 
-def test_the_renewal_dice_reach_every_by_name_binding_and_are_restored():
+def _offer_event(p, kind):
+    return {"customer_id": "A", "event_date": "2018-01-01", "event_type": kind,
+            "effective_retention_probability": p, "realized_churn_probability": 1 - p,
+            "company_churn_estimate": 0.3, "churn_estimate_error_pct": 0.0, "departure_cause": None}
+
+
+def test_the_renewal_dice_reach_the_offer_answer_count_its_caller_and_are_restored():
+    """The offer's answer reads the seeded roll and is counted as `retention_offer`'s call, which
+    `dice_refusal` requires of a seeded run that made offers; on exit the real roll is back."""
     real = ce.churn_roll_for_renewal
     with arms.renewal_dice_seeded(3) as d:
-        assert {"simulation.customer_events", "simulation.retention_offer",
-                "simulation.run_phase2b"} <= set(d.calls)
-        rolls = {m.churn_roll_for_renewal("A", "2018-01-01") for m in (ce, ro, rp2b)}
-        assert len(rolls) == 1 and rolls != {real("A", "2018-01-01")}
-    assert ce.churn_roll_for_renewal is ro.churn_roll_for_renewal is rp2b.churn_roll_for_renewal is real
+        seeded = ce.churn_roll_for_renewal("A", "2018-01-01")
+        assert seeded != real("A", "2018-01-01")
+        ro.answer_retention_offer(_offer_event(0.5, "churned"), _offer_event(0.52, "churned"),
+                                  discount_pct=0.03)
+        assert d.calls.get("simulation.retention_offer") == 1, d.calls
+        assert arms.dice_refusal(3, {**d.calls, "simulation.customer_events": 1}, 1, offers=1) is None
+    assert ce.churn_roll_for_renewal is real
+    assert not any(getattr(m, "churn_roll_for_renewal", real) is not real for m in (ro, rp2b))
 
 
 def test_a_seed_that_reached_no_dice_is_refused_and_one_that_did_is_not():

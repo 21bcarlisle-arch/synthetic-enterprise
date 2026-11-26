@@ -4700,6 +4700,110 @@ def _cohort_coverage_gate_permits_publish():
     return True
 
 
+# THE LEDGER IS A WORLD WRITER, SO IT IS WRITTEN ON THE RUN'S BYTES (26 Nov 2026).
+#
+# `generate_billing_ledger` does not only reformat the run: it re-asks world code
+# (`simulation.arrears_engine.bill_issue_date` and its neighbours) for facts the run's journeys
+# were built on. The run ran on its own commit in a clean worktree; this process runs in the
+# shared tree. On 26 Nov an uncommitted issue-order edit to `simulation/arrears_engine.py` dated
+# PROS-2019-0305's stub final 4 Oct where the run had dated it 1 Oct, and the invariant gate
+# refused the 001e4f680a book on a breach no committed code produces
+# (docs/staging/SEAT_FINDING_THE_001E4F680A_REFUSAL_PROS_2019_0305_IS_AN_UNCOMMITTED_WORLD_EDIT_
+# IN_THE_PUBLISHERS_LEDGER_2026-11-26.md). The same skew follows any world edit that LANDS after a
+# run: `git diff <run commit>` over the closure reads both, which is why the reading is against the
+# run's commit and not HEAD's.
+#
+# The evaluator stays at HEAD on purpose: a newer grade of the same book is legitimate (the EBSS
+# and estimate rows were graded that way). A newer world is not the same book.
+LEDGER_WRITER_ENTRY = "tools/generate_billing_ledger.py"
+
+#: The in-process step measured ~1 minute on the 26 Nov books (13:45->13:46, 14:17->14:18 in
+#: sim-runner-log.md). A cold checkout pays imports and bytecode on top; 20x the measured step.
+LEDGER_ON_RUN_COMMIT_TIMEOUT_S = 1200
+
+#: What this cycle's ledger step did, read by the invariant gate. None until the step has run.
+_LEDGER_PROVENANCE = None
+
+
+def _ledger_in_process(json_path, out_path):
+    from tools.generate_billing_ledger import generate as gen_ledger
+    gen_ledger(json_path, out_path)
+
+
+def _ledger_in_run_checkout(json_path, commit, out_path):
+    """Generate the ledger with `commit`'s bytes in a throwaway checkout. None, or why not."""
+    HEAD_CHECKOUT_ROOT.mkdir(parents=True, exist_ok=True)
+    tmp = Path(tempfile.mkdtemp(prefix=HEAD_CHECKOUT_PREFIX + "ledger-", dir=str(HEAD_CHECKOUT_ROOT)))
+    try:
+        if not _materialise_head_into(tmp, commit):
+            return "{} could not be materialised into a clean checkout".format(commit)
+        _overlay_untracked_data(tmp)
+        argv = [sys.executable, "-c",
+                "import sys; from tools.generate_billing_ledger import generate; "
+                "generate(sys.argv[1], sys.argv[2])",
+                str(Path(json_path).resolve()), str(Path(out_path).resolve())]
+        env = dict(os.environ, PYTHONPATH=str(tmp))
+        try:
+            proc = subprocess.run(argv, cwd=str(tmp), env=env, capture_output=True, text=True,
+                                  timeout=LEDGER_ON_RUN_COMMIT_TIMEOUT_S)
+        except subprocess.TimeoutExpired:
+            return "the ledger at {} did not finish inside {}s".format(
+                commit, LEDGER_ON_RUN_COMMIT_TIMEOUT_S)
+        if proc.returncode != 0:
+            return "the ledger at {} exited rc={}: {}".format(
+                commit, proc.returncode, stderr_tail(proc.stderr))
+        return None
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def generate_ledger_on_run_commit(json_path, commit, *, out_path=None, reading_fn=None,
+                                  in_process_fn=None, in_checkout_fn=None):
+    """Write the billing ledger with the bytes the run ran, and return what was done.
+
+    Three routes, and the record names which: the shared tree when its ledger closure is
+    measured identical to `commit` (today's path, no extra cost); a clean checkout of `commit`
+    when it is not; and a refusal when nothing could measure it or the checkout failed. A refused
+    record leaves the ledger file untouched, and the invariant gate will not grade it."""
+    from background import code_closure
+    from company.billing.ledger_store import LEDGER_PATH
+    out_path = out_path or LEDGER_PATH
+    reading_fn = reading_fn or (lambda c: code_closure.imports_off_commit(
+        LEDGER_WRITER_ENTRY, c, PROJECT_DIR))
+    in_process_fn = in_process_fn or _ledger_in_process
+    in_checkout_fn = in_checkout_fn or _ledger_in_run_checkout
+    reading = reading_fn(commit)
+    paths = reading.get("paths")
+    record = {"commit": commit, "off_commit_paths": paths, "route": None, "refused": None}
+    if paths is None:
+        record["refused"] = "nothing measured whether the ledger writer's bytes are {}'s ({})".format(
+            commit, reading.get("unavailable_because") or "no reason given")
+    elif not paths:
+        in_process_fn(json_path, out_path)
+        record["route"] = "shared tree, measured identical to {}".format(commit)
+    else:
+        why_not = in_checkout_fn(json_path, commit, out_path)
+        if why_not:
+            record["refused"] = "{} world-writer file(s) differ from {} ({}) and {}".format(
+                len(paths), commit, ", ".join(paths), why_not)
+        else:
+            record["route"] = "clean checkout of {}: the shared tree differs in {}".format(
+                commit, ", ".join(paths))
+    return record
+
+
+def ledger_provenance_refusal(git_hash, record):
+    """Why the ledger on disk may not be graded as `git_hash`'s book, or None if it may."""
+    if record is None:
+        return "no ledger was written this cycle, so the one on disk names an earlier book"
+    if record.get("refused"):
+        return record["refused"]
+    written = str(record.get("commit") or "")
+    if not git_hash or not written or not (written.startswith(git_hash) or git_hash.startswith(written)):
+        return "the ledger on disk was written for {}, not {}".format(written or "?", git_hash or "?")
+    return None
+
+
 DOMAIN_INVARIANT_TABLE = PROJECT_DIR / "docs" / "reports" / "DOMAIN_INVARIANTS.md"
 DOMAIN_INVARIANT_JSON = PROJECT_DIR / "docs" / "reports" / "domain_invariants.json"
 
@@ -4717,6 +4821,9 @@ def _domain_invariant_gate_permits_publish(git_hash, *, ledger_path=None, regist
     An ungradable book while enforcing is a refusal (R15: an unavailable check is a failed check).
     An unreadable register is treated as enforcing, since it is the register that says otherwise."""
     from tools import domain_invariant_runner as runner
+    # The live ledger is graded only if this cycle wrote it on the run's bytes. A caller passing
+    # its own `ledger_path` is grading a book it built, and vouches for it.
+    unproven = ledger_provenance_refusal(git_hash, _LEDGER_PROVENANCE) if ledger_path is None else None
     if ledger_path is None:
         from tools.generate_billing_ledger import OUT_PATH as ledger_path
     try:
@@ -4729,6 +4836,12 @@ def _domain_invariant_gate_permits_publish(git_hash, *, ledger_path=None, regist
         register = {"enforce": True}
         log("Domain invariants: the exceptions register could not be read ({}: {}), so the gate "
             "enforces".format(type(exc).__name__, exc))
+    if unproven:
+        reason = ("the domain-invariant suite did not grade the book at git={}: its billing ledger "
+                  "is not that run's world ({})".format(git_hash, unproven))
+        DOMAIN_INVARIANT_TABLE.write_text("# Domain invariants\n\n**NOT GRADED.** {}\n".format(reason))
+        log("Domain invariants: " + reason)
+        return register.get("enforce") is not True, reason
     try:
         # The published customer files too, written earlier in this cycle: the rows graded on the
         # invoice or the page read what the customer is shown, not the ledger behind it.
@@ -5107,9 +5220,13 @@ def _generate_dashboard_json(json_path, git_hash="unknown"):
         # data (usage, rate, standing charge) is wired from this ledger into the
         # customer JSON here; also must run before generate_shadow_html which reads
         # it independently.
-        from tools.generate_billing_ledger import generate as gen_ledger
-        gen_ledger(json_path)
-        log("Generated docs/state/billing_ledger.json")
+        # On the RUN's bytes, not the shared tree's: see LEDGER_WRITER_ENTRY.
+        global _LEDGER_PROVENANCE
+        _LEDGER_PROVENANCE = None
+        _LEDGER_PROVENANCE = generate_ledger_on_run_commit(json_path, git_hash)
+        if _LEDGER_PROVENANCE["refused"]:
+            raise RuntimeError("billing ledger not written: " + _LEDGER_PROVENANCE["refused"])
+        log("Generated docs/state/billing_ledger.json ({})".format(_LEDGER_PROVENANCE["route"]))
     with _ledger.step("Invoice data generation", ["site/data/customers/"]):
         from tools.generate_invoice_data import generate as gen_inv
         gen_inv(json_path)

@@ -1097,8 +1097,11 @@ def generate(run_json_path=None, out_path=None):
                 pay["payment_date"] = level["collection_date"]
                 pay["level_dd"] = True
             if part_paid:
-                # A mover's final bill paid in part: the case below is for the rest.
-                pay["part_paid_gbp"] = part_paid
+                # A mover's final bill paid in part: the case below is for the rest. A part above
+                # the charges paid some of the scheme's debit the bill asked beside them, which is
+                # cash too, though no case is for it.
+                pay["part_paid_gbp"] = round(part_paid + (
+                    ((row or {}).get("debit_paid_gbp") or 0.0) if outcome == "failed" else 0.0), 2)
             if scheme_applied:
                 pay["scheme_credit_gbp"] = scheme_applied
                 inv["scheme_credit_gbp"] = scheme_applied

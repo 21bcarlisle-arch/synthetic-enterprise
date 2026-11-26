@@ -8,6 +8,92 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-26 — orientation: Against the thesis nothing moved this stretch
+
+<!-- head: 3799dcd0d58d -->
+
+*Written by the orientation seat from its own record (2026-11-26T18:20:55.805856+00:00; 16 commits, 6 substantive, since 2026-11-26T15:20:25.879194+00:00).*
+
+Commit split (product code by path): 0 supplier, 2 world, 0 both, 14 other.
+
+## What the stretch meant
+
+Against the thesis nothing moved this stretch. There is still no valid comparison of the per-customer supplier against the flat-rules baseline, and the one ruled comparison (the rankq re-grade, due 3 Dec) is exactly as deadlocked as three hours ago. /var/tmp/se-fix0-capture does not exist, no capture_departure_factors process is on the box, and seat_continuation still holds the refit on its own output. The steer did not bite: the previous focus named four items and the draw took NONE of them. The ledger shows why. Every draw after 15:16Z went to the continuation queue (is-a-gas-premises-registered-aq, the-page-resolves-a-final-bill-on-the-worlds-ask, which-seasonal-normal-is-a-registry-gas-aq-put-on), and the continuation-first order the director asked for consults focus only once the queue has nothing drawable. That work was real: b4ba8cb4f fixes a class of mover final bills the page printed wrong, and 6fa76dd34 and 1fb692d10 established that the over-billing of new gas accounts is a world defect (the registry AQ sits on the national 1991-2020 HDD, about 9% too cold for each meter's own cell). So last stretch's focus 3 is answered on the which-side question and leaves focus; its build is the queued continuation put-the-registry-gas-aq-on-the-meters-own-cell. The queue now holds one drawable row (that build) and every other row is embargoed, so focus is next in line after it. The one thing that DID change is the book. Sim-runner finished run_output_76f894811d at 17:42Z. That commit carries d688a224a, 7f90f9563 and fcd2facdc, all three fixes for the 91c32797b3 refusal, and it descends from e4dda28119, the commit every parked BLOCKING finding has been waiting for. But the publisher grading it (pid 3500795, up since about 17:42Z) runs from the shared checkout, whose HEAD lacks fcd2facdc and b4ba8cb4f. That is the stale-bytes ledger defect fcd2facdc exists to remove, so a refusal from this publish proves nothing about PROS-2019-0305. The checkout is now 4 ahead and 17 behind, and the mwu-m5 landing was refused at 18:22Z for that reason. The commit split was 0 supplier, 2 world, 14 other. Read honestly, b4ba8cb4f and the gas-AQ work are billing accuracy, but "supplier first" failed again in the count, and nine of the sixteen commits are parks or obsoletes. The book that could unpark them now exists, so the supplier half of this focus is to grade it on the code it was built from.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:20 26 Nov -- unchanged on the live belief. Its money test waits on the rankq re-grade, which is still deadlocked behind the fix-0 capture (focus 1, undrawn).
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:20 26 Nov -- unchanged; triage owns it.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one. [Earlier tails are in decisions.jsonl.] 18:20 26 Nov -- unchanged; latent, and no domestic account reaches either writer.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. [Earlier tails are in decisions.jsonl.] 18:20 26 Nov -- unestablished, not corrected. The grade it rests on is void (a189c2824), and the re-grade has not launched.
+- NOT corrected: THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z), but their work reached origin. This is a new instance of a-landing-loses-its-race-to-origin. [Earlier tails are in decisions.jsonl.] 18:20 26 Nov -- four landings finished this stretch, all success, none DIED, and no lost race was logged. That is weak evidence for 5c8c74888 and not yet a correction.
+- NOT corrected: THE MACHINE'S, NEW. The closed-account landing was relaunched at 14:35Z unchanged after two refusals on the same three reds, and it was refused a third time. [Earlier tails are in decisions.jsonl.] 18:20 26 Nov -- no unchanged relaunch this stretch. The earlier seven DIED landings are still unread, and the triage line is 30 Nov.
+- NOT corrected: THE SEAT'S OWN, NEW. My 21:24 record put every queued supplier result behind the book's BUILD, and never asked whether a built book would pass the publisher's gates. Lesson: a book is owed until it PUBLISHES. [Earlier tails are in decisions.jsonl.] 18:20 26 Nov -- closer still. 76f894811d is built on code carrying all three fixes, but its publish is being graded by checkout code that lacks fcd2facdc. Focus 2 carries it.
+- NOT corrected: THE MACHINE'S, NEW. seat_continuation.live() held fix-0-capture-and-2021-anchor-refit-on-the-moved-window on /var/tmp/se-fix0-capture/departure_factors_fix0.json. That is the item's own capture output, taken from a conditional hand-off clause in its prose. The item can never release, and the rankq re-grade behind it is deadlocked. 18:20 26 Nov -- still held, and still nothing writing it. Focus 1 fixes the class.
+- NOT corrected: THE SEAT'S OWN, NEW. My 12:23 record said "as soon as fix 0 is on origin, the same tick should draw" the re-grade chain. It never checked that the chain's hand-off files would be written by anything. Lesson: a handed-on chain is read file by file, writer to waiter, before it is trusted.
+- NOT corrected: THE MACHINE'S, NEW. The shared checkout diverged from origin (3 commits ahead, 1 behind on background/process_run_complete.py). All eight declared daemons, including sim-runner and the publisher, run code that lacks fcd2facdc. Focus 2 levels it before the next book. 18:20 26 Nov -- worse: 4 ahead and 17 behind. The publisher grading 76f894811d runs without fcd2facdc, and the mwu-m5 landing was refused at 18:22Z on the same divergence.
+- NOT corrected: THE SEAT'S OWN, NEW. My 15:20 record put the fix-0 capture first as a Lane 0 item "done by hand, not by waiting on the queue", and never checked that Lane 0 is consulted only once the continuation queue has nothing drawable. The queue held drawable rows all stretch, so 0 of 4 focus items were drawn. Lesson: before relying on focus, count the drawable continuation rows ahead of it.
+- NOT corrected: THE MACHINE'S, NEW. process_run_complete is publishing run_output_76f894811d from the shared checkout, whose code lacks fcd2facdc ("the publisher writes the billing ledger on the run's commit"). It is the stale-bytes ledger class repeating on the first book that carries the fix, because the fix only reaches the publisher when the checkout advances.
+
+## Chosen against
+
+- Keep last stretch's focus 3 (new gas accounts over-billed 6-11%) in focus.
+- Change delivery_lane's continuation-first order so focus outranks the queue.
+- Stop the stale publisher (pid 3500795) and re-run it on origin code now.
+- Pull b8-flip-the-blind-holdout-on, grade-s1-r1-to-r5 and s2-the-cap-hold-deletion forward (they ripen 27-28 Nov).
+- Spend the stretch on the 26 live repeating alarms or the locked worktrees holding SALVAGE commits.
+
+## Focus for the next stretch
+
+- `fix-0-capture-runs-now-and-its-continuation-stops-waiting-on-its-own-output`
+- `the-76f894811d-book-is-published-on-the-code-it-was-built-from`
+- `the-parked-billing-findings-are-graded-on-the-76f894811d-book`
+- `the-director-commitments-due-2-dec-are-queued-and-built`
+
+---
+
+## 2026-11-26 — orientation: Against the thesis the project moved one step and then stalled at the step after it
+
+<!-- head: 08d0603bf220 -->
+
+*Written by the orientation seat from its own record (2026-11-26T15:20:25.879194+00:00; 19 commits, 5 substantive, since 2026-11-26T12:23:25.364370+00:00).*
+
+Commit split (product code by path): 0 supplier, 2 world, 0 both, 17 other.
+
+## What the stretch meant
+
+Against the thesis the project moved one step and then stalled at the step after it. There is still no valid comparison of the per-customer supplier against the flat-rules baseline. Fix 0 landed (daf6029e9, 13:39Z): the FTC withdrawal window now starts on 2021-10-01, the published zero-gap quarter, so last stretch's ordering error is corrected as an instance. But its remainder has STRANDED. The continuation fix-0-capture-and-2021-anchor-refit-on-the-moved-window is held on /var/tmp/se-fix0-capture/departure_factors_fix0.json. That is the file its OWN capture would write. The reader took the item's conditional hand-off clause ("if the capture will not finish, hand the refit on with DO NOT DRAW BEFORE ...") as its hold. No capture is running and /var/tmp/se-fix0-capture does not exist. So nothing will ever release the refit, and the rankq re-grade, which waits on the refit's signal file, will never release either. This is the thesis's critical path, and it is deadlocked by a parser. It goes first, and it is done by hand as Lane 0, not by waiting on the queue. The publish wall moved, and all of it was billing work. The 91c32797b3 book refused on three rows, and every row now has a landed cause. d688a224a issues a leg's bills in period order, which clears SYN-2016-099's 8 page breaches. 7f90f9563 asks a leg that left level on supply only its final bill's face, which clears PROS-2023-0338g. fcd2facdc makes the publisher grade the ledger on the run's own commit, which clears PROS-2019-0305 (an uncommitted world edit, not the desk). 08d0603bf (15:22Z) attributed the last four netted final bills, so that focus item is finished and leaves focus. No book has been built on a commit carrying all three, and the site has shown 18 Nov for eight days. The shared checkout has DIVERGED from origin: 3 commits are on HEAD only, and fcd2facdc is on origin only. sim-runner, which resumes about 15:50Z, and the publisher both run from this checkout. So the next book would be built and graded by code that lacks the ledger fix, and it would refuse on PROS-2019-0305 again. The commit split was 0 supplier, 2 world and 17 other. Read honestly, the two world commits (fix 0, and bills issued in period order) serve the baseline comparison and the bill, and fcd2facdc and 7f90f9563 are supplier-billing correctness labelled other, so the balance is acceptable. Seventeen record and park commits for five substantive ones is heavy, though, and the parks are waiting on a book nobody has launched. The director commitments due 2 Dec (the K8 one-leg test and the forward bands) were not drawn in 3 h and stay in focus, last. The retention commitment due 27 Nov was met by a189c2824 (the 25 Nov ruling's part 3, answered and archived).
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 15:20 26 Nov -- unchanged on the live belief. Its money test waits on the rankq re-grade, which is deadlocked behind the fix-0 capture (focus 1).
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 15:20 26 Nov -- unchanged; triage owns it.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one. [Earlier tails are in decisions.jsonl.] 15:20 26 Nov -- unchanged; latent, and no domestic account reaches either writer.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. [Earlier tails are in decisions.jsonl.] 15:20 26 Nov -- unestablished, not corrected. The grade it rests on is void (a189c2824), and the re-grade has not launched.
+- NOT corrected: THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z), but their work reached origin. This is a new instance of a-landing-loses-its-race-to-origin. [Earlier tails are in decisions.jsonl.] 15:20 26 Nov -- no new lost race. This stretch's one DIED landing (14:52Z, exit 1) was a real gate refusal (test_a_control_reads_python_as_code on the new publisher test). It was fixed and relaunched, and it landed as fcd2facdc. Weak evidence, not yet a correction.
+- NOT corrected: THE MACHINE'S, NEW. The closed-account landing was relaunched at 14:35Z unchanged after two refusals on the same three reds, and it was refused a third time. [Earlier tails are in decisions.jsonl.] 15:20 26 Nov -- no unchanged relaunch this stretch. The earlier seven DIED landings are still unread, and its triage line is 30 Nov.
+- NOT corrected: THE SEAT'S OWN, NEW. My 21:24 record put every queued supplier result behind the book's BUILD, and never asked whether a built book would pass the publisher's gates. Lesson: a book is owed until it PUBLISHES. [Earlier tails are in decisions.jsonl.] 15:20 26 Nov -- still open, and closer. Every row of the 91c32797b3 refusal now has a landed fix (d688a224a, 7f90f9563, fcd2facdc), but no book has been built on code carrying all three. Focus 2 carries it.
+- corrected: THE SEAT'S OWN, NEW. My 09:20 record put fix 0, a one-constant change that gates the thesis comparison, third in focus, behind the publish work. Lesson: an item that unblocks the baseline comparison goes first when it is small, whatever side it is on. 15:20 26 Nov -- CORRECTED as an instance. Put first at 12:23, it landed as daf6029e9 at 13:39Z.
+- NOT corrected: THE MACHINE'S, NEW. seat_continuation.live() held fix-0-capture-and-2021-anchor-refit-on-the-moved-window on /var/tmp/se-fix0-capture/departure_factors_fix0.json. That is the item's own capture output, taken from a conditional hand-off clause in its prose. The item can never release, and the rankq re-grade behind it is deadlocked. Focus 1 fixes the class.
+- NOT corrected: THE SEAT'S OWN, NEW. My 12:23 record said "as soon as fix 0 is on origin, the same tick should draw" the re-grade chain. It never checked that the chain's hand-off files would be written by anything. Lesson: a handed-on chain is read file by file, writer to waiter, before it is trusted.
+- NOT corrected: THE MACHINE'S, NEW. The shared checkout diverged from origin (3 commits ahead, 1 behind on background/process_run_complete.py). All eight declared daemons, including sim-runner and the publisher, run code that lacks fcd2facdc. Focus 2 levels it before the next book.
+
+## Chosen against
+
+- Wait for the fix-0 capture continuation to release on its own.
+- Pull b8-flip-the-blind-holdout-on, grade-s1-r1-to-r5 and s2-the-cap-hold-deletion forward (they ripen 27-28 Nov).
+- Spend the stretch on the 26 live repeating alarms or the 10 locked worktrees holding SALVAGE commits.
+- Raise any exception's ceiling so a book publishes before the new one is built.
+
+## Focus for the next stretch
+
+- `fix-0-capture-runs-now-and-its-continuation-stops-waiting-on-its-own-output`
+- `the-next-book-is-built-and-graded-on-code-carrying-all-three-refusal-fixes`
+- `new-gas-accounts-are-over-billed-6-to-11-percent-after-the-aq-fix`
+- `the-director-commitments-due-2-dec-are-queued-and-built`
+
+---
+
 ## 2026-11-26 — orientation: Against the thesis the project stood still on the one test that matters
 
 <!-- head: fe14865204c3 -->

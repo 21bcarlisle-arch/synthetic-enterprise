@@ -82,3 +82,96 @@ is emergent, which is the affordability cluster's question, not this one. The ne
 where `years[y].bad_debt_gbp` takes its year: a write-off keyed to the year a debt started, or to
 the year before the run's 2022 reset, would produce this. The 2022 lifecycle red may be the same
 defect, with events keyed off the same wrong year. That is untested.
+
+## Re-read 2026-11-26 at HEAD b1399c1083: the hollow is gone, the year shift is not, and it is located
+
+**Both original reds are cleared.** On the current `docs/reports/run_output_latest.json`, the
+lifecycle test passes. The crisis test is an honest XFAIL, and since c0e3839087 its reason is the
+real record's write-offs, not this hollow. 2022 now books GBP 338.95 of bad debt, and 2021 books
+67.89.
+
+**The shift the "Result" section found is still in every year.** Below, the ledger's `WRITTEN_OFF`
+stages (`docs/state/billing_ledger.json`, built from run_output_76f894811d_20261126T155009Z) are
+set against the run's `years[y].bad_debt_gbp`:
+
+| year y | run bad_debt y | ledger write-offs y+1 | ledger write-offs y |
+|---|---:|---:|---:|
+| 2017 | 1,324.32 | 1,505.92 | 42.46 |
+| 2018 | 1,374.86 | 1,417.41 | 1,505.92 |
+| 2019 | 3,233.46 | 3,499.21 | 1,417.41 |
+| 2020 | 151.11 | 175.75 | 3,499.21 |
+| 2021 | 67.89 | 77.33 | 175.75 |
+| 2022 | 338.95 | 367.95 | 77.33 |
+| 2023 | 198.97 | 131.90 | 367.95 |
+| 2024 | 289.24 | 313.53 | 131.90 |
+| 2025 | 383.43 | 412.19 | 313.53 |
+
+The run's year y tracks the ledger's year y+1, at about 92% of the amount (the provision and
+write-off bases differ). The exception is 2023, where the run is above the ledger's 2024 (199 against 132).
+I cannot yet say why: a stayer provision on the C1 bucket is one candidate. It does not track the ledger's year y.
+
+**Mechanism.** `simulation/arrears_engine.py::_row_for` (line 1808). `compute_emergent_bad_debt`
+keys each write-off by (customer, write-off year), and its docstring says the apply step books a
+key dated after the account's last year "in that year". `_row_for` instead returns the account's
+**last settlement record**, which is in an earlier year. A leaver's write-off at close falls after
+its final settlement year, so it books into the P&L of the year before. `compute_debt_recovery`
+goes through the same `_row_for`, so its recoveries shift the same way. This is a clock defect in
+a published yearly series, not a basis difference.
+
+**What the fix needs (a design change, not a one-line fix).** The P&L needs a row, or a
+period-only line, in the write-off year for a customer who has no settlement row in that year, with
+the treasury carry following it. Booking on the last record was chosen to stop the figure being
+dropped silently (the 2026-09-27 balance-at-close record), so whatever replaces it must still not
+drop the figure. Prediction, filed before building: once the fix is in, the run's year y matches
+the ledger's year y within the basis gap (about 8%), and the 2019/2020 pair swaps to roughly
+1.4k/3.3k.
+
+## Correction, same day (worker tick, 18:55): the "located mechanism" above is the declared basis, not a defect
+
+The section above reads `_row_for` booking a leaver's loss in its exit year as a clock defect. It is
+not one. It is the P&L basis stated in `docs/market_research/debt_and_collections.md` s.7.4
+(2026-10-29) and in `simulation/arrears_engine.BAD_DEBT_BASIS`. Under IFRS 9, a leaver's unpaid
+balance, net of its expected recovery, is charged at close: an **expected loss at close**. The
+write-off date, which `WRITE_OFF_DATE_CONVENTION` puts a year after the final bill, only
+derecognises it. So the run's year y lines up with the ledger's write-off year y+1 by design. The
+"about 92%" is the net-of-recovery charge: s.7.4 measured 87.8%. **The fix prescribed above
+("a row in the write-off year") would undo a sourced basis, and must not be built.** I withdraw
+the prediction filed with it. The 10 Oct "Result" section's "a whole year's shift is not a basis
+difference" was wrong for the same reason. It predates s.7.4.
+
+**The test, at real inputs.** The ledger's `WRITTEN_OFF` minus `RECOVERED`/`SOLD`, grouped by
+each account's EXIT year (the year of its last bill's `period_end`), was set against the run's
+`years[y].bad_debt_gbp`. Both were read from the same files the section above read. Ledger less
+run, in GBP:
+
+| 2016 | 2017 | 2018 | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 | 2025 |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 0.0 | -2.1 | -109.4 | -79.1 | -33.0 | 0.0 | -13.5 | -83.1 | -5.7 | 0.0 |
+
+On the stated basis the series reconciles exactly in three years and within GBP 6 in two more.
+
+**What is still open: a one-signed residue of about GBP 326 across 2018-2023.** In those years the
+run charges more than the ledger can account for, and nowhere does it charge less. It is not the
+desk's unposted write-offs: `desk_write_off_unposted` is empty. Candidates, unranked: the
+statute-barred leg (4a) dated in-life and booked on a different record; I&C dispute write-offs
+missing from the resi ledger walk; a placeholder `bad_debt_gbp` that `apply_emergent_bad_debt`
+does not fully release. **I cannot yet say** which. The one-variable test is to split the run's
+per-customer `bad_debt_gbp` for 2018 and 2023 by arrears line (`book_arrears_lines`) and diff it
+per customer against the ledger. Prediction, filed before looking: the residue sits on a handful of
+customers, and the statute-barred leg carries most of it. This item stays open for that residue.
+Its title question, the hollow 2022 and the spurious XPASS, is answered: both reds are cleared.
+
+## The residue's test cannot run on published bytes (worker tick, 2026-11-26 19:20)
+
+The one-variable test above needs each customer's `bad_debt_gbp` for 2018 and 2023, split by arrears
+line. No published artefact of run 76f894811d_20261126T155009Z carries that split.
+`years[y].per_customer` and `per_customer_monthly` have no bad-debt field. `per_customer_lifetime`
+has none either. `world_walk_truth_*` holds settlements, not lines. And
+`book_arrears_lines` (`simulation/arrears_engine.py`) folds `lines[name][(cid, year)]` into one
+lifetime row per customer, which only lives on `phase2b_result` in memory
+(`run_phase4c_on_phase2b.py:819`). So the year is lost even inside the run.
+
+**What unblocks it:** a run that keeps the lines keyed by (customer, year), either beside the
+lifetime fold or as a probe that re-books one run's `all_records`. The prediction filed above
+stands unchanged and unlooked-at: the residue sits on a handful of customers, and the
+statute-barred leg carries most of it.

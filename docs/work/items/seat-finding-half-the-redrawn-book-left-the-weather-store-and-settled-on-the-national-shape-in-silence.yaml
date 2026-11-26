@@ -8,7 +8,7 @@ class: standard
 severity: LATENT
 source: finding
 evidence:
-- docs/staging/SEAT_FINDING_HALF_THE_REDRAWN_BOOK_LEFT_THE_WEATHER_STORE_AND_SETTLED_ON_THE_NATIONAL_SHAPE_IN_SILENCE_2026-10-11.md
+- docs/staging/done/SEAT_FINDING_HALF_THE_REDRAWN_BOOK_LEFT_THE_WEATHER_STORE_AND_SETTLED_ON_THE_NATIONAL_SHAPE_IN_SILENCE_2026-10-11.md
 knowledge_gap: null
 insight: null
 decider: machine
@@ -16,12 +16,18 @@ director_rank: null
 atom: W1_14_weather_cells_for_household_heat_load
 blocked_by: []
 occurrences: 1
-state: open
+state: parked
 opened_at: '2026-10-11T00:00:00+00:00'
 chosen_at: null
 closed_at: null
 chosen_by: null
 done_evidence: null
-parked: null
+parked:
+  reason: 6d7b997666 landed the orphaned 01:24Z ERA5 pull (922 of 1,091 cells complete,
+    additive to HEAD value for value); 73 domestic premises / 76 book cells are still
+    off the store, and the rest is the ERA5 pull's next passes after Open-Meteo's
+    daily quota resets at UTC midnight. The strict xfail in test_every_settling_domestic_premise_reads_a_complete_stored_cell.py
+    stays until it reads zero
+  revisit: '2026-11-27'
 obsolete: null
 finding_lane: W1_market_weather

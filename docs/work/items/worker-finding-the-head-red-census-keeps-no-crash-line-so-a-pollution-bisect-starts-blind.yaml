@@ -7,7 +7,7 @@ class: standard
 severity: LATENT
 source: finding
 evidence:
-- docs/staging/WORKER_FINDING_THE_HEAD_RED_CENSUS_KEEPS_NO_CRASH_LINE_SO_A_POLLUTION_BISECT_STARTS_BLIND_2026-10-07.md
+- docs/staging/done/WORKER_FINDING_THE_HEAD_RED_CENSUS_KEEPS_NO_CRASH_LINE_SO_A_POLLUTION_BISECT_STARTS_BLIND_2026-10-07.md
 knowledge_gap: null
 insight: null
 decider: machine
@@ -15,12 +15,12 @@ director_rank: null
 atom: H40_full_suite_pollution_bisect
 blocked_by: []
 occurrences: 1
-state: open
+state: done
 opened_at: '2026-10-07T00:00:00+00:00'
 chosen_at: null
-closed_at: null
+closed_at: '2026-11-26T16:31:05+00:00'
 chosen_by: null
-done_evidence: null
+done_evidence: 7034cbd40
 parked: null
 obsolete: null
 finding_lane: H_harness

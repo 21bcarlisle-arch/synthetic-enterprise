@@ -58,3 +58,41 @@ nothing where none is. Value is +GBP 87 to +GBP 1,000 per supplied follower, on 
 How many are supplied is the binding quantity: 7 of 23 followers. The rest are lost to gas-only legs,
 destinations outside the weather store, and half-hourly files not carried. The base seed's 2 of 9
 was not an outlier.
+
+## M5 attributed (2026-11-26, worker tick)
+
+**The unsupplied-follower arm already exists, by construction.** `_supply_at_new_home` in
+`simulation/run_phase2b.py` only reads state before it returns a not-supplied reason. Destination
+drawing is seeded and the weather check is pure. Every write (relocation, next move, gas
+destination) happens after the last refusal. So a follower that is not supplied changes nothing, and
+the arm this doc asked for equals `off`. Seed 61109 is its instance: 9 followers, 0 supplied, 0
+stayer moves, on minus off GBP 0.00. **The channel is the supplied follower**, as the doc suspected.
+
+**What carries the moves inside that channel is the bad-debt belief.** Prediction filed first:
+`/var/tmp/se-mwu-m5/PREDICTION.txt` (sha256 checked). This was one variable, on seed 61112 at HEAD
+b1399c1083 (k = 1, 40 founders, budget 0). The variable was dd3f004de's save rule applied to a follower:
+`_payment_triad.account_held_on_a_save(cid, _move_end)` beside the existing
+`_portfolio_margins.account_held_on_a_save`.
+
+| arms | stayer moves | raised | largest move | followers / supplied | net |
+|---|---:|---:|---:|---|---:|
+| on vs off | 16 | 3 | +0.184% | 10 / 6 | +GBP 6,547 |
+| on-held vs off | 16 | 8 | +0.084% | 10 / 6 | +GBP 6,551 |
+| on-held vs on | 16 (the same rows) | 13 | | 10 / 6 | +GBP 3.91 |
+
+Graded: Q0 held (moves remain at HEAD). **Q1 refuted** (the hold does not zero them). **Q2 refuted**
+(it does not reduce them: the same 16 rows, and rises go from 3 to 8). Q3 held (the hold changes
+pricing only). All 16 rows move when the belief changes, so this is the channel. But **the save rule
+is the wrong fix for a follower**. For a saved account, both arms see the same customer. For a
+follower, the off arm sees a leaver's final bill and the on arm sees a customer's later payments.
+Dropping the later payments still leaves the two arms' evidence different. Including the follower's
+payments mostly *lowers* stayers' belief (13 of 16 rows are higher when it is held out). Not shipped.
+
+**Correction beside the October claim.** The +12.7% and +4.7% moves on 61112 are gone at HEAD. The
+largest move is now 0.18%, so they were channels later work closed, not the offer. What remains is
+3 stayer rises of at most 0.18%, against 13 falls. These come from the company learning bad debt from
+a book that is different because it kept its followers. Under the director's condition as written
+(exact equality, no stayer raise) that is still a breach. The offer ships off
+(`move_with_us_activation.json`), and switching it on is his call. That call should be made with
+this row in front of him: 3 rises of at most 0.18% and 13 falls on 61112. The breach comes through
+the bad-debt belief, and the save-style hold does not remove it.

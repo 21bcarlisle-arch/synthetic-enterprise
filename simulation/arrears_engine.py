@@ -1170,8 +1170,19 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
             amount = round(amount - part_paid, 2)
         elif told is not None:
             outcome, days_late, method = told["result"], told["days_late"], told["method"]
-            if told.get("part_share"):
-                amount = round(amount * (1.0 - told["part_share"]), 2)
+            if told.get("part_paid_gbp") or told.get("part_share"):
+                # The cash the gone household paid of its final bill: the world's own figure, or on
+                # a book saved before it was carried, the share of what the bill ASKED (its face
+                # less the credit it netted plus the scheme's debit beside it), never of the face.
+                part = told.get("part_paid_gbp") or round(told["part_share"] * (
+                    amount - (told.get("credit_taken_gbp") or 0.0)
+                    + (told.get("debit_asked_gbp") or 0.0)), 2)
+                # It meets the bill's charges first; what is left over paid part of the debit,
+                # which otherwise stays a standing debt. Taken all off the face, it opened
+                # PROS-2016-0370g's case at -10.18.
+                face_part = min(part, amount)
+                debit_paid = round(part - face_part, 2)
+                amount = round(amount - face_part, 2)
             elif outcome == "success":
                 # The scheme's debit the final bill asked beside its face, and the mandate took
                 # (home_moves.md s.8.8f choice 26). A part-paid or failed ask leaves it owed.
@@ -1193,7 +1204,8 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
         rows.append({"customer_id": cid, "period_end": period_end, "commodity": commodity,
                      "amount_gbp": amount, "due_date": due_date, "method": method,
                      "outcome": outcome, "days_late": days_late,
-                     "part_paid_gbp": round(asked - amount, 2), "debit_paid_gbp": debit_paid})
+                     "part_paid_gbp": round(asked - amount, 2), "debit_paid_gbp": debit_paid,
+                     "credit_taken_gbp": (told or {}).get("credit_taken_gbp") or 0.0})
     for cid, start in truth_rows_from.items():
         own = [r for r in rows[start:] if r["customer_id"] == cid]
         repaid = wpt.repayment_rows(behavioral[cid][wpt.RECORD_KEY], cid, own)
@@ -1500,9 +1512,17 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                     # `difference` reconciles to the face, so it used no repayment the household
                     # sent beyond what was open: that waits for a later debt or the refund at
                     # close (OCC-3c914ee8cef5g's 16.55, drawn here, was never refunded).
-                    for take, credit_period_end, credit_kind in _draw(
-                            c, r["amount_gbp"],
-                            ("credit", "set_off") if on_level else ("credit", "repayment", "set_off")):
+                    drawn = _draw(c, r["amount_gbp"], ("credit", "set_off") if on_level
+                                  else ("credit", "repayment", "set_off"))
+                    # A final bill the world netted asked its face less that credit, whatever kind
+                    # waits for it (SLC 31H.12). A level leg's repayment excess is not drawn above,
+                    # so the page paid SYN-2016-244's 52.26 face and refunded the 26.71 the world
+                    # had netted. Posted as credit: the bill asked less, so the page prints less.
+                    short = round(min(r.get("credit_taken_gbp") or 0.0, r["amount_gbp"])
+                                  - sum(t[0] for t in drawn), 2)
+                    if on_level and short > 0.005:
+                        drawn += [(t, pe, "credit") for t, pe, _k in _draw(c, short, ("repayment",))]
+                    for take, credit_period_end, credit_kind in drawn:
                         credited.setdefault(_key(r), []).append(
                             {"date": when, "amount_gbp": take,
                              "credit_period_end": credit_period_end, "kind": credit_kind})

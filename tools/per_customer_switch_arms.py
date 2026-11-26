@@ -43,8 +43,8 @@ DICE SEEDS (section 14). `--dice-seed N` re-draws the two kinds of dice a retent
 can move through: every household's renewal roll (`customer_events.churn_roll_for_renewal`, the
 departure the offer acts on) and every payment draw (`grade_world_debt_against_ofgem.dice_seeded`).
 The book, the elasticities and the SVT-inertia roll are held. `retention_offer` and `run_phase2b`
-import the roll BY NAME, so every binding is replaced: patching only the module would let the offer
-answer read the base roll while the renewal it answers read the seeded one. A seed whose renewal or
+read the roll through `customer_events` at call time (since a189c2824f), so the offer answer and the
+renewal it answers read the same seeded die; calls are counted per calling module. A seed whose renewal or
 payment dice reached no draw is refused rather than written as a second seed; that would be the
 default world.
 
@@ -102,11 +102,13 @@ class renewal_dice_seeded:
     """Re-draw every renewal roll under `seed`, on every binding; restore on exit.
 
     The bindings are FOUND, not listed: every loaded module whose `churn_roll_for_renewal` is the
-    real function. `run_phase2b` and `retention_offer` both import it by name, and a hand list
-    written on 2026-10-22 already missed `run_phase2b`. A module imported after entry reads the
-    patched attribute of `customer_events`, as `coin_drawn_decision_set` does inside its functions.
+    real function. Since a189c2824f the world reads it through `customer_events` at call time, so
+    that is normally the only binding; any by-name import added later is still patched here.
+    `calls` counts per CALLING module (the caller's `__name__`), not per binding: with one binding,
+    a per-binding count could never show that `retention_offer` read the seeded roll, and
+    `dice_refusal` would refuse every seeded run that made an offer.
     The prefix `dice{seed}_` keeps a re-drawn roll off the base stream of an account whose name
-    happens to start with the seed. `calls` counts per binding."""
+    happens to start with the seed."""
 
     def __init__(self, seed: int):
         self.seed = seed
@@ -120,13 +122,12 @@ class renewal_dice_seeded:
         real = ce.churn_roll_for_renewal
         self._saved = [(m, real) for m in list(sys.modules.values())
                        if getattr(m, "__dict__", {}).get("churn_roll_for_renewal") is real]
+        def seeded(billing_account, term_start_str):
+            caller = sys._getframe(1).f_globals.get("__name__", "?")
+            self.calls[caller] = self.calls.get(caller, 0) + 1
+            return random.Random(f"dice{self.seed}_{billing_account}_{term_start_str}").random()
+
         for module, _ in self._saved:
-            self.calls[module.__name__] = 0
-
-            def seeded(billing_account, term_start_str, _name=module.__name__):
-                self.calls[_name] += 1
-                return random.Random(f"dice{self.seed}_{billing_account}_{term_start_str}").random()
-
             module.churn_roll_for_renewal = seeded
         return self
 

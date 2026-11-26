@@ -112,11 +112,18 @@ def build(triad, through: dt.date) -> dict[str, dict]:
     # A level leaver's final bill asks the scheme's debit beside its face when the world's switch is
     # on (home_moves.md s.8.8f choice 26). A collection that succeeded took it, so the page's close
     # and payment must count it; zero while `FINAL_BILL_ASKS_THE_LEVEL_DEBIT` is off.
+    # The credit the bill netted (SLC 31H.12) and the cash a part-paid final bill took travel the
+    # same way: the page resolves the bill on what the world asked, not on its face. Without them
+    # SYN-2016-244's page paid its 52.26 face and refunded the 26.71 the world had netted, and
+    # OCC-cede70b10116g's part share was taken of the face (home_moves.md s.8.8j).
     for fr in getattr(triad, "_final_month_nets", ()):
-        debit = fr.get("debit_asked_gbp") or 0.0
         told = out.get(fr.get("leg"), {}).get("outcomes", {}).get(fr.get("bill_month"))
-        if debit > 0.005 and told is not None:
-            told["debit_asked_gbp"] = round(debit, 2)
+        if told is None:
+            continue
+        for key in ("debit_asked_gbp", "credit_taken_gbp", "part_paid_gbp"):
+            value = fr.get(key) or 0.0
+            if value > 0.005:
+                told[key] = round(value, 2)
     # A billing account holds both fuels' legs, and each leg is its own contract (SLC 27.16). Until
     # 2026-10-28 every settlement went to the account's first leg, electricity: on 5e3e9966a5 no gas
     # leg held one, 523 sat on electricity, and the reg 6D refund paid out that phantom credit.

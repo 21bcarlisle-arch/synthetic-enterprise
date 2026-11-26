@@ -1424,6 +1424,10 @@ this world could not take.
 - Four of the 23 disagreeing final bills are not `OCC-` legs: SYN-2016-099, SYN-2016-144g, PROS-2017-0293g and
   PROS-2024-0270g, GBP 74.63 together. Their cause is not yet attributed.
   *(Added 26 Nov: SYN-2016-099's share is attributed by choice 32 below.)*
+  *(Added 26 Nov, later: all four are attributed. SYN-2016-144g and PROS-2017-0293g were grader artefacts: the grader
+  read a settlement repayment as the final bill, and the page and world agree on both. PROS-2024-0270g is the page
+  resolving a failed final DD on its face, not on the world's ask. That is the open page-side cause filed under
+  SYN-2016-244. See SEAT_RESULT_THE_FOUR_UNATTRIBUTED_FINAL_BILLS_..._2026-11-26.md.)*
 
 #### 8.8h A leg's bills are issued in period order (added 2026-11-26, before the build)
 
@@ -1481,6 +1485,40 @@ with its own due date. It is not a scheme debit.
     their final bill's face. PROS-2023-0338 pays 16.02 and 37.89, and neither leg is refunded.
     INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT has 0 breaches outside its class. The 191 on-level
     debits do not move.
+
+
+#### 8.8j A final bill resolves on what the world asked (added 2026-11-26, with the build)
+
+**What the evidence shows (91c32797b3 book, `final_month_nets`).** The page resolved five final bills on their
+face where the world asked less. (a) Paid bills: SYN-2016-244 and SYN-2016-360g. The world netted the leg's
+ledger credit (26.71, 3.03), which the page walk held in its pool as a level leg's settlement excess. A level
+leg's paid bill draws only credit and set-off, so the page printed the face paid and refunded the credit at the
+close. (b) Part-paid failed bills: OCC-cede70b10116g and OCC-6387bf64272a. The WORLD drew the gone household's
+part payment as a share of the face, so the household paid 57.23 of a 3.61 ask and was refunded the rest.
+
+**What the rules say.** This is choices 11 and 14 again. A bill asks its charges less the credit on the account
+(SLC 31H.12), and a gone household part-pays the balance it is told, which is that ask. No source covers the
+order in which a part payment meets a final bill's charges and the scheme debit beside them. This is a design
+choice, labelled as such. **GAP:** whether a supplier allocates a final part payment to the charges or to the
+level shortfall first.
+
+*Choices.*
+34. *The exit is drawn on the ask.* `LivePaymentTriad` passes `ask_gbp` to `mover_final_bill_outcome`, and
+    `part_share` is the part over the ask. The exit model's outcome draw does not read the amount, so only the
+    part's size moves.
+35. *The page reads what the world asked.* `world_payment_truth.build` carries `credit_taken_gbp` and the part's
+    cash (`part_paid_gbp`) beside `debit_asked_gbp`. A paid final bill that carries `credit_taken_gbp` draws that
+    much waiting credit of any kind and posts it as credit, so the page prints the smaller payment. A failed
+    final bill takes the world's part cash, or on an older book its share of the ask.
+36. *A part meets the charges first, and the rest pays the scheme debit* (the GAP above). Taken whole off the
+    face, it opened PROS-2016-0370g's case at -10.18 when the share was of an ask that carried a debit.
+    Control: `tests/simulation/test_a_final_bill_resolves_on_what_the_world_asked.py`. Both legs are
+    mutation-checked.
+    Measured on the 91c32797b3 book with `credit_taken_gbp` patched in from `final_month_nets`: 6 page
+    customers move, and no others. SYN-2016-244 pays 25.55 (was 52.26), with no refund. SYN-2016-360g pays
+    0.00, settled by credit. Cede's part is 1.75 (was 57.23). With the refund log recomputed from the new
+    walk, every moved leg's page balance is 0. Not changed: SYN-2016-139. It closes at 5.19 on both sides,
+    attributed to repayment, not to ledger credit.
 
 ---
 
