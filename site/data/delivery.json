@@ -1,9 +1,105 @@
 {
- "generated_at": "2026-11-26T12:28:03.737867+00:00",
+ "generated_at": "2026-11-26T15:25:05.419614+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "08d0603bf",
+    "at": "2026-11-26T15:22:50Z",
+    "subject": "record: the four unattributed switch-away final bills are one fixed leg, two grader artefacts and one page cause",
+    "substantive": true
+   },
+   {
+    "sha": "970b12f1a",
+    "at": "2026-11-26T15:12:55Z",
+    "subject": "work item parked: the cb93f7760c book's five causes wait on the first book at or after e4dda28119",
+    "substantive": false
+   },
+   {
+    "sha": "fcd2facdc",
+    "at": "2026-11-26T15:11:52Z",
+    "subject": "The publisher writes the billing ledger on the run's commit, and the invariant gate grades only a ledger it can prove is that run's",
+    "substantive": true
+   },
+   {
+    "sha": "e4dda2811",
+    "at": "2026-11-26T14:35:20Z",
+    "subject": "work item closed: PROS-2023-0338g's level debit at a final bill after leaving level on supply (fixed by 7f90f9563a)",
+    "substantive": false
+   },
+   {
+    "sha": "35a0b03c5",
+    "at": "2026-11-26T14:34:09Z",
+    "subject": "record: the off-level final-bill gate was built twice; origin carries 7f90f9563, so c6e51e8d6 is dropped, not merged",
+    "substantive": false
+   },
+   {
+    "sha": "7f90f9563",
+    "at": "2026-11-26T14:31:41Z",
+    "subject": "A leg that left level on supply is asked its final bill's face: PROS-2023-0338 no longer pays its October bills twice",
+    "substantive": true
+   },
+   {
+    "sha": "1bcaabe18",
+    "at": "2026-11-26T13:59:39Z",
+    "subject": "record: the three-single-account-rows item was spent when drawn",
+    "substantive": false
+   },
+   {
+    "sha": "c9245cd03",
+    "at": "2026-11-26T13:56:25Z",
+    "subject": "finding: PROS-2023-0338g is not N29 -- a leg that left level DD on supply is still asked the level debit at its final bill",
+    "substantive": false
+   },
+   {
+    "sha": "9e0e24b7e",
+    "at": "2026-11-26T13:42:57Z",
+    "subject": "work item closed: an offered leaver is answered on the die the floor re-drew (fixed by a189c2824f)",
+    "substantive": false
+   },
+   {
+    "sha": "daf6029e9",
+    "at": "2026-11-26T13:39:42Z",
+    "subject": "Fix 0: the FTC withdrawal window starts on the published zero-gap quarter, 2021-10-01",
+    "substantive": true
+   },
+   {
+    "sha": "68cc1baa6",
+    "at": "2026-11-26T13:22:32Z",
+    "subject": "work item closed: a credit bill's note meets its own leg's bills (fixed by 91c32797b3)",
+    "substantive": false
+   },
+   {
+    "sha": "1eefc88d5",
+    "at": "2026-11-26T13:20:17Z",
+    "subject": "SYN-2016-099 closed at the world (d688a224a); SYN-2016-244's printed refund split out as its own LATENT finding",
+    "substantive": false
+   },
+   {
+    "sha": "d688a224a",
+    "at": "2026-11-26T13:17:51Z",
+    "subject": "A leg's bills are issued in period order: SYN-2016-099's stub final bill no longer beats its February bill out of the door",
+    "substantive": true
+   },
+   {
+    "sha": "9256e2589",
+    "at": "2026-11-26T13:05:36Z",
+    "subject": "The gas AQ fix is graded on the first books after it: PROS-2021-0100 leaves INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER, the exception re-based 8 -> 6, and new gas accounts tip from 3% under- to 6-11% over-billed",
+    "substantive": true
+   },
+   {
+    "sha": "945306b99",
+    "at": "2026-11-26T12:55:22Z",
+    "subject": "finding: the 001e4f680a refusal's second INV_OVERDUE_WITHIN_BALANCE breach (PROS-2019-0305) is an uncommitted world edit in the publisher's ledger, not the desk",
+    "substantive": false
+   },
+   {
+    "sha": "5493c68e9",
+    "at": "2026-11-26T12:53:22Z",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "fe1486520",
     "at": "2026-11-26T12:24:10Z",
@@ -147,270 +243,97 @@
     "at": "2026-11-26T03:48:02Z",
     "subject": "delivery seat: direction for the next stretch",
     "substantive": false
-   },
-   {
-    "sha": "cb93f7760",
-    "at": "2026-11-26T01:27:55Z",
-    "subject": "knowledge: the world's 2021 end-of-fix rise is a withdrawal window that starts a quarter late plus a price term against our own default",
-    "substantive": true
-   },
-   {
-    "sha": "f0c0e7889",
-    "at": "2026-11-26T01:25:54Z",
-    "subject": "A won switch is asked about the dwelling it was won at: the council-tax lookup follows successor_of, and the 3d3a8ee691 book's 475 breaches are decomposed",
-    "substantive": true
-   },
-   {
-    "sha": "8ccc3b712",
-    "at": "2026-11-26T00:09:24Z",
-    "subject": "chore(provenance): verification paused banner (git=3d3a8ee691) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
-    "substantive": false
-   },
-   {
-    "sha": "3d3a8ee69",
-    "at": "2026-11-25T21:56:04Z",
-    "subject": "merge origin/main: fold 934ba954c under the landing that lost its promotion race",
-    "substantive": false
-   },
-   {
-    "sha": "351da8e3f",
-    "at": "2026-11-25T21:52:31Z",
-    "subject": "[FOR-THE-DIRECTOR] the-rankq-2-45-was-a-wiring: the rankq -2.45 was a wiring fault; fidelity check of the 2021-23 leave rate first, then one re-grade on the fixed code",
-    "substantive": false
-   },
-   {
-    "sha": "a189c2824",
-    "at": "2026-11-25T21:42:28Z",
-    "subject": "the rankq -2.45 is an offer answered on a die the floor did not re-draw: fixed, decomposed, checked against the end-of-fix record, and the 25 Nov ruling's part 3 answered and archived",
-    "substantive": true
-   },
-   {
-    "sha": "934ba954c",
-    "at": "2026-11-25T21:06:12Z",
-    "subject": "sim-runner's yield to a long job is measured, not unconditional: the book admits beside the etarms arms with its growth and a 19:07Z-sized late arrival left",
-    "substantive": true
-   },
-   {
-    "sha": "9ad1fe94d",
-    "at": "2026-11-25T16:50:03Z",
-    "subject": "advisor refusal of the 25 Nov ruling: read on its signed bytes, all three parts carried, and the archive held back by the question gate until part 3 answers",
-    "substantive": false
-   },
-   {
-    "sha": "20b14f3ed",
-    "at": "2026-11-25T16:43:09Z",
-    "subject": "A4 graded: EP1's dated rate on the value arm is VALID, P1 REFUTED (4 margins up), P2 a degenerate zero",
-    "substantive": false
-   },
-   {
-    "sha": "de28fdd59",
-    "at": "2026-11-25T13:54:24Z",
-    "subject": "merge origin/main: fold 70ca8a810 under the landing that lost its promotion race",
-    "substantive": false
-   },
-   {
-    "sha": "11a4387c6",
-    "at": "2026-11-25T13:49:30Z",
-    "subject": "D48: the estimate can read the home's own same season first (default off); the advisor's 36% reading and the 25 Nov ruling's parts 1-2 actioned",
-    "substantive": true
-   },
-   {
-    "sha": "70ca8a810",
-    "at": "2026-11-25T12:50:44Z",
-    "subject": "delivery seat: merge origin/main into the direction landing (upstream does not touch its paths)",
-    "substantive": false
-   },
-   {
-    "sha": "48320dc39",
-    "at": "2026-11-25T12:49:25Z",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "2c72aaaf6",
-    "at": "2026-11-25T12:31:56Z",
-    "subject": "advisor: ruling - K8 for world models yes; forward bands yes; retention result: no rerun, step back and ask what reality says",
-    "substantive": false
-   },
-   {
-    "sha": "3311aa1b2",
-    "at": "2026-11-25T12:28:07Z",
-    "subject": "advisor: usage reading 36% Wed 12:27 - running hot, trim to about 0.5",
-    "substantive": false
-   },
-   {
-    "sha": "6113a7615",
-    "at": "2026-11-25T12:23:12Z",
-    "subject": "Close seat-finding-the-draws-refusals-and-its-draws-of-parked-atoms-reach-only-the-supervisor-journal: done by 26c07cb8b (a rest probe is not a draw)",
-    "substantive": false
    }
   ],
-  "substantive": 12,
-  "mechanical": 28,
+  "substantive": 13,
+  "mechanical": 27,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-11-26T12:23:25.364370+00:00",
+  "oriented_at": "2026-11-26T15:20:25.879194+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "Against the thesis the project stood still on the one test that matters. It moved on the precondition for showing it. There is still NO valid comparison of the per-customer supplier against the flat-rules baseline. The void etarms chain was stopped and recorded (a0c9d51f1, 09:36Z), which corrects last stretch's worst error. But fix 0, moving FTC_WITHDRAWAL_WINDOW's start to 2021-10-01, has still not landed: origin/main still reads date(2022, 1, 1). So the rankq re-grade the director ruled for at 05:47Z cannot launch, and its continuation will release on sight. I ordered it third, and that was my error. It goes first now. The publish wall moved substantially, and all of it was supplier billing work. EBSS is keyed to its classes and both exceptions are retired (5e63e640e). The estimate row now grades the blended quote (204b68cca). The gas repeats were five PROS legs outside every weather cell (9ed3dc978). And a credit bill's note is now its own leg's cash (91c32797b). A book at 91c32797b3 is building now (run_annual_report, started 12:24Z). It is predicted to refuse on only two rows: SYN-2016-099's page, where 470513f81b found the desk's 1.30 is right and the page is wrong but no fix has been built, and PROS-2023-0338g's closing refund, which waits on the N29 set-off. So the site has now shown 18 Nov for eight days, but the remaining wall has two named causes, not six. S1 (contract the first term at its quoted strike) landed as a1eee4d92, behind its switch. The commit split was 2 supplier, 2 world and 7 other. The split mislabels 204b68cca's billing-invariant work as other, and two of the world commits (the weather cells, S1) serve supplier results, so the balance is acceptable. Two director commitments due 2 Dec, the forward bands and the K8-for-world one-leg test, have no queue row at all, and nothing draws them. That is drift, so they enter focus now, last.",
+  "thesis_read": "Against the thesis the project moved one step and then stalled at the step after it. There is still no valid comparison of the per-customer supplier against the flat-rules baseline. Fix 0 landed (daf6029e9, 13:39Z): the FTC withdrawal window now starts on 2021-10-01, the published zero-gap quarter, so last stretch's ordering error is corrected as an instance. But its remainder has STRANDED. The continuation fix-0-capture-and-2021-anchor-refit-on-the-moved-window is held on /var/tmp/se-fix0-capture/departure_factors_fix0.json. That is the file its OWN capture would write. The reader took the item's conditional hand-off clause (\"if the capture will not finish, hand the refit on with DO NOT DRAW BEFORE ...\") as its hold. No capture is running and /var/tmp/se-fix0-capture does not exist. So nothing will ever release the refit, and the rankq re-grade, which waits on the refit's signal file, will never release either. This is the thesis's critical path, and it is deadlocked by a parser. It goes first, and it is done by hand as Lane 0, not by waiting on the queue. The publish wall moved, and all of it was billing work. The 91c32797b3 book refused on three rows, and every row now has a landed cause. d688a224a issues a leg's bills in period order, which clears SYN-2016-099's 8 page breaches. 7f90f9563 asks a leg that left level on supply only its final bill's face, which clears PROS-2023-0338g. fcd2facdc makes the publisher grade the ledger on the run's own commit, which clears PROS-2019-0305 (an uncommitted world edit, not the desk). 08d0603bf (15:22Z) attributed the last four netted final bills, so that focus item is finished and leaves focus. No book has been built on a commit carrying all three, and the site has shown 18 Nov for eight days. The shared checkout has DIVERGED from origin: 3 commits are on HEAD only, and fcd2facdc is on origin only. sim-runner, which resumes about 15:50Z, and the publisher both run from this checkout. So the next book would be built and graded by code that lacks the ledger fix, and it would refuse on PROS-2019-0305 again. The commit split was 0 supplier, 2 world and 17 other. Read honestly, the two world commits (fix 0, and bills issued in period order) serve the baseline comparison and the bill, and fcd2facdc and 7f90f9563 are supplier-billing correctness labelled other, so the balance is acceptable. Seventeen record and park commits for five substantive ones is heavy, though, and the parks are waiting on a book nobody has launched. The director commitments due 2 Dec (the K8 one-leg test and the forward bands) were not drawn in 3 h and stay in focus, last. The retention commitment due 27 Nov was met by a189c2824 (the 25 Nov ruling's part 3, answered and archived).",
   "focus": [
    {
-    "id": "the-ftc-withdrawal-window-starts-at-the-published-zero-gap-quarter",
+    "id": "fix-0-capture-runs-now-and-its-continuation-stops-waiting-on-its-own-output",
     "lane": "W2_customer_generator",
     "side": "world",
-    "unblocks": "The one rankq-against-twin re-grade on fixed code (continuation the-rankq-regrade-launches-on-a189c2824-plus-fix-0). That re-grade is the thesis's only pending per-customer-vs-flat comparison, and the director ruled for it at 05:47Z.",
-    "what": "Build fix 0 from docs/market_research/what_happens_at_the_end_of_a_fix_and_whether_the_world_does_it_2026-11-25.md s.6. In simulation/renewal_engagement.py:108, change FTC_WITHDRAWAL_WINDOW's start from date(2022, 1, 1) to date(2021, 10, 1), the commons' first zero-gap quarter. Cite the page in the docstring and in the commit (K8 covers world models). Add a control keyed to the property (a fix ending in Q4 2021 meets no competing offer), and show a mutation that fires. Then do the regime-4 level-anchor refit named in the commitment on the director's row the-rankq-2-45-was-a-wiring, as one capture-refit-capture, with the predicted move filed in s.7 before the capture. As soon as fix 0 is on origin, the same tick should draw the-rankq-regrade-launches-on-a189c2824-plus-fix-0 and launch it as that continuation says. The price term 'against our own default' stays a named GAP on the page.",
-    "why": "This is one constant and a refit, and it is all that stands between the machine and the director's ruled comparison. Done means fix 0 and the refit are on origin with citation, control, mutation and filed prediction, AND the rankq re-grade is running through background.launch_long_job on a worktree descending from both, with R1a-R1c on origin before launch. The commitment is due 3 Dec.",
-    "written_at": 1795696063.49
+    "unblocks": "The rankq-against-twin re-grade on fixed code (continuation the-rankq-regrade-launches-on-the-refit-fix-0-world). It is the thesis's only pending per-customer-vs-flat comparison, ruled for by the director 26 Nov 05:47, commitment due 3 Dec.",
+    "what": "Do the work of continuation fix-0-capture-and-2021-anchor-refit-on-the-moved-window NOW. Do not wait for it to release: its hold (/var/tmp/se-fix0-capture/departure_factors_fix0.json) is its own output. First check that no capture_departure_factors process is already on the box. Then, on a fresh detached worktree at origin/main (which descends from daf6029e9), launch through background.launch_long_job ONE run of python3 tools/capture_departure_factors.py /var/tmp/se-fix0-capture/departure_factors_fix0.json. When it exists, run tools/fit_year_level_anchor.py on it to refit the 2021 anchor. Land the refit with SE_LANDED_SIGNAL=/var/tmp/se-fix0-anchor-refit-landed.sha, and grade the filed prediction beside its finding (un-offered 2021-Q4 fix-end rolls 29 -> 0). Then fix the class in background/seat_continuation.py: a 'DO NOT DRAW BEFORE <path>' that sits inside a conditional hand-off clause, or that names a path the item itself writes, must not become the row's hold. Add a control over that property, with a mutation that fires.",
+    "why": "The whole chain to the ruled comparison is blocked on a file no process will ever write. Done means the refit is on origin with its signal file written, the rankq re-grade is RUNNING through launch_long_job on a worktree that descends from it (R1a-R1c are already on origin), and the parser fix has landed with its mutation.",
+    "written_at": 1795706687.756
    },
    {
-    "id": "the-page-and-the-n29-set-off-close-the-last-two-refusal-rows",
+    "id": "the-next-book-is-built-and-graded-on-code-carrying-all-three-refusal-fixes",
     "lane": "D_billing_metering",
     "side": "supplier",
-    "what": "The book run_output_91c32797b3_20261126T122405Z is building now (tools.run_annual_report, pid 2432585); never stop it. Before its verdict lands in docs/observability/.publish_gate_state.json, file its predicted refusal set on origin. Expected: EBSS 0/0, INV_OVERDUE_WITHIN_BALANCE 0, gas repeat 0, INV_OVERDUE_WITHIN_PAGE_BALANCE still 8 (SYN-2016-099), closing refund 1 outside class (PROS-2023-0338g). Then build the fix 470513f81b recommends in docs/staging/SEAT_FINDING_SYN_2016_099_THE_PAGE_PRINTS_A_FINAL_BILL_PAYMENT_THE_WORLD_NEVER_ASKED_2026-11-26.md: the page must stop printing a final-bill payment that the world netted from level surplus. Fix it as a class in the page writer, with a mutation that fires. Then build n29-close-set-off-nets-issued-debt (the world nets issued other-leg debt against a closing refund), which is the exception's own retired_by. Never widen the class. Grade the first book carrying both against the filed predictions (continuation grade-the-first-book-carrying-91c32797b3-and-9ed3dc9787).",
-    "why": "A book is owed until it PUBLISHES, and the site has shown 18 Nov for eight days. Four of the six causes are fixed, and the last two are named. Done means a run_output on a commit carrying both fixes is published with its banner. If it is not published, every row in the latest refusal must be fixed with its mutation, or named as one cause with a filed count. No exception may be widened or have its ceiling raised.",
-    "written_at": 1795696063.49
+    "what": "Before sim-runner's next run starts (it resumes about 15:50Z), bring the shared checkout level with origin. Land the three HEAD-only park commits (e6db0425c, 9acfa16aa, a3b2a7a0c) through python3 -m tools.surgical_land, never by merge-tree, and fast-forward main, so that sim-runner and the publisher both run code carrying fcd2facdc, 7f90f9563 and d688a224a. Check the guard first: if sim-runner has already started a book on the stale checkout, never stop it, but record that its verdict is void for PROS-2019-0305. Then make sure one book is building at a commit that descends from fcd2facdc, and draw grade-the-first-book-at-or-after-7f90f9563 as soon as that book exists. Its 02:00 embargo exists only to wait for that book. Grade the book against the predictions filed there.",
+    "why": "A book is owed until it PUBLISHES. All three rows of the 91c32797b3 refusal have landed fixes, but a book graded by the stale checkout refuses again on bytes nobody built it from. Done means a run_output on a commit carrying all three fixes is published with its banner. If it is not, every row of its refusal is a filed cause with a count, and no exception has been widened.",
+    "written_at": 1795706687.756
    },
    {
-    "id": "the-four-unattributed-final-bills-netted-past-the-page",
+    "id": "new-gas-accounts-are-over-billed-6-to-11-percent-after-the-aq-fix",
     "lane": "D_billing_metering",
     "side": "supplier",
-    "what": "Carried; not drawn last stretch. a7778473f attributed 19 of the 23 switch-away final bills where the world nets past the page. Four (GBP 74.63) are named under G8.19 in docs/staging/records/SEAT_FINDING_THE_WORLD_PRESENTS_A_LEVEL_DD_BEFORE_A_PAYER_IS_NAMED_2026-11-25.md. FIRST check whether 470513f81b's SYN-2016-099 cause (the world nets from level surplus a payment the page then prints) explains any of the four. If it does, close them with focus 2's page fix and say so. For the rest, on the 91c32797b3 book (or cb93f7760c if that one is not built), say what the world's credit_taken counts and what the page nets. Name the leg that differs, using SLC 27 and the closing-account rules in docs/domain_artefact_library/. Fix the wrong writer as a class with a mutation, or file one shared cause as a prediction beside a7778473f's.",
-    "why": "A final bill is the last money a customer sees, and the class is closed only when its residue is named. Done means all 23 are attributed on origin: the 4 are either fixed with a mutation or carried as one named, pre-registered cause.",
-    "written_at": 1795696063.49
+    "what": "Draw continuation is-a-gas-premises-registered-aq-its-first-year-of-true-use and do what it says. On one seed of the current world, for each domestic gas premise, divide the meter_read_log true_consumption_kwh summed over the 365 days after acquisition by the registry AQ the company was handed. Report the distribution by vintage and by whether the premise was a switch-in or a new connection. Then decide, citing docs/market_research and UNC/Xoserve AQ rules in docs/domain_artefact_library/, which side is wrong. If the registry AQ the world hands over is biased, it is a world fix. If the company's first-year estimate on a fair AQ overshoots, it is a fix in company/ billing, made as a class with a mutation that fires.",
+    "why": "9256e2589 found that the gas AQ fix tipped new gas accounts from 3% under-billed to 6-11% over-billed. That is billing accuracy, and a supplier over-billing its newest customers is value transferred, not created. Done means the ratio is on origin and the over-billing is either fixed, with the next book showing it, or carried as one named cause with a filed prediction.",
+    "written_at": 1795706687.756
    },
    {
     "id": "the-director-commitments-due-2-dec-are-queued-and-built",
     "lane": "A_strategy_governance",
     "side": "other",
-    "what": "Two answered rows in for_the_director carry commitments due 2026-12-02, and seat_continuation.live() holds neither work id. (1) k8-covers-world-models-one-leg-test: write one test over the world modules under L3+ atoms. It asserts that each module's docstring cites a docs/market_research or site/knowledge page, or names 'Knowledge: GAP'. The test has no baseline list; the census is in docs/staging/WORKER_FINDING_A_WORLD_MODEL_CLOSED_AT_TARGET_WITH_NO_KNOWLEDGE_PAGE_BENEATH_IT_2026-11-24.md. Then fix the docstrings it reds. (2) the-forward-world-has-bands-for-gas: add the ND, interconnector net flow and carbon bands to docs/design/curriculum/forward_years.json exactly as the row's proposal states, each labelled as his curriculum choice. Source them from docs/market_research/how_the_gb_electricity_price_forms_2026-11-24.md s.2a, s.5a, s.8a.",
-    "why": "He said yes to both on 25 Nov, and a commitment that nothing can draw is broken quietly. Done means both are on origin before 2 Dec and this item disappears. It is last because neither blocks a supplier result this week.",
-    "written_at": 1795696063.49
+    "what": "Two answered for_the_director rows carry commitments due 2026-12-02, and no draw has taken either. (1) k8-covers-world-models-one-leg-test: write one test over the world modules under L3+ atoms. It asserts that each module's docstring cites a docs/market_research or site/knowledge page, or names 'Knowledge: GAP'. It has no baseline list; the census is in docs/staging/WORKER_FINDING_A_WORLD_MODEL_CLOSED_AT_TARGET_WITH_NO_KNOWLEDGE_PAGE_BENEATH_IT_2026-11-24.md. Then fix the docstrings it reds. (2) the-forward-world-has-bands-for-gas: add the ND, interconnector net flow and carbon bands to docs/design/curriculum/forward_years.json exactly as the row's proposal states, each labelled as his curriculum choice. Source them from docs/market_research/how_the_gb_electricity_price_forms_2026-11-24.md s.2a, s.5a and s.8a.",
+    "why": "He said yes to both on 25 Nov. A commitment that nothing can draw is broken quietly. Done means both are on origin before 2 Dec and this item disappears. It is last because neither blocks a supplier result this week.",
+    "written_at": 1795706687.756
    }
   ],
   "not_now": [
    {
-    "what": "Launch the rankq re-grade now on a189c2824 without waiting for fix 0.",
-    "why": "Fix 0 is one constant. The director said to watch the crisis years, and regime 2 is where a quarter-late withdrawal moves retention money. A second void grade costs about 11 h; waiting costs one tick."
+    "what": "Wait for the fix-0 capture continuation to release on its own.",
+    "why": "Its hold is its own output, so it never releases. A day spent waiting is a day off the 3 Dec commitment."
    },
    {
-    "what": "Raise INV_OVERDUE_WITHIN_PAGE_BALANCE's or the closing refund's exception so the 91c32797b3 book publishes.",
-    "why": "Both causes are named, with remedies. A widened class is the control keyed to today's answer that the EPG and EBSS fixes just retired. The publish waits a day for the two fixes."
+    "what": "Pull b8-flip-the-blind-holdout-on, grade-s1-r1-to-r5 and s2-the-cap-hold-deletion forward (they ripen 27-28 Nov).",
+    "why": "Each reads a PUBLISHED book carrying S1, and none has published. Flipping switches before then stacks changes no reader could attribute."
    },
    {
-    "what": "Draw b8-flip-the-blind-holdout-on, grade-s1-r1-to-r5 and s2-the-cap-hold-deletion (ripe 27-28 Nov).",
-    "why": "Each reads a PUBLISHED book carrying S1. Flipping more switches before any book publishes stacks changes that no reader could attribute. They come after focus 2."
+    "what": "Spend the stretch on the 26 live repeating alarms or the 10 locked worktrees holding SALVAGE commits.",
+    "why": "They are locked, they are losing nothing, and they are machine hygiene. The value-test trees become disposable only after the rankq re-grade reads."
    },
    {
-    "what": "Spend the restored pace on the 26 live repeating alarms (worktree-undeclared 72 days, product-machinery 55 days).",
-    "why": "They are machine hygiene that has held for weeks with no work lost. Every focus item moves a money result, the publish, or a commitment to the director."
-   },
-   {
-    "what": "Reap or land the 10 worktrees with unlanded SALVAGE commits (b12-*, se-budgetpay-land, value-test-*).",
-    "why": "They are locked and losing nothing. The value-test trees are tied to s.12 evidence, and s.12 is now void. They are disposable only after the rankq re-grade reads, so they wait for it."
-   },
-   {
-    "what": "Put N17 (flat year-on-year metered electricity) into focus.",
-    "why": "Triage owns it as a fix. It affects billing fidelity but blocks neither the publish nor the baseline comparison this stretch."
+    "what": "Raise any exception's ceiling so a book publishes before the new one is built.",
+    "why": "All three causes have landed fixes. A widened class is a control keyed to today's answer."
    }
   ],
   "for_the_director": [
    {
-    "id": "k8-knowledge-before-build-covers-supplier-capabilities",
-    "raised": "2026-11-24",
-    "kind": "canon_intent",
-    "decision_kind": "harness",
-    "what": "K8 (knowledge before build) covers supplier capabilities only; two world models were closed at target with no knowledge page beneath them, the weather-to-price chain and the cold-and-still tail demo",
-    "proposal": "Extend K8 to the world: a world model reproduces a published mechanism, so the page naming that mechanism comes before the build and the module's docstring cites it (or a named Knowledge: GAP). One-leg test over L3+ world modules, no baseline list.",
-    "recommendation": "I recommend adopting the one-sentence extension: the chain loses to a gas-only null in every regime, and a page would have named its missing carbon and interconnector terms before the first arm ran.",
-    "based_on": "bfad11e9fa",
-    "status": "answered",
-    "resolution": "\"Yes.\" Director, chat 25 Nov 12:31 GMT, via docs/staging/advisor/done/DIRECTOR_RULING_K8_FOR_WORLD_MODELS_FORWARD_BANDS_YES_AND_STEP_BACK_ON_THE_RETENTION_RESULT_2026-11-25.md. K8 extended in canon to world models.",
-    "evidence": "docs/staging/WORKER_FINDING_A_WORLD_MODEL_CLOSED_AT_TARGET_WITH_NO_KNOWLEDGE_PAGE_BENEATH_IT_2026-11-24.md (census of 32 world modules under 20 L3+ atoms)",
-    "resolved": "2026-11-25",
-    "answer_code": "yes",
-    "commitment": {
-     "work_id": "k8-covers-world-models-one-leg-test",
-     "done_means": "the one-leg test over L3+ world modules (docstring cites a knowledge page or names Knowledge: GAP) is on origin",
-     "due": "2026-12-02"
-    }
-   },
-   {
-    "id": "the-forward-world-has-bands-for-gas",
-    "raised": "2026-11-24",
-    "kind": "strategy",
-    "decision_kind": "curriculum",
-    "what": "The forward world has bands for gas and the renewable fleet only. The weather-to-price chain's shippable form also needs forward levels for transmission demand, interconnector net flow and carbon, and forward_years.json carries none of the three",
-    "proposal": "Add three bands to docs/design/curriculum/forward_years.json, each labelled on every forward figure. (1) Transmission demand (ND): hold it at its 2023-25 record level, about 25.4 GW, with embedded solar growth taken from the renewable fleet band, so demand and fleet come from one capacity path (electricity page s.8a). (2) Net flow: the FES 2025 ES1 annual interconnector level per case, uniform across cases, starting from its 2025 column (s.5a; the 2030 spread is -23.8 to +8.1 TWh). (3) Carbon: DESNZ's 2025 traded carbon values, Low to High (2030: 25 / 50 / 66 GBP/t, real 2025), drawn jointly with the gas case, because DESNZ's low-carbon case is its high-fossil-price case, plus CPS at 18 GBP/t nominal to March 2028 and held nominal after that (s.2a)",
-    "recommendation": "I recommend yes to all three. Each is the published band, or, for ND, the default the record supports. Until a band exists, every forward chain figure would carry a level nobody chose, which K2 counts as asserting a value. Nothing forward is built until you answer, and the record-years work carries on meanwhile.",
-    "based_on": "069ff7a75e",
-    "status": "answered",
-    "resolution": "\"Yes.\" Director, chat 25 Nov 12:31 GMT, via docs/staging/advisor/done/DIRECTOR_RULING_K8_FOR_WORLD_MODELS_FORWARD_BANDS_YES_AND_STEP_BACK_ON_THE_RETENTION_RESULT_2026-11-25.md. All three bands as proposed, his curriculum choice.",
-    "evidence": "docs/market_research/how_the_gb_electricity_price_forms_2026-11-24.md s.2a, s.5a, s.8a; docs/staging/WORKER_FINDING_THE_WEATHER_TO_PRICE_CHAIN_STEER_IS_HALF_ANSWERED_AND_ITS_REST_HAD_NO_WORK_ITEM_2026-11-24.md (progress, 24 Nov)",
-    "resolved": "2026-11-25",
-    "answer_code": "yes",
-    "commitment": {
-     "work_id": "the-forward-world-has-bands-for-gas",
-     "done_means": "forward_years.json carries the ND, interconnector net flow and carbon bands as proposed, each labelled as his curriculum choice, on origin",
-     "due": "2026-12-02"
-    }
-   },
-   {
-    "id": "s-12g-rank-at-q-run-graded",
-    "raised": "2026-11-24",
-    "kind": "strategy",
-    "decision_kind": "measurement",
-    "what": "s.12g rank-at-q run graded REFUTED: rankq minus twin -2.45 GBP/hh-yr (-4.76 to -0.47), BELOW. But it offered 0.109 of asks against the twin's 0.277, so ranking and volume are still confounded. The pre-registration names no lever after this outcome.",
-    "proposal": "Stop the retention-gate line on book 61118. Record that no gate on A's belief (0.12 cut, 0.30, rank-at-q) beats the twin out of sample. Open the next item as a finding against the corrected belief's money grade, which is the BELOW step-1 consequence, taken as the conservative reading.",
-    "recommendation": "Take the conservative reading (F11: erring against our own thesis): treat the money as not in A's ranking for retention, and run no further retention lever. The alternative is one more ~11 h run with the gate set on offered volume after the value test, so that offers match 0.277. It would separate worse from fewer, but it is a lever this record did not fix in advance. Recommend it only if you want that confound closed before the thesis result stands.",
-    "based_on": "5710e7d1ed",
-    "status": "answered",
-    "resolution": "\"No, think about it, what's going on. What should we really expect to happen? I don't get why offering less doesn't make more money, even if fewer are retained. What is the thesis?\" Director, chat 25 Nov 12:31 GMT, via docs/staging/advisor/done/DIRECTOR_RULING_K8_FOR_WORLD_MODELS_FORWARD_BANDS_YES_AND_STEP_BACK_ON_THE_RETENTION_RESULT_2026-11-25.md. Neither the conservative reading nor the rerun: decompose the -2.45 by renewal and era, knowledge-check retention against the GB record, restate the thesis as creation vs transfer, then propose a run only if still needed.",
-    "evidence": "docs/design/THE_VALUE_TEST_REDESIGN.md \u00a712g 'The rank-at-q run graded'; /var/tmp/vtn-driver/grade_rankq.out (rc=0, pin 0cc0a709cab10509 verified)",
-    "context": "Added by the seat 24 Nov, beside his row and not rewriting it. The records now answer where the money went, so the ~11 h rerun is no longer needed for that: rankq's -GBP 2.45 sits on the offers it dropped (TWIN_ONLY -2.66, -4.65 to -0.93, pre-registered at 1c3072781, read at 60ef7ed87), almost all on households A ranked below its bar. What the rerun would still separate is one number: whether the offers a q=0.277 rank gate adds to A-ranked households earn back about GBP 2/hh-yr. An exploratory read (not pre-registered) leans no: only 49 of the 112 dropped households clear an equal-volume bar. Seat recommendation: the rerun is optional and the conservative reading can stand without it; if it runs, pre-register about -1.4 (-3.5 to +0.5) GBP/hh-yr on rankq's measure before launch.",
-    "context_evidence": "docs/staging/records/SEAT_RESULT_RANKQ_BELOW_IS_FEWER_OFFERS_AND_THE_RECORDS_CANNOT_CLEAR_A_S_RANK_2026-11-24.md",
-    "resolved": "2026-11-25",
-    "answer_code": "no",
-    "commitment": {
-     "work_id": "the-retention-result-decomposed-and-checked-against-reality",
-     "done_means": "a plain-English answer to what's going on and what to expect, with the four-way decomposition by era and the retention knowledge check, on origin and relayed via for_the_director",
-     "due": "2026-11-27"
-    }
-   },
-   {
-    "id": "the-rankq-2-45-was-a-wiring",
-    "raised": "2026-11-25",
-    "kind": "strategy",
-    "decision_kind": "measurement",
-    "what": "The rankq -2.45 was a wiring fault, not the market: offers were answered on a die the noise floor did not re-draw, so they looked about twelve times as effective as the world says. Fixed and tested. On the world's real physics offering less makes more, as you expected. I am treating every s.12g-family grade and the A4 EP1 grade as void.",
-    "proposal": "Next I check the world's 2021-23 end-of-fix leave rate against the record (it rises where real switching collapsed). Then I re-grade rankq against the twin once on the fixed code, same seeds, about 11 h, predictions filed in the finding s.4. That answers the money question only; the thesis needs the utility measure.",
-    "recommendation": "I recommend the fidelity check first, then the one re-grade on the fixed code; silence means I proceed.",
-    "based_on": "9ad1fe94d8",
-    "status": "answered",
-    "resolution": "Director 26 Nov 05:47: \"Yes. But watch out for weird energy crisis years.\" Fidelity check done by his four regimes (K8 end-of-fix page s.7): pre-cap agrees, crisis and after-2024 fail; the re-grade is pre-registered to rest on regimes 1-2 read separately.",
-    "evidence": "docs/staging/SEAT_FINDING_AN_OFFERED_LEAVER_IS_ANSWERED_ON_A_DIE_THE_FLOOR_DID_NOT_REDRAW_2026-11-25.md",
-    "resolved": "2026-11-26",
-    "answer_code": "yes",
-    "commitment": {
-     "work_id": "the-worlds-2021-23-end-of-fix-leave-rate-checked-against-the-switching-collapse",
-     "done_means": "fix 0 (FTC window from 2021-10-01) and the regime-4 level anchor refit land on one capture-refit-capture; then the rankq re-grade on the fixed code is read by regime against the K8 end-of-fix page s.7 pre-registration (R1a-R1c)",
-     "due": "2026-12-03"
-    }
+    "id": "the-world-s-91-day-arrears-stock",
+    "raised": "2026-11-26",
+    "kind": "vision",
+    "decision_kind": "fidelity",
+    "what": "The world's >91-day arrears stock (2019: 10.0%, 1.96x Ofgem's 5.1%) is not concentrated in households that cannot absorb a shock: RR 1.42 [0.70, 2.66] for the thinnest 30% of budgets against the survey's 3.6 [2.8, 4.6]. The financially-vulnerable state V2 drives nothing (RR 0.57 [0.18, 1.16]). Pre-registered 25 Nov; Q2 failed.",
+    "proposal": "One financial state, not two: derive V2 from the household budget (the 30% least able to absorb a shock) and let sustained non-payment run through that budget, so the gradient lands near 3.6 and the stock comes back toward 5.1%. The transient income_stress draw keeps only short, self-curing failures. K8 first: knowledge page, then a one-variable build graded on a fresh 2019 capture.",
+    "recommendation": "I recommend you say yes to the proposal. Erring against the thesis: today's world scatters sustained debt almost at random with respect to resilience, the reverse of the survey on who is behind, and a supplier graded on that world is tested on the wrong households. It is reversible, and the world change is decided blind to company results.",
+    "based_on": "a3b2a7a0c8",
+    "status": "open",
+    "resolution": "",
+    "evidence": "docs/staging/SEAT_FINDING_THE_WORLDS_ARREARS_RUN_OFF_INCOME_STRESS_NOT_THE_FINANCIAL_STATE_AND_SIT_FAR_ABOVE_THE_SURVEY_2026-10-08.md (section 'The run, graded')"
    }
   ],
-  "orientations_recorded": 12,
+  "orientations_recorded": 13,
   "skips_recorded": 5,
-  "refusals_recorded": 3
+  "refusals_recorded": 2
  },
  "what_it_got_wrong": {
   "problems": [
    {
     "key": "triage:the-live-renewal-belief-ranks-leavers-backwards",
-    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 12:23 26 Nov -- unchanged on the live belief. The money test of its ending-term replacement still waits on the rankq re-grade, which waits on fix 0 (focus 1).",
-    "last_at": "2026-11-26T12:23:25.364370+00:00",
+    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 15:20 26 Nov -- unchanged on the live belief. Its money test waits on the rankq re-grade, which is deadlocked behind the fix-0 capture (focus 1).",
+    "last_at": "2026-11-26T15:20:25.879194+00:00",
     "first_at": "2026-11-22T06:24:28.878785+00:00",
     "times_listed": 33,
     "corrected": false,
@@ -422,8 +345,8 @@
    },
    {
     "key": "triage:metered-electricity-barely-moves-year-to-year",
-    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 12:23 26 Nov -- unchanged; triage owns it.",
-    "last_at": "2026-11-26T12:23:25.364370+00:00",
+    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 15:20 26 Nov -- unchanged; triage owns it.",
+    "last_at": "2026-11-26T15:20:25.879194+00:00",
     "first_at": "2026-11-22T06:24:28.878785+00:00",
     "times_listed": 33,
     "corrected": false,
@@ -435,8 +358,8 @@
    },
    {
     "key": "triage:settlement-books-no-standing-charge-the-bill-charges",
-    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one. [Earlier tails are in decisions.jsonl.] 12:23 26 Nov -- unchanged; latent, and no domestic account reaches either writer.",
-    "last_at": "2026-11-26T12:23:25.364370+00:00",
+    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one. [Earlier tails are in decisions.jsonl.] 15:20 26 Nov -- unchanged; latent, and no domestic account reaches either writer.",
+    "last_at": "2026-11-26T15:20:25.879194+00:00",
     "first_at": "2026-11-22T06:24:28.878785+00:00",
     "times_listed": 33,
     "corrected": false,
@@ -448,8 +371,8 @@
    },
    {
     "key": "triage:the-value-arm-loses-to-the-flat-book-on-the-better-belief",
-    "what": "THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. [Earlier tails are in decisions.jsonl.] 12:23 26 Nov -- unestablished, not corrected. The grade it rests on is void (a189c2824), and the re-grade on fixed code has not launched because fix 0 has not landed.",
-    "last_at": "2026-11-26T12:23:25.364370+00:00",
+    "what": "THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. [Earlier tails are in decisions.jsonl.] 15:20 26 Nov -- unestablished, not corrected. The grade it rests on is void (a189c2824), and the re-grade has not launched.",
+    "last_at": "2026-11-26T15:20:25.879194+00:00",
     "first_at": "2026-11-22T06:24:28.878785+00:00",
     "times_listed": 33,
     "corrected": false,
@@ -461,10 +384,10 @@
    },
    {
     "key": "text:the launch register recorded three executor landings as died (exit 2, 01:14z-01:20z), but their work reached origin",
-    "what": "THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z), but their work reached origin. This is a new instance of a-landing-loses-its-race-to-origin. [Earlier tails are in decisions.jsonl.] 12:23 26 Nov -- no new lost race. This stretch's one DIED landing (10:24Z, exit 1 in 7s) was a commit-msg refusal for a missing NEXT: line, relaunched a minute later and landed as a1eee4d92. That is not the race. The stretch ran at normal pace from 09:05Z, so this is weak evidence, not yet a correction.",
-    "last_at": "2026-11-26T12:23:25.364370+00:00",
+    "what": "THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z), but their work reached origin. This is a new instance of a-landing-loses-its-race-to-origin. [Earlier tails are in decisions.jsonl.] 15:20 26 Nov -- no new lost race. This stretch's one DIED landing (14:52Z, exit 1) was a real gate refusal (test_a_control_reads_python_as_code on the new publisher test). It was fixed and relaunched, and it landed as fcd2facdc. Weak evidence, not yet a correction.",
+    "last_at": "2026-11-26T15:20:25.879194+00:00",
     "first_at": "2026-11-24T00:21:20.756428+00:00",
-    "times_listed": 20,
+    "times_listed": 21,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -474,10 +397,10 @@
    },
    {
     "key": "text:the closed-account landing was relaunched at 14:35z unchanged after two refusals on the same three reds, and it was refused a third time",
-    "what": "THE MACHINE'S, NEW. The closed-account landing was relaunched at 14:35Z unchanged after two refusals on the same three reds, and it was refused a third time. [Earlier tails are in decisions.jsonl.] 12:23 26 Nov -- no unchanged relaunch this stretch (the 10:24Z refusal was relaunched with the NEXT: line added). The earlier seven DIED landings are still unread, and its triage line is 30 Nov.",
-    "last_at": "2026-11-26T12:23:25.364370+00:00",
+    "what": "THE MACHINE'S, NEW. The closed-account landing was relaunched at 14:35Z unchanged after two refusals on the same three reds, and it was refused a third time. [Earlier tails are in decisions.jsonl.] 15:20 26 Nov -- no unchanged relaunch this stretch. The earlier seven DIED landings are still unread, and its triage line is 30 Nov.",
+    "last_at": "2026-11-26T15:20:25.879194+00:00",
     "first_at": "2026-11-24T00:21:20.756428+00:00",
-    "times_listed": 20,
+    "times_listed": 21,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -487,10 +410,62 @@
    },
    {
     "key": "text:my 21:24 record put every queued supplier result behind the book's build, and never asked whether a built book would pass the publisher's gates",
-    "what": "THE SEAT'S OWN, NEW. My 21:24 record put every queued supplier result behind the book's BUILD, and never asked whether a built book would pass the publisher's gates. Lesson: a book is owed until it PUBLISHES. [Earlier tails are in decisions.jsonl.] 12:23 26 Nov -- still open, and closer. EBSS (5e63e640e), estimate-follows (204b68cca), gas repeats (9ed3dc978) and the credit-bill cross-leg (91c32797b) have landed, and a book at 91c32797b3 is building now. But SYN-2016-099's page fix and the N29 set-off have not been built, so that book is predicted to refuse on two rows. Nothing has published since 18 Nov. Focus 2 carries it.",
-    "last_at": "2026-11-26T12:23:25.364370+00:00",
+    "what": "THE SEAT'S OWN, NEW. My 21:24 record put every queued supplier result behind the book's BUILD, and never asked whether a built book would pass the publisher's gates. Lesson: a book is owed until it PUBLISHES. [Earlier tails are in decisions.jsonl.] 15:20 26 Nov -- still open, and closer. Every row of the 91c32797b3 refusal now has a landed fix (d688a224a, 7f90f9563, fcd2facdc), but no book has been built on code carrying all three. Focus 2 carries it.",
+    "last_at": "2026-11-26T15:20:25.879194+00:00",
     "first_at": "2026-11-25T00:24:04.163969+00:00",
-    "times_listed": 9,
+    "times_listed": 10,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:my 09:20 record put fix 0, a one-constant change that gates the thesis comparison, third in focus, behind the publish work",
+    "what": "THE SEAT'S OWN, NEW. My 09:20 record put fix 0, a one-constant change that gates the thesis comparison, third in focus, behind the publish work. Lesson: an item that unblocks the baseline comparison goes first when it is small, whatever side it is on. 15:20 26 Nov -- CORRECTED as an instance. Put first at 12:23, it landed as daf6029e9 at 13:39Z.",
+    "last_at": "2026-11-26T15:20:25.879194+00:00",
+    "first_at": "2026-11-26T12:23:25.364370+00:00",
+    "times_listed": 2,
+    "corrected": true,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:seat_continuation.live() held fix-0-capture-and-2021-anchor-refit-on-the-moved-window on /var/tmp/se-fix0-capture/departure_factors_fix0.json",
+    "what": "THE MACHINE'S, NEW. seat_continuation.live() held fix-0-capture-and-2021-anchor-refit-on-the-moved-window on /var/tmp/se-fix0-capture/departure_factors_fix0.json. That is the item's own capture output, taken from a conditional hand-off clause in its prose. The item can never release, and the rankq re-grade behind it is deadlocked. Focus 1 fixes the class.",
+    "last_at": "2026-11-26T15:20:25.879194+00:00",
+    "first_at": "2026-11-26T15:20:25.879194+00:00",
+    "times_listed": 1,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:my 12:23 record said \"as soon as fix 0 is on origin, the same tick should draw\" the re-grade chain",
+    "what": "THE SEAT'S OWN, NEW. My 12:23 record said \"as soon as fix 0 is on origin, the same tick should draw\" the re-grade chain. It never checked that the chain's hand-off files would be written by anything. Lesson: a handed-on chain is read file by file, writer to waiter, before it is trusted.",
+    "last_at": "2026-11-26T15:20:25.879194+00:00",
+    "first_at": "2026-11-26T15:20:25.879194+00:00",
+    "times_listed": 1,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the shared checkout diverged from origin (3 commits ahead, 1 behind on background/process_run_complete.py)",
+    "what": "THE MACHINE'S, NEW. The shared checkout diverged from origin (3 commits ahead, 1 behind on background/process_run_complete.py). All eight declared daemons, including sim-runner and the publisher, run code that lacks fcd2facdc. Focus 2 levels it before the next book.",
+    "last_at": "2026-11-26T15:20:25.879194+00:00",
+    "first_at": "2026-11-26T15:20:25.879194+00:00",
+    "times_listed": 1,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -518,19 +493,6 @@
     "first_at": "2026-11-26T09:20:40.633951+00:00",
     "times_listed": 2,
     "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:my 09:20 record put fix 0, a one-constant change that gates the thesis comparison, third in focus, behind the publish work",
-    "what": "THE SEAT'S OWN, NEW. My 09:20 record put fix 0, a one-constant change that gates the thesis comparison, third in focus, behind the publish work. In 3 h at normal pace it was not drawn, so the rankq re-grade cannot launch and the director's ruled next step has slipped another stretch. Lesson: an item that unblocks the baseline comparison goes first when it is small, whatever side it is on.",
-    "last_at": "2026-11-26T12:23:25.364370+00:00",
-    "first_at": "2026-11-26T12:23:25.364370+00:00",
-    "times_listed": 1,
-    "corrected": false,
     "fate": null,
     "status": null,
     "retired": false,
@@ -672,7 +634,7 @@
     "what": "THE MACHINE'S, NEW. The book that every queued supplier grade reads has not been built for 30 hours (since 20 Nov 15:39). [Earlier tails are in decisions.jsonl.] 21:24 24 Nov -- about 102 hours. rankq has ended, but sim-runner defers the book every cycle because waiting long jobs hold 18 GB of declared memory (the new row). Focus 1. 00:24 25 Nov -- CORRECTED. run_output_f2c6979d01_20261124T215935Z.json was built at 23:46Z (6429 s, peak 6.0 GB) and descends from 31bf40e03 and f80fe3951. It was then REFUSED for publishing on its bills (the new row), so the site still shows the 18 Nov book.",
     "last_at": "2026-11-25T00:24:04.163969+00:00",
     "first_at": "2026-11-22T06:24:28.878785+00:00",
-    "times_listed": 25,
+    "times_listed": 24,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -971,7 +933,7 @@
     "what": "THE WORLD'S, NEW. A won switch is never put on supply: on the 20 Nov run 16 fresh acquisitions were won and 0 billed, because ACQUIRED_CUSTOMERS is not on the settlement roster (5ce811272). Two notes had said the world \"keeps the household on supply\". 15:24 22 Nov -- b9ca3a24c closed the electricity half on f80fe3951. 06:20 23 Nov -- reg 6C is on origin (cc9f08ae3), and the gas-only build is gating. 09:21 23 Nov -- that gate was refused by origin's own Consent red (773e2d9ba). The consent-controls-then-gas-only-win chain is queued to carry it. Not corrected until it lands.",
     "last_at": "2026-11-23T09:21:04.224063+00:00",
     "first_at": "2026-11-22T06:24:28.878785+00:00",
-    "times_listed": 9,
+    "times_listed": 8,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -984,7 +946,7 @@
     "what": "THE MACHINE'S, NEW. Last stretch's first focus item was drawn at about 22:05Z, and the lane recorded it as premise_not_yet_ripe on a date in the continuation's prose, though its premise (control_55555_66666.json) had existed since 15:33Z. A direction item whose prose quotes another item's date can be walked past as unripe. 06:24 22 Nov -- this instance is closed (b1c7d76b1, 8aa5aa350). 09:21 23 Nov -- CORRECTED: no new instance in 36 hours, and both premise_not_yet_ripe rows this stretch were right (each names 07:00 on 24 Nov).",
     "last_at": "2026-11-23T09:21:04.224063+00:00",
     "first_at": "2026-11-22T06:24:28.878785+00:00",
-    "times_listed": 9,
+    "times_listed": 8,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -997,7 +959,7 @@
     "what": "THE MACHINE'S, NEW. The GSOP turn (01:15Z to 02:45Z) spent its 5400 s on a 2016-2017 probe. Its surgical_land, started at the end, was SIGKILLed with the unit's cgroup at teardown. The executor warned DOOMED-AT-TEARDOWN and killed the process anyway: a bounded turn can start a landing it cannot outlive. 06:24 22 Nov -- the lost work was redone and landed as 20a58061f. 15:24 22 Nov -- pid 945604 (reg 6C) was a second instance. 21:21 22 Nov -- WORSE, a third instance and it hit the fix itself (background/bounded_landing.py lost). 03:22 23 Nov -- CORRECTED: the hand-off was rebuilt and landed as 8bd0092e8 (23:23Z). Since then every executor landing has run in its own longjob-land-se-seat-executor-* unit, and none was killed at teardown.",
     "last_at": "2026-11-23T03:22:44.727556+00:00",
     "first_at": "2026-11-22T06:24:28.878785+00:00",
-    "times_listed": 7,
+    "times_listed": 6,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1101,7 +1063,7 @@
     "what": "THE MACHINE'S, NEW. An item cited 6f87ccb38 as a landed commit to descend from, but it sat on a7bb4b28cd, a SALVAGE(auto) commit that never reached origin (found by 12fb8d29f). So a grading-record control the book was meant to carry was never on origin. 09:22 22 Nov -- pid 896638 ended without a landing. 15:24 22 Nov -- CORRECTED: 0efa633c1 landed the key-register control on origin at 12:00Z, re-gated against that day's run_phase2b.",
     "last_at": "2026-11-22T15:23:56.228720+00:00",
     "first_at": "2026-11-22T06:24:28.878785+00:00",
-    "times_listed": 4,
+    "times_listed": 3,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1127,7 +1089,7 @@
     "what": "THE MACHINE'S, NEW. Three owed wall-crossing rows went overdue at midnight 21/22 Nov, and the date gate then refused every lane's commit. One effect is that this stretch landed nothing substantive. The other is that the ending-term pre-registration's first landing was refused. A date that is due on one row stopped all of the tree's work. The re-dating to 5 Dec rides on pid 3322643, so this is not corrected until that lands. 06:24 22 Nov -- CORRECTED: c09847b7c re-dated the three rows to 5 Dec, each with its reason (register lines 4177-4180), and four substantive commits landed after it.",
     "last_at": "2026-11-22T06:24:28.878785+00:00",
     "first_at": "2026-11-22T06:24:28.878785+00:00",
-    "times_listed": 2,
+    "times_listed": 1,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1136,18 +1098,73 @@
     "reason": null
    }
   ],
-  "distinct": 56,
+  "distinct": 59,
   "triaged": 7,
   "triaged_by_fate": {
    "fix": 5,
    "fold": 0,
    "accept": 2
   },
-  "untriaged": 49,
-  "distinct_open": 16,
-  "rows": 413,
+  "untriaged": 52,
+  "distinct_open": 18,
+  "rows": 414,
   "triage_register": "read",
   "entries": [
+   {
+    "at": "2026-11-26T15:20:25.879194+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-11-26T15:20:25.879194+00:00",
+    "corrected": false,
+    "problem": "triage:metered-electricity-barely-moves-year-to-year"
+   },
+   {
+    "at": "2026-11-26T15:20:25.879194+00:00",
+    "corrected": false,
+    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
+   },
+   {
+    "at": "2026-11-26T15:20:25.879194+00:00",
+    "corrected": false,
+    "problem": "triage:the-value-arm-loses-to-the-flat-book-on-the-better-belief"
+   },
+   {
+    "at": "2026-11-26T15:20:25.879194+00:00",
+    "corrected": false,
+    "problem": "text:the launch register recorded three executor landings as died (exit 2, 01:14z-01:20z), but their work reached origin"
+   },
+   {
+    "at": "2026-11-26T15:20:25.879194+00:00",
+    "corrected": false,
+    "problem": "text:the closed-account landing was relaunched at 14:35z unchanged after two refusals on the same three reds, and it was refused a third time"
+   },
+   {
+    "at": "2026-11-26T15:20:25.879194+00:00",
+    "corrected": false,
+    "problem": "text:my 21:24 record put every queued supplier result behind the book's build, and never asked whether a built book would pass the publisher's gates"
+   },
+   {
+    "at": "2026-11-26T15:20:25.879194+00:00",
+    "corrected": true,
+    "problem": "text:my 09:20 record put fix 0, a one-constant change that gates the thesis comparison, third in focus, behind the publish work"
+   },
+   {
+    "at": "2026-11-26T15:20:25.879194+00:00",
+    "corrected": false,
+    "problem": "text:seat_continuation.live() held fix-0-capture-and-2021-anchor-refit-on-the-moved-window on /var/tmp/se-fix0-capture/departure_factors_fix0.json"
+   },
+   {
+    "at": "2026-11-26T15:20:25.879194+00:00",
+    "corrected": false,
+    "problem": "text:my 12:23 record said \"as soon as fix 0 is on origin, the same tick should draw\" the re-grade chain"
+   },
+   {
+    "at": "2026-11-26T15:20:25.879194+00:00",
+    "corrected": false,
+    "problem": "text:the shared checkout diverged from origin (3 commits ahead, 1 behind on background/process_run_complete.py)"
+   },
    {
     "at": "2026-11-26T12:23:25.364370+00:00",
     "corrected": false,
@@ -3162,56 +3179,6 @@
     "at": "2026-11-22T06:24:28.878785+00:00",
     "corrected": false,
     "problem": "text:an item cited 6f87ccb38 as a landed commit to descend from, but it sat on a7bb4b28cd, a salvage(auto) commit that never reached origin (found by 12fb8d29f)"
-   },
-   {
-    "at": "2026-11-22T06:24:28.878785+00:00",
-    "corrected": false,
-    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
-   },
-   {
-    "at": "2026-11-22T06:24:28.878785+00:00",
-    "corrected": false,
-    "problem": "triage:metered-electricity-barely-moves-year-to-year"
-   },
-   {
-    "at": "2026-11-22T06:24:28.878785+00:00",
-    "corrected": false,
-    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
-   },
-   {
-    "at": "2026-11-22T06:24:28.878785+00:00",
-    "corrected": false,
-    "problem": "triage:the-value-arm-loses-to-the-flat-book-on-the-better-belief"
-   },
-   {
-    "at": "2026-11-22T06:24:28.878785+00:00",
-    "corrected": false,
-    "problem": "text:the book that every queued supplier grade reads has not been built for 30 hours (since 20 nov 15:39)"
-   },
-   {
-    "at": "2026-11-22T06:24:28.878785+00:00",
-    "corrected": false,
-    "problem": "text:a won switch is never put on supply: on the 20 nov run 16 fresh acquisitions were won and 0 billed, because acquired_customers is not on the settlement roster (5ce811272)"
-   },
-   {
-    "at": "2026-11-22T06:24:28.878785+00:00",
-    "corrected": false,
-    "problem": "text:last stretch's first focus item was drawn at about 22:05z, and the lane recorded it as premise_not_yet_ripe on a date in the continuation's prose, though its premise (control_55555_66666.json) had existed since 15:33z"
-   },
-   {
-    "at": "2026-11-22T06:24:28.878785+00:00",
-    "corrected": true,
-    "problem": "text:three owed wall-crossing rows went overdue at midnight 21/22 nov, and the date gate then refused every lane's commit"
-   },
-   {
-    "at": "2026-11-22T06:24:28.878785+00:00",
-    "corrected": false,
-    "problem": "text:the gsop turn (01:15z to 02:45z) spent its 5400 s on a 2016-2017 probe"
-   },
-   {
-    "at": "2026-11-22T06:24:28.878785+00:00",
-    "corrected": false,
-    "problem": "text:an item cited 6f87ccb38 as a landed commit to descend from, but it sat on a7bb4b28cd, a salvage(auto) commit that never reached origin (found by 12fb8d29f)"
    }
   ],
   "refused_own_records": [
@@ -3248,19 +3215,49 @@
     "problems": []
    }
   ],
-  "outstanding": 368,
+  "outstanding": 369,
   "corrected": 45,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "the-ftc-withdrawal-window-starts-at-the-published-zero-gap-quarter",
-   "the-page-and-the-n29-set-off-close-the-last-two-refusal-rows",
-   "the-four-unattributed-final-bills-netted-past-the-page",
+   "fix-0-capture-runs-now-and-its-continuation-stops-waiting-on-its-own-output",
+   "the-next-book-is-built-and-graded-on-code-carrying-all-three-refusal-fixes",
+   "new-gas-accounts-are-over-billed-6-to-11-percent-after-the-aq-fix",
    "the-director-commitments-due-2-dec-are-queued-and-built"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "the-page-and-the-n29-set-off-close-the-last-two-refusal-rows",
+       "the-four-unattributed-final-bills-netted-past-the-page"
+      ],
+      "focus": [
+       "the-ftc-withdrawal-window-starts-at-the-published-zero-gap-quarter",
+       "the-page-and-the-n29-set-off-close-the-last-two-refusal-rows",
+       "the-four-unattributed-final-bills-netted-past-the-page",
+       "the-director-commitments-due-2-dec-are-queued-and-built"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "the-page-and-the-n29-set-off-close-the-last-two-refusal-rows",
+     "the-four-unattributed-final-bills-netted-past-the-page"
+    ],
+    "focus": [
+     "the-ftc-withdrawal-window-starts-at-the-published-zero-gap-quarter",
+     "the-page-and-the-n29-set-off-close-the-last-two-refusal-rows",
+     "the-four-unattributed-final-bills-netted-past-the-page",
+     "the-director-commitments-due-2-dec-are-queued-and-built"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-26T12:23:25.364370+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-11-26T12:23:25.364370+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -3366,36 +3363,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 15.0h since 2026-11-25T12:23:07.430274+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 15.0h since 2026-11-25T12:23:07.430274+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "the-supplier-estimates-an-unread-month-from-the-accounts-own-history-first",
-       "book-after-a4-exits-admit-and-grade"
-      ],
-      "focus": [
-       "the-supplier-estimates-an-unread-month-from-the-accounts-own-history-first",
-       "the-four-unattributed-final-bills-netted-past-the-page",
-       "book-after-a4-exits-admit-and-grade",
-       "the-direction-record-reaches-origin"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "the-supplier-estimates-an-unread-month-from-the-accounts-own-history-first",
-     "book-after-a4-exits-admit-and-grade"
-    ],
-    "focus": [
-     "the-supplier-estimates-an-unread-month-from-the-accounts-own-history-first",
-     "the-four-unattributed-final-bills-netted-past-the-page",
-     "book-after-a4-exits-admit-and-grade",
-     "the-direction-record-reaches-origin"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 12.0h since 2026-11-25T12:23:07.430274+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 12.0h since 2026-11-25T12:23:07.430274+00:00"
    }
   ],
   "steered_recently": true,
@@ -3403,9 +3370,9 @@
  },
  "the_queues_link_to_the_map": {
   "available": true,
-  "population": 197,
-  "chained": 195,
-  "minted": 73,
+  "population": 201,
+  "chained": 199,
+  "minted": 77,
   "unminted": 122,
   "unminted_by_kind": {
    "alarm": 1,
@@ -3506,7 +3473,7 @@
   "by_epoch": {
    "2": 15,
    "3": 24,
-   "4": 34
+   "4": 38
   },
   "unchained": [
    {
@@ -3544,7 +3511,10 @@
     "SEAT_FINDING_C34_DEBT_ARMS_ARE_TIED_BY_CONSTRUCTION_BECAUSE_NO_DEBT_ACTION_REACHES_A_WORLD_THAT_ANSWERS_2026-10-10.md",
     "SEAT_FINDING_D48_BILLED_EQUALS_METERED_ON_EVERY_READ_AND_THE_GAS_SHAPE_IS_MORE_SEASONAL_THAN_THE_WORLDS_2026-11-18.md",
     "SEAT_FINDING_HALF_THE_REDRAWN_BOOK_LEFT_THE_WEATHER_STORE_AND_SETTLED_ON_THE_NATIONAL_SHAPE_IN_SILENCE_2026-10-11.md",
+    "SEAT_FINDING_PROS_2023_0338G_IS_NOT_N29_A_LEG_THAT_LEFT_LEVEL_ON_SUPPLY_IS_ASKED_THE_LEVEL_DEBIT_AT_ITS_FINAL_BILL_2026-11-26.md",
     "SEAT_FINDING_SYN_2016_099_THE_PAGE_PRINTS_A_FINAL_BILL_PAYMENT_THE_WORLD_NEVER_ASKED_2026-11-26.md",
+    "SEAT_FINDING_SYN_2016_244_THE_PAGE_PRINTS_A_FINAL_BILL_REFUND_THE_WORLD_NEVER_MADE_2026-11-26.md",
+    "SEAT_FINDING_THE_001E4F680A_REFUSAL_PROS_2019_0305_IS_AN_UNCOMMITTED_WORLD_EDIT_IN_THE_PUBLISHERS_LEDGER_2026-11-26.md",
     "SEAT_FINDING_THE_3D3A8EE691_BOOKS_475_INVARIANT_BREACHES_DECOMPOSED_AND_THE_FIRST_CAUSE_FIXED_2026-11-26.md",
     "SEAT_FINDING_THE_CASH_FORECAST_PROVISION_DOES_NOT_YET_BEAT_THE_AGE_BANDS_IT_LAGS_IN_CALM_YEARS_AND_RANKS_WORSE_2026-10-13.md",
     "SEAT_FINDING_THE_CB93F7760C_BOOK_GRADED_CAUSE_ONE_CLEARS_AND_THE_WEDGE_IS_THE_FIVE_CAUSES_LEFT_2026-11-26.md",
@@ -3558,6 +3528,7 @@
     "SEAT_FINDING_THE_ESTIMATE_AGAINST_THE_METER_ON_F2C6979D01_IS_7_OF_4250_AND_ONE_IS_A_GAS_AQ_EIGHT_TIMES_ITS_METER_2026-11-25.md",
     "SEAT_FINDING_THE_FORWARD_GAS_DRAW_IS_INDEPENDENT_DAILY_NOISE_WITH_NO_SEASON_OR_PERSISTENCE_2026-11-24.md",
     "SEAT_FINDING_THE_FOUR_PRACTITIONER_POINTS_CONTRADICT_FOUR_LEVERS_2026-10-08.md",
+    "SEAT_FINDING_THE_GAS_AQ_FIX_CLEARS_ITS_ROW_AND_TIPS_NEW_GAS_ACCOUNTS_TO_OVER_BILLING_2026-11-26.md",
     "SEAT_FINDING_THE_KETTLE_DOES_NOT_SCALE_WITH_HEADCOUNT_IN_HES_2026-10-09.md",
     "SEAT_FINDING_THE_MOVER_OFFER_ON_FRESH_SEEDS_FIVE_PREDICTIONS_HOLD_AND_STAYER_PRICES_MOVE_WHERE_A_FOLLOWER_IS_SUPPLIED_2026-10-12.md",
     "SEAT_FINDING_THE_NETWORK_COST_READS_ANY_UNKNOWN_SEGMENT_LABEL_AS_SME_2026-11-23.md",
@@ -3681,12 +3652,12 @@
     },
     {
      "date": "2026-11-26",
-     "commit": "fe1486520",
-     "population": 197,
-     "chained": 195,
-     "minted": 73,
+     "commit": "08d0603bf",
+     "population": 201,
+     "chained": 199,
+     "minted": 77,
      "unminted": 122,
-     "unread": 72
+     "unread": 76
     }
    ]
   },
