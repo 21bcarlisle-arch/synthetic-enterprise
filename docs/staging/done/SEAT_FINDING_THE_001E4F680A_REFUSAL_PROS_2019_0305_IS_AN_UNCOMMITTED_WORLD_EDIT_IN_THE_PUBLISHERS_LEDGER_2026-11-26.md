@@ -186,3 +186,23 @@ What this does NOT cover, and is not yet measured:
   is 20x the ~1 minute the in-process step took on the 26 Nov books.
 
 The uncommitted issue-order edit on the shared tree was not touched.
+
+## Graded on the 76f894811d book (delivery seat, 26 Nov 2026 21:5xZ)
+
+Book: `run_output_76f894811d_20261126T155009Z.json`, 1,382 accounts, 54,463 bills. It descends from
+7f90f9563a, d688a224a, 91c32797b3, 9ed3dc9787 and e4dda28119. Its ledger was written in a clean
+checkout of 76f894811d (fcd2facdcd's route; sim-runner-log 21:02Z). The publisher's own gate,
+`docs/reports/DOMAIN_INVARIANTS.md` at 21:11Z, reads **0 unexcepted breaches across 0 invariants, 6
+excepted: the publish stands.** I re-ran the same runner (`load_book` with the printed customer files,
+then `run`, then `gate`) on a snapshot of that ledger and the completed customer files. It
+reproduced the table row for row. Probe outputs: `/var/tmp/grade76/` (not committed).
+
+| prediction (filed 14:50Z, for a book at or after e4dda28119) | measured | grade |
+|---|---|---|
+| INV_OVERDUE_WITHIN_BALANCE 0 | 0 of 946. PROS-2019-0305 opens no breaching journey | **held** |
+| INV_OVERDUE_WITHIN_PAGE_BALANCE 0 | 0 of 5,630 printed collections steps | **held** |
+| Closing refunds all inside their class | 6 of 159, all `other_leg_debt_collected_after_the_refund`, 0 outside | **held** |
+
+The guard this item waited on is built (fcd2facdcd), and this book is the first graded through it. The
+ledger was written in a clean checkout of 76f894811d, although the shared tree differed in four world
+writers.

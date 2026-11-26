@@ -117,3 +117,25 @@ other than `ACC-SYN-2016-099`.
 - INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR 7: the cause is named and fixed on origin by
   9ed3dc9787 (five PROS premises' weather cells were absent from the committed store).
 - The final-bill leaver's debit date, which has two homes (above).
+
+## Graded on the 76f894811d book (delivery seat, 26 Nov 2026 21:5xZ)
+
+Book: `run_output_76f894811d_20261126T155009Z.json`, 1,382 accounts, 54,463 bills. It descends from
+7f90f9563a, d688a224a, 91c32797b3, 9ed3dc9787 and e4dda28119. Its ledger was written in a clean
+checkout of 76f894811d (fcd2facdcd's route; sim-runner-log 21:02Z). The publisher's own gate,
+`docs/reports/DOMAIN_INVARIANTS.md` at 21:11Z, reads **0 unexcepted breaches across 0 invariants, 6
+excepted: the publish stands.** I re-ran the same runner (`load_book` with the printed customer files,
+then `run`, then `gate`) on a snapshot of that ledger and the completed customer files. It
+reproduced the table row for row. Probe outputs: `/var/tmp/grade76/` (not committed).
+
+| prediction (filed here) | measured | grade |
+|---|---|---|
+| INV_OVERDUE_WITHIN_BALANCE 0 (from 1) | 0 of 946 journey openings | **held** |
+| INV_OVERDUE_WITHIN_PAGE_BALANCE still 8 on SYN-2016-099 *without its own fix* | 0 of 5,630. This book also carries d688a224a, so the condition is gone | not graded (conditional) |
+| At most 2 fewer journeys opened | 946 openings; no leg-matched baseline on the same world | not graded |
+| Superseded reading: INV27115's settlement is not posted, or is posted off `ACC-SYN-2016-099` | The final bill (now INV27124, 0.62 face plus 0.68 debit) is asked 1.30 and collected 1.30 by direct debit on 20 Mar 2017, posted to ACC-SYN-2016-099 | **missed**. The author withdrew this reading before grading; the miss was reading the page as the truth (reader) |
+| Refund row 0 of 8 once n29-close-set-off-nets-issued-debt lands | not built; 6 rows, all `other_leg_debt_collected_after_the_refund` | not graded |
+| Gas repeats fixed by 9ed3dc9787 | 1 leg breach (SYN-2016-206g, warm months), book share 0.37% against 1% | **held** |
+
+Still open, and not BLOCKING: the final-bill leaver's debit has two homes (evaluator `_left_level_owed`
+against the desk's `left + 28`). It only makes the desk lenient and no row breaches on this book.
