@@ -7,7 +7,7 @@ class: standard
 severity: LATENT
 source: finding
 evidence:
-- docs/staging/SEAT_FINDING_THE_KETTLE_DOES_NOT_SCALE_WITH_HEADCOUNT_IN_HES_2026-10-09.md
+- docs/staging/done/SEAT_FINDING_THE_KETTLE_DOES_NOT_SCALE_WITH_HEADCOUNT_IN_HES_2026-10-09.md
 knowledge_gap: null
 insight: null
 decider: machine
@@ -15,12 +15,24 @@ director_rank: null
 atom: W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape
 blocked_by: []
 occurrences: 1
-state: open
+state: parked
 opened_at: '2026-10-09T00:00:00+00:00'
 chosen_at: null
 closed_at: null
 chosen_by: null
 done_evidence: null
-parked: null
+parked:
+  reason: 'headline shipped (kettle flat, boil 0.114); handed-on (1) cooking class
+    off headcount and microwave level, and (2) headcount given bedrooms, have landed
+    (15570b42d4, fbf3e3ba25, 1852c72110, people_count_for_area bedrooms=); (3) the
+    per-occupant slope is filed as a named gap in SEAT_FINDING_HEADCOUNT_GIVEN_DWELLING_SIZE.
+    What remains is the 2026-10-15 addendum (PtN2 one-person kettle step, per-home
+    cooking spread s=0.48), and both redraw the world digest: landing one while the
+    publish wedge is open recreates the world-bytes-newer-than-the-run skew behind
+    the 91c32797b3 refusal (001e4f680a). Also unresolved before any build: HES Table
+    23 puts one-person kettle years at 141/153 while PtN2 (same HES sample) puts 1-person
+    owners at 116, so the step''s size is not yet established -- reconcile the two
+    cuts first'
+  revisit: '2026-12-03'
 obsolete: null
 finding_lane: W1_market_weather
