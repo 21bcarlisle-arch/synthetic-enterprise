@@ -70,12 +70,21 @@ not this landing.
 
 On the next book built on a commit carrying this fix, over the same world:
 - **INV_OVERDUE_WITHIN_BALANCE: 0** (from 1). SYN-2016-107 opens no journey on 16 Oct 2018.
-- INV_OVERDUE_WITHIN_PAGE_BALANCE: still 8, all on SYN-2016-099. That is a different cause (below),
-  which this fix does not touch.
+- INV_OVERDUE_WITHIN_PAGE_BALANCE: still 8, all on SYN-2016-099. That is a different cause (below,
+  owned by 470513f81b), which this fix does not touch.
 - Journeys: at most 2 fewer opened on the days above (SYN-2016-542 and PROS-2018-0359 open later). I
   cannot yet say what the later openings print.
 
 ## SYN-2016-099: named, not fixed
+
+**Corrected, 26 Nov, after landing: my reading below is wrong, and 470513f81b has it right.** The world
+presented nothing for INV27115. It netted the 0.62 final bill out of the leg's 15.89 level surplus,
+because the February bill was issued three days after the final bill. The page then prints, from the
+triad's "success", a 0.62 payment that never moved. So the desk's 1.30 is right, and the page's 0.68
+is what is wrong. My "the cash never reached the company ledger" took the page's payment as the
+truth. I am keeping that reading below beside the correction. That finding owns the fix.
+
+**Superseded reading:**
 
 The desk printed GBP 1.30 overdue from 31 Mar 2017, and wrote off GBP 1.30 on 5 Mar 2018 (the page
 says "GBP 1.30 on the account" and prints -0.68). The household's pages sum to GBP 0.68. The
@@ -105,6 +114,6 @@ other than `ACC-SYN-2016-099`.
   the other leg's issued, unpaid bill on the refund day. That is a world-writer fix, and it retires
   all 8 rows, not this one. **Prediction once it lands:** INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT
   0 of 8 on this world.
-- INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR 7 (4df2b4f892: the run's own settlement rows for
-  PROS-2017-0192g are the next step).
+- INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR 7: the cause is named and fixed on origin by
+  9ed3dc9787 (five PROS premises' weather cells were absent from the committed store).
 - The final-bill leaver's debit date, which has two homes (above).
