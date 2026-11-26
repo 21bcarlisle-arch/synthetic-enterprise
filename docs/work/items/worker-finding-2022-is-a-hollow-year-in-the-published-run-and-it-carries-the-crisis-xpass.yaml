@@ -26,9 +26,12 @@ closed_at: null
 chosen_by: null
 done_evidence: null
 parked:
-  reason: the GBP ~326 residue's test needs a run keeping arrears lines by (customer,
-    year); no published artefact carries them and book_arrears_lines folds the year
-    away
-  revisit: '2026-12-10'
+  reason: title question answered (both reds cleared, 26 Nov re-read); the open GBP
+    326 one-signed 2018-2023 residue needs its per-customer split, and the run's per-customer
+    arrears lines (simulation/run_phase4c_on_phase2b.py:819 arrears_lines_by_customer)
+    are computed but absent from run_output_76f894811d_20261126T155009Z.json, so the
+    split waits on a run that publishes them or a re-run, not beside the in-flight
+    publish gate (PID 3663228)
+  revisit: '2026-12-03'
 obsolete: null
 finding_lane: H_harness
