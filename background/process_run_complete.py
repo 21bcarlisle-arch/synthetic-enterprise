@@ -1668,6 +1668,9 @@ def run_fast_tests(git_hash: str):
         if LAST_TESTED_HASH_FILE.read_text().strip() == git_hash:
             log("Tests skipped — already passed for git={}".format(git_hash))
             return True, False
+    refused_at = _scoped_red_already_recorded_at_head()
+    if refused_at is not None:
+        return _gate_deferred_at_refused_sha(refused_at, git_hash)
 
     full_env = dict(os.environ)
     full_env["SIM_FAST_MODE"] = "1"
@@ -1696,6 +1699,56 @@ def run_fast_tests(git_hash: str):
             return _run_gate_admitted(git_hash, full_env)
     except subprocess.TimeoutExpired:
         return _gate_timed_out()
+
+
+def _scoped_red_already_recorded_at_head(now=None):
+    """HEAD's sha if the publisher's own scoped gate already graded exactly HEAD red, else None.
+
+    WHY (finding 2026-10-13, measured again 2026-11-26: b1399c108 graded red at 18:24Z and again
+    at 19:12Z on the same test). The scoped gate's subject is a clean checkout of HEAD plus the
+    projections HEAD entails, so a second grade of the same sha reads the same bytes and gives
+    the same red -- and for its ~40 minutes it holds the run lock `origin_reconcile` stands down
+    for (`GATE_RUNNING`), which is the advance that could change the verdict.
+
+    ONLY THE SCOPED GATE'S OWN RED COUNTS. A `hook_chain` red was measured on HEAD plus this
+    publish's writes, not on HEAD (see `red_at_head_verdict`), so it never defers. A record past
+    `GATE_BLOCKING_TESTS_MAX_AGE_SECONDS` reads as None via `last_graded_sha`, which bounds a red
+    that came from the live box rather than the tree (those can clear at an unchanged sha) to
+    one deferral window. Anything unreadable -- record or HEAD -- answers None, so the gate runs:
+    the fallback is the behaviour this replaces, never a skipped judgement."""
+    try:
+        graded = last_graded_sha(now=now)
+        if graded is None:
+            return None
+        rec = json.loads(GATE_BLOCKING_TESTS_FILE.read_text())
+        if rec.get("census") == CENSUS_HOOK_CHAIN or not rec.get("node_ids"):
+            return None
+        head = _head_sha()
+    except Exception:  # noqa: BLE001 -- an unreadable answer means grade, as before
+        return None
+    if not _sha_is_usable(head):
+        return None
+    g, h = graded.lower(), head.lower()
+    return head if (g.startswith(h) or h.startswith(g)) else None
+
+
+def _gate_deferred_at_refused_sha(head_sha, git_hash):
+    """The verdict when HEAD has not moved since its scoped red: UNJUDGED, with that as its cause.
+
+    Kept on the wedge streak like `_gate_deferred` (an unavailable check is a failed check), so
+    a HEAD that never moves still pages; the cause says no test was re-run, so nobody reads the
+    cycle as a fresh red."""
+    evidence = ("the publisher's scoped gate was NOT re-run: HEAD {} is the sha its own last "
+                "grade already refused, and nothing that grade reads has changed -- deferred so "
+                "the run lock is free for the shared tree's advance; HEAD moving is what "
+                "re-grades".format(str(head_sha)[:10]))
+    log("Publish gate: " + evidence)
+    try:
+        publish_cause.record_cause(PUBLISH_CAUSE_FILE, publish_cause.SCOPED_GATE_UNJUDGED,
+                                   evidence, git_hash)
+    except Exception as exc:  # noqa: BLE001 -- an attribution must never break the cycle
+        log("Scoped-gate cause record skipped (non-fatal): {}".format(exc))
+    return False, False
 
 
 def _gate_admission():
