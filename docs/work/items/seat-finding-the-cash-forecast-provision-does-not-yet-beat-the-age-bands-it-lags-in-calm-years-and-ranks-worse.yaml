@@ -8,7 +8,7 @@ class: standard
 severity: LATENT
 source: finding
 evidence:
-- docs/staging/SEAT_FINDING_THE_CASH_FORECAST_PROVISION_DOES_NOT_YET_BEAT_THE_AGE_BANDS_IT_LAGS_IN_CALM_YEARS_AND_RANKS_WORSE_2026-10-13.md
+- docs/staging/done/SEAT_FINDING_THE_CASH_FORECAST_PROVISION_DOES_NOT_YET_BEAT_THE_AGE_BANDS_IT_LAGS_IN_CALM_YEARS_AND_RANKS_WORSE_2026-10-13.md
 knowledge_gap: null
 insight: null
 decider: machine
@@ -16,12 +16,18 @@ director_rank: null
 atom: E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build
 blocked_by: []
 occurrences: 1
-state: open
+state: parked
 opened_at: '2026-10-13T00:00:00+00:00'
 chosen_at: null
 closed_at: null
 chosen_by: null
 done_evidence: null
-parked: null
+parked:
+  reason: its open work is a build inside E6's file_scope (a labelled-range roll-rate
+    prior until enough closes resolve, and the oldest-unpaid age as a state in the
+    chain), re-graded on seeds 61109-61112 against /var/tmp/provgrade/grade_provision.py;
+    E6 is blocked_on W2_38 and the four-seed re-grade needs seeded runs longer than
+    one bounded invocation. Re-ask when W2_38 clears or on the date.
+  revisit: '2026-12-10'
 obsolete: null
 finding_lane: D_billing_metering

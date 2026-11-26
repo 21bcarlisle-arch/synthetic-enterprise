@@ -64,11 +64,17 @@ def test_inv5940_prints_its_catch_up_above_a_vat_line_that_is_5pc_of_the_lines_a
     april = [v for v in bills.values() if v[0].get("period_start") == "2023-04-01"]
     assert len(april) == 1, [v[0]["id"] for v in april]
     record, rows = april[0]
-    assert Decimal(str(record["catchup_adjustment_gbp"])) == Decimal("21.57"), record
+    # Keyed to the property, not to one book's pence: the 6af7fd0bf book's catch-up here was £21.57
+    # (VAT £5.96), the 76f894811d book's is £77.28 correcting Jan-Mar (VAT £8.86), and a pin on the
+    # first refused the second's publish on 26 Nov though the page rendered it correctly.
+    catch_up = Decimal(str(record["catchup_adjustment_gbp"]))
+    assert catch_up >= 1, f"the bill this test is about no longer carries a catch-up: {record}"
+    labels = [label for label, _ in rows]
     vat, above, below = _vat_and_lines_above(rows)
-    assert vat == Decimal("5.96")
-    assert above == Decimal("97.58") + Decimal("21.57"), rows
-    assert (above * Decimal("0.05")).quantize(PENNY) == vat
+    at_catch_up = next(i for i, label in enumerate(labels) if "Catch-up adjustment" in label)
+    assert at_catch_up < labels.index("+ VAT"), f"the catch-up printed below the VAT line: {labels}"
+    assert (above * Decimal("0.05")).quantize(PENNY) == vat, rows
+    assert vat == Decimal(str(record["vat_gbp"])), (vat, record)
     assert below == ["= Total"], f"a line printed between VAT and the total: {below}"
 
 
