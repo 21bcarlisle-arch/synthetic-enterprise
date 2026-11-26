@@ -84,3 +84,32 @@ on the printed kWh. Do not raise the number.
 `/tmp/seat_g2/probe.py`, not committed. It is a copy of `/tmp/seat_inv/probe.py`: it wraps
 `domain_invariant_runner.EVALUATORS` so the breach lists stay whole, then runs `load_book` over
 `docs/state/billing_ledger.json` (source_json cb93f7760c) and `site/data/customers`.
+
+## Worked, 26 Nov (draw `the-epg-exception-is-keyed-to-a-share-not-a-count`)
+
+Re-graded on HEAD a1eee4d921 over the cb93f7760c ledger before starting:
+
+- **Cause 1 (EPG count ceiling): already spent.** 10bf51c370 keyed the exception to the read-tenths
+  class. 362 breaches, all in class, excepted.
+- **Cause 3 (estimate follows reads, 44): already spent.** 204b68cca5 grades the quote figure per read
+  segment: 0.
+- **Cause 2 (EBSS, 8 + 8 over a ceiling of 7): fixed in this landing.** The exception's own
+  `retired_by` was the remedy. The ledger now records which deemed accounts a bill was billed to
+  (`deemed_accounts`: owner for void days, occupier for an unnamed occupant). Before, it recorded only
+  the larger of the two, so OCC-33c7f31198b0's Feb 2023 read "occupier" with a void 1st. The raw export
+  carries that list and `deemed_part` (whole or part). Both EBSS rows owe the payer nothing for a month
+  whose 1st a deemed account held. A void 1st is owed nothing (Annex C). A 1st the occupier's account
+  held on a bill shared with the payer is owed to that account, not the payer (guidance 5.4). A month
+  wholly the occupier's stays owed, because its bill is the deemed account's own and carries the
+  credit. The first version also exempted that last case, and 8 new "above" breaches refuted it on
+  the same book. The void → occupier → named order is checked per account, not assumed. On this book
+  no deemed bill follows a named one (0 of 1,129 deemed bills).
+  The cb93f7760c ledger, rebuilt with the field, grades **0 and 0**, from 8 and 8. No other row
+  moves. Both exceptions are retired.
+  GAP, stated on both rows: on a shared month the occupier's account's own receipt is not posted to
+  the export, so it is ungraded.
+
+**Still refusing on that book (4 rows):** INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR 7 (cause
+under investigation in 4df2b4f892), INV_OVERDUE_WITHIN_PAGE_BALANCE 8 (SYN-2016-099),
+INV_OVERDUE_WITHIN_BALANCE 1 (SYN-2016-107), and INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT
+(1 outside its class).

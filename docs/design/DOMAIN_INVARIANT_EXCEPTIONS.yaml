@@ -75,6 +75,11 @@
 # the revenue row (24 -> 25), whose 25 are traced to three causes, two of them filed defects. Grade beside
 # docs/staging/records/SEAT_RECORD_THE_FRESH_RUN_AT_9553D403B7_GRADES_THE_OVERDUE_AND_MISSED_PAYMENT_FIXES_2026-10-29.md.
 #
+# 2026-11-26: the two EBSS exceptions (INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23 and _ON_THE_BILL, ceiling 7) are
+# retired by their own retired_by: the raw export carries each period's deemed accounts (owner for void days,
+# occupier for an unnamed occupant's) and whether they were billed the whole period, and both rows owe the payer
+# nothing for a month a deemed account held on its 1st. The cb93f7760c ledger rebuilt with the field grades 0 and 0,
+# from 8 and 8; no other row moves.
 # 2026-10-30: every ceiling is the fresh 3dc5a92948 book's count, the first book carrying every billing fix
 # including the SVT one-list-price gate. INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE falls 25 -> 1; the other seven
 # read exactly their ceilings, with the same sampled breaches as the ecb7e21fb book; the SVT row is retired
@@ -112,52 +117,9 @@ exceptions:
   # the 2eeb3f0b3 ledger. With one MPAN home and the whole credit on the invoice, the same run's
   # ledger, rebuilt, grades 0 and 12. The MPAN exception is retired. Causes per breach in
   # docs/staging/records/SEAT_PREREGISTRATION_THE_EIGHT_COLD_READ_ROWS_ON_THE_2EEB3F0B3_BOOK_2026-10-27.md.
-  - invariant: INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23
-    scope: >-
-      6 account-months on the 1691ec0ecd book rebuilt with the window share that counts credit-paid
-      days. Three void on the 1st: OCC-bec72a04dec8 (2022-11), OCC-eb8498f3f8aa (2023-02),
-      OCC-e3e94f81161b (2023-03). Three held on the 1st by the unnamed occupier's deemed account, the
-      payer named later that month: OCC-25ff8966357a (2023-02), OCC-a1e9ae835e65 (2023-02),
-      OCC-bec72a04dec8 (2023-02)
-    reason: >-
-      Rewritten 2026-10-28 for the 1691ec0ecd book, which carries the month credit this exception
-      waited for (ff937d809e). The 2eeb3f0b3 reason ("no run has carried yet") is refuted, and the
-      breach is not a run defect. Each account opened on a move-out
-      (27 Oct, 17 Jan, 23 Feb) with a 21-day private-renter void, so the home was empty at 00:00 on
-      the breached month's 1st. Annex C's vacant exception gives that month no credit
-      (docs/market_research/energy_bills_support_scheme_delivery.md, "Vacant Properties"), and every
-      later month is credited. The evaluator counts the month as on supply because the raw export
-      carries no void window. The breach is the grader's.
-      Widened 2026-10-28 (gas-leg re-measure): 2bef058eb stopped posting the deemed account's credit
-      to the payer, which exposed a second grader's case. A month the unnamed occupier's deemed
-      account held at 00:00 on the 1st is owed to that account (guidance 5.4), and the payer named
-      later that month is owed nothing; the export carries no window, so the row counts it as the
-      payer's. The other nine breaches on the same rebuild under 2bef058eb were a defect (a window
-      month the credit paid read as share 0), fixed in bill assembly; a run before that fix grades 12.
-      Re-based 2026-11-05 on the fresh 5200cd6239 book: 7. The six above plus OCC-da79d3238e02 (Oct 2022),
-      whose October bill carries deemed_share_to occupier: the deemed account held the 1st, the same case.
-    filed: 2026-10-28
-    retired_by: the raw export carrying each account's void and occupier window, and the row exempting a month the payer did not hold on its 1st
-    max_breached: 7
   # 2026-10-28: the two twins graded on what the page prints (second cold read, N1), measured on the
   # 1691ec0ecd book rebuilt with origin's tools and its pages built from that ledger in memory.
   # Counts beside docs/staging/SEAT_FINDING_THE_SECOND_COLD_READ_FINDS_SEVEN_NEW_CLASSES_AND_THE_SUITE_GRADES_A_RECORD_THE_PAGE_DOES_NOT_PRINT_2026-10-28.md.
-  - invariant: INV_EBSS_CREDIT_ON_THE_BILL
-    scope: >-
-      6 page bills on the 1691ec0ecd book, on the same five OCC- accounts as the ledger row's
-      exception: OCC-25ff8966357a (Jan 2023 bill), OCC-a1e9ae835e65 (Feb 2023), OCC-bec72a04dec8 (Nov
-      2022, Feb 2023), OCC-e3e94f81161b (Mar 2023), OCC-eb8498f3f8aa (Feb 2023). OCC-25ff8966357a's
-      is January, not the ledger row's February: it opened on 24 Dec on a move-out, so the home was
-      void on 1 Jan, and the ledger row's date-window allocation moves that gap a month later
-    reason: >-
-      The ledger row's two causes, seen on the bill: a home void at 00:00 on the 1st (Annex C, no
-      credit owed) and a month the unnamed occupier's deemed account held on the 1st with the payer
-      named later (guidance 5.4). The export carries neither window, so the row counts the month as
-      the payer's. Before the page carried the credit (this commit) the row breached 1,193 of 2,277.
-      Re-based 2026-11-05 on the 5200cd6239 book: 7, the ledger row's seventh (OCC-da79d3238e02, Oct 2022 bill).
-    filed: 2026-10-28
-    retired_by: the raw export carrying each account's void and occupier window, as for INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23
-    max_breached: 7
   # 2026-10-28: the second cold read's six rows (N2, N3, N5, N6, N7, estimate against the meter), written
   # blind and graded on the 1a02c46116 book. Grade and causes beside the pre-registration,
   # docs/staging/records/SEAT_PREREGISTRATION_THE_SECOND_COLD_READS_CLASSES_GRADED_ON_THE_1A02C46116_BOOK_2026-10-28.md.

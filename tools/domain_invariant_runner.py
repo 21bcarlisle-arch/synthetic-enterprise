@@ -1389,6 +1389,36 @@ def _month_end(m: date) -> date:
     return date(m.year + (m.month == 12), m.month % 12 + 1, 1) - timedelta(days=1)
 
 
+def _held_by_a_deemed_account(a) -> set:
+    """The EBSS months this record owes nothing, because a deemed account, not the named payer,
+    held 00:00 on the 1st (guidance 5.4 and 5.8): read from the export's `deemed_accounts` and
+    `deemed_part`.
+
+    At a vacated premise the days run void (the owner's account), then an unnamed occupant (the
+    occupier's), then the named payer; so a period's 1st is held by the first of those it was
+    billed to. That order is checked, not assumed: a deemed period after one billed to a named
+    payer is graded as the payer's. A part period not starting on the 1st is too, since the
+    export says which accounts, not which days.
+
+    - A void 1st is owed nothing at all (Annex C's vacant exception).
+    - A 1st the occupier's account held on a period it shares with the payer is owed to that
+      account, which this export does not post; the payer named later is owed nothing.
+    - A period wholly the occupier's from its 1st is NOT in the set: its bill is the deemed
+      account's own, on this record, and carries the month's credit."""
+    held, named = set(), False
+    for p in a.periods:
+        ps, part = _d(p["period_start"]), p.get("deemed_part")
+        if part is None:
+            named = True
+            continue
+        void_first = (p.get("deemed_accounts") or [None])[0] == "owner"
+        if not named:
+            held |= {m for m, _ in EBSS_CREDIT_GBP if m == ps and (void_first or part == "part")}
+        if part == "part":
+            named = True
+    return held
+
+
 def ev_ebss_credit(inv, book):
     """Each month's credit once. The row's windows ([m start, m end + 31 days]) overlap, so summing
     every credit in each window would count a December-dated November credit twice. Each credit is
@@ -1413,7 +1443,8 @@ def ev_ebss_credit_on_the_bill(inv, book):
     for a in book:
         if not a.domestic or a.start is None:
             continue
-        owed = {m: (0.0 if a.fuel == "gas" else amt) for m, amt in EBSS_CREDIT_GBP
+        deemed = _held_by_a_deemed_account(a)
+        owed = {m: (0.0 if a.fuel == "gas" or m in deemed else amt) for m, amt in EBSS_CREDIT_GBP
                 if a.start <= m <= a.end}
         if not owed:
             continue
@@ -1451,7 +1482,8 @@ def _ebss_tally(book, credits_of):
             continue
         # Owed to whoever held the account at 00:00 on the 1st (guidance 5.4 and 5.8, as the row
         # now reads): a joiner's first part-month is owed nothing.
-        months = [(m, 0.0 if a.fuel == "gas" else amt) for m, amt in EBSS_CREDIT_GBP
+        deemed = _held_by_a_deemed_account(a)
+        months = [(m, 0.0 if a.fuel == "gas" or m in deemed else amt) for m, amt in EBSS_CREDIT_GBP
                   if a.start <= m <= a.end]
         if not months:
             continue
