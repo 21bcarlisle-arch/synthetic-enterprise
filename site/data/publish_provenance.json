@@ -24,8 +24,8 @@
     "run_retained": true,
     "verified_at": "2026-11-18T10:20:38Z"
   },
-  "paused_gate": "Refused by the domain-invariant check: 4 of its rules are broken and no dated exception covers them. The overdue amount on an account is part of what the\u2026 [INV_OVERDUE_WITHIN_BALANCE]: broken on 2 of 953 checked (unit: collections journey opening); Every overdue amount the customer page prints on a\u2026 [INV_OVERDUE_WITHIN_PAGE_BALANCE]: broken on 8 of 5,674 checked (unit: household collections step printing an overdue figure); Domestic gas use is mostly space heating, and space heating\u2026 [INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR]: broken on 7 of 136 checked (unit: gas leg with a measured month a year after another); When a household's fuel leg is refunded on closing, the\u2026 [INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT]: broken on 8 of 161 checked (unit: refund line on a fuel leg whose household prints another fuel leg).",
-  "paused_reason": "domain-invariant breaches at git=001e4f680a that no exception covers: INV_OVERDUE_WITHIN_BALANCE 2 (no exception); INV_OVERDUE_WITHIN_PAGE_BALANCE 8 (no exception); INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR 7 (7 breaches exceed the exception's max_breached 1); INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT 8 (1 of 8 breaches are outside the exception's class other_leg_debt_collected_after",
+  "paused_gate": "Refused by the domain-invariant check; what it found is in docs/reports/DOMAIN_INVARIANTS.md",
+  "paused_reason": "the domain-invariant suite did not grade the book at git=76f894811d: its billing ledger is not that run's world (4 world-writer file(s) differ from 76f894811d (background/live_payment_triad.py, simulation/arrears_engine.py, simulation/world_payment_truth.py, tools/generate_billing_ledger.py) and 76f894811d could not be materialised into a clean checkout)",
   "paused_since": "2026-11-23T04:24:16Z",
   "schema": 1,
   "showing_run": {
@@ -41,5 +41,5 @@
     "verified_at": "2026-11-18T10:20:38Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-11-26T11:47:23Z"
+  "written_at": "2026-11-26T19:46:10Z"
 }
