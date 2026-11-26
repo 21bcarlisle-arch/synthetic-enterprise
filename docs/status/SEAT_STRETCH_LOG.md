@@ -8,6 +8,49 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-26 — orientation: Against the thesis the project stood still on the one test that matters
+
+<!-- head: fe14865204c3 -->
+
+*Written by the orientation seat from its own record (2026-11-26T12:23:25.364370+00:00; 11 commits, 5 substantive, since 2026-11-26T09:20:40.633951+00:00).*
+
+Commit split (product code by path): 2 supplier, 2 world, 0 both, 7 other.
+
+## What the stretch meant
+
+Against the thesis the project stood still on the one test that matters. It moved on the precondition for showing it. There is still NO valid comparison of the per-customer supplier against the flat-rules baseline. The void etarms chain was stopped and recorded (a0c9d51f1, 09:36Z), which corrects last stretch's worst error. But fix 0, moving FTC_WITHDRAWAL_WINDOW's start to 2021-10-01, has still not landed: origin/main still reads date(2022, 1, 1). So the rankq re-grade the director ruled for at 05:47Z cannot launch, and its continuation will release on sight. I ordered it third, and that was my error. It goes first now. The publish wall moved substantially, and all of it was supplier billing work. EBSS is keyed to its classes and both exceptions are retired (5e63e640e). The estimate row now grades the blended quote (204b68cca). The gas repeats were five PROS legs outside every weather cell (9ed3dc978). And a credit bill's note is now its own leg's cash (91c32797b). A book at 91c32797b3 is building now (run_annual_report, started 12:24Z). It is predicted to refuse on only two rows: SYN-2016-099's page, where 470513f81b found the desk's 1.30 is right and the page is wrong but no fix has been built, and PROS-2023-0338g's closing refund, which waits on the N29 set-off. So the site has now shown 18 Nov for eight days, but the remaining wall has two named causes, not six. S1 (contract the first term at its quoted strike) landed as a1eee4d92, behind its switch. The commit split was 2 supplier, 2 world and 7 other. The split mislabels 204b68cca's billing-invariant work as other, and two of the world commits (the weather cells, S1) serve supplier results, so the balance is acceptable. Two director commitments due 2 Dec, the forward bands and the K8-for-world one-leg test, have no queue row at all, and nothing draws them. That is drift, so they enter focus now, last.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 12:23 26 Nov -- unchanged on the live belief. The money test of its ending-term replacement still waits on the rankq re-grade, which waits on fix 0 (focus 1).
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 12:23 26 Nov -- unchanged; triage owns it.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one. [Earlier tails are in decisions.jsonl.] 12:23 26 Nov -- unchanged; latent, and no domestic account reaches either writer.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. [Earlier tails are in decisions.jsonl.] 12:23 26 Nov -- unestablished, not corrected. The grade it rests on is void (a189c2824), and the re-grade on fixed code has not launched because fix 0 has not landed.
+- NOT corrected: THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z), but their work reached origin. This is a new instance of a-landing-loses-its-race-to-origin. [Earlier tails are in decisions.jsonl.] 12:23 26 Nov -- no new lost race. This stretch's one DIED landing (10:24Z, exit 1 in 7s) was a commit-msg refusal for a missing NEXT: line, relaunched a minute later and landed as a1eee4d92. That is not the race. The stretch ran at normal pace from 09:05Z, so this is weak evidence, not yet a correction.
+- NOT corrected: THE MACHINE'S, NEW. The closed-account landing was relaunched at 14:35Z unchanged after two refusals on the same three reds, and it was refused a third time. [Earlier tails are in decisions.jsonl.] 12:23 26 Nov -- no unchanged relaunch this stretch (the 10:24Z refusal was relaunched with the NEXT: line added). The earlier seven DIED landings are still unread, and its triage line is 30 Nov.
+- NOT corrected: THE SEAT'S OWN, NEW. My 21:24 record put every queued supplier result behind the book's BUILD, and never asked whether a built book would pass the publisher's gates. Lesson: a book is owed until it PUBLISHES. [Earlier tails are in decisions.jsonl.] 12:23 26 Nov -- still open, and closer. EBSS (5e63e640e), estimate-follows (204b68cca), gas repeats (9ed3dc978) and the credit-bill cross-leg (91c32797b) have landed, and a book at 91c32797b3 is building now. But SYN-2016-099's page fix and the N29 set-off have not been built, so that book is predicted to refuse on two rows. Nothing has published since 18 Nov. Focus 2 carries it.
+- corrected: THE SEAT'S OWN, NEW. My 12:23 record kept the six-seed ending-term-against-flat arms running on e6be5fec8. After a189c2824 (21:42Z) voided offer-decided comparisons, no one asked whether those arms were among them. [Earlier tails are in decisions.jsonl.] 12:23 26 Nov -- CORRECTED: the driver and s6 flat were stopped deliberately at 09:36Z, and the void is recorded on origin (a0c9d51f1, prereg s.5). The s2-s5 outputs are kept as evidence and will not be graded.
+- corrected: THE SEAT'S OWN, NEW. My 03:24 record wrote four Lane 0 focus items, and an urgent stop, into a stretch where tick_mode was slow until 09:05Z, and never read the tick mode. None of the four was drawn, and the stop that most needed to be prompt did not happen. [Earlier tails are in decisions.jsonl.] 12:23 26 Nov -- CORRECTED as an instance. I read tick_mode before writing this record (normal since 09:05Z), and the stop landed 26 minutes after slow mode lifted. The residue is new and listed below: under normal mode, only 1 of the 4 items was drawn in 3 h.
+- NOT corrected: THE SEAT'S OWN, NEW. My 09:20 record put fix 0, a one-constant change that gates the thesis comparison, third in focus, behind the publish work. In 3 h at normal pace it was not drawn, so the rankq re-grade cannot launch and the director's ruled next step has slipped another stretch. Lesson: an item that unblocks the baseline comparison goes first when it is small, whatever side it is on.
+
+## Chosen against
+
+- Launch the rankq re-grade now on a189c2824 without waiting for fix 0.
+- Raise INV_OVERDUE_WITHIN_PAGE_BALANCE's or the closing refund's exception so the 91c32797b3 book publishes.
+- Draw b8-flip-the-blind-holdout-on, grade-s1-r1-to-r5 and s2-the-cap-hold-deletion (ripe 27-28 Nov).
+- Spend the restored pace on the 26 live repeating alarms (worktree-undeclared 72 days, product-machinery 55 days).
+- Reap or land the 10 worktrees with unlanded SALVAGE commits (b12-*, se-budgetpay-land, value-test-*).
+- Put N17 (flat year-on-year metered electricity) into focus.
+
+## Focus for the next stretch
+
+- `the-ftc-withdrawal-window-starts-at-the-published-zero-gap-quarter`
+- `the-page-and-the-n29-set-off-close-the-last-two-refusal-rows`
+- `the-four-unattributed-final-bills-netted-past-the-page`
+- `the-director-commitments-due-2-dec-are-queued-and-built`
+
+---
+
 ## 2026-11-26 — orientation: Against the thesis this stretch held its ground
 
 <!-- head: 4df2b4f892ed -->
