@@ -102,6 +102,17 @@ the ceiling at a listed dwelling, with no actual read in its tenure.
    this.
 4. **INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR, 7 against 1.** Five are on new PROS gas legs.
    b3f3a23f6f re-based gas AQ registration, which may be the cause.
+   **Read 26 Nov on the cb93f7760c book: not the excepted class, and not a missing cell.** The six legs
+   are PROS-2017-0192g (9 repeats), PROS-2021-0396g (9), PROS-2023-0104g (8), PROS-2023-0169g (4),
+   PROS-2023-0234g (4) and SYN-2016-206g (4), plus the book share at 1.29% against a 1% bound. The
+   exception covers warm 31-day months on the population split. PROS-2017-0192g instead repeats every
+   measured month from 2018-07 to 2019-03 to 0.1 kWh, heating months included: Dec 2479.3, Jan 2535.9,
+   Feb 2057.8, Mar 2131.0, the same as the year before. In a standalone probe after
+   `adopt_book(GAS_CUSTOMERS)`, the leg resolves cell E484N0156 with 3,653 days, and `get_hdd` differs
+   between Jan 2018 and Jan 2019 (8.52 against 10.52). So the run's settled HDD for the leg cannot be
+   what the probe reads. The next step is the run's own daily settlement rows for this leg: whether the
+   leg's term was settled through `run_gas_term`, or its reads were made some other way (b3f3a23f6f's
+   AQ rewrite is one candidate). I cannot yet say which.
 5. SYN-2016-099 (8 page-overdue breaches), SYN-2016-107 (1), and the 1 closing refund outside its
    class. Each is a single account; read each one.
 
