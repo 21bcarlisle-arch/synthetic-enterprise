@@ -1424,6 +1424,10 @@ this world could not take.
 - Four of the 23 disagreeing final bills are not `OCC-` legs: SYN-2016-099, SYN-2016-144g, PROS-2017-0293g and
   PROS-2024-0270g, GBP 74.63 together. Their cause is not yet attributed.
   *(Added 26 Nov: SYN-2016-099's share is attributed by choice 32 below.)*
+  *(Added 26 Nov, later: all four are attributed. SYN-2016-144g and PROS-2017-0293g were grader artefacts: the grader
+  read a settlement repayment as the final bill, and the page and world agree on both. PROS-2024-0270g is the page
+  resolving a failed final DD on its face, not on the world's ask. That is the open page-side cause filed under
+  SYN-2016-244. See SEAT_RESULT_THE_FOUR_UNATTRIBUTED_FINAL_BILLS_..._2026-11-26.md.)*
 
 #### 8.8h A leg's bills are issued in period order (added 2026-11-26, before the build)
 
