@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-11-18T10:03:08Z",
+    "checked_at": "2026-11-26T22:42:59Z",
     "nonblocking_reds": [
       "ERROR tests/architecture/test_a_departure_reading_declares_its_population.py"
     ],
@@ -9,37 +9,37 @@
       "tree_state": "working-tree"
     },
     "nonblocking_reds_total": 1,
-    "open_findings": 22
+    "open_findings": 30
   },
   "figures_caveat": null,
   "last_verified": {
-    "generated_at": "2026-11-18T10:20:38Z",
-    "git_commit": "6af7fd0bfd",
+    "generated_at": "2026-11-26T22:08:24Z",
+    "git_commit": "76f894811d",
     "population": {
-      "accounts": 1306,
-      "bills": 53605,
-      "total_revenue_gbp": 3166717.09
+      "accounts": 1382,
+      "bills": 54463,
+      "total_revenue_gbp": 3154920.8
     },
-    "run_id": "run_output_6af7fd0bfd_20261118T070221Z.json",
+    "run_id": "run_output_76f894811d_20261126T155009Z.json",
     "run_retained": true,
-    "verified_at": "2026-11-18T10:20:38Z"
+    "verified_at": "2026-11-26T22:08:24Z"
   },
-  "paused_gate": "Refused by the domain-invariant check; what it found is in docs/reports/DOMAIN_INVARIANTS.md",
-  "paused_reason": "the domain-invariant suite did not grade the book at git=76f894811d: its billing ledger is not that run's world (4 world-writer file(s) differ from 76f894811d (background/live_payment_triad.py, simulation/arrears_engine.py, simulation/world_payment_truth.py, tools/generate_billing_ledger.py) and 76f894811d could not be materialised into a clean checkout)",
-  "paused_since": "2026-11-23T04:24:16Z",
+  "paused_gate": "Refused by the domain-invariant check: 1 of its rules is broken and no dated exception covers it. Domestic gas use is mostly space heating, and space heating follows outdoor temperature, so a home's measured gas use in a calendar month moves from one year to the next with that month's heating\u2026 [INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR]: broken on 4 of 135 checked (unit: gas leg with a measured month a year after another).",
+  "paused_reason": "domain-invariant breaches at git=2100f84f85 that no exception covers: INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR 4 (4 breaches exceed the exception's max_breached 1)",
+  "paused_since": "2026-11-26T23:19:28Z",
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-11-18T10:20:38Z",
-    "git_commit": "6af7fd0bfd",
+    "generated_at": "2026-11-26T22:08:24Z",
+    "git_commit": "76f894811d",
     "population": {
-      "accounts": 1306,
-      "bills": 53605,
-      "total_revenue_gbp": 3166717.09
+      "accounts": 1382,
+      "bills": 54463,
+      "total_revenue_gbp": 3154920.8
     },
-    "run_id": "run_output_6af7fd0bfd_20261118T070221Z.json",
+    "run_id": "run_output_76f894811d_20261126T155009Z.json",
     "run_retained": true,
-    "verified_at": "2026-11-18T10:20:38Z"
+    "verified_at": "2026-11-26T22:08:24Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-11-26T19:46:10Z"
+  "written_at": "2026-11-26T23:19:28Z"
 }
