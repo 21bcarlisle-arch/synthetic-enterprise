@@ -1,5 +1,7 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used` · **Item:** `is-a-gas-premises-registered-aq-its-first-year-of-true-use`
 
+**Disposition (26 Nov 2026):** GAP 4 read and narrowed; the build it implies is carried by `docs/staging/SEAT_FINDING_A_GAS_AQS_SEASONAL_NORMAL_IS_PER_LDZ_PROJECTED_FORWARD_AND_KEEPS_THE_METERS_OWN_CLIMATE_2026-11-26.md`.
+
 # Is a gas premise's registered AQ its first year of true use? (26 Nov 2026)
 
 Filed by the delivery seat. Follows
