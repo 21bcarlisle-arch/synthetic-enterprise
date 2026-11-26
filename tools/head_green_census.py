@@ -239,26 +239,33 @@ _DURATION_ROW_RE = re.compile(r"^\d+(?:\.\d+)?s[ \t]+\w+[ \t]+\S+$", re.MULTILIN
 
 
 def parse_progress(text: str) -> dict:
-    """{"failures", "passed", "reached"} from a progress stream -- what a killed run DID observe.
+    """{"failures", "passed", "reached", "crash"} from a progress stream -- what a run DID observe.
+
+    `crash` is `{node: first crash line}` for the reds whose stream row carried one; a red without
+    one is simply absent (an older stream, or a report with no crash), never an empty string.
 
     A test is red if ANY of its phases failed (setup and teardown errors are what `FAILED`/`ERROR`
     lines report too), green only if its call phase passed and nothing failed.
     """
     outcome: dict[str, str] = {}
+    crash: dict[str, str] = {}
     for line in text.splitlines():
-        parts = line.split("\t", 2)
-        if len(parts) != 3:
+        parts = line.split("\t", 3)
+        if len(parts) not in (3, 4):
             continue
-        when, result, node = parts
+        when, result, node = parts[:3]
         if result == "failed":
             outcome[node] = "failed"
+            # The FIRST failing phase's line: a setup error is the cause, a teardown after it is not.
+            if len(parts) == 4 and parts[3] and node not in crash:
+                crash[node] = parts[3]
         elif when == "call" and outcome.get(node) != "failed":
             outcome[node] = result
         else:
             outcome.setdefault(node, result)
     return {"failures": sorted(n for n, o in outcome.items() if o == "failed"),
             "passed": sum(1 for o in outcome.values() if o == "passed"),
-            "reached": sorted(outcome)}
+            "reached": sorted(outcome), "crash": crash}
 
 
 def first_modules() -> list[str]:
@@ -654,6 +661,9 @@ def _run_admitted_suite(subject, env, timeout, observed: dict | None = None) -> 
             # "" for the reason the timeout path gives: a FAILED-line list with no "reached"
             # set beside it would be read as complete.
             return ""
+        if observed is not None:
+            # A COMPLETE run's reds are read from stdout; their crash lines only exist here.
+            observed["crash"] = parse_progress(_read(progress))["crash"]
         return output
     finally:
         with contextlib.suppress(OSError):
@@ -712,7 +722,8 @@ def _record_observation(result: dict) -> str:
         try:
             from background import head_red_register as reg
             store = reg.record(partial["failures"], head_sha=result.get("subject_head"),
-                               passed=partial["passed"], reached=partial["reached"])
+                               passed=partial["passed"], reached=partial["reached"],
+                               crash=partial.get("crash"))
             reg.save_observed(store)
             path = reg.write_register(store, load_baseline())
             return "register: PARTIAL run, {} reached, {} owed, written to {}".format(
@@ -728,7 +739,8 @@ def _record_observation(result: dict) -> str:
         # cannot name its subject (`--from-log`, or an unreadable checkout): an unattributed
         # observation is a fact about what we can say, and inventing a sha for it is the defect.
         store = reg.record(result.get("failures") or [], head_sha=result.get("subject_head"),
-                           passed=result.get("passed"), causes=result.get("causes"))
+                           passed=result.get("passed"), causes=result.get("causes"),
+                           crash=result.get("crash"))
         reg.save_observed(store)
         path = reg.write_register(store, load_baseline())
         return "register: {} owed, written to {}".format(
@@ -767,6 +779,8 @@ def main(argv=None) -> int:
             "checkout of HEAD and the suite was not run -- {}".format("; ".join(shortfall)))
     if observed.get("partial"):
         result["partial"] = observed["partial"]
+    if observed.get("crash") is not None:
+        result["crash"] = observed["crash"]
     if observed.get("exited_early"):
         result["reason"] = observed["exited_early"]
     if observed.get("deferred"):
@@ -782,8 +796,9 @@ def main(argv=None) -> int:
         print("  " + register)
         if result.get("causes"):
             print("  causes   " + summarise_causes(result["causes"]))
+        crash = result.get("crash") or {}
         for name in result["new_red"]:
-            print("  NEW RED  " + name)
+            print("  NEW RED  " + name + ("   -- " + crash[name] if crash.get(name) else ""))
         for name in result["fixed"]:
             print("  FIXED    " + name + "   (prune it from the baseline)")
         for row in result["durations"]:

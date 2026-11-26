@@ -300,7 +300,7 @@ def test_the_recorded_head_is_the_commit_the_SUITE_RAN_not_the_one_HEAD_reached_
 
     class _Reg:
         @staticmethod
-        def record(failures, *, head_sha, passed, causes=None):
+        def record(failures, *, head_sha, passed, causes=None, crash=None):
             recorded["head"] = head_sha
             return {"runs": [], "tests": {}}
 
@@ -379,7 +379,7 @@ def test_a_run_that_cannot_name_its_subject_records_no_sha_rather_than_todays(mo
 
     class _Reg:
         @staticmethod
-        def record(failures, *, head_sha, passed, causes=None):
+        def record(failures, *, head_sha, passed, causes=None, crash=None):
             recorded["head"] = head_sha
             return {"runs": [], "tests": {}}
 

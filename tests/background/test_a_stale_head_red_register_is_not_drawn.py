@@ -188,7 +188,8 @@ def test_a_killed_suite_reports_what_it_reached_and_a_finished_one_does_not(tmp_
     else:
         assert out == "" and hgc.evaluate(out)["status"] == "UNPROVEN"
         assert observed["partial"] == {"failures": ["tests/a.py::red"], "passed": 1,
-                                       "reached": ["tests/a.py::ok", "tests/a.py::red"]}
+                                       "reached": ["tests/a.py::ok", "tests/a.py::red"],
+                                       "crash": {}}
     if ends == "exits_early":
         assert observed["exited_early"] == "pytest exited rc=3 with no summary line"
         assert "the cause of the early exit" in capsys.readouterr().err, \

@@ -155,7 +155,8 @@ class UnobservedRunRefused(ValueError):
 
 
 def record(failures, *, head_sha: str | None, passed: int | None, causes: dict | None = None,
-           now: datetime | None = None, store: dict | None = None, reached=None) -> dict:
+           now: datetime | None = None, store: dict | None = None, reached=None,
+           crash: dict | None = None) -> dict:
     """Fold one census run into the observation store and return the new store.
 
     PURE apart from its default argument — the caller saves it. That is what lets the whole
@@ -191,6 +192,10 @@ def record(failures, *, head_sha: str | None, passed: int | None, causes: dict |
     would mark every unreached red as fixed"), kept by construction instead of by throwing away
     four hours of observation. Without it no census completed from 2026-11-04 to 2026-11-16, and
     a fixed test could not leave this register however it was fixed.
+
+    `crash`, `{node: first crash line}`, is THIS run's line for each red. A red re-observed without
+    one loses the line it had: a stale line beside a fresh `last_seen` would name a cause the run
+    never printed, which is worse for a bisect than no line at all.
     """
     if passed is None:
         raise UnobservedRunRefused(
@@ -208,6 +213,11 @@ def record(failures, *, head_sha: str | None, passed: int | None, causes: dict |
         row["runs_red"] = int(row.get("runs_red") or 0) + 1
         row["currently_red"] = True
         row.setdefault("first_seen", stamp)
+        line = (crash or {}).get(node)
+        if line:
+            row["crash"] = line
+        else:
+            row.pop("crash", None)
     seen = None if reached is None else set(reached) | failing
     for node, row in tests.items():
         if node not in failing and (seen is None or node in seen):
@@ -440,12 +450,13 @@ def render(store: dict, accepted, *, now: datetime | None = None) -> str:
         "same argument `class_debt` makes for instance count. The longest-standing red here has "
         "survived **{} run(s)**.".format(worst),
         "",
-        "| test | runs red | first seen |",
-        "|---|---:|---|",
+        "| test | runs red | first seen | crash line, last run |",
+        "|---|---:|---|---|",
     ]
     for node, row in ranked[:MAX_LISTED]:
-        lines.append("| `{}` | {} | {} |".format(
-            node, row.get("runs_red", "?"), str(row.get("first_seen", "?"))[:10]))
+        lines.append("| `{}` | {} | {} | {} |".format(
+            node, row.get("runs_red", "?"), str(row.get("first_seen", "?"))[:10],
+            str(row.get("crash") or "").replace("|", "/").replace("`", "'")))
     if len(ranked) > MAX_LISTED:
         lines.append("")
         lines.append("… {} more not listed here. **Every one is in "

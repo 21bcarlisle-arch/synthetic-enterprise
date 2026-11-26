@@ -25,6 +25,29 @@ FIRST_ENV = "HEAD_CENSUS_FIRST"
 #: name raised inside a hook, which is an INTERNALERROR that ends the session: the 20 Nov census,
 #: admitted at last, stopped at test 6033 of the suite for exactly this reason.
 _OPEN = open
+#: THE CRASH LINE (2026-11-26). A red's first traceback line, `<path>:<line>: <message>`, kept on
+#: its register record. Without it a pollution bisect had to re-run a test only to learn WHICH
+#: assertion fired: H40 (7 Oct) could not tell an empty drawn book (`assert drawn`) from a broken
+#: identity (`not_shared`) without a 58-minute batch. A display length, not a domain value.
+CRASH_CHARS = 200
+
+
+def crash_line(report) -> str:
+    """The report's first crash line, one line, tab-free, at most `CRASH_CHARS`; "" if none."""
+    longrepr = getattr(report, "longrepr", None)
+    crash = getattr(longrepr, "reprcrash", None)
+    if crash is not None:
+        # Relative to the run's root: the census runs in a throwaway checkout whose absolute
+        # path would spend most of the budget and name nothing a reader can open.
+        where = str(crash.path)
+        root = os.getcwd() + os.sep
+        if where.startswith(root):
+            where = where[len(root):]
+        text = "{}:{}: {}".format(where, crash.lineno, crash.message)
+    else:
+        text = str(longrepr or "")
+    lines = text.strip().splitlines()
+    return lines[0].replace("\t", " ")[:CRASH_CHARS] if lines else ""
 
 
 def pytest_collection_modifyitems(session, config, items):
@@ -41,4 +64,7 @@ def pytest_runtest_logreport(report):
         return
     if report.when == "call" or report.outcome != "passed":
         with _OPEN(path, "a") as fh:
-            fh.write("{}\t{}\t{}\n".format(report.when, report.outcome, report.nodeid))
+            row = "{}\t{}\t{}".format(report.when, report.outcome, report.nodeid)
+            if report.outcome == "failed":
+                row += "\t" + crash_line(report)
+            fh.write(row + "\n")
