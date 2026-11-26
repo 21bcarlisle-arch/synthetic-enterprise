@@ -128,8 +128,34 @@ the ceiling at a listed dwelling, with no actual read in its tenure.
    what the probe reads. The next step is the run's own daily settlement rows for this leg: whether the
    leg's term was settled through `run_gas_term`, or its reads were made some other way (b3f3a23f6f's
    AQ rewrite is one candidate). I cannot yet say which.
+   **Taken 26 Nov: five of the six legs sit in cells the committed store does not hold, so they read
+   the climate normal.** The book's months for PROS-2017-0192g follow the normal's shape to three
+   decimals (Aug/Jul 1.041, Feb/Jul 5.958) and not the cell's (1.248, 11.61). The run printed it as
+   `population_70_30_split` with "no fabric trace". The earlier standalone probe resolved a cell only
+   because it read the WORKING-TREE store. Someone had run `tools.build_weather_world --build` at 01:24
+   on 26 Nov and left the result uncommitted: 1,091 cells against HEAD's 919. The publisher runs on
+   committed bytes. E484N0156, E514N0187, E521N0270, E320N0566 and E440N0550 (PROS-2017-0192g,
+   -2021-0396g, -2023-0104g, -2023-0169g, -2023-0234g) are new in that build and absent at HEAD.
+   SYN-2016-206g's cell E529N0173 is held, and its repeats are warm months (Jul 2019, Jun-Jul 2022,
+   Jul 2023), which is the excepted class. This is the fc3129a861 class again: the 330 accounts new
+   to the book brought premises beyond every held cell.
+   The orphaned build also pulled ERA5 wind, cloud and precipitation from Open-Meteo for 243 held
+   cells. Its held temperatures are byte-identical to HEAD's. That is a wider change that would give
+   243 premises a fabric trace, so it is not landed here. It stays in the working tree for whoever
+   owns it. What lands is fc3129a861's own remedy, `--build --limit 0`, run in a clean worktree
+   from HEAD's store: the HadUK temperature pass from the local grids, with nothing fetched.
+   **Prediction, filed before any book carries it:** on the first fresh book at or after this commit,
+   the five PROS legs stop repeating. INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR falls to 1 or
+   fewer leg breaches (SYN-2016-206g), and the book share drops below its 1% bound. If any of the
+   five still repeats, this attribution is wrong.
 5. SYN-2016-099 (8 page-overdue breaches), SYN-2016-107 (1), and the 1 closing refund outside its
    class. Each is a single account; read each one.
+   **Read 26 Nov, not fixed.** SYN-2016-099: the household's credit of 15.89 covered the 0.62 final
+   bill and 15.27 of the February bill, which left 1.30. A 0.62 payment on 16 Mar then took the page
+   to 0.68 owed. Every dunning step, and the write-off, still says 1.30: the desk's overdue sum does
+   not net that payment. SYN-2016-107: the page shows the August electricity bill (due 14 Sep)
+   unpaid until 22 Oct, and the page twin grades it fine. The raw-ledger row says nothing was overdue
+   on 16 Oct. So the raw export and the page disagree about when that bill was paid.
 
 ## Probe
 
