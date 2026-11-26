@@ -1359,3 +1359,41 @@ def test_every_leg_of_the_estimate_run_row_is_reachable():
     bare = _estimated([])
     bare["printed"] = {}
     assert _grade_one(row, bare)[0] == "NOT_IN_EXPORT"
+
+
+def test_a_month_a_deemed_account_held_on_its_1st_is_not_owed_to_the_payer():
+    """The EBSS rows read who held 00:00 on the 1st from the export's deemed accounts. Every leg
+    of the partition is taken: a void 1st (owed nothing), a 1st wholly the occupier's account's
+    (owed, its own bill carries it), a 1st the occupier's account held before the payer was named
+    (the payer is owed nothing), and a deemed period after a named one (graded as the payer's)."""
+    from datetime import date
+    book = _ebss_pair()                                    # the account opens on 1 Oct, at a move-out
+    book["EB"]["periods"] = [p for p in book["EB"]["periods"] if p["period_start"] >= "2022-10-01"]
+    by_start = {p["period_start"][:7]: p for p in book["EB"]["periods"]}
+    by_start["2022-10"].update(deemed_accounts=["owner", "occupier"], deemed_part="whole")
+    by_start["2022-11"].update(deemed_accounts=["occupier"], deemed_part="whole")
+    by_start["2022-12"].update(deemed_accounts=["occupier"], deemed_part="part")
+    by_start["2023-01"].update(deemed_accounts=["occupier"], deemed_part="part")  # named in December
+    by_start["2023-02"].update(deemed_accounts=["occupier"], deemed_part="part")  # after a named one
+    held = runner._held_by_a_deemed_account(runner.Account("EB", book["EB"]))
+    assert held == {date(2022, 10, 1), date(2022, 12, 1)}, held
+    # The two exempt months' credits withdrawn: clean, because the payer was owed neither.
+    book["EB"]["adjustments"] = [a for a in book["EB"]["adjustments"]
+                                 if a["adjustment_date"] not in ("2022-11-05", "2023-01-05")]
+    assert not runner.ev_ebss_credit(None, [runner.Account("EB", book["EB"])]).breaches
+    # The same record read without the deemed accounts: both months are short again.
+    for p in book["EB"]["periods"]:
+        p.pop("deemed_accounts", None), p.pop("deemed_part", None)
+    short = runner.ev_ebss_credit(None, [runner.Account("EB", book["EB"])]).breaches
+    assert [b["side"] for b in short] and {b["side"] for b in short} == {"below"}, short
+
+
+def test_the_raw_export_says_which_deemed_accounts_a_period_was_billed_to():
+    from company.billing.raw_account_export import derived_leaks, raw_account
+    base = {"period_start": "2023-02-01", "period_end": "2023-02-28", "commodity": "electricity"}
+    rec = {"invoices": [dict(base, billed_to="occupier", deemed_accounts=["owner", "occupier"]),
+                        dict(base, deemed_share_to="occupier"), dict(base)]}
+    periods = raw_account("X", rec)["periods"]
+    assert [(p.get("deemed_accounts"), p.get("deemed_part")) for p in periods] == [
+        (["owner", "occupier"], "whole"), (["occupier"], "part"), (None, None)]
+    assert not derived_leaks(raw_account("X", rec))

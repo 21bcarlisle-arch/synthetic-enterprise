@@ -145,6 +145,12 @@ FIELDS: dict[str, tuple[str, str]] = {
                               "the reads span consumption_kwh plus this"),
     "document_type": (EVENT, "what was sent for the period: a credit bill, or a prepayment "
                              "meter's statement"),
+    "deemed_accounts": (EVENT, "which deemed accounts the period was billed to while nobody at a "
+                               "vacated premise was named: the owner's for void days, the "
+                               "occupier's for an unnamed occupant's; absent where the named payer "
+                               "was billed the whole period"),
+    "deemed_part": (EVENT, "whether the deemed account was billed the whole period or a part of "
+                           "it, the named payer the rest; which days, not how much"),
     # contracted terms
     "unit_rate_p_per_kwh": (CONTRACTED, "on a period, the energy rate the household was charged: "
                                         "the bill's energy line over its kWh, before network and "
@@ -330,6 +336,14 @@ def raw_account(customer_id: str, record: dict) -> dict:
             "document_type": inv.get("document_type"),
             "reads": reads,
         }
+        # WHO WAS BILLED: the named payer, or a deemed account before anyone was named. A fact the
+        # supplier holds about its own bill, read by the EBSS rows: a month whose 1st a deemed
+        # account held is owed to that account, not the payer named later (guidance 5.4).
+        # Absent `deemed_accounts` on a ledger that predates it, the one account the bill names.
+        if inv.get("billed_to") or inv.get("deemed_share_to"):
+            period["deemed_accounts"] = list(inv.get("deemed_accounts")
+                                             or [inv.get("billed_to") or inv["deemed_share_to"]])
+            period["deemed_part"] = "whole" if inv.get("billed_to") else "part"
         # THE RATE THE ACCOUNT WAS SOLD AT, beside the rate the bill printed. The printed rate is
         # fitted to the printed line, so pricing with it proves the arithmetic and not the tariff;
         # these come from the term record. Absent on a ledger that predates them.

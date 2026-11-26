@@ -1032,6 +1032,13 @@ def generate(run_json_path=None, out_path=None):
                                            bill.get("account_held_from"))
         if whole_credit:
             inv["scheme_credit_month_gbp"] = round(whole_credit, 2)
+        # WHICH deemed accounts the period was billed to, not only the larger (`billed_to`,
+        # `deemed_share_to` name one): a month can open void, the owner's, and then the unnamed
+        # occupier's. The EBSS rows ask who held the 1st, and a void 1st is owed nothing (Annex C).
+        deemed = [who for who, key in (("owner", "void_owner_share"), ("occupier", "occupier_share"))
+                  if (bill.get(key) or 0.0) > 0.0]
+        if deemed:
+            inv["deemed_accounts"] = deemed
         invoices_by_cid.setdefault(cid, []).append(inv)
 
         # D3 step 2: a credit invoice (amount <= 0) has nothing to collect --

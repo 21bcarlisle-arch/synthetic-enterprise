@@ -2535,13 +2535,15 @@ invariants:
   severity:
     violation: breach
   export_fields:
+  - deemed_accounts
+  - deemed_part
   - commodity
   - segment
   - adjustments.reason
   - adjustments.amount_gbp
   - adjustments.date
   checkable: true
-  gap: 'Predicate restated 2026-10-27 from "supply on any day of month m" to "held at 00:00 on the 1st of month m", because guidance 5.4 (read in the market-research page, from the withdrawn BEIS guidance) ties eligibility to the account held at 00:00 on the qualifying date, so a joiner after the 1st is owed nothing for that month. Unestablished: Annex C vacant-property and occupier-account exceptions are only summarised on that page, and the grader has not been checked against the new wording. Graded by tools/domain_invariant_runner.ev_ebss_credit from 2026-10-27, with each credit counted once (the windows overlap). The export''s reason is scheme_credit, which in this window can only be the EBSS. A month paid by prepayment is not graded: a traditional meter''s voucher route (about 20% expired unredeemed) makes received a different question, and the export cannot tell a smart meter from a traditional one (GAP).'
+  gap: 'Predicate restated 2026-10-27 from "supply on any day of month m" to "held at 00:00 on the 1st of month m", because guidance 5.4 (read in the market-research page, from the withdrawn BEIS guidance) ties eligibility to the account held at 00:00 on the qualifying date, so a joiner after the 1st is owed nothing for that month. Unestablished: Annex C vacant-property and occupier-account exceptions are only summarised on that page, and the grader has not been checked against the new wording. Graded by tools/domain_invariant_runner.ev_ebss_credit from 2026-10-27, with each credit counted once (the windows overlap). The export''s reason is scheme_credit, which in this window can only be the EBSS. A month paid by prepayment is not graded: a traditional meter''s voucher route (about 20% expired unredeemed) makes received a different question, and the export cannot tell a smart meter from a traditional one (GAP). From 2026-11-26 a month whose 1st a deemed account held is not owed to the payer, read from the export''s deemed_accounts and deemed_part (tools/domain_invariant_runner._held_by_a_deemed_account): a void 1st is owed nothing (Annex C vacant), a 1st the unnamed occupier''s account held on a period shared with the payer is owed to that account (guidance 5.4), which the export does not post, so that account''s receipt on a shared month is ungraded (GAP).'
 - id: INV_RENEWAL_NOTICE_42_TO_49_DAYS
   family: renewal_compliance
   grades: ledger
@@ -2655,12 +2657,14 @@ invariants:
   severity:
     violation: breach
   export_fields:
+  - deemed_accounts
+  - deemed_part
   - printed invoices.scheme_credit_gbp
   - printed invoices.period_end
   - commodity
   - segment
   checkable: true
-  gap: 'Written 2026-10-28 from the knowledge page, not the code: the twin of the ledger row on the record the customer reads. Graded per bill, not per credit date, because the bill for a month is where that month''s credit is shown, by tools/domain_invariant_runner.ev_ebss_credit_on_the_bill on a book read with --printed (the published site/data/customers files); without them it reads NOT_IN_EXPORT, never clean. The page shows only what the bill printed, so the same prepayment GAP as the ledger row applies: a traditional meter''s voucher is not on the bill, and the export cannot tell smart from traditional. For direct debit the page says practice varied (some suppliers refunded the credit to the bank); this row asks only that the bill shows it, which every route the page names did except prepayment (GAP: no source fetched shows a DD bill that omitted it).'
+  gap: 'Written 2026-10-28 from the knowledge page, not the code: the twin of the ledger row on the record the customer reads. Graded per bill, not per credit date, because the bill for a month is where that month''s credit is shown, by tools/domain_invariant_runner.ev_ebss_credit_on_the_bill on a book read with --printed (the published site/data/customers files); without them it reads NOT_IN_EXPORT, never clean. The page shows only what the bill printed, so the same prepayment GAP as the ledger row applies: a traditional meter''s voucher is not on the bill, and the export cannot tell smart from traditional. For direct debit the page says practice varied (some suppliers refunded the credit to the bank); this row asks only that the bill shows it, which every route the page names did except prepayment (GAP: no source fetched shows a DD bill that omitted it). From 2026-11-26 a month whose 1st a deemed account held is not owed to the payer, read from the export''s deemed_accounts and deemed_part (tools/domain_invariant_runner._held_by_a_deemed_account): a void 1st is owed nothing (Annex C vacant), a 1st the unnamed occupier''s account held on a period shared with the payer is owed to that account (guidance 5.4), which the export does not post, so that account''s receipt on a shared month is ungraded (GAP).'
 - id: INV_OVERDUE_WITHIN_PAGE_BALANCE
   family: account_arithmetic
   grades: page
