@@ -8,7 +8,7 @@ class: standard
 severity: LATENT
 source: finding
 evidence:
-- docs/staging/SEAT_FINDING_C34_DEBT_ARMS_ARE_TIED_BY_CONSTRUCTION_BECAUSE_NO_DEBT_ACTION_REACHES_A_WORLD_THAT_ANSWERS_2026-10-10.md
+- docs/staging/done/SEAT_FINDING_C34_DEBT_ARMS_ARE_TIED_BY_CONSTRUCTION_BECAUSE_NO_DEBT_ACTION_REACHES_A_WORLD_THAT_ANSWERS_2026-10-10.md
 knowledge_gap: null
 insight: null
 decider: machine
@@ -16,12 +16,20 @@ director_rank: null
 atom: C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv
 blocked_by: []
 occurrences: 1
-state: open
+state: obsolete
 opened_at: '2026-10-10T00:00:00+00:00'
 chosen_at: null
-closed_at: null
+closed_at: '2026-11-26T17:29:45+00:00'
 chosen_by: null
 done_evidence: null
 parked: null
-obsolete: null
+obsolete: 'its one open question (route a sourced rate, or b a director-named curriculum
+  world) was answered by the director 2026-10-11T04:20Z (for_the_director row c34-s-debt-decision-cannot-be-graded,
+  status answered): merge debt next-best-action with the personal payment plan and
+  design them as one; supplier-controlled levers incl. debt-plan terms within the
+  rules are tested as results, customer-chosen levers only as sensitivities across
+  a take-up range. That work lives in the one payment-and-debt engine (E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build,
+  C9 steps 3 and 5). The finding''s fact still holds at HEAD a3b2a7a0c8 (simulation.plan_offer_response.PUBLISHED_BASIS
+  take-up, keep and instalment all None, re-printed 2026-11-26) and stays recorded
+  as the C34 level-move refusal in its simplifications yaml'
 finding_lane: C_customer_ops
