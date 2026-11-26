@@ -2613,6 +2613,16 @@ def _head_checkout():
 def _make_checkout_a_repo(checkout: Path, head_sha: str) -> bool:
     """Turn an extracted HEAD tree into a real standalone git repo at `head_sha`."""
     try:
+        # `.git/HEAD` must hold the FULL sha: an abbreviated one makes git deny the directory is
+        # a repo at all. The ledger route passes a run's 10-char `git_hash`, and on 26 Nov that
+        # refused every book as "could not be materialised" before any invariant was graded.
+        full = subprocess.run(["git", "rev-parse", "--verify", "--quiet", head_sha + "^{commit}"],
+                              cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=30)
+        if full.returncode != 0 or not full.stdout.strip():
+            log("Publish gate: {} does not name a commit here, so no checkout of it exists".format(
+                head_sha))
+            return False
+        head_sha = full.stdout.strip()
         init = subprocess.run(["git", "init", "-q"], cwd=str(checkout),
                               capture_output=True, text=True, timeout=60)
         if init.returncode != 0:

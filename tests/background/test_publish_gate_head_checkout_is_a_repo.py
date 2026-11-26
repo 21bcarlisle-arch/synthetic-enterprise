@@ -268,3 +268,33 @@ def test_a_worktrees_dot_git_is_a_file_which_is_why_the_assembled_path_was_wrong
         finally:
             subprocess.run(["git", "worktree", "remove", "--force", str(wt)],
                            cwd=str(REPO), capture_output=True, text=True, timeout=120)
+
+
+def test_an_abbreviated_commit_still_materialises_as_a_repo(tmp_path):
+    """The ledger route names the run's commit by its 10-char `git_hash`. Written raw into
+    `.git/HEAD`, an abbreviated sha makes git deny the directory is a repo, and on 26 Nov every
+    book was refused as "could not be materialised" before one invariant was graded.
+
+    Keyed to the property: whatever commit-ish names the commit, the checkout answers its full
+    sha. Reachability: the raw 10-char HEAD is shown to break git first, so this is not vacuous."""
+    full = _git(["rev-parse", "HEAD~1"], REPO).stdout.strip()
+    short = full[:10]
+
+    raw = tmp_path / "raw"
+    raw.mkdir()
+    _git(["init", "-q"], raw)
+    (raw / ".git" / "HEAD").write_text(short + "\n")
+    assert _git(["rev-parse", "HEAD"], raw).returncode != 0, \
+        "git now accepts a short sha in HEAD -- this defect is no longer reachable"
+
+    dest = tmp_path / "co"
+    dest.mkdir()
+    assert prc._materialise_head_into(dest, short)
+    inside = _git(["rev-parse", "HEAD"], dest)
+    assert inside.returncode == 0, inside.stderr
+    assert inside.stdout.strip() == full
+
+
+def test_a_name_that_is_no_commit_is_refused(tmp_path):
+    """Fail closed: a name git cannot resolve to a commit gives no checkout."""
+    assert not prc._make_checkout_a_repo(tmp_path, "0" * 12)
