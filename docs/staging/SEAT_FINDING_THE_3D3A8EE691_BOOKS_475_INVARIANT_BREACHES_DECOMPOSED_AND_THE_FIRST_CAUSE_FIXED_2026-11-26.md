@@ -86,6 +86,17 @@ the ceiling at a listed dwelling, with no actual read in its tenure.
    Re-graded on the same book with the change, the gate no longer names this row.
 2. **EBSS 10 against 7, on 8 accounts (6 OCC).** Monthly EBSS credits of 0 on OCC bills in Oct
    2022-Mar 2023. Check whether an occupier admitted mid-scheme is outside the EBSS crediting loop.
+   **Read 26 Nov on the cb93f7760c book: all 8 are the two excepted classes, and the 7 ceiling is a
+   count.** The three accounts new to the list read as follows in the run's bills.
+   OCC-c38d3a6ca700 2022-10 has occupier_share 0.90 and occupier_scheme_month_credit_gbp 66.
+   OCC-cbaae9bbd3fa 2022-10 has occupier_share 0.62 and the same 66. On both, the unnamed
+   occupier's deemed account took the 1 Oct credit and the payer was named later that month.
+   `account_held_from` is July on both, so the first-period date is not the naming date.
+   OCC-33c7f31198b0 2023-02 has occupier_share 0.84 and void_owner_share 0.16, which is a void on
+   the 1st. The fix has the EPG shape: label the class in the evaluator and key the exception to
+   it. Labelling needs the period's occupier and void shares in the raw export, which carries
+   neither today. That is the exception's own `retired_by`, and a real supplier holds its deemed
+   window. Build that next. Do not raise 7.
 3. **INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS, 44 on 17 accounts, no exception.** New in this
    book. Check whether D48's `same_period_estimate` (11a4387c6f, default off) or the BSC blend moved
    this.
