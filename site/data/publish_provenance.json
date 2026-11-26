@@ -24,8 +24,8 @@
     "run_retained": true,
     "verified_at": "2026-11-18T10:20:38Z"
   },
-  "paused_gate": "Refused by the domain-invariant check: 1 of its rules is broken and no dated exception covers it. An estimated run is judged afterwards against what the meter later showed [INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER]: broken on 9 of 4,429 checked (unit: run of estimated bills bounded by actual reads).",
-  "paused_reason": "domain-invariant breaches at git=6a588a832f that no exception covers: INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER 9 (9 breaches exceed the exception's max_breached 8)",
+  "paused_gate": "Refused by the domain-invariant check: 13 of its rules are broken and no dated exception covers them. [INV_UNIT_RATE_EPG_HOUSEHOLD]: broken on 361 of 3,337 checked (unit: domestic SVT bill period inside an EPG window (household all-in rate, ex-VAT)); [INV_PERIODS_CONTIGUOUS]: broken on 9 of 107,150 checked (unit: bill period (day count) and successive pair (contiguity)); [INV_OPENING_IS_THE_PREVIOUS_CLOSING]: broken on 1 of 56,112 checked (unit: successive pair of periods on one meter register); [INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23]: broken on 10 of 2,339 checked (unit: account-month on supply, Oct 2022 to Mar 2023); [INV_OVERDUE_WITHIN_BALANCE]: broken on 1 of 953 checked (unit: collections journey opening); [INV_EBSS_CREDIT_ON_THE_BILL]: broken on 10 of 2,339 checked (unit: bill covering a qualifying 1st, Oct 2022 to Mar 2023); and 7 more, named in docs/reports/DOMAIN_INVARIANTS.md.",
+  "paused_reason": "domain-invariant breaches at git=3d3a8ee691 that no exception covers: INV_UNIT_RATE_EPG_HOUSEHOLD 361 (361 breaches exceed the exception's max_breached 350); INV_PERIODS_CONTIGUOUS 9 (no exception); INV_OPENING_IS_THE_PREVIOUS_CLOSING 1 (no exception); INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23 10 (10 breaches exceed the exception's max_breached 7); INV_OVERDUE_WITHIN_BALANCE 1 (no exception); INV_EBS",
   "paused_since": "2026-11-23T04:24:16Z",
   "schema": 1,
   "showing_run": {
@@ -41,5 +41,5 @@
     "verified_at": "2026-11-18T10:20:38Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-11-23T04:24:16Z"
+  "written_at": "2026-11-25T23:56:16Z"
 }
