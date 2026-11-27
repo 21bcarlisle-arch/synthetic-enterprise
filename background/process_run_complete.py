@@ -6859,6 +6859,13 @@ def _level_with_origin_before_landing(attempt):
     if adv["advanced"]:
         log("Publish landing attempt {}/{}: fast-forwarded onto origin first -- {}".format(
             attempt, PUBLISH_LAND_ATTEMPTS, adv["reason"]))
+    else:
+        # The decline is logged too. On 27 Nov 01:48Z the tree was 1 ahead and 1 behind (an
+        # unpushed local commit), so the advance rightly declined, but it said nothing. The landing
+        # that followed then said only "behind origin", and the classifier recorded the refusal
+        # as unnameable. The reason it declined names the fork and the owner who closes it.
+        log("Publish landing attempt {}/{}: did NOT fast-forward onto origin -- {}".format(
+            attempt, PUBLISH_LAND_ATTEMPTS, adv["reason"]))
     return adv
 
 

@@ -40,3 +40,21 @@ def test_each_landing_attempt_is_preceded_by_the_wait_and_then_the_advance(monke
     assert events == ["wait", "advance", "land", "wait", "advance", "land"], (
         "the fast-forward must sit between the quiet-tree wait and EACH landing attempt: origin "
         "moves during the wait, and a primary checkout behind origin is refused by the door")
+
+
+def test_a_declined_advance_says_why_in_the_publisher_log(monkeypatch):
+    """A declined advance names its reason in the log, and a taken one still says it advanced.
+
+    The defect (27 Nov 01:48Z): the tree was 1 ahead and 1 behind, the advance declined silently,
+    and the landing refusal that followed read as unnameable. MUTATION: drop the `else:` log in
+    `_level_with_origin_before_landing`; the declined leg goes red.
+    """
+    lines = []
+    monkeypatch.setattr(prc, "log", lambda msg, *a, **k: lines.append(msg))
+    for advanced, reason in ((False, "this tree holds 1 commit(s) of its own"), (True, "ff ok")):
+        lines.clear()
+        monkeypatch.setattr(prc, "_advance_to_origin_or_say_why",
+                            lambda *a, _r=reason, _a=advanced, **k: {"advanced": _a, "reason": _r})
+        assert prc._level_with_origin_before_landing(1)["advanced"] is advanced
+        assert len(lines) == 1 and reason in lines[0], (advanced, lines)
+        assert ("did NOT fast-forward" in lines[0]) is (not advanced), lines
