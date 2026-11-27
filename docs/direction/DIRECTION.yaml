@@ -250,3 +250,24 @@ for_the_director:
   status: open
   resolution: ''
   evidence: docs/staging/records/SEAT_RESULT_THE_DEMAND_VECTOR_N_AT_480K_IS_STILL_RISING_15030_TO_25028_2026-11-27.md
+- id: your-20-oct-stop-rule-fired-production
+  raised: '2026-11-27'
+  kind: strategy
+  decision_kind: curriculum
+  what: 'Your 20 Oct stop rule fired: production''s run passed the 6,008 MB memory allowance (6,055-6,524
+    MB, 24-27 Nov), so the book is back at 400 supply points with a 5,000 customer-year budget, as the
+    ruling said'
+  proposal: 'Close the gap before going back to 400 households. First attribute the ~300-500 MB the run
+    has gained since the 25 Oct curve, with one re-measured curve point at origin, and bisect if one commit
+    carries the step. Then build whichever of your two named fixes the attribution points at: streaming
+    the settlement output (R8) or indexing once (R6). Go back to households only when a re-measured 7,700
+    point sits outside the 5% line.'
+  recommendation: I recommend keeping the revert until the memory growth is attributed and fixed, and
+    not raising the 0.25 share or the budget to make it fit.
+  based_on: d2a4696440
+  status: open
+  resolution: ''
+  evidence: 'sim-runner journal: largest process 5,750.2 MB on 20 Nov, then 5,920-6,058 MB on seven runs
+    and 6,260 / 6,524 MB on two, with 693-874 MB in swap. On the 25 Oct curve these price 7,183-7,658
+    cy against 7,700. Ruling: docs/staging/advisor/done/DIRECTOR_RULING_FOUNDER_HOUSEHOLDS_WITH_BUDGET_RAISED_2026-10-20.md
+    step 3.'

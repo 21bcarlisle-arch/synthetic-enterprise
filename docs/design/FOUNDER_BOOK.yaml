@@ -95,4 +95,7 @@ max_founder_accounts: 500
 #: but 400 households is 689 supply points at the run's seed, and their committed years exhaust
 #: the 5,000 settlement budget alone, so the switch waits on his answer to the for_the_director
 #: row `your-400-household-founder-ruling-fits-in`. Switching is this one word.
-founder_unit: households
+#: Switched to households 20 Oct (his ruling, budget 7,700). Switched BACK 27 Nov by that ruling's
+#: own caveat: production's largest process passed the 6,008 MB allowance (6,055-6,524 MB, 24-27
+#: Nov). See the note on `SETTLEMENT_CUSTOMER_YEAR_BUDGET`. Reverse: this word and that constant.
+founder_unit: supply_points

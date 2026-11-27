@@ -71,15 +71,15 @@ ROUTES = ("founders", "trickle", "campaign")
 #: this, so fixing one forces its removal and a new one cannot appear unseen. The founders' route is
 #: the gate and has no entry. The trickle is about 30 homes over the eight seeds, so a trickle verdict
 #: is a coarse check, not a precise one.
-KNOWN_ROUTE_GAPS: dict = {
-    ("campaign", "gas_home_share"):
-        "docs/staging/WORKER_FINDING_THE_CAMPAIGN_ROUTES_GAS_SHARE_SITS_ON_THE_BANDS_EDGE_AND_THE_"
-        "CHECK_HAS_NO_SAMPLING_ALLOWANCE_2026-11-13.md -- a real selection, not noise: 81.25% of "
-        "1,504 homes on these seeds, 79.8% of 4,354 over 24 seeds, against the founders' 84.9%; "
-        "off-gas homes switch at about half the rate (Ofgem CES 2017: 10% vs 18%), and the entry "
-        "weight never reads the meter, so the campaign's tilt toward them is a world defect "
-        "(docs/market_research/do_homes_without_gas_switch_less_2026-11-15.md)",
-}
+#: EMPTY SINCE 2026-11-27, NOT FIXED. ("campaign", "gas_home_share") was listed here
+#: (docs/staging/WORKER_FINDING_THE_CAMPAIGN_ROUTES_GAS_SHARE_SITS_ON_THE_BANDS_EDGE_AND_THE_CHECK_HAS_NO_SAMPLING_ALLOWANCE_2026-11-13.md:
+#: 79.8% over 24 seeds against the 81.5% floor, because the entry weight never reads the meter and
+#: off-gas homes switch at about half the rate). When production went back to 400 supply points at
+#: a 5,000 budget, the campaign route read 82.5% on SEEDS and 81.7% on the 24 CONFIRMING_SEEDS.
+#: That is inside the band by 0.2 points, so `fixed_known_gaps` requires the entry to leave. The
+#: selection defect is still in the world (docs/market_research/do_homes_without_gas_switch_less_2026-11-15.md).
+#: Expect it to red here as a new gap when founders return to households.
+KNOWN_ROUTE_GAPS: dict = {}
 
 
 def route_gaps(route: str, results: list[dict]) -> set:

@@ -89,11 +89,14 @@ def test_each_other_route_into_the_book_fails_only_its_named_gaps(route):
     assert not wc.fixed_known_gaps(route, results), "listed as a gap but holds on both samples"
 
 
-def test_a_listed_gap_that_holds_on_both_samples_is_called_fixed():
-    """Assert the 'fixed' branch CAN be taken: with the band widened to [0, 1] the campaign's
-    listed gap holds on the eight seeds and on the wider sample, and is reported. A confirmation
-    that never re-read, or never returned, would let every listed gap stay listed forever."""
-    (route, cid), = [k for k in wc.KNOWN_ROUTE_GAPS if k[0] == "campaign"]
+def test_a_listed_gap_that_holds_on_both_samples_is_called_fixed(monkeypatch):
+    """Assert the 'fixed' branch CAN be taken: with the band widened to [0, 1] a listed campaign
+    gap holds on the eight seeds and on the wider sample, and is reported. A confirmation that
+    never re-read, or never returned, would let every listed gap stay listed forever. The gap is
+    listed HERE, not read off today's register, so the branch stays proven when the register is
+    empty (it is since 2026-11-27)."""
+    route, cid = "campaign", "gas_home_share"
+    monkeypatch.setattr(wc, "KNOWN_ROUTE_GAPS", {(route, cid): "listed by this test"})
     rows = [{**c, "band": [0.0, 1.0]} for c in wc.claims() if c["id"] == cid]
     seeds = wc.SEEDS[:2]
     results = wc.check(wc.drawn_book(seeds=seeds, route=route), rows)

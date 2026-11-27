@@ -1,5 +1,9 @@
 """NET-NEW ACQUISITION — the book grows because the company won it, or it does not grow.
 
+Knowledge: GAP -- no page says how many GB homes a small supplier can reach in a year, so
+PROSPECTS_PER_YEAR is a stated ceiling, not a measurement. The funnel's costs:
+docs/market_research/B2_CATEGORY6_CAC_ANCHORS.md
+
 Atom `PB3_book_growth_as_earned_outcome`. Source ruling:
 `docs/staging/in_progress/DIRECTOR_RULING_POPULATION_AND_BOOK_GROWTH_2026-08-11.md`
 clause 3, verbatim:
@@ -993,7 +997,16 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #: curve supports 7,924.7; production's own peak, now placed at its own x, prices 8,112.6. The
 #: probe-plus-parent figure (5,782.9 MB) sits inside the 5% band; production's peaks, which are
 #: what his caveat watches, sit 413 MB under 6,008 and outside it.
-SETTLEMENT_CUSTOMER_YEAR_BUDGET = 7700.0
+#: BACK TO 5,000 ON 2026-11-27, BY HIS OWN STOP RULE. The 20 Oct ruling's caveat: "If a run comes
+#: within 5% of the allowance, or the reaper fires, go back to 400 supply points for production.
+#: Then bring a proposal that closes the gap (streaming per R8, or index-once per R6). Do not trim
+#: headroom elsewhere to make room." Production's largest process ran 5,750.2 MB on 20 Nov, then
+#: 5,920.3-6,057.8 MB on seven runs 24-27 Nov and 6,260.2 / 6,523.8 on two: OVER 6,008, not
+#: within 5% of it, with 693-874 MB of the service in swap. Placed on the 25 Oct curve the typical
+#: 6,050 prices 7,658 and the 6,523.8 prices 7,183, both under 7,700. `founder_unit` goes back to
+#: `supply_points` with this, so the pair is the 9 Oct shape (400 records, ~3,790 founder cy).
+#: Cause of the ~300-500 MB growth since 25 Oct is NOT attributed. Reverse: both lines, together.
+SETTLEMENT_CUSTOMER_YEAR_BUDGET = 5000.0
 
 
 def _customer_years(win_date: dt.date, horizon_end: dt.date) -> float:
