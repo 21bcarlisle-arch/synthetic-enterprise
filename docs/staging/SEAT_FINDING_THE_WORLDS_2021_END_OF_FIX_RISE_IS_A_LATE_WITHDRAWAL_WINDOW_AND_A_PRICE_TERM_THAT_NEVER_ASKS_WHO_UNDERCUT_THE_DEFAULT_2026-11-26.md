@@ -48,3 +48,21 @@ entirely, which is what the record says happened.
 The rankq re-grade waits on fix 0's capture → refit, not on this page. §5 of the K8 page holds either way: a lower
 leave rate in 2021 Q4 makes an offer worth less there, so the conclusion that offering less makes more money gets
 stronger.
+
+## The fix-0 capture: launched, first attempt died at import (2026-11-27)
+
+Lane 0 item `launch-the-fix-0-capture-so-the-refit-continuation-releases`. Worktree
+`/var/tmp/se-fix0-capture-wt`, detached at `f0012484a2` (origin/main, which descends from the window
+landing `daf6029e9c` in `/var/tmp/se-fix0-window-landed.sha`).
+
+- **r1 died before the world started.** Unit `longjob-fix0-departure-capture`, log
+  `/var/tmp/se-fix0-capture/capture-r1-import-failure.log`: `ModuleNotFoundError: No module named 'tools'`
+  at `tools/capture_departure_factors.py:124`. Running the script by path puts `tools/` on `sys.path`, not
+  the repo root. The code was fine. The handed-on command line had no import root, and the queued refit row
+  still carries that command.
+- **r2 is running.** Unit `longjob-fix0-departure-capture-r2`, with `--setenv PYTHONPATH=/var/tmp/se-fix0-capture-wt`,
+  declared at 4,000 MB peak and 45 min. Earlier runs of this tool took about 25 min. It got past the imports
+  into market loading. Log: `/var/tmp/se-fix0-capture/capture.log`. Artefact:
+  `/var/tmp/se-fix0-capture/departure_factors_fix0.json`.
+- **The refit row was drawable too early.** Its hold was on the window sha file, which already existed, so it
+  could have launched a second capture beside r2. It has been replaced by a row held on the capture artefact.
