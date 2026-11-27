@@ -233,3 +233,20 @@ for_the_director:
   resolution: ''
   evidence: docs/staging/done/WORLD_FREEZE_DD_SHOCK_SAVE_AND_MOVER_AT_THEIR_RANGE_ENDS_2026-10-12.md s1;
     docs/staging/records/SEAT_PREREG_DD4B_AT_THE_IN_LOOP_REVIEW_LOW_AND_HIGH_2026-10-12.md
+- id: the-demand-vector-n-does-not-converge
+  raised: '2026-11-27'
+  kind: strategy
+  decision_kind: measurement
+  what: 'The demand-vector N does not converge: graded against its prereg, 480k gives 15,030-25,028 (median
+    rung 19,500), so the 240k ''slowed'' reading is withdrawn and the requirement grows about as reference^0.33.
+    You parked W2_29 on 14 Oct: grade 480k, then decide whether a larger N is needed.'
+  proposal: 'Launch no larger rung. If the N study resumes, its next cell is one-variable: a 240k reference
+    SUBSAMPLED from the 480k population, same five seeds (~5 h per seed, two units). It tells a fresh-generation
+    draw apart from a real growth with P, which a larger rung cannot.'
+  recommendation: 'I recommend keeping W2_29 parked and spending nothing more on N now: the vector is
+    still blind to both shape components, so any N measured today is on a vector that will change when
+    (a) and (b) land. I recommend running the subsample cell only once the shape axes exist.'
+  based_on: 1c14ccff96
+  status: open
+  resolution: ''
+  evidence: docs/staging/records/SEAT_RESULT_THE_DEMAND_VECTOR_N_AT_480K_IS_STILL_RISING_15030_TO_25028_2026-11-27.md
