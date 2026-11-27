@@ -276,21 +276,26 @@ def _tou_terms(account_terms, bills):
     flags `time_of_use` where it settled that term on the pair. Read from `term_of_bill` alone, the
     SVT stub kept only its flat rate and the contract bound's ceiling sat under the Day rate it was
     charged at (PROS-2016-0253 Sep 2017: 812.7 kWh at 17.51p against a 14.76p ceiling).
+
+    The rate-line read does not wait on registers: a bill whose legs differ (a flat SVT stub, then
+    a fixed term settled on the pair) prints none, because its bands hold only part of its kWh, so
+    the pair leg kept its flat rate and read DISAGREED (PROS-2023-0135 Jun 2025, 601887d76a book).
+    With no registers to say Day/Night it takes the ToU split, unless another bill names E7.
     """
     out = {}
     for b in bills:
-        if b.get("registers"):
-            term = term_of_bill(account_terms, b)
-            starts = [term["term_start"]] if term is not None else []
-            starts += [line["term_start"] for line in b.get("rate_lines") or ()
-                       if line.get("time_of_use") and line.get("term_start") is not None]
-            e7 = any(r.get("label") in ECONOMY_7_LABELS for r in b["registers"])
-            for start in starts:
-                key = (b["customer_id"], start)
-                if e7:
-                    out[key] = split_flat_rate_to_economy_7
-                else:
-                    out.setdefault(key, split_flat_rate_to_tou)
+        registers = b.get("registers") or ()
+        term = term_of_bill(account_terms, b) if registers else None
+        starts = [term["term_start"]] if term is not None else []
+        starts += [line["term_start"] for line in b.get("rate_lines") or ()
+                   if line.get("time_of_use") and line.get("term_start") is not None]
+        e7 = any(r.get("label") in ECONOMY_7_LABELS for r in registers)
+        for start in starts:
+            key = (b["customer_id"], start)
+            if e7:
+                out[key] = split_flat_rate_to_economy_7
+            else:
+                out.setdefault(key, split_flat_rate_to_tou)
     return out
 
 

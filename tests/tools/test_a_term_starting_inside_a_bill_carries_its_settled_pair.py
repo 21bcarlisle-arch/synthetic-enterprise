@@ -29,3 +29,23 @@ def test_a_term_that_starts_inside_a_bill_carries_the_pair_its_rate_line_was_set
     flat = dict(crossing, rate_lines=[lines[0], dict(lines[1], time_of_use=False)])
     out = _contracted_terms(terms, flat, _tou_terms(terms, [flat]))
     assert out[0]["tou_unit_rates"] and out[1]["tou_unit_rates"] is None
+
+
+def test_a_crossing_bill_that_prints_no_registers_still_carries_its_pair_legs_pair():
+    """A flat SVT stub then a fixed term settled on the pair: the bands hold only part of the kWh,
+    so the bill withholds its registers. The fixed leg must still carry its pair, or it is checked
+    at its flat rate and reads DISAGREED (PROS-2023-0135 Jun 2025, 601887d76a book).
+    MUTATION: gate the rate-line read on `registers` again and the fixed term's pair is None."""
+    from tools.generate_billing_ledger import _contracted_terms, _tou_terms
+
+    terms = {"A": [{"term_start": "2025-04-01", "term_end": "2025-06-05", "tariff_type": "svt",
+                    "unit_rate_gbp_per_mwh": 249.49},
+                   {"term_start": "2025-06-05", "term_end": "2025-06-08", "tariff_type": "fixed",
+                    "unit_rate_gbp_per_mwh": 196.518}]}
+    lines = [{"term_start": "2025-04-01", "time_of_use": False},
+             {"term_start": "2025-06-05", "time_of_use": True}]
+    crossing = {"customer_id": "A", "period_start": "2025-06-01", "period_end": "2025-06-07",
+                "registers": None, "rate_lines": lines}
+    out = _contracted_terms(terms, crossing, _tou_terms(terms, [crossing]))
+    assert out[0]["tou_unit_rates"] is None
+    assert [b["register_label"] for b in out[1]["tou_unit_rates"]] == ["Peak", "Off-peak"]
