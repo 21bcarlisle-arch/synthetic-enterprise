@@ -1,5 +1,8 @@
 """Phase 2b — Gas Dual Fuel.
 
+Knowledge: docs/market_research/a_gas_meter_points_aq_is_made_from_its_own_reads.md (the gas leg's
+AQ). This is the run loop; each model it wires cites its own page.
+
 Adds gas supply to C1-C4 resi customers (dual fuel). Runs 2016-2025 with:
   - Electricity-only: C5, C6 (SME, PC3)
   - Dual fuel: C1-C4 (electricity PC1) + C1g-C4g (gas, daily, flat AQ/365)

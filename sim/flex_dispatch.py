@@ -1,6 +1,9 @@
 """W1_9_dsr_flex_markets (L1) -- the SIM-SIDE ground truth of the DSR /
 flexibility coupled triad, layered on the W1_6 physics price signal.
 
+Knowledge: docs/market_research/neso_dfs_called_day_response_2026-09-07.md (how a called flex day
+responds).
+
 WHAT THIS IS (L1, per docs/design/frame/W1_9_dsr_flex_markets_FRAME.md §3).
 A real flex market pays a party to shed/shift demand when the SYSTEM is
 tight. The SIM holds the TRUE system need: residual demand (load thermal

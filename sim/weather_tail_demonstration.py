@@ -1,5 +1,7 @@
 """W1_3 "SHOW THE TAIL" — the joint cold-and-still (Dunkelflaute) demonstration.
 
+Knowledge: docs/market_research/cold_snaps_arrive_in_blocks_and_britain_has_no_second_weather.md
+
 DIRECTOR DoD (WEATHER_PHYSICS_HIERARCHY.md, atom W1_3): "temporal autocorrelation
 present; the joint cold-still tail demonstrated (SHOW the tail); winter-tail
 report compared to a real GB worst week (if our worst week is milder than

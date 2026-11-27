@@ -1,5 +1,7 @@
 """LIVE POPULATION SEAM — the single accessor a run uses to obtain its book.
 
+Knowledge: docs/market_research/POPULATION_COVERAGE_SOURCE_LANDSCAPE.md
+
 This is the reversible half of the generator draw-wiring (PLANNER-MINTED
 `generator_draw_wiring`, PRODUCT-FIRST item 2, section D). It exists so that
 the eventual director-authorised activation is a one-flag flip against a

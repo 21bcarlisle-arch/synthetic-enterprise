@@ -1,5 +1,7 @@
 """Customer lifecycle event log — Phase 6b / Phase 7e.
 
+Knowledge: docs/market_research/switching_mechanics_2026-10-25.md
+
 Provides `roll_lifecycle_event()`, called by `run_phase2b.main()` at each
 billing-account renewal point (electricity legs only; gas legs share the
 household decision — see `simulation.household.household_of`, which is the

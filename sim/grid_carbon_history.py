@@ -1,5 +1,7 @@
 """Historical half-hourly GB grid carbon intensity, 2016-2025, keyed by settlement period.
 
+Knowledge: docs/market_research/g14_grid_carbon_history_and_weather_fitted_future_2026-10-05.md
+
 REUSE: sim/grid_carbon_history.py
 CLASS: CUSTOM
 INDEX: `sim/neso_carbon_intensity.py` publishes NESO's series and the settlement key, and is

@@ -1,5 +1,7 @@
 """Profile Class 3 (non-domestic unrestricted) half-hourly consumption shape.
 
+Knowledge: docs/market_research/ons_consumption_profiles.md (the Profile Class 3-8 shape).
+
 Historical Ground Truth law: the shape values in sim/data/profile_class_3_gad.csv
 are real published Group Average Demand (GAD, kW) figures for PC3 customers —
 sourced from the UKERC Energy Data Centre archive ("Electricity user load

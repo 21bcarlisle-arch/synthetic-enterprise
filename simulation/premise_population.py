@@ -1,5 +1,7 @@
 """Stock-representative premise population — the draw that replaces a chosen panel.
 
+Knowledge: docs/market_research/epc_certificate_staleness_and_coverage_by_tenure_2026-11-18.md
+
 Atom: `C14_thermal_parameter_inference` (the population half of its L2->L3 step),
 consumed by `tools/couple_fabric.py`. World-side (`simulation/`): this is BASELINE
 fidelity and is fixed blind to company P&L (R13).
