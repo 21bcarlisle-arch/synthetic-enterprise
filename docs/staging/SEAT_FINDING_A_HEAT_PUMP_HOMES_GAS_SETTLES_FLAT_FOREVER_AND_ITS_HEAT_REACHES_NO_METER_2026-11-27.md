@@ -102,3 +102,18 @@ Graded on the first published book built with that fix and with no other world c
 
 Do not narrow the exception before P1-P2 are graded. Do not raise `max_breached` above 4 to absorb P3:
 a P3 breach is defect 1, and it is filed here.
+
+## Fix built (2026-11-27): the gas leg's events alias its primary's
+
+`HouseholdDemandRegister.__init__` now draws once per home: a leg whose Household is its primary's
+object takes the primary's event list (the same object), and a primary keeps its own seed, so no
+electricity point's life changes. An orphaned leg keeps its own draw. Control:
+`tests/simulation/test_one_home_draws_one_life_across_its_two_fuels.py` (the pre-fix per-id loop reds it,
+starting C2g, C3g, C4g, SYN-2016-001g).
+
+Census at the fix (register at seed 42, `CUSTOMERS` + `live_drawn_households()`): 470 gas legs read
+from this roster (the census above counted 503; the difference was not chased). 0 have a heat pump on
+one fuel only, against 19 before. 6 have it on both: PROS-2017-0396g, PROS-2018-0169g, PROS-2024-0345g,
+SYN-2016-012g, SYN-2016-153g, SYN-2016-457g. Gas multiplier at 2022-06-01: PROS-2019-0208g 0.75 and
+PROS-2021-0396g 1.0 (the 0.12 is gone); PROS-2017-0396g 0.12 (P3's direction). P1-P4 are not graded:
+that needs the first published book built with this fix.

@@ -25,7 +25,8 @@ multipliers directly -- it observes consequences via billing records.
 from __future__ import annotations
 
 import hashlib
-from simulation.household import Household, build_household_register
+
+from simulation.household import Household, build_household_register, household_of
 from simulation.life_events import generate_life_events
 from simulation.life_events import household_at_date as _household_at_date
 
@@ -87,11 +88,24 @@ class HouseholdDemandRegister:
         # (`relocate`). Empty unless the move-with-us lever supplies one, so every lookup below
         # is the original one otherwise.
         self._relocated: dict[str, list[tuple[str, Household]]] = {}
+        # ONE HOME, ONE LIFE. `build_household_register` aliases a gas leg to its primary's
+        # Household; the event stream must follow the same alias, or the gas leg draws its own
+        # babies, job losses and heat pump against the shared dwelling (PROS-2019-0208g installed a
+        # heat pump its electricity never did: gas at the 0.12 residual, no ASHP uplift anywhere).
+        # Primaries draw first, under their own seed as before; an orphaned leg (its own Household)
+        # keeps its own draw.
+        legs: list[str] = []
         for cid, hh in self._households.items():
+            primary = household_of(cid)
+            if primary != cid and self._households.get(primary) is hh:
+                legs.append(cid)
+                continue
             cid_seed = seed ^ (_cid_hash(cid) & 0xFFFF)
             self._events[cid] = generate_life_events(
                 hh, SIM_START_YEAR, SIM_END_YEAR, seed=cid_seed
             )
+        for cid in legs:
+            self._events[cid] = self._events[household_of(cid)]
 
     def household_at_date(self, customer_id: str, date_str: str):
         for moved_on, at_new_home in reversed(self._relocated.get(customer_id, ())):
