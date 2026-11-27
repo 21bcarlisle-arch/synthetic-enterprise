@@ -53,8 +53,10 @@ MOST_HIGHLIGHTS = 8
 # A headline longer than this is a run-on list of findings, not a line a newcomer reads.
 LONGEST_HEADLINE = 90
 
-# A refusing gate in a hook is a line that runs a check and stops the commit when it fails.
-_GATE_LINE = re.compile(r"^\s*python3\s+\S.*\|\|\s*(exit 1|\{)")
+# A refusing gate in a hook is a line that runs a check and stops the commit when it fails. Keyed to
+# the refusal, not to how the line starts: d37549a78 added `git show HEAD:... | python3 - || exit 1`,
+# which a `^python3` pattern missed, so the page under-counted the chain by one.
+_GATE_LINE = re.compile(r"^\s*[^#\s].*\|\|\s*(exit 1|\{)")
 _ENTRY = re.compile(r"^## (\d{4}-\d{2}-\d{2}) — (.+)$")
 _PLAIN = re.compile(r"^\*\*In plain English:\*\*\s*(.+)$")
 

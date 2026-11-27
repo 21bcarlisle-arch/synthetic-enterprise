@@ -271,3 +271,25 @@ for_the_director:
   evidence: 'sim-runner journal: largest process 5,750.2 MB on 20 Nov, then 5,920-6,058 MB on seven runs and 6,260
     / 6,524 MB on two, with 693-874 MB in swap. On the 25 Oct curve these price 7,183-7,658 cy against 7,700. Ruling:
     docs/staging/advisor/done/DIRECTOR_RULING_FOUNDER_HOUSEHOLDS_WITH_BUDGET_RAISED_2026-10-20.md step 3.'
+resume_after_pause:
+  written_at: '2026-11-27T14:35:00+00:00'
+  resume_at: '2026-11-30T03:00:00+00:00'
+  why: 'Director, chat 27 Nov 14:24 GMT: "80%, am doing some other research, so let''s pause for the
+    reset if this week, once at a decent point. Make sure we can pick straight back up." Tick mode is
+    off until 2026-11-30T03:00Z and reverts to normal by itself; docs/observability/.usage_pause.json
+    holds the same window for the supervisor and the dead-man''s switch, and lapses at the same time.'
+  in_flight: 'Long jobs left to finish on machine time, grading waits for Monday: longjob-s2-gasq-off-rerun-5e075efa94-queued,
+    longjob-s3-losses-arm-76f894811d, longjob-memgrowth-7700-origin-9176b1c0b3, longjob-anchor7-capture-queued,
+    census-requeue-behind-five. A seat claim on a-quoted-first-term-bills-at-its-quote is held with no
+    paths recorded: its premise is the S2 re-grade at d1fd3ce994 (G1 MISSED, a quoted first term billed
+    0.2-2.8% above its quote by the renewal chain). Re-read the tree for its hunks before resuming it.
+    The worker tick drew worker-finding-a-blind-reading-reviewer-found-three-defects-live-at-head and
+    started nothing on it.'
+  first_draws: 'In order: (1) the s.12g fidelity check by the four regimes, then the re-grade pre-registered
+    on regimes 1-2 (ruling of 26 Nov, docs/staging/advisor/done/DIRECTOR_RULING_FIDELITY_CHECK_THEN_THE_REGRADE_AND_WATCH_THE_CRISIS_YEARS_2026-11-26.md);
+    (2) the knowledge-first gas page (K8), before any gas build; (3) the next book. The weekly balance
+    review for the week of 30 Nov is owed and is the first act after the reset, from Monday''s state.'
+  needs_a_human: 'Nothing blocks the restart. The four open for_the_director rows stay open; the advisor
+    has put them to him and answers arrive through the advisor channel. Residual spend during the pause:
+    background.naive_organ''s daemon does not read tick mode or the pause file and can fire a silence
+    probe (a few a week at most).'
