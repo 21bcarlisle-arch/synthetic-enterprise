@@ -98,3 +98,44 @@ The remainder (re-capture, P1-P3 grade, 2021 refit with the signal file) is carr
 already in flight at re-draw (launched 03:57Z, artefact
 `/var/tmp/se-reask-capture/departure_factors_one_decision.json`); it was not launched a second time. The claim is
 released.
+
+## The re-capture at aa620cb77, graded (2026-11-27, `departure_factors_one_decision.json`)
+
+- **P1: HELD.** 0 duplicate (customer_id, event_date) pairs in 246 renewal rows.
+- **P2: HELD.** 35 rows carry a non-empty `reasked_at`.
+- **P3: HELD.** `account_denominator_refusal` returns `None`: no account departs more than once. The
+  re-ask diagnosis stands, and the dual-fuel hypothesis stays dead.
+- **P4: the fitter refuses, on a new named ground, and no anchor is landed.**
+  `YEAR_LEVEL_ANCHOR[2021]` is unchanged, and `/var/tmp/se-fix0-anchor-refit-landed.sha` is not written.
+  Clearing the account refusal let the whole-book fit reach `svt_composition_refusal` for the first time
+  on this book. It refused: *"112 of 9131 SVT rows are reproduced by NEITHER composition (e.g.
+  SYN-2016-266 on 2016-06-08: recorded 0.010783)"*. The renewal-only fallback then refused on its own
+  ground, as the probe had: the renewal route carries 30% of departures.
+
+**What the 112 are.** The world is self-consistent. On every row, `realized_churn_probability` equals
+`sim_svt_inertia × sim_action_propensity`. It is the fitter's recomputed hazard that differs. All 112 are an
+account's **last** SVT segment (112 accounts, 109 stayed and 3 churned). In each, the recorded
+`sim_svt_inertia` inverts to the full cap period (92 days in most cases), while `sim_segment_days` records
+fewer days. Example: `SYN-2016-422` is billed 2016-10-01→2016-12-11 (71 days, the log's term 1), but its
+hazard was rolled over the period to 2017-01-01.
+
+**The cause is a world defect, not a fitter defect.** `run_phase2b` clips `term_end_str` for a move-out, a
+riding leg's departure or an erroneous gain returned. It then called `inertia_hazard_for_term(term, …)`,
+which read the unclipped `term["term_end"]`. So the world rolled SVT drift over days it no longer supplied
+the account. That overstates SVT departures. The overstatement is small, but it falls on exactly the accounts
+that were leaving anyway. The fix is decided on fidelity grounds, blind to company results: exposure is days
+supplied. `inertia_hazard_for_term` takes `supplied_until`, and the run loop passes `term_end_str`. Test:
+`test_a_segment_cut_short_carries_the_hazard_of_the_days_supplied_not_the_cap_period`. I mutated it by
+ignoring `supplied_until`, and it fired.
+
+## Pre-registration for the re-capture at the supplied-days fix (written BEFORE it runs)
+
+- **P5.** `svt_composition_refusal` returns `None`: 0 rows are reproduced by neither composition.
+- **P6.** SVT-segment departures fall by 0–3 from 251. Only the 3 churned last segments can move, and only
+  when their roll exceeds the shorter hazard. A rise would mean the fix touched something other than
+  clipped segments.
+- **P7.** P1–P3 still hold: 0 duplicates, 25–45 rows re-asked, and no account departing twice.
+- **P8.** No prediction on the anchor's value, and no prediction on whether the whole-book fit then emits.
+  If it refuses again, that refusal gets recorded. It is not worked around.
+
+The capture worktree `/var/tmp/se-reask-capture-wt` had already been removed when this grade ran: not a worktree and not on disk.

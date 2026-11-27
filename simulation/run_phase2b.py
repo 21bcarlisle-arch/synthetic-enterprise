@@ -4122,6 +4122,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             _svt_hazard = inertia_hazard_for_term(
                 term, stint_start=_stint_start,
                 engagement_level=engagement_level_for_customer(billing_account).value,
+                # `term_end_str` is the day supply really ends, after every cut above; `term`'s own
+                # end is the cap period's. Exposure is the days supplied, the same `_segment_days`
+                # this decision records.
+                supplied_until=term_end_str,
             )
             # The SAME action-propensity modulator every other risk carries. Income stress and
             # tenure gate whether a household acts at all, and drifting off a default tariff is

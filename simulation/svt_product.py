@@ -208,7 +208,8 @@ def _next_cap_period_start(day: date) -> date:
 
 
 def inertia_hazard_for_term(
-    term: dict, *, stint_start: str | None, engagement_level: str
+    term: dict, *, stint_start: str | None, engagement_level: str,
+    supplied_until: str | None = None,
 ) -> float:
     """The inertia hazard this term carries, and **0.0 for anything that is not an SVT segment**.
 
@@ -232,11 +233,22 @@ def inertia_hazard_for_term(
     engagement_level_for_customer(...).value`), the same one its renewal decisions read. Required:
     the drift has a sourced engagement gradient (`departure_risks.SVT_INERTIA_DISENGAGED_RATIO`), and
     a caller that does not know the household cannot be handed the engaged rate by default.
+
+    `supplied_until` is the exclusive day supply of this segment actually ended, when the run loop
+    has cut it short of `term["term_end"]` (a move-out, the household's departure on its other
+    leg, an erroneous gain returned). The hazard is exposure over days SUPPLIED: rolling a full
+    cap period's drift over days the account had already gone put 112 of 9,131 SVT rows in the
+    2026-11-27 capture on a hazard the recorded segment does not reproduce
+    (`tools/fit_year_level_anchor.svt_composition_refusal`, which is the control that catches a
+    caller forgetting to pass it).
     """
     if (term.get("tariff_type") or "") != SVT_TARIFF_TYPE:
         return 0.0
     segment_start = date.fromisoformat(term["acquisition_date"])
-    segment_days = (date.fromisoformat(term["term_end"]) - segment_start).days
+    segment_end = date.fromisoformat(term["term_end"][:10])
+    if supplied_until is not None:
+        segment_end = min(segment_end, date.fromisoformat(supplied_until[:10]))
+    segment_days = (segment_end - segment_start).days
     stint = date.fromisoformat(stint_start) if stint_start else segment_start
     # THE MARKET YEAR IS THE SEGMENT'S OWN YEAR, taken from the day the cap period STARTS rather
     # than the day it ends. A segment straddling a year boundary was lived under the switching

@@ -297,3 +297,26 @@ def test_the_inertia_hazard_recomposes_to_the_published_annual_rate():
     assert naive > 3 * annual, (
         "the naive substitution is meant to be a large, obvious error; if it is not, this "
         "control is not worth its line count")
+
+
+def test_a_segment_cut_short_carries_the_hazard_of_the_days_supplied_not_the_cap_period():
+    """Defect: the run loop clips `term_end_str` (move-out, the other leg's departure) but the
+    inertia hazard read `term["term_end"]`, so a household that left on day 71 of a 92-day cap
+    period was rolled 92 days of drift (2026-11-27 capture: 112 of 9,131 SVT rows, every one an
+    account's LAST segment). Both legs: the cut must lower the hazard, and a cut at or past the
+    period's end must change nothing -- a hazard that ignored `supplied_until` passes the second
+    and fails the first, and one that always shortened passes the first and fails the second."""
+    segment = {
+        "customer_id": "C1", "acquisition_date": "2016-10-01", "term_end": "2017-01-01",
+        "tariff_type": SVT_TARIFF_TYPE,
+    }
+    full = inertia_hazard_for_term(segment, stint_start="2016-10-01", engagement_level="active")
+    cut = inertia_hazard_for_term(segment, stint_start="2016-10-01", engagement_level="active",
+                                  supplied_until="2016-12-11")
+    as_if_71_days = inertia_hazard_for_term(
+        {**segment, "term_end": "2016-12-11"}, stint_start="2016-10-01", engagement_level="active")
+    assert 0.0 < cut < full, f"the cut segment carried {cut:.6f} against the full period's {full:.6f}"
+    assert cut == pytest.approx(as_if_71_days, abs=1e-12)
+    assert inertia_hazard_for_term(segment, stint_start="2016-10-01", engagement_level="active",
+                                   supplied_until="2017-03-01") == pytest.approx(full, abs=1e-12), (
+        "a supply end AFTER the cap period's end is not more exposure: the next segment rolls it")
