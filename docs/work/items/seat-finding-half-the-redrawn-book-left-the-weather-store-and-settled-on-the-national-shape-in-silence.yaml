@@ -23,11 +23,10 @@ closed_at: null
 chosen_by: null
 done_evidence: null
 parked:
-  reason: 6d7b997666 landed the orphaned 01:24Z ERA5 pull (922 of 1,091 cells complete,
-    additive to HEAD value for value); 73 domestic premises / 76 book cells are still
-    off the store, and the rest is the ERA5 pull's next passes after Open-Meteo's
-    daily quota resets at UTC midnight. The strict xfail in test_every_settling_domestic_premise_reads_a_complete_stored_cell.py
-    stays until it reads zero
-  revisit: '2026-11-27'
+  reason: 81010590b5 landed an unlanded 27 Nov 01:26Z ERA5 pull (922 -> 986 of 1,091
+    cells, additive value for value); 12 domestic premises / 12 book cells are still
+    off the store, and today's Open-Meteo daily quota is spent (publisher fetch 429
+    at 02:26Z). The strict xfail stays until the census reads zero
+  revisit: '2026-11-28'
 obsolete: null
 finding_lane: W1_market_weather
