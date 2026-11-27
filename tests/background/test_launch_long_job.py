@@ -452,7 +452,11 @@ def test_a_real_launch_detaches_and_logs_both_streams(tmp_path):
             job, ["/bin/bash", "-c",
                   f"echo to-stdout; echo to-stderr >&2; echo '{{}}' > {artefact}; sleep 4"],
             artefact=str(artefact), workdir=str(tmp_path), log=str(log),
-            records_path=tmp_path / "records.json", peak_mb=1, expect_minutes=1)
+            records_path=tmp_path / "records.json", peak_mb=1, expect_minutes=1,
+            # The subject is the detach, not admission (controlled above against fixtures). On
+            # the real census this test went red whenever the box was full -- 27 Nov, a 1 MB
+            # job refused beside a 7 GB sim-runner and a running publish gate.
+            residents=lambda: [])
         assert entry["detached"] is True, entry["detach_why"]
         # A bounded wait on the artefact this launch names -- ten seconds, then we read whatever
         # is there and let the assertion say what was missing.
@@ -710,3 +714,75 @@ def test_a_deferral_names_how_far_a_long_job_has_run_past_what_it_declared(tmp_p
     assert round(late["elapsed_min"]) == 286 and late["expect_minutes"] == 50
     assert "OVERRUN" in rh._overrun_note(late) and "5.7x" in rh._overrun_note(late)
     assert rh._overrun_note(fine) and "OVERRUN" not in rh._overrun_note(fine)
+
+
+def test_two_launches_together_are_not_both_admitted_against_one_snapshot(tmp_path, monkeypatch,
+                                                                           faked_path):
+    """THE DEFECT (14 Oct): dvn480-seeds-a and -b, launched a fraction of a second apart, each
+    printed the same admission sum and neither counted the other -- 24,479 MB declared against a
+    23,008 MB budget. The census never shows the sibling (as at launch time: no process yet).
+
+    Partition first: a lone launch of the same size IS admitted, so a door refusing everything
+    cannot pass. Then the pair: A is held inside `systemd-run` while B asks; exactly one starts.
+
+    Fires on: the ledger lock removed (B decides before A's record exists); the zero-member leg
+    removed (B reads A's record but counts its unit, absent from the census, at 0 MB)."""
+    import threading
+
+    from background.resource_headroom import RESERVE_FOR_UNDECLARED_MB
+
+    monkeypatch.setattr(llj, "own_cgroup", lambda *a, **k: "/user.slice/launcher.service")
+    guest = 2 * 1000 + RESERVE_FOR_UNDECLARED_MB - 1  # room for one 1000 MB peak, not two
+    lone = _launch(tmp_path, _Runner(), guest_total_mb=guest + 1000,
+                   records_path=tmp_path / "lone.json")
+    assert lone["co_residence"].startswith("admitted"), lone["co_residence"]
+
+    records = tmp_path / "records.json"
+    a_starting = threading.Event()
+
+    class _SlowStart(_Runner):
+        def __call__(self, argv, **kw):
+            result = super().__call__(argv, **kw)
+            if _started(self) and not a_starting.is_set():
+                a_starting.set()
+                time.sleep(0.5)  # the window: B asks while A is between decision and record
+            return result
+
+    outcome = {}
+
+    def go(name, runner):
+        try:
+            llj.launch(name, ["python3", "-m", "tools.nothing"], artefact=str(tmp_path / name),
+                       workdir=str(tmp_path), log=str(tmp_path / f"{name}.log"),
+                       records_path=records, runner=runner, peak_mb=1000,
+                       residents=lambda: [], guest_total_mb=guest, expect_minutes=30)
+            outcome[name] = "admitted"
+        except llj.NoRoom as exc:
+            outcome[name] = f"refused: {exc}"
+
+    a = threading.Thread(target=go, args=("seeds-a", _SlowStart()))
+    a.start()
+    assert a_starting.wait(10), "A never reached systemd-run"
+    go("seeds-b", _Runner())
+    a.join(10)
+    assert outcome["seeds-a"] == "admitted", outcome
+    assert outcome["seeds-b"].startswith("refused"), outcome
+    assert "no process in the census yet" in outcome["seeds-b"], outcome
+
+
+def test_a_declared_unit_with_no_process_stops_counting_after_the_grace(tmp_path):
+    """The other side of the zero-member leg: a `live` record whose job has ended holds no memory,
+    so past `STARTING_GRACE_SECONDS` it must not refuse its neighbours until the deadman settles it.
+
+    Fires on: the grace dropped (an ended job blocks the box), or the window never opening."""
+    from datetime import datetime, timedelta, timezone
+
+    records = tmp_path / "records.json"
+    ll.record("seeds-a", llj.unit_name("seeds-a"), str(tmp_path / "a"), path=records,
+              peak_mb=1000, launched_at="2026-10-14T12:00:00Z")
+    at = datetime(2026, 10, 14, 12, 0, tzinfo=timezone.utc)
+    inside = llj.declared_starting(records, now=at + timedelta(seconds=10))
+    past = llj.declared_starting(
+        records, now=at + timedelta(seconds=llj.STARTING_GRACE_SECONDS + 1))
+    assert inside == {"longjob-seeds-a.service": 1000.0}, inside
+    assert past == {}, past

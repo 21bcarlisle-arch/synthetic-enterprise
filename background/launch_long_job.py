@@ -60,6 +60,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 from background import launch_liveness
@@ -249,6 +250,35 @@ def _as_cgroup_leaf(unit: str) -> str:
     return unit if unit.endswith(".service") else f"{unit}.service"
 
 
+#: How long a live, declared unit with NO process in the census is still counted at its full
+#: declared peak. Inside the window it is a launch whose process the census has not caught yet;
+#: past it, a job that has already ended and awaits the deadman's settle, which holds no memory
+#: and must not refuse its neighbours for ever (see `running_long_jobs`). A launch shows its
+#: process within seconds of `systemd-run` returning, so five minutes errs on the strict side.
+STARTING_GRACE_SECONDS = 300
+
+
+def declared_starting(records_path: Path | None = None, now: datetime | None = None) -> dict:
+    """{unit: peak_mb} for declared live records launched within `STARTING_GRACE_SECONDS`."""
+    try:
+        records = launch_liveness.load(records_path)
+    except Exception:  # noqa: BLE001 -- no register means nothing starting
+        return {}
+    now = now or datetime.now(timezone.utc)
+    starting = {}
+    for r in records:
+        if (r.get("claim") != launch_liveness.LIVE or not r.get("unit") or not r.get("peak_mb")
+                or still_waiting(r)):
+            continue
+        try:
+            at = datetime.fromisoformat(str(r.get("launched_at")).replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        if 0 <= (now - at).total_seconds() <= STARTING_GRACE_SECONDS:
+            starting[_as_cgroup_leaf(r["unit"])] = float(r["peak_mb"])
+    return starting
+
+
 #: A RUN OVER AN HOUR STATES ITS CASE BEFORE IT STARTS (director, 2026-10-08): *"Every run should
 #: answer a stated question with the smallest run that can answer it ... Any run over an hour
 #: records its question before launch, and says why the minutes tier can't answer it and what
@@ -282,7 +312,8 @@ def run_case_refusal(expect_minutes, run_case) -> str | None:
 
 
 def co_residence(peak_mb, residents: list, total_mb, *, declared: dict | None = None,
-                 wait_for_pid: int | None = None, reserved: dict | None = None) -> dict:
+                 wait_for_pid: int | None = None, reserved: dict | None = None,
+                 starting: dict | None = None) -> dict:
     """May a job declaring `peak_mb` start beside `residents` on a guest of `total_mb`?
 
     The sum is resident MB plus the declared peak, against the guest's total less
@@ -319,6 +350,16 @@ def co_residence(peak_mb, residents: list, total_mb, *, declared: dict | None = 
             biggest = max(members, key=lambda r: r["counted_mb"])
             biggest["counted_mb"] += uplift
             biggest["declared_peak_mb"] = peak
+    # A DECLARED UNIT WITH NO PROCESS YET IS NOT ROOM (14 Oct: two legs launched a fraction of a
+    # second apart each printed the same admission sum, neither counting the other). `starting`
+    # is the declared units launched inside the grace window; one the census has no member for
+    # yet is counted whole, as a row of its own.
+    present = {r["unit"] for r in counted}
+    for unit, peak in sorted((starting or {}).items()):
+        if unit not in present:
+            counted.append({"pid": None, "rss_mb": 0.0, "unit": unit, "counted_mb": float(peak),
+                            "declared_peak_mb": float(peak),
+                            "command": "(launched, no process in the census yet)"})
     # THE BOX'S ONE LEDGER (director, 2026-10-08): a commit gate, a direct run or a sim-runner cycle
     # holding a `resource_headroom` reservation counts at the larger of its RSS and its reserved
     # weight, as a long job counts at its declared peak -- so a long job queues behind a gate that
@@ -653,79 +694,86 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
     if guest_total_mb is None:
         from background.resource_headroom import sample
         guest_total_mb = sample()["total_mb"]
-    me = os.getpid()
-    verdict = co_residence(
-        peak_mb, [r for r in residents() if r["pid"] != me], guest_total_mb,
-        declared=declared_peaks(records_path), wait_for_pid=wait_for_pid,
-        reserved=_live_reserved_by_pid())
-    if not verdict["admitted"]:
-        raise NoRoom(verdict["reason"])
-    say(f"  . {verdict['reason']}")
-    if wait_for_pid is not None:
-        command = wait_then(command, wait_for_pid)
-    # SETTLE THE PREVIOUS RUN BEFORE THE CORPSE IS CLEARED, AND THE ORDER IS THE WHOLE SUBSTANCE.
-    # `clear_a_corpse` runs `systemctl --user reset-failed`, which makes the user manager forget
-    # the unit's exit record -- and that record is the one thing `reask()` will accept as evidence
-    # of a death, precisely because the job had no part in writing it. Run the other way round,
-    # the re-ask finds no `Result` to read, returns UNKNOWN, and `check()` by design does not
-    # settle on UNKNOWN: the death becomes unsettleable by the act of relaunching after it.
-    # Narrowed to `only=job`: starting one job is no reason to probe another's unit.
-    try:
-        _, settle_lines, settled = launch_liveness.check(
-            path=records_path, probe=liveness_probe(runner), only=job, notice=True)
-    except Exception as exc:  # noqa: BLE001 -- a broken register must not block a launch
-        settle_lines, settled = [
-            f"the previous run of `{job}` could NOT be re-asked ({exc}), so if it died that death "
-            "is now unsettleable. Proceeding with the launch: refusing here would make a damaged "
-            "register able to stop all work, which is worse than an unattributed death."], []
-    for line in settle_lines:
-        say(f"  . previous run: {line}")
-    if settled:
-        say(f"  . settled {len(settled)} record(s) of a previous `{job}` against systemd's exit "
-            "record, while that record still existed")
+    # ASKING, STARTING AND RECORDING ARE ONE STEP, under the box ledger's own lock -- the lock
+    # `resource_headroom.queued` takes for the same reason. Without it, two launches a fraction of
+    # a second apart each read a census without the other and both were admitted (14 Oct,
+    # dvn480-seeds-a and -b: 24,479 MB declared against a 23,008 MB budget). Held through
+    # `systemd-run` and the record write, so the next asker sees this job's record.
+    from background.resource_headroom import _ledger_lock
+    with _ledger_lock(records_path):
+        me = os.getpid()
+        verdict = co_residence(
+            peak_mb, [r for r in residents() if r["pid"] != me], guest_total_mb,
+            declared=declared_peaks(records_path), wait_for_pid=wait_for_pid,
+            reserved=_live_reserved_by_pid(), starting=declared_starting(records_path))
+        if not verdict["admitted"]:
+            raise NoRoom(verdict["reason"])
+        say(f"  . {verdict['reason']}")
+        if wait_for_pid is not None:
+            command = wait_then(command, wait_for_pid)
+        # SETTLE THE PREVIOUS RUN BEFORE THE CORPSE IS CLEARED, AND THE ORDER IS THE WHOLE SUBSTANCE.
+        # `clear_a_corpse` runs `systemctl --user reset-failed`, which makes the user manager forget
+        # the unit's exit record -- and that record is the one thing `reask()` will accept as evidence
+        # of a death, precisely because the job had no part in writing it. Run the other way round,
+        # the re-ask finds no `Result` to read, returns UNKNOWN, and `check()` by design does not
+        # settle on UNKNOWN: the death becomes unsettleable by the act of relaunching after it.
+        # Narrowed to `only=job`: starting one job is no reason to probe another's unit.
+        try:
+            _, settle_lines, settled = launch_liveness.check(
+                path=records_path, probe=liveness_probe(runner), only=job, notice=True)
+        except Exception as exc:  # noqa: BLE001 -- a broken register must not block a launch
+            settle_lines, settled = [
+                f"the previous run of `{job}` could NOT be re-asked ({exc}), so if it died that death "
+                "is now unsettleable. Proceeding with the launch: refusing here would make a damaged "
+                "register able to stop all work, which is worse than an unattributed death."], []
+        for line in settle_lines:
+            say(f"  . previous run: {line}")
+        if settled:
+            say(f"  . settled {len(settled)} record(s) of a previous `{job}` against systemd's exit "
+                "record, while that record still existed")
 
-    if clear_a_corpse(unit, runner=runner):
-        say(f"  . cleared the corpse of a previous `{unit}` -- it was not active, so its name was "
-            "blocking every future launch of this job rather than protecting a live one")
+        if clear_a_corpse(unit, runner=runner):
+            say(f"  . cleared the corpse of a previous `{unit}` -- it was not active, so its name was "
+                "blocking every future launch of this job rather than protecting a live one")
 
-    # Work inside the unit is already counted at the unit's declared peak, so a run it starts does
-    # not queue against itself in `resource_headroom.queued`.
-    from background.resource_headroom import ADMITTED_ENV
-    env = {**(env or {}), ADMITTED_ENV: f"longjob:{unit}"}
-    argv = systemd_run_argv(
-        unit, command, workdir=workdir, log=log,
-        description=description or f"long job {job} (launched by background.launch_long_job)",
-        env=env)
-    try:
-        res = runner(argv, capture_output=True, text=True, timeout=120)
-    except (OSError, subprocess.SubprocessError) as exc:
-        raise LaunchRefused(f"`systemd-run` could not be run: {exc}") from exc
-    if res.returncode != 0:
-        raise LaunchRefused(
-            f"`systemd-run` refused with rc={res.returncode}: "
-            f"{(res.stderr or res.stdout or '').strip()[:500]}")
+        # Work inside the unit is already counted at the unit's declared peak, so a run it starts does
+        # not queue against itself in `resource_headroom.queued`.
+        from background.resource_headroom import ADMITTED_ENV
+        env = {**(env or {}), ADMITTED_ENV: f"longjob:{unit}"}
+        argv = systemd_run_argv(
+            unit, command, workdir=workdir, log=log,
+            description=description or f"long job {job} (launched by background.launch_long_job)",
+            env=env)
+        try:
+            res = runner(argv, capture_output=True, text=True, timeout=120)
+        except (OSError, subprocess.SubprocessError) as exc:
+            raise LaunchRefused(f"`systemd-run` could not be run: {exc}") from exc
+        if res.returncode != 0:
+            raise LaunchRefused(
+                f"`systemd-run` refused with rc={res.returncode}: "
+                f"{(res.stderr or res.stdout or '').strip()[:500]}")
 
-    detached, why = verify_detached(unit, runner=runner)
-    if detached is False:
-        stop(unit, runner=runner)
-        raise LaunchRefused(
-            f"the launch was STOPPED because the detach did not hold: {why}")
+        detached, why = verify_detached(unit, runner=runner)
+        if detached is False:
+            stop(unit, runner=runner)
+            raise LaunchRefused(
+                f"the launch was STOPPED because the detach did not hold: {why}")
 
-    try:
-        entry = launch_liveness.record(
-            job, unit, artefact, log=log, asserted_live_by=list(asserted_live_by),
-            launched_at=launched_at, path=records_path, peak_mb=peak_mb, workdir=workdir,
-            expect_minutes=expect_minutes, run_case=run_case, holds=holds)
-    except Exception as exc:  # noqa: BLE001 -- see the docstring: unrecorded must not stay running
-        stop(unit, runner=runner)
-        raise LaunchRefused(
-            f"the job started and its liveness record could NOT be written ({exc}), so the unit "
-            "was stopped. A running job nothing has recorded is invisible to the deadman and to "
-            "every reader of a document claiming it is in flight, and that invisibility is what "
-            "this launcher exists to abolish. Fix the record path and relaunch.") from exc
+        try:
+            entry = launch_liveness.record(
+                job, unit, artefact, log=log, asserted_live_by=list(asserted_live_by),
+                launched_at=launched_at, path=records_path, peak_mb=peak_mb, workdir=workdir,
+                expect_minutes=expect_minutes, run_case=run_case, holds=holds)
+        except Exception as exc:  # noqa: BLE001 -- see the docstring: unrecorded must not stay running
+            stop(unit, runner=runner)
+            raise LaunchRefused(
+                f"the job started and its liveness record could NOT be written ({exc}), so the unit "
+                "was stopped. A running job nothing has recorded is invisible to the deadman and to "
+                "every reader of a document claiming it is in flight, and that invisibility is what "
+                "this launcher exists to abolish. Fix the record path and relaunch.") from exc
 
-    entry = dict(entry, unit=unit, detached=detached, detach_why=why,
-                 co_residence=verdict["reason"])
+        entry = dict(entry, unit=unit, detached=detached, detach_why=why,
+                     co_residence=verdict["reason"])
     say(f"launched {job} -> unit {unit}")
     say(f"  cgroup:   {'VERIFIED' if detached else 'UNVERIFIED'} -- {why}")
     say(f"  log:      {log}")
@@ -949,7 +997,7 @@ def main(argv: list | None = None) -> int:
         verdict = co_residence(args.peak_mb, [r for r in resident_census()
                                               if r["pid"] != os.getpid()],
                                sample()["total_mb"], declared=declared_peaks(),
-                               wait_for_pid=args.wait_for_pid)
+                               wait_for_pid=args.wait_for_pid, starting=declared_starting())
         print(verdict["reason"] if verdict["admitted"] else f"WOULD REFUSE: {verdict['reason']}")
         return 0
 
