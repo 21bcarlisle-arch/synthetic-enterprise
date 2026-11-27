@@ -1,10 +1,10 @@
 {
   "_meta": {
     "artefact": "forward_years",
-    "version": 1,
-    "status": "RULED -- 2026-10-25 05:14 GMT, director: \"Yes\" to the six choices of docs/design/FORWARD_YEARS_RECOMMENDATION_2026-10-24.md section 8",
-    "authority": "docs/staging/advisor/done/DIRECTOR_RULING_FORWARD_YEARS_SIX_CHOICES_APPROVED_WITH_CHECKPOINT_2026-10-25.md. Two of the six choices are curriculum, the director's because they decide how hard the futures are; they are recorded here. The other four are design and live in the recommendation.",
-    "consumed_by": "NOTHING YET. No forward-years generator is built; the ruling keeps forward runs behind the basics, and no forward run is used for a supplier result until the generators pass the volatility claims (DIRECTOR_STEER_FORWARD_YEARS_MUST_REPRODUCE_VOLATILITY_AT_EVERY_SCALE_2026-10-25.md). The builder of the gas path and the fleet draw reads this file; until then sim/renewable_capacity_trend.py still holds the fleet flat past 2025."
+    "version": 2,
+    "status": "RULED -- 2026-10-25 05:14 GMT, director: \"Yes\" to the six choices of docs/design/FORWARD_YEARS_RECOMMENDATION_2026-10-24.md section 8. Version 2 -- 2026-11-25 12:31 GMT, director: \"Yes\" to the for_the_director row the-forward-world-has-bands-for-gas (transmission demand, interconnector net flow and carbon bands, as proposed)",
+    "authority": "docs/staging/advisor/done/DIRECTOR_RULING_FORWARD_YEARS_SIX_CHOICES_APPROVED_WITH_CHECKPOINT_2026-10-25.md. Two of the six choices are curriculum, the director's because they decide how hard the futures are; they are recorded here. The other four are design and live in the recommendation. The three bands added in version 2 rest on docs/staging/advisor/done/DIRECTOR_RULING_K8_FOR_WORLD_MODELS_FORWARD_BANDS_YES_AND_STEP_BACK_ON_THE_RETENTION_RESULT_2026-11-25.md section 2, and are sourced in docs/market_research/how_the_gb_electricity_price_forms_2026-11-24.md sections 2a, 5a and 8a.",
+    "consumed_by": "NOTHING YET. No forward-years generator is built; the ruling keeps forward runs behind the basics, and no forward run is used for a supplier result until the generators pass the volatility claims (DIRECTOR_STEER_FORWARD_YEARS_MUST_REPRODUCE_VOLATILITY_AT_EVERY_SCALE_2026-10-25.md). The builder of the gas path and the fleet draw reads this file; until then sim/renewable_capacity_trend.py still holds the fleet flat past 2025. The version-2 bands are read by nothing either: sim/weather_price_chain has no forward leg yet."
   },
   "gas_level_band": {
     "value": "DESNZ Fossil Fuel Price Assumptions 2025, cases A to C, full band, uniform; each future draws one point per anchored year and interpolates between them",
@@ -17,5 +17,32 @@
     "anchor": "2.3-2.5x from 2024 to 2030: 49 GW to 113-124 GW (recommendation section 3, citing the same research file section 1.2). Past 2030 the band is owed by the K8 page; GAP until it is sourced.",
     "replaces": "The fleet held flat past 2025 by sim/renewable_capacity_trend.py, which K2 says asserts a value we know is wrong."
   },
-  "restore_the_old_behaviour": "Delete this file: the forward world is unbuilt, so nothing reads it yet."
+  "transmission_demand_band": {
+    "curriculum_choice": "Curriculum choice: the director's (ruling 2026-11-25, row the-forward-world-has-bands-for-gas). Label it on every forward figure that uses it.",
+    "value": "Transmission demand (ND, the INDO-equivalent quantity the chain's demand leg stands for) held at its 2023-25 record level, about 25.4 GW annual mean, in every forward year; embedded solar growth is taken from renewable_fleet_band, so demand and fleet come from one capacity path",
+    "anchor": "NESO Historic demand data: ND 228.2 / 230.9 / 229.1 TWh in 2023 / 2024 / 2025; 1 Jan-3 Nov mean 25.4 GW in each of 2023-2026 within 0.7% (2026 read as knowledge only, never a runtime input, W6). Electricity page section 8a.",
+    "why_held": "The record since 2023 shows demand growth met almost exactly by embedded generation, so ND was flat. FES publishes system demand (gross of embedded generation, with losses, weather-corrected, fiscal), not ND, and the bridge between them is ~28 TWh undecomposed in 2024 (GAP 10a).",
+    "must_share": "The embedded part of renewable_fleet_band. Pairing a rising FES demand with a flat fleet, or a flat ND with a fleet whose embedded growth is not netted off, moves the residual by a definition mismatch alone (section 8a).",
+    "gaps": "Section 13 items 10a-10d: the FES-to-ND bridge, a published forward embedded-generation path on the demand side, when transmission demand turns up, FES weather correction and fiscal year against ND."
+  },
+  "interconnector_net_flow_band": {
+    "curriculum_choice": "Curriculum choice: the director's (ruling 2026-11-25, row the-forward-world-has-bands-for-gas). Label it on every forward figure that uses it.",
+    "value": "Annual GB interconnector net flow per case from NESO FES 2025 ES1 (the four pathways and the Ten Year Forecast) plus the 2026 Ten Year Outlook, uniform across cases; each future draws one case, starting from its 2025 column, and interpolates between published years",
+    "anchor": "Netflows TWh, + is import, 2025 / 2030 / 2035: Falling Behind 39.6 / -5.9 / -40.6; Electric Engagement 30.6 / -3.1 / -47.8; Holistic Transition 29.0 / -3.2 / -81.2; Hydrogen Evolution 32.7 / +3.9 / -62.2; Ten Year Forecast 32.7 / -23.8 / -71.8; Ten Year Outlook 2026 35.6 / +8.1 / -34.0. 2030 spread -23.8 to +8.1 TWh. Electricity page section 5a (fes2025_es1_v006.csv, 10yo2026_es1_v001.csv).",
+    "why_uniform": "NESO does not weight its pathways.",
+    "never": "Never difference against ES1's own 2024 column (4.7 TWh net), which does not reconcile with DUKES 5.13's 33.4 TWh or FUELHH (GAP 11a). Start from the 2025 column, or splice from the record's 2024.",
+    "within_year_shape": "Design, not curriculum: section 5a option 1, the record's 2021+ within-year shape conditioned on GB residual demand, re-levelled to the drawn annual net. Before it is built, one record arm must split the net-export gain into annual level and within-year shape.",
+    "must_share": "The same drawn path sets imported carbon in sim/grid_carbon_intensity; a forward path used for price must be the one used for carbon.",
+    "gaps": "Section 13 items 11a-11c: the ES1 2024 column, any published forward seasonal or hourly flow shape, which pipeline links reach final investment decision."
+  },
+  "carbon_band": {
+    "curriculum_choice": "Curriculum choice: the director's (ruling 2026-11-25, row the-forward-world-has-bands-for-gas). Label it on every forward figure that uses it.",
+    "value": "UK ETS allowance level from DESNZ Traded carbon values used for modelling purposes, 2025, Low to High, drawn jointly with gas_level_band, plus Carbon Price Support at 18 GBP/tCO2 nominal to 31 Mar 2028 and held at 18 nominal after that",
+    "anchor": "GBP/tCO2e, real 2025, Low / Central / High: 2026 = 22 / 38 / 47; 2028 = 23 / 40 / 54; 2030 = 25 / 50 / 66; 2035 = 45 / 70 / 92; 2040 = 74 / 136 / 178; 2050 = 167 / 235 / 298 (DESNZ, published 3 Feb 2026, OGL v3). Electricity page section 2a.",
+    "joint_with_gas": "DESNZ's Low carbon case is its high-fossil-price case and its High carbon case is its low-fossil-price case, so the carbon case is drawn with the gas case, not independently: gas C with carbon Low, gas B with carbon Central, gas A with carbon High. Independent draws would produce futures DESNZ does not model (high gas with high carbon).",
+    "daily_use": "Each forward day's carbon is CPS plus that year's UKA level, entering the floor the same way as on the record (section 2).",
+    "stated_against_the_record": "DESNZ's 2025 Market value (44) sits 8% under the record's 2025 auction volume-weighted clearing price (48.05). The band models the standalone UK ETS and is not a forecast.",
+    "gaps": "Section 13 item 12: CPS after 31 Mar 2028 (held nominal here by his choice, so it falls in real terms), any UK-EU ETS linking path and date (excluded by DESNZ), and the CPI path that reconciles this real-2025 band with the real-2024 gas band."
+  },
+  "restore_the_old_behaviour": "Delete this file: the forward world is unbuilt, so nothing reads it yet. To undo only version 2, delete transmission_demand_band, interconnector_net_flow_band and carbon_band."
 }
