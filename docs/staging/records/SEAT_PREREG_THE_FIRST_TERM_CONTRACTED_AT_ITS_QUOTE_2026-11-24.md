@@ -90,6 +90,8 @@ top of the quote. The probe does not, so the ranges carry them.
   it is in 2023 (+£183 per leg, range +£100 to +£260) and 2024 (+£73 per leg, range +£40 to +£110).
   2021 falls (−£24 per leg, range −£60 to £0).
 - **R6. MSC legs.** Won switches between 2022-04-14 and 2024-03-31 are 44, the switch-off count
+
+**Graded 27 Nov on the 76f894811d book** (`SEAT_GRADE_S1_THE_FIRST_TERM_AT_ITS_QUOTE_ON_THE_76F894811D_BOOK_2026-11-27.md`): R1, R2, R5 and R6 held. R4 held in range at £0.29 per win. R3 held in range but missed its point: 4 legs, all in 2021, one of them in June. It was the term-0 default-belief allowance, not the portfolio premium, that lifted those quotes over the cap.
   (R1 implies it).
 
 **How R5 is read (M2).** In 2023–24 the margin R5 adds is the margin the quote decided. The household
