@@ -172,14 +172,47 @@ def test_the_runs_published_provision_moves_in_the_build_quarter_defect_the_age_
     assert lag_xcorr(arrears, published) == 0
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "OPEN, measured 2026-10-15: the roll-rate stock trails the run's arrears by 3 quarters on both "
-    "pre-registered measures (prediction was 0). Its learned loss rates for money aged 0-2 months "
-    "are 0.02%-1.2%, learned from 24 months of young arrears that cured, so 2022Q4's arrears "
-    "(GBP 769 -> 1,668) move it GBP 1.45; it catches up only as that money ages past four months. "
-    "No forward-looking term keyed to the arrears inflow exists. When one does, this XPASSes: "
-    "re-run the grade and flip it."))
-def test_the_roll_rate_provision_moves_in_the_runs_build_quarter_defect_learned_rates_lag_arrears():
+# CORRECTED 2026-11-27. The 2026-10-15 grade asked this stock to move in the quarter the run's
+# arrears (> 30 days) build, found a 3-quarter lag and held it as a strict xfail. That keyed the
+# control to the wrong clock: arrears are not expected loss. Read against what the same run's ledger
+# went on to do, the lag is the outcome's own. Held-back realised loss: of the GBP each bill owed at the
+# quarter end (write-offs derecognised, as the stock), the part still unpaid in cash 365 days later,
+# a write-off counting as unpaid. Read 2026-11-27 off the r4b pickle of this run's ledger (book ends
+# 2025-09-25, so the last three quarters cannot be read). The company never sees this series: it is
+# the instrument. On it the 2022Q4 arrears doubling (GBP 769 -> 1,668) realised no extra loss at all
+# (207.71 flat 2022Q1-2023Q1). A recent-window floor on the young rolls (3 and 6 months, the
+# 2026-10-15 "next step") was tried on the same book and leaves 2022-12-31 unchanged: the young rolls
+# there were no higher than the 24-month pool. The bigger arrears were bigger bills curing at the
+# usual rate.
+RUN_61109_REALISED_12M = (0.0,) * 12 + (
+    130.43, 130.43, 138.29, 138.29, 138.29, 138.29, 138.29, 138.29, 180.42, 180.42, 180.42, 207.71,
+    207.71, 207.71, 207.71, 207.71, 207.71, 300.17, 315.81, 390.76, 390.76, 426.57) + (None,) * 3
+
+
+def _mean_abs_error(stock, outcome):
+    pairs = [(s, o) for s, o in zip(stock, outcome) if s is not None and o]
+    return len(pairs), sum(abs(s / o - 1.0) for s, o in pairs) / len(pairs)
+
+
+def test_the_runs_own_loss_trails_its_arrears_at_least_as_far_defect_a_lag_read_as_the_provisions():
+    """The 3-quarter lag behind arrears is not the provision's: the loss the run went on to realise
+    trails the same arrears at least as far. (Measured: realised 4, roll-rate 3, on lag_xcorr.)"""
     arrears, roll_rate = _run(1), _run(2)
-    assert lag_peak(arrears, roll_rate, *RUN_BUILD_WINDOW) == 0
-    assert lag_xcorr(arrears, roll_rate) == 0
+    assert len(RUN_61109_REALISED_12M) == len(RUN_61109)
+    assert lag_xcorr(arrears, roll_rate) > 0, "the case this test exists for: a lag to explain"
+    assert lag_xcorr(arrears, list(RUN_61109_REALISED_12M)) >= lag_xcorr(arrears, roll_rate)
+
+
+def test_the_roll_rate_provision_is_nearer_the_held_back_loss_than_the_published_one_defect_learned_rates_miss_the_outcome():
+    """Against what the run went on to lose, the learned stock is nearer than the Centrica-rate stock the
+    run publishes. (Measured over the 18 quarters 2020Q1-2024Q2: roll-rate mean |ratio - 1| 0.077 and
+    mean bias -1.5%; Centrica 0.569, every quarter over, so the published stock overstates the
+    provision. That errs against our thesis, the safe side, and is why the switch can stay off.)"""
+    realised = list(RUN_61109_REALISED_12M)
+    n, roll_rate_err = _mean_abs_error(_run(2), realised)
+    _, published_err = _mean_abs_error(
+        [None if p is None else c for p, c in zip(_run(2), _run(3))], realised)
+    assert n >= 12
+    # It can fail: the same stock at 2.5 times its size loses to the published one.
+    assert _mean_abs_error([None if p is None else 2.5 * p for p in _run(2)], realised)[1] > published_err
+    assert roll_rate_err < published_err

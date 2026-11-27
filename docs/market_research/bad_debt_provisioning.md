@@ -1920,3 +1920,52 @@ switching it on moves 2022 without passing and makes the pooled window worse. Th
 also moved since the 10-28 reading: it was 0.69% on 4ae8da9b0 and is 1.76% here, with 2018 at 2.86%.
 Whether that is a cast or a world change is not established here (GAP). It is the first thing to
 read when W2_38 moves.
+
+## The roll-rate matrix graded against what the book went on to lose, not against its arrears (2026-11-27)
+
+*Correction to the 2026-10-15 grade of the matrix above (`WORKER_FINDING_THE_ROLL_RATE_PROVISION_TRAILS_THE_RUNS_ARREARS_BY_THREE_QUARTERS_2026-10-15.md`).
+That grade asked whether the matrix stock rises in the quarter the book's arrears (money more than
+30 days unpaid) rise. It found a three-quarter lag and called it a defect. The clock was the wrong
+one. IFRS 9 asks for the expected cash shortfall (Appendix A, B5.5.28, quoted above). Arrears that
+cure are not a shortfall. The right comparison is the loss the book actually realised on the same
+receivable.*
+
+**What was measured.** Run seed 61109 (all_wins, 12 founders, 751184c75). The ledger was pickled
+when the run was graded. Held-back realised loss at a quarter end means this: of the money each bill
+owed (with write-offs derecognised, as the stock treats them), the part still unpaid in cash 365 days
+later. A write-off counts as unpaid. This is an instrument, and the company never reads it. The book
+ends on 2025-09-25, so the series stops at 2024Q2. That gives 18 rated quarters, 2020Q1 to 2024Q2.
+
+| Stock | Mean of stock / realised - 1 | Mean absolute error | Worst quarter | Lag to arrears (xcorr) |
+|---|---|---|---|---|
+| Roll-rate matrix (overlay none) | **-1.5%** | **7.7%** | 0.73 (2023Q2) | 3 |
+| Centrica-rate matrix (published) | +56.9% | 56.9% | 2.46 (2023Q1) | 0 |
+| Realised loss itself | -- | -- | -- | **4** |
+
+**What it shows.**
+- The 2022Q4 arrears doubling (GBP 769 to 1,668) realised **no extra loss**. The realised loss was
+  GBP 207.71 on every quarter-end receivable from 2022Q1 to 2023Q1. The matrix said 212.20 at
+  2022-12-31. The published stock said 467.23.
+- The lag is the outcome's own. The arrears were bigger winter bills at 2022 prices, and they cured
+  at the book's usual rate.
+- The forward-looking term proposed on 2026-10-15 was tried on the same book: the young-age rolls
+  floored at the last 3 or 6 months' rolls. It leaves 2022-12-31 unchanged, because the recent young
+  rolls were no higher than the 24-month pool. **A forward-looking term keyed to arrears inflow would
+  have charged a loss this book did not take.**
+- Both stocks trail the realised loss by one quarter (xcorr 1). Age alone cannot see a household
+  about to stop paying on a current bill. That is the early-warning section's question (2026-10-21),
+  not the matrix's.
+
+**What it does not show.** One seed and 279 homes, so the realised series moves in steps as single
+debtors stop paying. The world's non-payment does not step up with price in 2021-22, so a book that
+cures normally through 2022 is partly the world's gap
+(`W2_38_the_worlds_debt_is_graded_against_ofgems_quarterly_series`). On a world whose draw does read
+price, the young rolls should rise, and the matrix should respond within about a month (section
+"How loss rates come from the supplier's own roll rates" above). That is the prediction to grade
+when W2_38 publishes such a book.
+
+**Decision.** `ROLL_RATE_PROVISION` stays off. The published stock over-provides on this world. That
+lowers margins and errs against our own thesis, which is the safe direction (F11). The control is
+re-keyed to the property: the matrix is nearer the held-back loss than the published stock, and the
+outcome trails arrears at least as far as the matrix does
+(`tests/company/finance/test_the_provision_charges_expected_loss_as_arrears_build.py`).
