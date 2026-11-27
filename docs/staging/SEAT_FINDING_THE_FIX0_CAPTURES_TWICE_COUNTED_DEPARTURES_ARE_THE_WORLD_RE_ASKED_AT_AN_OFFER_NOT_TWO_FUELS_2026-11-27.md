@@ -148,3 +148,45 @@ item names is gone, so read pids from `pgrep -af supplied`, not from the item. N
 no second capture was started. The successor `fix0-2021-anchor-refit-on-the-supplied-days-capture` is
 gated on that artefact and now carries P5–P8, the fitter run and the 2021 refit landing. This item was
 released in its favour.
+
+## The re-capture at the supplied-days fix, graded (2026-11-27, `departure_factors_supplied_days.json`)
+
+The capture ran at `a64e05ed3c`, which contains the supplied-days fix, with `YEAR_LEVEL_ANCHOR[2021]` at 7.73378.
+
+- **P5: HELD.** `svt_composition_refusal` returns `None`.
+- **P6: HELD.** SVT-segment departures went from 251 to 250. The (customer_id, event_date) keys are identical
+  across 9,131 rows. Exactly 112 rows changed their recorded probability, the 112 clipped last segments.
+  One changed its fate: `SYN-2016-161` on 2023-04-01, whose probability went from 0.006114 to 0.001820
+  against a roll of 0.004114. Nothing outside the clipped segments moved.
+- **P7: HELD.** 0 duplicate pairs in 246 renewal rows. 35 rows are re-asked.
+  `account_denominator_refusal` returns `None`.
+- **P8: the whole-book fit EMITS.** It returns 2017 7.584393, 2018 8.764136, 2019 17.199964,
+  2020 18.195573, 2021 **22.102960** and 2024 52.100342. 2016, 2022, 2023 and 2025 are not fitted
+  (edge years and years with no renewals). On this capture 2021's SVT floor is 10.02% against a record of
+  15.57%, carried by 18 renewal decisions.
+
+**The anchor is NOT landed this turn, and a control is the reason.** With 2021 set to 22.102960,
+`test_switching_rate_commons::test_the_capture_the_band_verdict_is_read_from_was_produced_by_the_live_anchor`
+reds. The committed capture (`docs/reports/qep_g_second_qep_pass_anchor_departure_factors.json`) ran 2021 at
+7.73378. The control's own instruction is to re-capture rather than edit the expectation, so the anchor
+lands together with a capture taken under it. That capture is launched as unit `longjob-anchor7-capture`.
+It runs in worktree `/var/tmp/se-anchor7-capture-wt`, which is origin/main plus this one-line anchor change,
+and writes `/var/tmp/se-anchor7-capture/departure_factors_anchor7.json`.
+`/var/tmp/se-fix0-anchor-refit-landed.sha` is still unwritten. `/var/tmp/se-supplied-capture-wt` was
+already gone when this grade ran.
+
+**One pass, not a fixed point.** The same fit disagrees with the committed 2017-2020 and 2024 values by up to
+2.5x. This pass moves 2021 only, as the item directed. The other years are a separate decision.
+
+## Pre-registration for the capture under 2021 = 22.102960 (written BEFORE it runs)
+
+- **P9.** On the new capture, `fit_whole_book`'s 2021 achieved level at 22.102960 is within **0.3pp** of
+  15.57%, the acceptance used by the QEP passes. If it is outside, the anchor does not land on this capture.
+  2021 is re-fitted on it and captured once more.
+- **P10.** The 2017-2020 whole-book levels move by less than 0.3pp from this capture's. The 2021 anchor acts
+  only on 2021 decisions. Book composition changes only from 2022 onward.
+- **P11.** P1, P3 and P5 still hold: 0 duplicates, no account departing twice, and no composition refusal.
+- **P12.** No prediction on 2022-2025 levels, and no prediction on whether
+  `test_the_committed_rung_1_verdict_still_reproduces_and_names_every_year_it_fails` still holds when this
+  capture replaces the committed one. If it reds, the record it holds has changed. That gets recorded,
+  not edited to fit.
