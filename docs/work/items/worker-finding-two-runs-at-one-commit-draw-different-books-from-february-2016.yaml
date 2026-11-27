@@ -7,7 +7,7 @@ class: standard
 severity: LATENT
 source: finding
 evidence:
-- docs/staging/WORKER_FINDING_TWO_RUNS_AT_ONE_COMMIT_DRAW_DIFFERENT_BOOKS_FROM_FEBRUARY_2016_2026-10-15.md
+- docs/staging/done/WORKER_FINDING_TWO_RUNS_AT_ONE_COMMIT_DRAW_DIFFERENT_BOOKS_FROM_FEBRUARY_2016_2026-10-15.md
 knowledge_gap: null
 insight: null
 decider: machine
@@ -15,12 +15,12 @@ director_rank: null
 atom: null
 blocked_by: []
 occurrences: 1
-state: open
+state: done
 opened_at: '2026-10-15T00:00:00+00:00'
 chosen_at: null
-closed_at: null
+closed_at: '2026-11-27T11:37:56+00:00'
 chosen_by: null
-done_evidence: null
+done_evidence: 66b23fe387
 parked: null
 obsolete: null
 finding_lane: H_harness
