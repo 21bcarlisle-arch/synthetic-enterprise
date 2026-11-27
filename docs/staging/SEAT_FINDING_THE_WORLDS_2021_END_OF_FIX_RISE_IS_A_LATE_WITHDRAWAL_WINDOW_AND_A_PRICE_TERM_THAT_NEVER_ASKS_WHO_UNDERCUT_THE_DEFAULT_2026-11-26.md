@@ -66,3 +66,41 @@ landing `daf6029e9c` in `/var/tmp/se-fix0-window-landed.sha`).
   `/var/tmp/se-fix0-capture/departure_factors_fix0.json`.
 - **The refit row was drawable too early.** Its hold was on the window sha file, which already existed, so it
   could have launched a second capture beside r2. It has been replaced by a row held on the capture artefact.
+
+## Fix 0 graded on its capture; the 2021 refit is REFUSED by the fitter (2026-11-27)
+
+Lane 0 item `fix-0-2021-anchor-refit-on-the-moved-window-capture`. Capture r2 completed ("SURVIVED — full window"):
+`/var/tmp/se-fix0-capture/departure_factors_fix0.json` (282 renewal rows) plus its SVT table (9,131 segment
+decisions, 251 departed), world at `f0012484a2`. The only world commit since then is `66911e6380`, which changes
+demand, not departures. Fitter output: `/var/tmp/se-fix0-refit-out.txt`.
+
+**The prediction, graded on the capture.** The "29" counts the s.12g control arms, which are a different run.
+This capture can only show the direction, and the direction holds.
+- 2021-Q4 renewal-route (leave-or-stay) rows: **0**. Q1 8, Q2 3, Q3 8. The committed capture had 1 in Q4.
+  Q3 2021 still rolls at P(leave) 0.29–0.53, as designed, because the window now opens on 1 Oct. **HELD.**
+- Households that joined the SVT route in 2021-Q4 (`sim_years_on_svt` < 0.3): 34, mean hazard **3.7% per
+  segment** (segments average 74 days), 0 departed. The whole SVT route ran 2.8%/segment that quarter against
+  3.9–4.2% in 2020, and 0.5% from 2022-Q1. "About 3% a quarter against 0.58": **HELD.**
+
+**The refit: not done, and the fitter is right to refuse.** `python3 -m tools.fit_year_level_anchor` on this
+capture gives no whole-book fit: "22 account(s) depart more than once". Only 1 or 2 of these are re-acquisitions.
+The rest come from 35 (account, date) pairs in the renewal table, against 0 in the committed capture. These
+pairs are **one dual-fuel home's two supply legs, each captured as its own renewal under one `customer_id`**.
+Both legs use the same `random_roll` (35 of 35) but carry different `realized_churn_probability` values, because
+each leg has its own rate and so its own price response. The outcomes: 19 both left, 14 both stayed, **1 split**
+(one leg left, the other stayed), and 1 triple. So a household-level departure is counted twice, and one home
+sometimes half-leaves. That is the same class as `66911e6380` (one home, two lives), on the departure side.
+The per-year renewal-only diagnostic still prints (2021: 19 rows, anchor 2.64 against the committed capture's
+2.42). The tool says it is not the world's level, and it is NOT pasted into `departure_level_anchor.py`.
+`YEAR_LEVEL_ANCHOR[2021]` stays at 7.733780.
+
+**The committed capture cannot fit either.** On `qep_g_second_qep_pass_anchor_…` the fitter refuses because
+30 SVT rows reproduce under a market-blind hazard. 7.733780 is therefore anchored to a capture the current
+fitter calls stale, and that was already true before fix 0.
+
+**The signal file is not written.** `/var/tmp/se-fix0-anchor-refit-landed.sha` releases the rankq re-grade, and
+that re-grade must not run on an un-refitted anchor. It stays held until a refit lands.
+
+**Next:** a dual-fuel home makes ONE departure decision. Either the world rolls once per home and the gas leg
+follows its primary (the `66911e6380` pattern), or the capture keys a leg. Re-capture, then refit.
+Which side is a fidelity question: the 1 split pair is a world behaviour, not just a counting problem.
