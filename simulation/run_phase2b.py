@@ -4007,6 +4007,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             company_forward_per_mwh=term.get("company_forward_price_gbp_per_mwh"),
             locked_policy_cost_per_mwh=term.get("locked_policy_cost_gbp_per_mwh"),
             locked_network_cost_per_mwh=term.get("locked_network_cost_gbp_per_mwh"),
+            # A WON FIRST TERM ALREADY CONTRACTED AT ITS QUOTE (`renewals.contracted_first_term`)
+            # is the company's own contract, and the desk passes it through at the quote: through
+            # 2026-11-27 B12's bad-debt allowance re-struck it, so 103/103 quoted gas legs billed
+            # 1.002-1.028x the price the household accepted (fuel page §13).
+            contracted_at_quote=(term.get("struck_by") == "first_term_quote" and not _spliced),
         ))
         unit_rate = _chain.unit_rate_gbp_per_mwh
         dynamic_pricing_log.extend(_chain.dynamic_pricing_entries)

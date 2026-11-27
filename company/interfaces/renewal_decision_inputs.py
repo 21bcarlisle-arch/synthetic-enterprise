@@ -41,6 +41,11 @@ THE FIELDS, each something the supplier itself holds:
                                     each of those terms' own strike priced for, on the same basis
                                     (`PortfolioMarginBook.priced_for`, 2026-10-14). None leaves the
                                     premium on its old 8% literal.
+  contracted_at_quote            -- True where this term is a won first fixed term the company
+                                    already contracted at the strike it quoted the household
+                                    (2026-11-27). Its own contract: the price was formed on the
+                                    Principal Terms it showed (SLC 23) and cannot rise during the
+                                    fix (SLC 22C), so the desk passes it through unchanged.
 
 FROZEN, SHALLOWLY. The record cannot be re-pointed after it is built. The lists and dicts it carries
 are the run's own objects, passed by reference exactly as the keywords were, so the decision is
@@ -79,3 +84,4 @@ class RenewalDecisionInputs:
     locked_policy_cost_per_mwh: float | None = None
     locked_network_cost_per_mwh: float | None = None
     portfolio_priced_for_rates: list[float | None] | None = None
+    contracted_at_quote: bool = False

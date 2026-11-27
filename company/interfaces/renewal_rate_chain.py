@@ -91,6 +91,7 @@ def decide_renewal_rate(
     locked_policy_cost_per_mwh: float | None = None,
     locked_network_cost_per_mwh: float | None = None,
     portfolio_priced_for_rates: list[float | None] | None = None,
+    contracted_at_quote: bool = False,
 ) -> RenewalRateChain:
     """Ask the company what rate it is contracting this renewal at.
 
@@ -149,6 +150,9 @@ def decide_renewal_rate(
         locked_policy_cost_per_mwh=locked_policy_cost_per_mwh,
         locked_network_cost_per_mwh=locked_network_cost_per_mwh,
         portfolio_priced_for_rates=portfolio_priced_for_rates,
+        # A FIRST TERM THE COMPANY ALREADY CONTRACTED AT ITS QUOTE passes through unchanged
+        # (2026-11-27). Crossing here for the reason `segment` does.
+        contracted_at_quote=contracted_at_quote,
     )
 
 

@@ -51,3 +51,24 @@ It is held by a control that reds if any quoted leg's billed term-0 rate ≠ its
 Which of the chain's writers adds the uplift is not yet attributed. The first step is to read
 `rate_decomposition_log` for one quoted leg, for example `PROS-2016-0003g` (quote 31.626, billed
 32.258).
+
+## Attributed and fixed (delivery seat, 27 Nov 2026)
+
+- **The writer is B12's bad-debt allowance**, at the top of `company/pricing/renewal_rate_chain.py::decide_renewal_rate`.
+  The run loop hands a first fixed term the book's belief (the "A FIRST TERM'S FIXED STRIKE CARRIES THE BOOK'S
+  BELIEF TOO" block in `simulation/run_phase2b.py`). The chain then adds `unit_rate × default_belief_rate`.
+  On `PROS-2016-0003g`, 32.25825 / 31.626 = **1.019992**. That is `PRIOR_LOSS_RATE` = 0.020 to four places, as
+  an empty book's belief would be. The learned belief falling below the prior after 2019 explains why the
+  median fell from 1.024 to 1.010. Writers 1 and 2 never reach a term with index 0, and writer 3 has
+  `MIN_TERM_INDEX_FOR_UPLIFT`. The portfolio premium shown on the rows is the account-state record's reading,
+  not a writer that acted on the term.
+- **Which way a real supplier does it:** it prices its allowances into the quote before showing it, and never
+  re-runs pricing over a formed contract. This is set out in §13 of the fuel page, amended today.
+- **Built:** `RenewalDecisionInputs.contracted_at_quote`. With it set, the chain adds no allowance and applies
+  no cap hold. If the rate still moves, it refuses with a named `ValueError`. Control:
+  `tests/company/pricing/test_a_quoted_first_term_bills_at_its_quote.py`. Its partition legs fire in both
+  directions, and dropping the run-loop keyword reds it (mutation performed).
+- **Prediction for the next book carrying this:** 103/103 quoted gas term-0 legs bill their quote exactly, and
+  so do S2's four electricity PROS-2021 legs. The electricity legs were not attributed, so this is the part
+  that can refute. If another writer moves them, the run dies on the refusal and names the term.
+- **Open:** the quote carries no bad-debt allowance (GAP in §13). Handed on as its own one-variable item.

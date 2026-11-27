@@ -36,6 +36,8 @@ ALLOWED_FIELDS = (
     "company_forward_per_mwh", "locked_policy_cost_per_mwh", "locked_network_cost_per_mwh",
     # What each term in its own margin history was priced to earn, off its own strike (2026-10-14).
     "portfolio_priced_for_rates",
+    # Whether the term is a first term it already contracted at its own quote (2026-11-27).
+    "contracted_at_quote",
 )
 
 WORLD_PACKAGES = ("sim", "simulation")

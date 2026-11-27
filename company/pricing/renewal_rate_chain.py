@@ -359,6 +359,7 @@ def decide_renewal_rate(
     locked_policy_cost_per_mwh: float | None = None,
     locked_network_cost_per_mwh: float | None = None,
     portfolio_priced_for_rates: list[float | None] | None = None,
+    contracted_at_quote: bool = False,
 ) -> RenewalRateChain:
     """Decide the rate this renewal is contracted at.
 
@@ -381,6 +382,12 @@ def decide_renewal_rate(
     `company_forward_per_mwh` and the two locked costs are what the company's own offer for
     this term priced off; with the capital charge, they are the term cost a discount stops at.
     `None` where the term has no offer to read them from, and then no discount is given (writer 1).
+
+    `contracted_at_quote` is a won first fixed term this company already contracted at the strike
+    it quoted. The contract is formed on the price the household was shown (SLC 23) and cannot rise
+    during the fix (SLC 22C), so no writer moves it, the cap hold included: the quote is the price
+    decision (cheapest_fix_against_the_default_tariff_gb_2016_2025.md §13). The chain still runs, so
+    the value arm's funnel counts the term once as before; it returns the strike or refuses.
     """
     unit_rate = struck_unit_rate_gbp_per_mwh
     # THE STRIKE'S BAD-DEBT ALLOWANCE (B12, 2026-10-15): a fixed term carries the bad-debt charge the
@@ -392,9 +399,12 @@ def decide_renewal_rate(
     believed_loss_share = (
         default_belief_rate
         if active_policy().renewal_default_belief == DEFAULT_BELIEF_OWN_BOOK else None)
+    # NOT ON A CONTRACTED QUOTE (2026-11-27): the quote was shown without it, so adding it here
+    # billed 103/103 quoted gas first terms above their quote (1.0200x exactly on the 2.0% prior).
     bad_debt_allowance = (unit_rate * believed_loss_share
                           if tariff_type == "fixed" and unit_rate is not None
-                          and believed_loss_share is not None else 0.0)
+                          and believed_loss_share is not None and not contracted_at_quote
+                          else 0.0)
     if bad_debt_allowance:
         unit_rate += bad_debt_allowance
     rate_original = unit_rate
@@ -592,6 +602,10 @@ def decide_renewal_rate(
             # SLC 28AD caps a default tariff at its payment method's own level; a fixed term the
             # acquisition rule holds is this supplier's choice, at the published level.
             payment_method=payment_method if tariff_type in CAPPED_TARIFF_TYPES else None)
+    if contracted_at_quote:
+        # The hold is the company's rule for what it STRIKES; a quote it already contracted is
+        # struck, so no ceiling is searched under or clamped to (§13: the quote is the decision).
+        cap_ceiling = None
 
     arm_uplift = renewal_margin_uplift(
         account_id=billing_account,
@@ -837,6 +851,11 @@ def decide_renewal_rate(
         unit_rate, entered=rate_original, cost_floor=cost_floor, cap=cap_ceiling,
         where=f"{customer_id} {commodity} {term_start}")
 
+    if contracted_at_quote and unit_rate != struck_unit_rate_gbp_per_mwh:
+        raise ValueError(
+            f"{customer_id} {commodity} {term_start}: a first term contracted at its quote "
+            f"{struck_unit_rate_gbp_per_mwh} left the chain at {unit_rate}; an accepted fixed price "
+            "is not re-struck (SLC 23, SLC 22C)")
     result.unit_rate_gbp_per_mwh = unit_rate
     return result
 
@@ -872,6 +891,7 @@ def decide_renewal_rate_from(inputs) -> RenewalRateChain:
         locked_policy_cost_per_mwh=inputs.locked_policy_cost_per_mwh,
         locked_network_cost_per_mwh=inputs.locked_network_cost_per_mwh,
         portfolio_priced_for_rates=inputs.portfolio_priced_for_rates,
+        contracted_at_quote=inputs.contracted_at_quote,
     )
 
 

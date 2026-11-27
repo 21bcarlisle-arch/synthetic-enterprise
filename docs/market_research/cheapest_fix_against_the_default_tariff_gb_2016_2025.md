@@ -778,6 +778,30 @@ post-s.12g book, take `CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE` and score i
 (`docs/staging/records/SEAT_PREREG_THE_FIRST_TERM_CONTRACTED_AT_ITS_QUOTE_2026-11-24.md`), then
 delete the hold.
 
+**Amended 2026-11-27: the renewal chain must not re-strike an accepted quote [A].** The rule above is
+that an accepted fixed price is the price billed. A real supplier gets there by pricing every cost
+allowance it intends to recover (its bad-debt allowance among them) into the price *before* it is
+shown, because nothing may be added after acceptance (SLC 23, SLC 22C). It does not re-run its
+renewal pricing over a contract it has already formed. The model broke this: the run loop passed the
+contracted first term through `decide_renewal`, and B12's bad-debt allowance (the strike's
+`default_belief_rate` share, 2.0% on the prior) was added to it. All 103 quoted gas first terms on the
+S2 gas-quoted book billed 1.0019–1.0283× their quote. On `PROS-2016-0003g` the ratio is 32.2583 /
+31.626 = 1.019992, which is the 2.0% prior to four places. That is how the writer was named.
+
+- **Built (the first way):** `RenewalDecisionInputs.contracted_at_quote`, set by the run loop where
+  `contracted_first_term` marked the term `struck_by == "first_term_quote"`. The chain then adds no
+  allowance and applies no acquisition cap hold. If any writer still moves the term, it refuses with
+  a named `ValueError` rather than billing it. Control:
+  `tests/company/pricing/test_a_quoted_first_term_bills_at_its_quote.py`.
+- **Not yet built (the second way), GAP:** the quote itself (`quote_first_term`) carries no
+  bad-debt allowance. So the company now bears its own believed loss on a won first term instead of
+  pricing it. That is a price the company chose not to charge, not a transfer from the household.
+  It makes the quote cheaper, which errs toward our thesis, so it is filed rather than left.
+  Pricing it into the quote moves wins. It needs its own one-variable run.
+- **Not attributed for electricity:** S2's four PROS-2021 electricity legs read 1.0040–1.0042×. The
+  allowance at a learned belief would fit that, but no decomposition was read. The refusal above
+  makes any other writer fail loudly on the next book rather than bill silently.
+
 ## 14. Does a dual-fuel acquisition quote price gas on its own? (K8, 2026-11-27)
 
 **The question.** When a home takes both fuels from a supplier, is it quoted one bundled price, or
