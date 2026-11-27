@@ -23,12 +23,11 @@ closed_at: null
 chosen_by: null
 done_evidence: null
 parked:
-  reason: 're-read 2026-11-27 (twice): the MSC is on origin (567288c031, f70757dc9f)
-    and S1 is graded on the 76f894811d book (056cf68b71: R1, R2, R5, R6 held; R3 in
-    range, 4 legs not 0). Both preconditions are met. Owed, and not started: rewrite
-    the prereg''s P2/P3 against the quoted strike on that book (SEAT_PREREG_THE_FIRST_TERM_CAP_HOLD_DELETED_2026-11-24.md
-    says they are void once S1 lands), then flip FIRST_TERM_CAP_HOLD_DELETED as one
-    variable.'
-  revisit: '2026-11-27'
+  reason: 'P2/P3 rewritten against the quoted strike: the amendment landed as 9645df04a
+    (4 legs, range 0-6; +0.29 GBP/win). The one-variable flip is running as an arm
+    on S1''s seeds (longjob-s2-caphold-deleted-arm-76f894811d, artefact /var/tmp/se-s2-caphold/out/run_output_arm.json,
+    about 2 h). It is graded by continuation s2-grade-the-cap-hold-deletion-as-an-arm-on-s1s-seeds,
+    which closes this item.'
+  revisit: '2026-11-28'
 obsolete: null
 finding_lane: W2_customer_generator
