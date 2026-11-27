@@ -31,3 +31,11 @@ formula and ET 7.1:
 - **Downstream, informative only:** the account median over-bill before the first read (1.089 on
   001e4f680a) should fall toward about 1/0.97, roughly 1.03 plus the ~1.3-point first-months
   residual.
+
+## Graded (27 Nov 2026): REFUTED
+
+Graded on `run_output_601887d76a_20261126T232042Z.json`. Overall median 0.940 (n=441) and 2016 cohort 0.942 (n=268), both outside their bands. The
+cause is the prediction's own premise. 266 of the 268 legs in the 2016 cohort have a first year that runs into the
+warmer 2017, while their read year is calendar 2016. Using each leg's own first-year and read-year
+cell HDD, measured over predicted is 1.002, so the build holds. Full grade:
+`docs/staging/done/SEAT_FINDING_THE_GAS_AQ_ON_THE_METERS_OWN_CELL_GRADED_REFUTED_ON_ITS_PREMISE_THE_BUILD_HOLDS_2026-11-27.md`.
