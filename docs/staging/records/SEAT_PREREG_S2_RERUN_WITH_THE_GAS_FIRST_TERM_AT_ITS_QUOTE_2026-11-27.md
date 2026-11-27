@@ -52,3 +52,19 @@ was queuing the re-run. No book yet descended from 637c051d2 (the newest standin
   Job `s2-gasq-arm-5e075efa94` writes `/var/tmp/se-s2-gasq/out/run_output_arm.json`.
 - Both are queued behind `head-green-census` for memory. The grade is continuation
   `s2-gasq-grade-the-cap-hold-arm-on-the-gas-quoted-book`, which is held on the arm's file.
+
+## Read (delivery seat, 27 Nov 2026, appended; predictions above unchanged)
+
+Both arms finished at 13:58. They are no longer in flight. The grade is
+`SEAT_GRADE_S2_GASQ_THE_CAP_HOLD_ARM_ON_THE_GAS_QUOTED_BOOK_2026-11-27.md`:
+
+| | verdict |
+|---|---|
+| G1 | MISSED |
+| G2 | HELD |
+| G3 | HELD |
+| G4 | count HELD |
+| G5 | HELD exactly |
+
+The void rule fired: 11 term-0 moves outside G1–G3, each owned by the switch. So the grade is
+conditional on the off re-run `s2-gasq-off-rerun-5e075efa94`.
