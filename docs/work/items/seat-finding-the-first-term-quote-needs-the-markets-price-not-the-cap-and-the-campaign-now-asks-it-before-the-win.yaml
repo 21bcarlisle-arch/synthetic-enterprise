@@ -23,13 +23,13 @@ closed_at: null
 chosen_by: null
 done_evidence: null
 parked:
-  reason: 're-measured 2026-11-25: step 2 landed (db2f502b23 six-month ladder strike,
-    03bd1213a2 cost-to-serve line); step 3''s pre-registration landed (ee7d60bbd5)
-    and quoted-strike contracting built off (5e6a8b70d2). Step 1, the MSC booked to
-    the gainer, is still not on origin: longjob-land11 unit is failed, and the live
-    seat claim land10-outcome-is-read-and-msc-lands-or-is-re-cut owns it. Deleting
-    ACQUISITION_HELD_AT_CAP_TARIFF_TYPES waits on that landing; redraw after the MSC
-    commit is an ancestor of origin/main.'
-  revisit: '2026-11-27'
+  reason: 're-read 2026-11-27: the MSC is on origin (567288c031 A, f70757dc9f B),
+    so the 25 Nov park condition is met. What remains is the cap-hold flip, and its
+    pre-registration''s own off-rule moved: S1 landed (a1eee4d921, quoted strike contracted),
+    which voids P2/P3 until they are rewritten against the new strike. The S1 book
+    76f894811d is being graded under live seat claim s1-r1-to-r5-are-graded-on-the-76f894811d-book
+    (claimed 27 Nov). Redraw once that grading is on origin: rewrite P2/P3 on its
+    book, then flip FIRST_TERM_CAP_HOLD_DELETED as one variable.'
+  revisit: '2026-11-29'
 obsolete: null
 finding_lane: W2_customer_generator
