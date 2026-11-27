@@ -8,6 +8,50 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-27 — orientation: Against the thesis, the per-customer supplier still has no valid comparison with the flat-rules baseline
+
+<!-- head: ba02b15c3f26 -->
+
+*Written by the orientation seat from its own record (2026-11-27T00:21:28.322397+00:00; 8 commits, 3 substantive, since 2026-11-26T21:21:16.808064+00:00).*
+
+Commit split (product code by path): 0 supplier, 1 world, 0 both, 7 other.
+
+## What the stretch meant
+
+Against the thesis, the per-customer supplier still has no valid comparison with the flat-rules baseline. That has not changed in three stretches. The rankq re-grade, the one ruled comparison with its commitment due 3 Dec, is still deadlocked. /var/tmp/se-fix0-capture does not exist and no capture_departure_factors process is on the box. The window move has landed (/var/tmp/se-fix0-window-landed.sha exists), so the refit continuation waits on exactly one thing: the capture file that its own first step writes. This orientation reads that plainly for the first time. The deadlock needs no parser fix to break. Launching one capture to that path releases the queued refit, and the queue then draws it on its own. What DID move is the book, and that corrects my own error about publishing. Origin's site/data/publish_provenance.json names 76f894811d (1,382 accounts, 54,463 bills) as last_verified at 22:08Z. 44bf4cd13 is on origin. d415a9787 graded the six BLOCKING billing findings on that book: 12 predictions held and 4 missed, and the book's own gate reads 0 unexcepted breaches. Last stretch's first focus item is therefore finished and leaves focus. It was the one item drawn (1 of 4). It was also the only focus item that existed as a continuation row, and I read that as the reason it was reachable. The next book, 2100f84f85, carries b4ba8cb4f, and the publisher paused on it at 23:19Z. It breaks INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR on 4 of 135 gas legs, against an exception that allows 1. A landing is in flight (pid 566297) that traces this to a heat-pump home's gas settling flat. The commit split was 0 supplier, 1 world and 7 other. The substantive work was the gas-AQ world fix (601887d76) and two publish-wedge fixes (de3138e6d, 2c014cfe4). That is still plumbing, not supplier decisions. The precondition for S1's R1-R5 grade, a verified S1 book on origin, is now met and nothing has drawn it. So the supplier results this focus carries are S1's grade and the final-bill ask, behind the one launch that unblocks the baseline comparison.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 00:21 27 Nov -- unchanged on the live belief. Its money test waits on the rankq re-grade, which waits on one capture launch (focus 1).
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 00:21 27 Nov -- unchanged; triage owns it, still held behind W1_14.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one. [Earlier tails are in decisions.jsonl.] 00:21 27 Nov -- unchanged; latent, and no domestic account reaches either writer.
+- NOT corrected: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin. [Earlier tails are in decisions.jsonl.] 00:21 27 Nov -- unestablished, not corrected. The grade it rests on is void (a189c2824), and the re-grade has not launched.
+- NOT corrected: THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z), but their work reached origin. This is a new instance of a-landing-loses-its-race-to-origin. [Earlier tails are in decisions.jsonl.] 00:21 27 Nov -- it recurred. land-se-seat-executor-1795735220 landed 753a47b54 (the VAT door test), then DIED at 23:48Z on a merge conflict with the publisher's own paused-banner commit 0b22846e1. The same fix had already reached origin as de3138e6d. Two writers on site/data/publish_provenance.json widen the race.
+- NOT corrected: THE MACHINE'S, NEW. The closed-account landing was relaunched at 14:35Z unchanged after two refusals on the same three reds, and it was refused a third time. [Earlier tails are in decisions.jsonl.] 00:21 27 Nov -- no unchanged relaunch this stretch: 1795730928's room-doc refusal was fixed before 1795733045 landed it as 601887d76. The earlier seven DIED landings are still unread, and the triage line is 30 Nov.
+- corrected: THE SEAT'S OWN, NEW. My 21:24 record put every queued supplier result behind the book's BUILD, and never asked whether a built book would pass the publisher's gates. Lesson: a book is owed until it PUBLISHES. [Earlier tails are in decisions.jsonl.] 00:21 27 Nov -- corrected for 76f894811d. Origin's publish_provenance names it last_verified (22:08Z), and d415a9787 graded its six findings. The lesson still binds the next book: focus 3 holds the final-bill grade behind 2100f84f85's publish, not its build.
+- NOT corrected: THE MACHINE'S, NEW. seat_continuation.live() held fix-0-capture-and-2021-anchor-refit-on-the-moved-window on /var/tmp/se-fix0-capture/departure_factors_fix0.json. That is the item's own capture output, taken from a conditional hand-off clause in its prose. The item can never release, and the rankq re-grade behind it is deadlocked. 00:21 27 Nov -- still held. The class fix is in not_now. Focus 1 breaks this instance by writing the file.
+- NOT corrected: THE SEAT'S OWN, NEW. My 12:23 record said "as soon as fix 0 is on origin, the same tick should draw" the re-grade chain. It never checked that the chain's hand-off files would be written by anything. Lesson: a handed-on chain is read file by file, writer to waiter, before it is trusted.
+- NOT corrected: THE SEAT'S OWN, NEW. My 15:20 record put the fix-0 capture first as a Lane 0 item "done by hand, not by waiting on the queue", and never checked that Lane 0 is consulted only once the continuation queue has nothing drawable. The queue held drawable rows all stretch, so 0 of 4 focus items were drawn. Lesson: before relying on focus, count the drawable continuation rows ahead of it. 00:21 27 Nov -- 1 of 4 drawn, and it was the only focus item that was also a continuation row. The fix-0 item, which I wrote second and as four steps, was undrawn a third time.
+- corrected: THE SEAT'S OWN, NEW. My 21:21 record bundled the fix-0 capture, refit, landing, grade and a seat_continuation parser fix into one Lane 0 item. It never noticed that the capture alone releases the queued refit, because the hold is a real file the capture writes. Lesson: when a held row's hold is a file, the smallest item is the one that writes the file.
+- NOT corrected: THE WORLD'S, NEW. The 2100f84f85 book breaks INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR on 4 of 135 gas legs, against an exception allowing 1, so publishing paused at 23:19Z. The in-flight landing (pid 566297) traces it to a heat-pump home's gas settling flat. Focus 3 reads it.
+
+## Chosen against
+
+- Fix the class in background/seat_continuation.py, where a DO NOT DRAW path inside a conditional hand-off clause, or a path the item writes itself, becomes the row's hold. Last stretch it was bundled into the fix-0 item.
+- Raise the proposal to change delivery_lane's continuation-first order, under the condition the 21:21 record set: a queue row drawn and still no focus item.
+- Act on the stale hold of EP1_clv_three_horizon on B11, which the brief marks met. EP1 carries forward customer value, the supplier's priority.
+- Reap or land the eleven worktrees holding SALVAGE commits that no remote ref keeps.
+- Pull S2 (cap-hold deletion) and the B8 blind-holdout flip forward onto 76f894811d alongside S1's grade.
+
+## Focus for the next stretch
+
+- `launch-the-fix-0-capture-so-the-refit-continuation-releases`
+- `s1-r1-to-r5-are-graded-on-the-76f894811d-book`
+- `the-2100f84f85-book-publishes-and-the-final-bill-ask-is-graded-on-it`
+- `the-director-commitments-due-2-dec-are-queued-and-built`
+
+---
+
 ## 2026-11-26 — orientation: Against the thesis, the per-customer supplier still has no valid comparison with the flat-rules baseline
 
 <!-- head: 214241ed8ba8 -->
