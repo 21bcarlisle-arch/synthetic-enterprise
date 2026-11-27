@@ -86,6 +86,9 @@ This capture can only show the direction, and the direction holds.
 capture gives no whole-book fit: "22 account(s) depart more than once". Only 1 or 2 of these are re-acquisitions.
 The rest come from 35 (account, date) pairs in the renewal table, against 0 in the committed capture. These
 pairs are **one dual-fuel home's two supply legs, each captured as its own renewal under one `customer_id`**.
+*[CORRECTED 2026-11-27: they are not. They are the world re-asked on the same roll at a retention offer or save
+rate, and the capture recorded each ask as a decision. See
+`SEAT_FINDING_THE_FIX0_CAPTURES_TWICE_COUNTED_DEPARTURES_ARE_THE_WORLD_RE_ASKED_AT_AN_OFFER_NOT_TWO_FUELS_2026-11-27.md`.]*
 Both legs use the same `random_roll` (35 of 35) but carry different `realized_churn_probability` values, because
 each leg has its own rate and so its own price response. The outcomes: 19 both left, 14 both stayed, **1 split**
 (one leg left, the other stayed), and 1 triple. So a household-level departure is counted twice, and one home

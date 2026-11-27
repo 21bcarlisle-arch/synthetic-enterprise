@@ -167,6 +167,151 @@ def reseeded_churn_roll(real, seed: int):
     return patched
 
 
+
+def factor_row(event: dict, kwargs: dict) -> dict:
+    """One captured row: the factor arguments the world was handed, beside what it answered."""
+    stress = kwargs.get("income_stress")
+    row = {
+        "customer_id": event["customer_id"],
+        "event_date": event["event_date"],
+        # The factor arguments, exactly as the world handed them over.
+        "income_stress": stress.value if stress is not None else None,
+        "satisfaction_score": kwargs.get("satisfaction_score"),
+        "market_year": kwargs.get("market_year"),
+        "passive_churn_cap": kwargs.get("passive_churn_cap"),
+        "retention_modifier": kwargs.get("retention_modifier"),
+        "new_rate_gbp_per_mwh": kwargs.get("new_rate_gbp_per_mwh"),
+        # And what the composed form actually produced from them.
+        "churn_probability": event["churn_probability"],
+        # THE INDEPENDENT COMPANY BELIEF, AND IT IS HERE SO THE NEXT READING NEED NOT JOIN.
+        # `company.crm.churn_model.estimate_churn_probability` is the only company-side belief
+        # that does NOT seed `effective_p_retain`, so it is the one leg on this route that can
+        # be graded against the world's ceiling without the tautology `build_churn_risk` has.
+        # Captures taken before 2026-08-31 lack it, and `measure_churn_heterogeneity` joins it
+        # from the run output for those -- a cross-artefact join it has to verify row by row.
+        # Recording it here retires that join rather than leaving a second code path alive.
+        "company_churn_estimate": event.get("company_churn_estimate"),
+        "realized_churn_probability": event["realized_churn_probability"],
+        "effective_retention_probability": event["effective_retention_probability"],
+        "price_differential_vs_market_reference": event.get(
+            "price_differential_vs_market_reference"),
+        "market_switching_multiplier": event.get("market_switching_multiplier"),
+        # The C2 factor decomposition, emitted by `roll_lifecycle_event` itself.
+        "sim_bill_shock_base": event.get("sim_bill_shock_base"),
+        "sim_market_opportunity": event.get("sim_market_opportunity"),
+        "sim_price_response": event.get("sim_price_response"),
+        "sim_action_propensity": event.get("sim_action_propensity"),
+        "sim_dissatisfaction_response": event.get("sim_dissatisfaction_response"),
+        # PB4: what the base now counts, and the month count it replaced, so a capture can
+        # split the base by first and later renewal without joining the event log.
+        "sim_experienced_bill_shock": event.get("sim_experienced_bill_shock"),
+        "sim_month_count_bill_shock_base": event.get("sim_month_count_bill_shock_base"),
+        # The year's level term and the risk that fired. Captured so the departure
+        # decomposition can be replayed from this table alone: with the factors, the anchor
+        # and the roll, `resolve_departure` reproduces the cause exactly, which is what lets
+        # the realised reason mix be measured without a second run of the world.
+        "sim_level_anchor": event.get("sim_level_anchor"),
+        "departure_cause": event.get("departure_cause"),
+        # `is_active_renewal` and `engagement_level` are NOT captured here: the caller sets
+        # them on the event dict AFTER this function returns, so they are absent at this
+        # point. They are joined back from the published event log on (customer_id,
+        # event_date) instead. Reading them here would record None for all 708 rows.
+        "event_type": event["event_type"],
+        "random_roll": event["random_roll"],
+    }
+    return row
+
+
+#: Which re-ask a call on an already-decided (household, renewal date) is.
+REASK_RETENTION_OFFER = "retention_offer"
+REASK_SAVE_ON_LOSS_NOTICE = "save_on_loss_notice"
+
+
+class DecisionCapture:
+    """One row per renewal DECISION, with the world's re-asks nested under it.
+
+    THE DEFECT (2026-11-27, `docs/staging/SEAT_FINDING_THE_FIX0_CAPTURES_TWICE_COUNTED_DEPARTURES_
+    ARE_THE_WORLD_RE_ASKED_AT_AN_OFFER_NOT_TWO_FUELS_2026-11-27.md`). The world asks
+    `roll_lifecycle_event` up to three times for one household at one renewal: at the quoted rate
+    (the decision), again at a retention offer's rate (`ask_world_at_offer`), and again at a save
+    rate (`run_phase2b`'s save-on-loss-notice re-ask). Each re-ask uses the same roll and a lower
+    price. The wrapper used to append a row per CALL, so capture r2 held 35 (account, date)
+    pairs, and `account_denominator_refusal` saw 22 accounts depart twice. The diagnosis on that
+    page was "a dual-fuel home's two legs". Wrong: 19 of the 35 accounts had no gas leg.
+
+    AND THE ANSWER AT THE QUOTED RATE IS NOT WHAT HAPPENED. An offer that worked leaves a decision
+    row reading `churned` on a household that stayed (`SYN-2016-582`, 2017-12-10: left at the
+    quoted rate, kept by the offer, on supply until 2024). So `event_type` is the outcome the RUN
+    KEPT, joined from its own `customer_events` log after the run (offer, save and debt objection
+    applied). The quoted-rate answer is kept beside it as `event_type_at_quoted_rate`. The
+    factors and `realized_churn_probability` stay the quoted-rate call's: that is the pre-offer
+    ground truth `answer_retention_offer` keeps too (Phase QA).
+    """
+
+    def __init__(self) -> None:
+        self.rows: list[dict] = []
+        self._by_key: dict[tuple[str, str], dict] = {}
+        self._in_offer = False
+
+    def wrap(self, original):
+        def capturing(*args, **kwargs):
+            event = original(*args, **kwargs)
+            if event is None:
+                return None
+            self.record(event, kwargs)
+            return event
+        return capturing
+
+    def wrap_offer(self, original_offer):
+        def offering(*args, **kwargs):
+            self._in_offer = True
+            try:
+                return original_offer(*args, **kwargs)
+            finally:
+                self._in_offer = False
+        return offering
+
+    def record(self, event: dict, kwargs: dict) -> None:
+        key = (event["customer_id"], event["event_date"])
+        decided = self._by_key.get(key)
+        if decided is None:
+            row = factor_row(event, kwargs)
+            row["reasked_at"] = []
+            self._by_key[key] = row
+            self.rows.append(row)
+            return
+        decided["reasked_at"].append({
+            "kind": REASK_RETENTION_OFFER if self._in_offer else REASK_SAVE_ON_LOSS_NOTICE,
+            "new_rate_gbp_per_mwh": kwargs.get("new_rate_gbp_per_mwh"),
+            "effective_retention_probability": event["effective_retention_probability"],
+            "event_type": event["event_type"],
+        })
+
+    def rows_with_kept_outcome(self, kept_events: list[dict] | None) -> list[dict]:
+        """The decision rows, each carrying the departure outcome the run actually kept."""
+        kept: dict[tuple[str, str], str] = {}
+        for e in kept_events or ():
+            if e.get("customer_id") is not None and e.get("event_date") is not None:
+                kept[(e["customer_id"], str(e["event_date"])[:10])] = e.get("event_type")
+        out = []
+        for row in self.rows:
+            at_quoted = row["event_type"]
+            got = kept.get((row["customer_id"], str(row["event_date"])[:10]))
+            # A decision with no kept event (the run logged none for it) keeps the world's
+            # quoted-rate answer, and says so, rather than being dropped from the table.
+            event_type = (("churned" if got == "churned" else "renewed")
+                          if got is not None else at_quoted)
+            out.append({
+                **row,
+                "event_type_at_quoted_rate": at_quoted,
+                "event_type": event_type,
+                # A cause on a household that stayed is a reason mix no departure supports.
+                "departure_cause": row["departure_cause"] if event_type == "churned" else None,
+                "kept_outcome_joined": got is not None,
+            })
+        return out
+
+
 def main(out_path: Path, roll_seed: int | None = None) -> int:
     # `ce` IS PATCHED IN THE DEFINING MODULE BECAUSE THAT IS WHERE THE CALL IS.
     # `roll_lifecycle_event` calls `churn_roll_for_renewal` as a module-global inside
@@ -183,78 +328,27 @@ def main(out_path: Path, roll_seed: int | None = None) -> int:
         print(f"RE-SEEDED RENEWAL ROLL: every renewal dice re-drawn under seed {roll_seed}. "
               "Same world, same book, same company code — a second draw, not a second world.")
 
-    captured: list[dict] = []
     # PATCH THE CALLER'S NAMESPACE, NOT THE DEFINING MODULE'S. `run_phase2b` does
     # `from simulation.customer_events import roll_lifecycle_event`, so the name is bound in ITS
     # module dict and rebinding `customer_events.roll_lifecycle_event` captures nothing at all --
     # the run would complete, the file would be written, and it would be EMPTY rather than wrong,
     # which is the failure mode that reads as success. Same trap `tools/_ladder_chase_arm.py`
-    # documents for `pressure_ledger_scope`.
+    # documents for `pressure_ledger_scope`. `ask_world_at_offer` is patched in the same namespace
+    # so the re-ask it makes is told from the decision it re-asks (`DecisionCapture`).
+    capture = DecisionCapture()
     original = rp2b.roll_lifecycle_event
-
-    def capturing(*args, **kwargs):
-        event = original(*args, **kwargs)
-        if event is None:
-            return None
-        stress = kwargs.get("income_stress")
-        row = {
-            "customer_id": event["customer_id"],
-            "event_date": event["event_date"],
-            # The factor arguments, exactly as the world handed them over.
-            "income_stress": stress.value if stress is not None else None,
-            "satisfaction_score": kwargs.get("satisfaction_score"),
-            "market_year": kwargs.get("market_year"),
-            "passive_churn_cap": kwargs.get("passive_churn_cap"),
-            "retention_modifier": kwargs.get("retention_modifier"),
-            "new_rate_gbp_per_mwh": kwargs.get("new_rate_gbp_per_mwh"),
-            # And what the composed form actually produced from them.
-            "churn_probability": event["churn_probability"],
-            # THE INDEPENDENT COMPANY BELIEF, AND IT IS HERE SO THE NEXT READING NEED NOT JOIN.
-            # `company.crm.churn_model.estimate_churn_probability` is the only company-side belief
-            # that does NOT seed `effective_p_retain`, so it is the one leg on this route that can
-            # be graded against the world's ceiling without the tautology `build_churn_risk` has.
-            # Captures taken before 2026-08-31 lack it, and `measure_churn_heterogeneity` joins it
-            # from the run output for those -- a cross-artefact join it has to verify row by row.
-            # Recording it here retires that join rather than leaving a second code path alive.
-            "company_churn_estimate": event.get("company_churn_estimate"),
-            "realized_churn_probability": event["realized_churn_probability"],
-            "effective_retention_probability": event["effective_retention_probability"],
-            "price_differential_vs_market_reference": event.get(
-                "price_differential_vs_market_reference"),
-            "market_switching_multiplier": event.get("market_switching_multiplier"),
-            # The C2 factor decomposition, emitted by `roll_lifecycle_event` itself.
-            "sim_bill_shock_base": event.get("sim_bill_shock_base"),
-            "sim_market_opportunity": event.get("sim_market_opportunity"),
-            "sim_price_response": event.get("sim_price_response"),
-            "sim_action_propensity": event.get("sim_action_propensity"),
-            "sim_dissatisfaction_response": event.get("sim_dissatisfaction_response"),
-            # PB4: what the base now counts, and the month count it replaced, so a capture can
-            # split the base by first and later renewal without joining the event log.
-            "sim_experienced_bill_shock": event.get("sim_experienced_bill_shock"),
-            "sim_month_count_bill_shock_base": event.get("sim_month_count_bill_shock_base"),
-            # The year's level term and the risk that fired. Captured so the departure
-            # decomposition can be replayed from this table alone: with the factors, the anchor
-            # and the roll, `resolve_departure` reproduces the cause exactly, which is what lets
-            # the realised reason mix be measured without a second run of the world.
-            "sim_level_anchor": event.get("sim_level_anchor"),
-            "departure_cause": event.get("departure_cause"),
-            # `is_active_renewal` and `engagement_level` are NOT captured here: the caller sets
-            # them on the event dict AFTER this function returns, so they are absent at this
-            # point. They are joined back from the published event log on (customer_id,
-            # event_date) instead. Reading them here would record None for all 708 rows.
-            "event_type": event["event_type"],
-            "random_roll": event["random_roll"],
-        }
-        captured.append(row)
-        return event
-
-    rp2b.roll_lifecycle_event = capturing
+    original_offer = rp2b.ask_world_at_offer
+    rp2b.roll_lifecycle_event = capture.wrap(original)
+    rp2b.ask_world_at_offer = capture.wrap_offer(original_offer)
     try:
         result = rp2b.main()
     finally:
         rp2b.roll_lifecycle_event = original
+        rp2b.ask_world_at_offer = original_offer
         ce.churn_roll_for_renewal = original_roll
 
+    captured = capture.rows_with_kept_outcome(
+        result.get("customer_events") if isinstance(result, dict) else None)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(captured, indent=1))
     print(f"captured {len(captured)} renewal factor rows -> {out_path}")
