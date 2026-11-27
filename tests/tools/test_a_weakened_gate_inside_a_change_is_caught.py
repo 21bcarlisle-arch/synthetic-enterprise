@@ -154,3 +154,43 @@ def test_the_report_is_ready_only_after_a_week_of_commits_and_counts_what_enforc
     assert (week["would_refuse"], week["deferred"], week["gate_data_touched_commits"]) == (1, 1, 1)
     assert week["per_gate"]["g"]["would_refuse"] == 1 and week["observer_seconds"]["max"] == 4.0
     assert summarise([]) == {"commits": 0, "ready": False}
+
+
+def _enforce(repo: Path) -> subprocess.CompletedProcess:
+    return subprocess.run([sys.executable, "-P", "-", "--enforce"], cwd=repo,
+                          input=OBSERVER.read_text(), capture_output=True, text=True)
+
+
+def test_enforce_refuses_a_weakened_gate_and_passes_the_rest_of_the_partition(repo):
+    """Defect: enforce refuses nothing (the observe line left in place), or refuses everything.
+    Untouched gate and honest gate edit pass; a weakened gate and a weakened import are refused."""
+    _stage(repo, "tools/unrelated.py", "X = 2\n")
+    untouched = _enforce(repo)
+    _stage(repo, "tools/bad_gate.py", GATE + "# a comment\n")
+    honest = _enforce(repo)
+    _stage(repo, "x.bad", "")
+    _stage(repo, "tools/bad_gate.py", GATE.replace("if found else 0", "if False else 0"))
+    weakened = _enforce(repo)
+    _stage(repo, "tools/bad_gate.py", GATE)
+    _stage(repo, "tools/gate_helper.py", "def refuses(path):\n    return False\n")
+    weakened_import = _enforce(repo)
+    assert [untouched.returncode, honest.returncode] == [0, 0]
+    assert [weakened.returncode, weakened_import.returncode] == [1, 1]
+    last = weakened.stdout.strip().splitlines()[-1]
+    assert "REFUSED" in last and "tools.bad_gate" in last  # surgical_land names it from this line
+
+
+def test_enforce_refuses_a_gate_line_deleted_from_the_changes_hook(repo):
+    """Defect: enforce reads the change's hook, so dropping a gate's line drops its judgement."""
+    _stage(repo, "x.bad", "")
+    _stage(repo, "tools/git-hooks/pre-commit", "#!/bin/sh\n")
+    assert _enforce(repo).returncode == 1
+
+
+def test_a_crashed_judge_fails_open_and_says_so(repo):
+    """Defect: a judge read from HEAD that crashes into a refusal also refuses its own repair."""
+    (repo / ".git" / "base_judged_gates.jsonl").mkdir()
+    _stage(repo, "x.bad", "")
+    _stage(repo, "tools/bad_gate.py", GATE.replace("if found else 0", "if False else 0"))
+    r = _enforce(repo)
+    assert r.returncode == 0 and "JUDGE FAILED" in r.stderr

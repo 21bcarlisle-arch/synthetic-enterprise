@@ -14,8 +14,13 @@ What this does, per commit:
      change, code from the base);
   5. log both exit codes; a base refusal the change's copy passes is the case enforce will refuse.
 
-OBSERVE MODE: always exits 0. The hook calls it as `git show HEAD:tools/base_judged_gates.py |
-python3 -P -`, so the observer itself is never the change's copy. Stdlib only, for the same reason.
+ENFORCE MODE (`--enforce`, from 27 Nov after a week of observe): step 4 runs the BASE side only, and a
+base refusal exits 1. The change side is not rerun here -- the hook's own line for the gate runs the
+change's copy straight after, so a gate change must pass BOTH: the old gate (it cannot judge itself)
+and the new one (it cannot land a gate that refuses its own landing). The hook calls it as `git show
+HEAD:tools/base_judged_gates.py | python3 -P - --enforce || exit 1`, so the judge itself is never the
+change's copy. Stdlib only, for the same reason. A CRASH OF THE JUDGE FAILS OPEN, loudly and logged:
+it runs from HEAD, so a crash that refused would also refuse the commit that repairs it.
 """
 from __future__ import annotations
 
@@ -208,7 +213,8 @@ def build_shadow(root: Path, dest: Path, files: dict[str, bytes | None]) -> None
             (dest / rel).write_bytes(data)
 
 
-def run_gate(gate: dict, shadow: Path, root: Path) -> dict:
+def run_gate(gate: dict, shadow: Path, root: Path,
+             timeout: float | None = RERUN_TIMEOUT_SECONDS) -> dict:
     env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
     env.update(PYTHONPATH=str(shadow), PYTHONDONTWRITEBYTECODE="1")
     if gate["module"]:
@@ -218,15 +224,18 @@ def run_gate(gate: dict, shadow: Path, root: Path) -> dict:
     t0 = time.monotonic()
     try:
         r = subprocess.run(argv, cwd=root, env=env, capture_output=True, text=True,
-                           timeout=RERUN_TIMEOUT_SECONDS)
+                           timeout=timeout)
         rc, tail = r.returncode, (r.stdout + r.stderr).strip().splitlines()[-3:]
     except subprocess.TimeoutExpired:
-        rc, tail = None, ["timeout after {}s".format(RERUN_TIMEOUT_SECONDS)]
+        rc, tail = None, ["timeout after {}s".format(timeout)]
     return {"rc": rc, "seconds": round(time.monotonic() - t0, 2), "tail": tail}
 
 
-def judge(gate: dict, base: Base, root: Path) -> dict:
-    """Base side and change side of one gate, in identical shadows."""
+def judge(gate: dict, base: Base, root: Path, enforce: bool = False) -> dict:
+    """Base side and change side of one gate, in identical shadows. Enforce runs the base side only,
+    with no timeout: the chain runs the gate itself unbounded, and a base side killed at a bound it
+    does not carry would refuse a commit the gate never judged (three test-gate reruns of the
+    observe week hit 1,200 s)."""
     head = {"gate": gate["module"] or gate["entry"], "touched": gate["touched"],
             "dropped_from_change_hook": gate["dropped_from_change_hook"]}
     if gate.get("deferred"):
@@ -239,6 +248,10 @@ def judge(gate: dict, base: Base, root: Path) -> dict:
     with tempfile.TemporaryDirectory(prefix="base-judged-") as tmp:
         b, c = Path(tmp, "base"), Path(tmp, "change")
         build_shadow(root, b, base_files)
+        if enforce:
+            base_run = run_gate(gate, b, root, timeout=None)
+            return {**head, "deferred": False, "base": base_run,
+                    "would_refuse": base_run["rc"] != 0}
         build_shadow(root, c, change_files)
         base_run = run_gate(gate, b, root)
         if gate["dropped_from_change_hook"]:
@@ -261,16 +274,17 @@ def log_path(root: Path) -> Path:
     return common / LOG_NAME
 
 
-def observe(root: Path) -> dict:
+def observe(root: Path, enforce: bool = False) -> dict:
     t0 = time.monotonic()
     base = Base(root)
     staged = staged_paths(root)
     gates = affected_gates(base, root, staged)
     record = {"at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-              "base": _git(root, "rev-parse", "HEAD").strip(), "mode": "observe",
+              "base": _git(root, "rev-parse", "HEAD").strip(),
+              "mode": "enforce" if enforce else "observe",
               "staged": len(staged), "gate_data_touched": sorted(p for p in staged
                                                                   if _GATE_DATA.search(p)),
-              "results": [judge(g, base, root) for g in gates]}
+              "results": [judge(g, base, root, enforce) for g in gates]}
     # One line per commit, reruns or none: a log written only on a rerun cannot tell a week of
     # commits that touched no gate from an observer that never ran, and enforce's cost (GAP-6) is
     # this whole duration, not only the reruns'.
@@ -278,7 +292,15 @@ def observe(root: Path) -> dict:
     with log_path(root).open("a") as fh:
         fh.write(json.dumps(record) + "\n")
     for r in record["results"]:
-        if r["would_refuse"]:
+        if r["would_refuse"] and enforce:
+            # stdout, and last: surgical_land names the refusing gate from the tail of stdout.
+            print("\n".join(r["base"]["tail"]))
+            print("[base-judged] REFUSED: the base copy of {} refuses this change (rc {}). A change "
+                  "is judged by the gates it does not change (director steer, 20 Nov). If the gate "
+                  "change is the point, split it so the base gate passes it, land that, then the rest; "
+                  "or raise it with a recommendation. There is no bypass.".format(
+                      r["gate"], r["base"]["rc"]))
+        elif r["would_refuse"]:
             print("[base-judged] OBSERVE: the base copy of {} refuses this change and the change's "
                   "own copy passes it -- enforce mode would refuse. Logged to {}.".format(
                       r["gate"], LOG_NAME), file=sys.stderr)
@@ -308,6 +330,8 @@ def summarise(records: list[dict]) -> dict:
         g["would_refuse"] += bool(r.get("would_refuse"))
     return {
         "commits": len(records), "first": stamps[0], "last": stamps[-1],
+        "modes": {m: sum(1 for rec in records if rec.get("mode") == m)
+                  for m in sorted({rec.get("mode", "observe") for rec in records})},
         "span_days": round(span_days, 2), "ready": span_days >= OBSERVE_DAYS,
         "commits_with_a_rerun": sum(1 for rec in records if rec.get("results")),
         "would_refuse": sum(1 for r in results if r.get("would_refuse")),
@@ -331,11 +355,21 @@ def main(argv: list[str]) -> int:
             print(json.dumps(summarise([json.loads(x) for x in p.read_text().splitlines()
                                         if x.strip()]), indent=2))
         return 0
+    enforce = "--enforce" in argv
     try:
-        observe(root)
-    except Exception as exc:  # observe mode: a broken observer must never red a commit
-        print("[base-judged] observer failed, nothing judged: {}".format(exc), file=sys.stderr)
-    return 0
+        record = observe(root, enforce)
+    except Exception as exc:  # see the module docstring: a refusing crash would refuse its own repair
+        print("[base-judged] JUDGE FAILED, nothing judged, commit NOT refused: {!r}".format(exc),
+              file=sys.stderr)
+        try:
+            with log_path(root).open("a") as fh:
+                fh.write(json.dumps({"at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                                     "mode": "judge_failed", "error": repr(exc),
+                                     "results": []}) + "\n")
+        except Exception:
+            pass
+        return 0
+    return 1 if enforce and any(r["would_refuse"] for r in record["results"]) else 0
 
 
 if __name__ == "__main__":

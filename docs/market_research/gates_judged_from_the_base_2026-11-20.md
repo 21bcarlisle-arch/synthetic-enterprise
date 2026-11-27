@@ -82,9 +82,55 @@ the change. Under `surgical_land`, the hook *script* comes from the change too. 
   `--report` now prints these counts and `ready`. `ready` is true only once the logged commits
   span 7 days, because a busy afternoon is not a week. `--report --raw` prints the log itself.
 
-## 5. Enforce
+## 5. The week's reading (27 Nov, `--report`), and the enforce flip
 
-The flip comes after observe mode has seen at least one week of real commits. The steps are:
-the hook script itself is read from the base, and a base refusal becomes `exit 1`. A legitimate gate
-change that the old gate refuses is split so that the old gate passes it, or it is raised with a
-recommendation. It is never bypassed.
+**The reading.** 872 commits from 20 Nov 12:31Z to 27 Nov 13:00Z (7.02 days). 281 of them reran at
+least one gate from the base. **0 would-refuse.** In 18 test-gate reruns the base copy returned rc 1,
+and in 15 of those the change's copy also returned rc 1: the commit was red on both sides and was
+refused by the chain anyway. The remaining three disagreed only because one side hit the 1,200 s
+observe bound (`rc None`), never because one side passed and the other refused. Per gate: size
+ratchet 281 reruns; test gate 27 reruns and 254 deferred; site-lane gate 24 reruns and 257 deferred.
+Observer cost per commit: median 4.15 s, p90 13 s, max 2,362 s (a commit that touched the test gate,
+run on both sides). No legitimate gate fix was seen being deadlocked.
+
+**What "deferred" is.** The 511 deferred results are commits that touched the *deep* closure of the
+two pytest gates and not their own code. The top paths were `simulation/run_phase2b.py` (118 per gate),
+`company/interfaces/growth_desk.py` (30), `background/live_payment_triad.py` (29) and
+`simulation/gain_registration.py` (25). These files are the **code under test, not the gate**. Running
+them from the base would test the old code and not the change, so they stay deferred under enforce.
+This is a scope decision, not a hole that was missed. Its residue is **GAP-7**: a test gate weakened
+through a module it reaches only indirectly is still judged by the change's copy.
+
+**GAP-1, decided from the log: data stays the change's.** 29 commits staged gate data. 22 of them were
+`docs/design/orphan_baseline.json`, 4 were `substring_source_scan_baseline.json` and 3 were
+`wall_channel_census_baseline.json`. The orphan baseline is changed in the same commit *by design*: the
+hook's own comment names `orphan_ratchet.py --freeze` in the same commit as the sanctioned way to
+record a dormant module. Judging that data from the base would refuse the sanctioned route on every
+one of those 22 commits. So data is not judged from the base. A loosened baseline is a diff a reviewer
+can read, and the ratchets that own the files refuse growth themselves.
+
+**Enforce, as landed 27 Nov.** The hook line is `git show HEAD:tools/base_judged_gates.py | python3 -P -
+--enforce || exit 1`. For each affected gate it runs HEAD's copy only, with no timeout, because the
+chain runs the gate itself unbounded. A base refusal exits 1, and the last line on stdout names the
+gate, which is the line `surgical_land` quotes. The gate's own line in the chain then runs the change's
+copy, so **a gate change must pass both**: the old gate, because a change cannot judge itself, and the
+new gate, so a gate cannot land if it refuses its own landing commit. Cost: the same as the observe week
+on affected commits, because a test-gate edit still runs that gate twice. Every other commit pays the
+~4 s closure walk. A gate fix that the old gate refuses is split, or raised with a recommendation. It is
+never bypassed.
+
+**A crash of the judge fails open, loudly.** It prints `JUDGE FAILED` on stderr and logs a
+`judge_failed` record. This is the one place fail-closed is wrong. The judge runs from HEAD, so a
+refusing crash would also refuse the commit that repairs it, and no lane could clear that.
+
+**Bootstrap.** The landing commit is judged by HEAD's observe-mode copy, which ignores `--enforce`.
+Enforce starts on the next commit.
+
+**Still open.** **GAP-2** is half-closed. The judge is read from HEAD, but the line that calls it is
+still in the change's hook under `surgical_land`, which runs `sh tools/git-hooks/pre-commit` from the
+extract. The plain `git commit` door runs the shared tree's working copy (`core.hooksPath`). The next
+step is `surgical_land.run_gate` running HEAD's hook blob (refusing if it is missing), not the
+extract's file. GAP-3, GAP-4 and GAP-5 are unchanged. **GAP-8:** a gate that passes its landing but
+refuses everything afterwards, including its own repair, cannot be repaired through the door, because
+enforce judges the repair by the broken copy. The remedy is the director's console. The week showed
+none.
