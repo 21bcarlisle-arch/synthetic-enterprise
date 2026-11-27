@@ -1045,6 +1045,25 @@ than the bill said was owed would be collecting the very payments that 27.16 def
     issued before it existed. The gap is days, so the overstatement is small. It is named here, not
     modelled.
 
+**A failed final's arrears is what the bill asked (amended 2026-11-27, before the build).** The rule is
+choice 11's: the final bill states what is owed (SLC 31H.12(a)), which is its charges less the credit on
+the account. So when the final bill's collection fails, the debt the supplier pursues, and the figure its
+notices print, is that ask less whatever part was paid, never the face. On the 601887d76a book the world
+netted 95.72 of ledger credit off OCC-cede70b10116g's 113.13 gas final, asked 17.41 and was part-paid
+8.45, so 8.96 was owed. The page opened a case at 92.50 with first and second notices. The leg's surplus
+of level collections over bill faces is reconciled at the close (`level_collection_difference`, s.8.8b),
+so it never sat in the walk's pool when the failed final arrived. The cash agreed and the letters did not.
+PROS-2024-0270g is the same shape (page 54.08, ask 13.27, credit 40.81).
+
+*Choices.*
+37. *A failed level final takes the world's credit from the level surplus.* When a failed final bill on a
+    level leg carries `credit_taken_gbp`, the walk first nets what its pool holds, as before, then draws
+    what is still short of that credit from the leg's level surplus (the negative of
+    `level_collection_difference`, never more), posted as `credit` dated by the last level collection.
+    The close adds back what was drawn, so the surplus is not counted twice and no leg's closing balance
+    moves. With no successful level collection there is no surplus and nothing is drawn. Control:
+    `tests/simulation/test_a_final_bill_resolves_on_what_the_world_asked.py`.
+
 #### 8.8c A level leaver's credit and its final bill (added 2026-11-11, before the build)
 
 *Correction, beside the code:* `simulation/arrears_engine.py` and `LEVEL_DD_AREA_MAP.md` cite a

@@ -1465,6 +1465,8 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                 _net(item, so["date"])
 
         posted_credits: list[dict] = []
+        difference_at_start, last_collection_at_start = level.get(cid, (0.0, None))
+        level_surplus_drawn = [0.0]  # of the level surplus, what a failed final's netted credit took
 
         def _post_account_credit(ac: dict, posted_credits=posted_credits, pool=pool,
                                  outstanding=outstanding, leg_commodity=leg_commodity,
@@ -1489,6 +1491,23 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                 outstanding.append(item)
                 if _waiting(r["commodity"]) > 0:
                     _net(item, when)
+                # A failed level final the world netted asked its face less that credit (SLC
+                # 31H.12), but the level surplus that funded it is reconciled at the close and is not
+                # in the pool: OCC-cede70b10116g's case opened at 92.50 where 8.96 was owed
+                # (home_moves.md s.8.8a choice 37). Drawn from the surplus, added back at the close.
+                short = round(min(r.get("credit_taken_gbp") or 0.0, r["amount_gbp"]) - sum(
+                    x["amount_gbp"] for x in credited.get(_key(r), ())), 2)
+                if on_level and short > 0.005 and level_surplus_drawn[0] < -difference_at_start:
+                    take = round(min(short, item["remaining"],
+                                     -difference_at_start - level_surplus_drawn[0]), 2)
+                    if take > 0.005:
+                        credited.setdefault(_key(r), []).append(
+                            {"date": when, "amount_gbp": take, "kind": "credit",
+                             "credit_period_end": last_collection_at_start.isoformat()})
+                        item["remaining"] = round(item["remaining"] - take, 2)
+                        level_surplus_drawn[0] = round(level_surplus_drawn[0] + take, 2)
+                        if item["remaining"] <= 0:
+                            outstanding.remove(item)
                 # The bill asked its charges less the credit waiting when it was collected (SLC
                 # 31H.12), and that is the cash the household's later settlement of it carries.
                 asked[(r["commodity"], r["period_end"][:7])] = item["remaining"]
@@ -1582,6 +1601,8 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                 _post_account_credit(ac)
         _bar(horizon)
         difference, last_collection = level.get(cid, (0.0, None))
+        # What a failed final drew of the surplus is no longer surplus (s.8.8a choice 37).
+        difference = round(difference + level_surplus_drawn[0], 2)
         # A level leaver's final bill that asked the scheme's debit and was collected paid it, so
         # the debit is no longer a standing debt (home_moves.md s.8.8f choices 26-27).
         debit_paid = (round(sum(r.get("debit_paid_gbp") or 0.0 for r in rows), 2)

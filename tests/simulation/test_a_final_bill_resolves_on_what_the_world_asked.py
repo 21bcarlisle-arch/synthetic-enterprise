@@ -7,7 +7,10 @@ Defects this file exists to catch:
     (SYN-2016-244: 52.26 paid, 26.71 refunded, where the world asked 25.55);
   * the part a gone household paid is a share of the face, so it can exceed the ask
     (OCC-cede70b10116g: 57.23 part-paid of a 3.61 ask);
-  * a part above the charges is taken off the face, opening a negative case (PROS-2016-0370g).
+  * a part above the charges is taken off the face, opening a negative case (PROS-2016-0370g);
+  * a FAILED level final opens its case on its face, because the level surplus that funded the
+    world's credit is reconciled at the close, not pooled (OCC-cede70b10116g: 92.50 where 8.96 was
+    owed; home_moves.md s.8.8a choice 37).
 """
 from datetime import date, timedelta
 from types import SimpleNamespace
@@ -81,3 +84,27 @@ def test_a_level_legs_final_bill_nets_the_credit_the_world_took_and_only_then():
     # against the final bill as credit with it.
     assert _close(0.0) == (-20.0, 0.0)
     assert _close(20.0) == (0.0, 20.0)
+
+
+def _failed_level_final(credit_taken, collected=50.0):
+    """A level leg whose January collection of `collected` paid a 30 bill, so it holds a surplus,
+    and whose 25 final bill's collection fails."""
+    level = {"L": [{"month": "2020-01", "collection_date": "2020-01-19", "amount_gbp": collected}]}
+    rows = [_row(1, "success", 30.0), _row(2, "failed", 25.0, credit_taken_gbp=credit_taken)]
+    closing = {}
+    _, credited = ae.balance_settlement_from_outcomes(rows, {"L"}, closing,
+                                                      level_dd_collections=level)
+    final = credited.get(("L", "2020-02-28", "electricity"), [])
+    return closing["L"], round(sum(c["amount_gbp"] for c in final if c["kind"] == "credit"), 2)
+
+
+def test_a_failed_level_final_nets_the_worlds_credit_from_the_surplus_and_the_close_holds():
+    # The branch can be taken, and takes the world's credit, never the whole surplus.
+    assert _failed_level_final(15.0) == (5.0, 15.0)
+    # Without the world's word nothing is drawn, and the closing balance is the same either way:
+    # the close adds back what the final drew.
+    assert _failed_level_final(0.0) == (5.0, 0.0)
+    # Never more than the surplus: 8 over the face, so 8 drawn of a 15 credit.
+    assert _failed_level_final(15.0, collected=38.0) == (17.0, 8.0)
+    # No surplus, nothing drawn.
+    assert _failed_level_final(15.0, collected=30.0) == (25.0, 0.0)
