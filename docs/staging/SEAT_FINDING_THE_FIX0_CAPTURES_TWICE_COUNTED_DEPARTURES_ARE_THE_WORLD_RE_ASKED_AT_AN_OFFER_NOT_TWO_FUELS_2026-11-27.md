@@ -139,3 +139,12 @@ ignoring `supplied_until`, and it fired.
   If it refuses again, that refusal gets recorded. It is not worked around.
 
 The capture worktree `/var/tmp/se-reask-capture-wt` had already been removed when this grade ran: not a worktree and not on disk.
+
+**Disposition, 2026-11-27 08:16 GMT (draw of `fix0-2021-anchor-refit-on-the-one-decision-capture`).** The
+supplied-days re-capture is still running and has not written
+`/var/tmp/se-supplied-capture/departure_factors_supplied_days.json`. Its log is mid-2019 at about 15.9M
+settlement periods. The live process is pid 3329877 under `run.sh` pid 3329847. The pid 2534655 that the
+item names is gone, so read pids from `pgrep -af supplied`, not from the item. No grade or refit was run, and
+no second capture was started. The successor `fix0-2021-anchor-refit-on-the-supplied-days-capture` is
+gated on that artefact and now carries P5–P8, the fitter run and the 2021 refit landing. This item was
+released in its favour.

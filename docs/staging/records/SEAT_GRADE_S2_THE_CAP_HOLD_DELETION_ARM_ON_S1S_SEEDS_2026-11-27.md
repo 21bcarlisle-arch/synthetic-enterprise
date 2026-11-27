@@ -89,3 +89,8 @@ under `/var/tmp/se-s2-caphold/`.
 **Graded:** P1 HELD · P2′ HELD (4 of 4, exactly) · P3′ HELD (+£0.30/win) · P4 count HELD, "0 rates
 move" MISSED on gas (13 in the window) · unpredicted: 47 gas and 2 SYN first terms are held only by
 the cap · all of it conditional on `check_rerun.py` reading DETERMINISTIC.
+
+**Re-run read 2026-11-27: DETERMINISTIC, the grade stands.** `check_rerun.py` against the off
+re-run at `76f894811d` (world `cdba75ebb9197b33`, same digest as S1): account_state_log,
+acquisition_funnel_log, bills, total_net_gbp, total_revenue_gbp, enterprise_value_gbp and
+total_acquisition_wins all IDENTICAL to S1's book. The prediction held; the conditional is lifted.
