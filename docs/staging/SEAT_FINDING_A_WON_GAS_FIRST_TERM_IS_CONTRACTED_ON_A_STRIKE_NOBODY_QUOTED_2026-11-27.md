@@ -37,3 +37,11 @@ knowledge page for the dual-fuel quote comes first.
   established here. That goes to the knowledge layer before any build.
 - The 2 SYN electricity first terms the hold also clamps (SYN-2021-001 and SYN-2016-064_3) are not
   campaign-quoted either. The mechanism that wins them was not read.
+
+**Status, 27 Nov (the build).** The knowledge comes first: §14 of
+`docs/market_research/cheapest_fix_against_the_default_tariff_gb_2016_2025.md` establishes that each fuel
+is its own contract with its own rate, and that the quote prices gas on its own. The campaign now strikes
+the gas half on the same day, and a won gas first term is contracted at it, behind S1's switch. This covers
+103 of 200 won gas legs at the run seed. Still open: 24 `cap_constrained` legs and 73 gas legs of
+default-tariff homes (§14 GAPs 1–2). The S2 re-run is pre-registered and held on its book:
+`docs/staging/records/SEAT_PREREG_S2_RERUN_WITH_THE_GAS_FIRST_TERM_AT_ITS_QUOTE_2026-11-27.md`.

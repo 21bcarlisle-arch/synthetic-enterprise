@@ -777,3 +777,80 @@ term contracted at its quote, the hold holds nothing, so its deletion
 post-s.12g book, take `CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE` and score its pre-registration
 (`docs/staging/records/SEAT_PREREG_THE_FIRST_TERM_CONTRACTED_AT_ITS_QUOTE_2026-11-24.md`), then
 delete the hold.
+
+## 14. Does a dual-fuel acquisition quote price gas on its own? (K8, 2026-11-27)
+
+**The question.** When a home takes both fuels from a supplier, is it quoted one bundled price, or
+does gas get its own price? And what rate is a won gas first term contracted at?
+
+**What the rules say.**
+- **Each fuel is its own licence and its own contract.** Gas is supplied under the gas supply
+  licence and electricity under the electricity supply licence. Each sets its own standard
+  conditions, and the two carry the same numbers (Ofgem publishes them as twin notices, e.g. the
+  2017 statutory consultation, `https://www.ofgem.gov.uk/system/files/docs/2017/01/gas_slc_stat_con_-_notice.pdf`
+  beside `.../electricity_slc_stat_con_-_notice.pdf`, read 2026-11-27). SLC 27.16 counts credit per
+  Domestic Supply Contract, and this repo already reads that as one contract per fuel
+  (`debt_and_collections.md`, and the B13 re-fix in `run_phase2b._plan_the_gas_refix`).
+- **The Charges are per contract, with each element shown separately.** SLC 22A requires the
+  licensee to keep "the Standing Charge(s)" and "the Unit Rate(s)" separately identified, from each
+  other and from any other charge. The wording was read through a search summary of Ofgem's notices,
+  not from the licence register, which does not render to a fetch (§13).
+- **The Tariff Information Label.** SLC 31B requires one for each tariff. Ofgem's consumer page says
+  it lists the unit rate and the standing charge, and whether they include VAT
+  (`https://ofgem.gov.uk/energy-terms-explained?letter=T`, read 2026-11-27). The task brief called
+  this SLC 31A. In the 2013 RMR numbering, 31A is bills and statements and the label is **31B**.
+- §13's rules (SLC 23 Principal Terms, SLC 22C no rise during the fix) apply to each fuel's contract
+  separately.
+
+**Published practice.** A current supplier label for a dual-fuel fix (Good Energy, *Mar27 Fix*,
+`https://www.goodenergy.co.uk/wp-content/uploads/2026/04/Mar27-Fix.pdf`, read through a search
+summary on 2026-11-27) shows a unit rate and a standing charge for electricity, a separate unit rate
+and standing charge for gas, and an estimated annual cost for each fuel and for the two together.
+That is one supplier's document, so it shows practice, not the rule.
+
+**What follows for the model [A on the rule, B on the practice].** A dual-fuel acquisition quote
+prices gas on its own: its own unit rate, from the supplier's gas desk, on the same day. The bundle
+appears only as the combined annual cost, and any dual-fuel discount is a separate line. So a won
+gas first term is contracted at the gas rate quoted, as electricity's is (§13).
+
+**What the design does.** The campaign's electricity quote now also strikes the gas half
+(`live_population.first_term_offer_fn`), on the same day, through the same desk
+(`growth_desk.quote_first_term`, commodity gas), at the AQ the gas leg will carry. The gas leg then
+carries that strike under `QUOTED_FIRST_TERM_RATE_KEY`, behind the switch S1 already took. The win
+is still decided on the electricity position alone.
+
+**GAPs.**
+- **What a household is shown when the company declines the gas fix.** In the run, 24 of the 200
+  won gas legs are `cap_constrained` (the gas strike is over the default tariff): 1 in 2020, 14 in
+  2021, 1 in 2022, 7 in 2023 and 1 in 2024. Whether a real supplier then quotes gas at its default
+  tariff, or sells electricity alone, is NOT ESTABLISHED. The run keeps those legs on the notice-date
+  strike, and the cap hold clamps them. Until this is settled, the hold is still doing work on gas.
+- **The gas leg of a default-tariff home.** 73 won gas legs belong to homes quoted the default
+  tariff on electricity. There is no fixed strike for them, but `resolved_tariff_type` opens their
+  gas leg on a fixed term. That fixed rate was quoted to nobody. Not built here; it is the same
+  class.
+- **The decision on the bundle.** Comparison sites rank dual-fuel deals on the combined annual
+  cost. The funnel reads the electricity position only. Whether the household decides on the
+  combined cost is not established.
+- **Dual-fuel discounts.** Whether they are common, and how big, is not established. None is
+  modelled.
+
+**Measured at the run's seed** (`/var/tmp/se-gasq/probe.py` and `probe2.py`). 200 won gas legs: 103 carry
+a quote, 73 belong to default-tariff homes and 24 are `cap_constrained`. The table compares the median gas quote with the gas default
+(the cap, ex-VAT) and with the market's cheapest gas fix on the won day, in £/MWh ex-VAT.
+
+| year | quoted legs | quote | default | cheapest | quote vs cheapest |
+|---|---|---|---|---|---|
+| 2016 | 8 | 28.0 | 38.1 | 26.6 | +4.5% |
+| 2017 | 11 | 29.2 | 38.1 | 29.3 | +3.8% |
+| 2018 | 8 | 35.9 | 40.0 | 27.9 | +28.6% |
+| 2019 | 16 | 25.5 | 39.4 | 26.6 | −1.0% |
+| 2020 | 12 | 23.8 | 33.3 | 23.3 | +2.2% |
+| 2023 | 5 | 72.9 | 98.3 | 98.3 | −21.6% |
+| 2024 | 33 | 51.8 | 57.5 | 52.4 | −1.7% |
+| 2025 | 10 | 56.6 | 60.4 | 56.6 | −0.6% |
+
+No 2021 or 2022 gas leg is quoted. In those years every fixed-tariff home's gas strike was over the
+default, so each one falls under the first GAP. The "default" column is the inc-VAT
+gas SVT taken back to ex-VAT. That is not the hold's own cap line (SVT − 4.76%), which is why 2 of
+the 8 2018 quotes sit over it in this column.
