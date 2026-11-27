@@ -1,5 +1,7 @@
 """The fabric physics IN the settlement path — W1_11/W1_12 -> the shipped demand seam.
 
+Knowledge: docs/market_research/what_rdsap_and_sap_publish_for_a_homes_fabric_by_age_band.md
+
 PURPOSE
 -------
 `simulation.fabric_physics` (W1_11) and `simulation.premise_trace` (W1_12) built a

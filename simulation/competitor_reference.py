@@ -1,5 +1,7 @@
 """The market has an opponent in it: a reference price that moves when the company moves.
 
+Knowledge: docs/market_research/cheapest_fix_against_the_default_tariff_gb_2016_2025.md
+
 REUSE: simulation/competitor_reference.py
 CLASS: CUSTOM
 INDEX: searched "competitor", "rival", "switching", "market", "reference", "svt", "undercut".

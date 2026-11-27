@@ -1,5 +1,7 @@
-"""W1_6_physics_price_signal (L4) -- price as a DERIVED output of ONE coherent
+"""W1_6_physics_price_signal (L3) -- price as a DERIVED output of ONE coherent
 weather draw. The SIM-SIDE ground truth of the weather coupled-triad.
+
+Knowledge: docs/market_research/how_the_gb_electricity_price_forms_2026-11-24.md
 
 WHAT THIS IS. The atom's DoD is: "national weather -> national demand +
 renewable output -> residual demand -> merit order -> wholesale price (price is
@@ -469,7 +471,7 @@ def solar_output_from_weather(day_of_year, cloud_pct, params: ChainParams | None
 def derive_price(temp_c, wind_speed_ms, cloud_pct, day_of_year, gas_price,
                  params: ChainParams | None = None, year: int | None = None,
                  carbon_price_gbp_per_tonne=None, wind_fleet_mw=None):
-    """THE CHAIN, closed (W1_6 L4). One coherent weather draw -> demand +
+    """THE CHAIN, closed (W1_6 L3). One coherent weather draw -> demand +
     renewable output -> residual demand -> merit-order price. Price is DERIVED;
     it is never an independent draw. Vectorised over arrays or scalar.
 

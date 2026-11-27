@@ -1,5 +1,8 @@
 """Premise trace generator — Layer 2 of the two-layer premise demand engine (W1_12).
 
+Knowledge:
+docs/market_research/the_half_hourly_texture_of_real_homes_electricity_read_from_low_carbon_london.md
+
 PURPOSE
 -------
 Turn one premise's *behaviour* — who is in, when they heat, what they switch on,

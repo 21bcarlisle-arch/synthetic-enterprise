@@ -1,5 +1,7 @@
 """Profile Class 1 (domestic unrestricted) half-hourly consumption shape.
 
+Knowledge: docs/market_research/ons_consumption_profiles.md (the Profile Class 1 shape).
+
 Historical Ground Truth law: the shape values in sim/data/profile_class_1_gad.csv
 are real published Group Average Demand (GAD, kW) figures for PC1 customers —
 sourced from the UKERC Energy Data Centre archive ("Electricity user load

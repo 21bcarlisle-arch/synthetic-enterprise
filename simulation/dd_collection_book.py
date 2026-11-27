@@ -2,6 +2,9 @@
 M2's next build step (director in-console approval, 2026-07-11): "wire rails
 timing into the live DD flow."
 
+Knowledge: docs/market_research/payments_and_direct_debit_2026-10-25.md (section 3, Bacs direct
+debit mechanics).
+
 Real finding before building (R4 diagnosis discipline): grepped the whole
 codebase for company/billing/direct_debit.py's DirectDebitBook/
 record_attempt/DDPaymentAttempt and found ZERO callers anywhere -- that

@@ -1,5 +1,7 @@
 """Fabric physics core — Layer 1 of the two-layer premise demand engine (W1_11).
 
+Knowledge: docs/market_research/what_rdsap_and_sap_publish_for_a_homes_fabric_by_age_band.md
+
 PURPOSE
 -------
 Turn a premise's *structural* EPC-class fields plus its *local half-hourly weather*

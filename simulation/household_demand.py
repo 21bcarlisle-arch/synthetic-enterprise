@@ -1,5 +1,8 @@
 """Phase C -- Household-Driven EAC Integration.
 
+Knowledge: docs/market_research/HUMAN_SIMULATION_RESEARCH.md (Finding 8, the EPC multipliers) and
+docs/market_research/ons_consumption_profiles.md (the 3,100 kWh base).
+
 Wires the Phase A household physical model and Phase B life events engine
 into the settlement loop so that EPC rating, EV ownership, and solar
 installations actually affect per-customer consumption.

@@ -1,5 +1,7 @@
 """SIM-side customer satisfaction model (Gap 3 Dim 4 ground truth).
 
+Knowledge: docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md
+
 Satisfaction is a latent construct computed from SIM-internal signals
 (rate history, income stress, tenure). This is the ground truth the SIM
 uses to adjust actual churn probability.

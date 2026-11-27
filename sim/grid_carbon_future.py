@@ -1,5 +1,7 @@
 """GB grid carbon intensity for GENERATED futures: a fitted model run on the analogue year the world replays.
 
+Knowledge: docs/market_research/g14_grid_carbon_history_and_weather_fitted_future_2026-10-05.md
+
 REUSE: sim/grid_carbon_future.py
 CLASS: CUSTOM
 INDEX: `sim/grid_carbon_history.py` is G14's history half. Its NESO Historic Generation Mix
