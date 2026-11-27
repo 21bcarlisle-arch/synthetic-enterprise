@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-11-18T10:07:58Z
+Last updated: 2026-11-27T02:59:41Z
 
 **H_harness — THE BY-CONSTRUCTION GATE'S ESCAPE HATCH NOW NAMES ITS SUBJECT, AND THE `0` IT
 PUBLISHED WAS NOT ONE (this commit).** Rung-1c blocker discharged out of
@@ -2477,11 +2477,11 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (6195s / 103 min) // run 6af7fd0bfd, 2026-11-18:
-- Net margin: £750,224.98 | Gross: £1,058,006.39 | Capital: £29,443
-- Treasury: £250,000 → £1,000,225 | 0 committee interventions | 53605 bills issued
-- Enterprise value: £276,127.72 | Net after CTS: £303,075
-- Retention: 34 offers, 18/34 retained | 90 no-offer churns | 358 total churned accounts
+**Latest simulation results (2016–2025)** — auto-processed (7044s / 117 min) // run 601887d76a, 2026-11-27:
+- Net margin: £702,470.55 | Gross: £1,013,978.51 | Capital: £30,279
+- Treasury: £250,000 → £952,471 | 0 committee interventions | 54111 bills issued
+- Enterprise value: £262,986.91 | Net after CTS: £250,067
+- Retention: 35 offers, 18/35 retained | 92 no-offer churns | 360 total churned accounts
 
 <!-- NAIVE_ORGAN_ASKS -->
 **NAIVE ORGAN asks:** — open questions; answer WITH EVIDENCE (`answer_question`) or mark a miss. Never actions.
@@ -2594,10 +2594,11 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 - (T3_inherence) [unanswered >24h] What does "a sourced mix" actually mean for running an asset, meaning which sources decide the mix and who weights them? And what physical limit or survival constraint would stop that mix from running an asset in a way that pushes the supplier toward administration?
 - (T4_unchecked_first_principles) [unanswered >24h] If a publish only commits "the marker's own run" and nothing outside it checks that run (cited_external_check is false), how would anyone find out that the run itself was stale, wrong, or from a different worktree? And how does refusing by name make it any less likely that the supplier makes an enterprise-value or survival decision based on bad input?
 - (T3_inherence) [unanswered >24h] If a question is "impossible to miss" but the director still doesn't answer it, what does the supplier do while it waits, and how would anyone show that making questions more prominent actually lowers the risk of administration rather than just adding interruptions?
+- (T3_inherence) [unanswered >24h] If "json" drops out of the covered set only because its week is taken from the publish clock rather than its own commit time, is it actually uncovered, or is this a clock-mismatch artifact — and how would you know whether the PB4 block on DD_seasonal_cashflow_physics comes from that same artifact rather than a real gap in the seasonal cashflow check that guards against administration?
 <!-- /NAIVE_ORGAN_ASKS -->
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1648.0h across 84 sized atom(s) (14 of 98 below-target atoms still unsized).
+- Remaining effort: ~1600.5h across 82 sized atom(s) (13 of 95 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); D_billing_metering: est 10.5h vs actual 11.6h (+1.1h, underestimated); H_harness: est 8.6h vs actual 45.7h (+37.1h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->

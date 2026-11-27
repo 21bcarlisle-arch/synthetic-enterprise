@@ -71,12 +71,12 @@
   ],
   "invoices": [
     {
-      "id": "SYN-2016-266g-INV36144",
+      "id": "SYN-2016-266g-INV36365",
       "date": "2016-06-13",
       "period_start": "2016-06-08",
       "period_end": "2016-06-13",
       "commodity": "gas",
-      "consumption_kwh": 62.2,
+      "consumption_kwh": 62.3,
       "unit_rate_p_per_kwh": 1.33,
       "commodity_amount_gbp": 0.83,
       "standing_charge_gbp": 1.26,
@@ -97,11 +97,11 @@
       "mprn": "5527384729",
       "read_type": "M",
       "opening_read_kwh": 0.0,
-      "closing_read_kwh": 62.2,
+      "closing_read_kwh": 62.3,
       "read_unit": "m3",
       "opening_read_volume": 0.0,
-      "closing_read_volume": 5.541,
-      "volume_advance": 5.541,
+      "closing_read_volume": 5.549,
+      "volume_advance": 5.549,
       "calorific_value_mj_per_m3": 39.5,
       "calorific_value_basis": "fixed_stand_in",
       "correction_factor": 1.02264,
@@ -109,7 +109,7 @@
       "registers": [
         {
           "label": "Anytime",
-          "consumption_kwh": 62.2,
+          "consumption_kwh": 62.3,
           "amount_gbp": 0.83,
           "unit_rate_p_per_kwh": 1.33,
           "register_id": "1"
@@ -130,7 +130,7 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 36144,
+      "invoice_number": 36365,
       "due_date": "2016-06-28",
       "document_type": "prepayment_statement"
     }
@@ -141,17 +141,17 @@
       {
         "date": "2016-06-14",
         "type": "invoice_raised",
-        "invoice_number": 36144,
+        "invoice_number": 36365,
         "amount_gbp": 2.78,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV36144 raised",
+        "description": "Invoice INV36365 raised",
         "running_balance_gbp": 2.78
       },
       {
         "date": "2016-06-28",
         "type": "payment_received",
-        "invoice_number": 36144,
+        "invoice_number": 36365,
         "amount_gbp": -2.78,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -182,7 +182,7 @@
     "monthly": [
       {
         "month": "2016-06",
-        "kwh": 62.2
+        "kwh": 62.3
       }
     ],
     "has_hh_data": false

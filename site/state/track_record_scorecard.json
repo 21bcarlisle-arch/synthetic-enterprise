@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-18T10:16:52Z",
-  "wall_clock_today": "2026-11-18",
+  "generated_at": "2026-11-27T03:09:27Z",
+  "wall_clock_today": "2026-11-27",
   "clock_started": "2026-07-04",
-  "log_entry_count": 94,
+  "log_entry_count": 98,
   "unreadable_log_lines": 0,
   "renewal_tolerance_pct": 0.02,
   "renewal_grading": {
@@ -55,7 +55,7 @@
   },
   "hedge_grading": {
     "graded_count": 1,
-    "ungraded_count": 93,
+    "ungraded_count": 97,
     "current_market_data_stale_days": 1,
     "entries": [
       {
@@ -618,6 +618,30 @@
       },
       {
         "decision_run_at": "2026-11-18",
+        "hedge_recommendation": "INCREASE",
+        "market_data_stale_days_at_log_time": 1,
+        "outcome": "ungraded -- market data has not advanced"
+      },
+      {
+        "decision_run_at": "2026-11-23",
+        "hedge_recommendation": "INCREASE",
+        "market_data_stale_days_at_log_time": 1,
+        "outcome": "ungraded -- market data has not advanced"
+      },
+      {
+        "decision_run_at": "2026-11-25",
+        "hedge_recommendation": "INCREASE",
+        "market_data_stale_days_at_log_time": 1,
+        "outcome": "ungraded -- market data has not advanced"
+      },
+      {
+        "decision_run_at": "2026-11-26",
+        "hedge_recommendation": "INCREASE",
+        "market_data_stale_days_at_log_time": 1,
+        "outcome": "ungraded -- market data has not advanced"
+      },
+      {
+        "decision_run_at": "2026-11-27",
         "hedge_recommendation": "INCREASE",
         "market_data_stale_days_at_log_time": 1,
         "outcome": "ungraded -- market data has not advanced"

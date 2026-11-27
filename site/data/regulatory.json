@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-18T10:17:01Z",
+  "generated_at": "2026-11-27T03:09:36Z",
   "module_count": 25,
   "module_source": "company/regulatory",
   "slc_domain_count": 10,
@@ -9,7 +9,7 @@
     "GREEN": 22,
     "AMBER": 1
   },
-  "domestic_customer_count": 764,
+  "domestic_customer_count": 805,
   "large_supplier_threshold": 150000,
   "schemes": [
     {
@@ -50,7 +50,7 @@
       "calc_module": "company/regulatory/warm_home_discount.py",
       "module_present": true,
       "status": "EXEMPT",
-      "basis": "portfolio has 764 domestic customers, below the 150,000 large-supplier threshold -- no obligation"
+      "basis": "portfolio has 805 domestic customers, below the 150,000 large-supplier threshold -- no obligation"
     },
     {
       "key": "ECO",
@@ -58,7 +58,7 @@
       "calc_module": "company/regulatory/eco_obligation.py",
       "module_present": true,
       "status": "EXEMPT",
-      "basis": "portfolio has 764 domestic customers, below the 150,000 large-supplier threshold -- no obligation"
+      "basis": "portfolio has 805 domestic customers, below the 150,000 large-supplier threshold -- no obligation"
     },
     {
       "key": "Carbon",

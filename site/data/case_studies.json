@@ -1,21 +1,21 @@
 {
   "meta": {
-    "generated_at": "2026-11-18T10:11:04Z",
-    "git_commit": "6af7fd0bfd",
-    "household_count": 766,
+    "generated_at": "2026-11-27T03:03:27Z",
+    "git_commit": "601887d76a",
+    "household_count": 807,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
   "cases": [
     {
       "category": "Most eventful journey",
-      "headline": "371 timeline + reaction-chain entries on record",
+      "headline": "339 timeline + reaction-chain entries on record",
       "wall_side": "sim",
-      "account_id": "PROS-2017-0064",
-      "base_account_id": "PROS-2017-0064",
+      "account_id": "SYN-2016-206",
+      "base_account_id": "SYN-2016-206",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2017-0064",
+        "acc": "SYN-2016-206",
         "tab": "timeline"
       }
     },
@@ -23,12 +23,12 @@
       "category": "Largest company-vs-SIM churn divergence",
       "headline": "100.0 percentage points apart at the 2024 renewal (sim 0.0% vs company 100.0%)",
       "wall_side": "sim",
-      "account_id": "PROS-2019-0246",
-      "base_account_id": "PROS-2019-0246",
+      "account_id": "PROS-2018-0014",
+      "base_account_id": "PROS-2018-0014",
       "segment": "resi",
-      "commodity": "electricity",
+      "commodity": "gas",
       "link": {
-        "acc": "PROS-2019-0246",
+        "acc": "PROS-2018-0014",
         "tab": "timeline",
         "year": 2024
       }
@@ -37,19 +37,19 @@
       "category": "Retention save, then churned anyway",
       "headline": "The company offered retention and won, then lost the account regardless",
       "wall_side": "company",
-      "account_id": "SYN-2016-306",
-      "base_account_id": "SYN-2016-306",
+      "account_id": "SYN-2016-582",
+      "base_account_id": "SYN-2016-582",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "SYN-2016-306",
+        "acc": "SYN-2016-582",
         "tab": "timeline",
         "year": 2024
       }
     },
     {
       "category": "Heaviest arrears cascade",
-      "headline": "26 debt write-off event(s) in the arrears cascade",
+      "headline": "25 debt write-off event(s) in the arrears cascade",
       "wall_side": "company",
       "account_id": "SYN-2016-012",
       "base_account_id": "SYN-2016-012",
@@ -63,16 +63,16 @@
     },
     {
       "category": "Notable life event",
-      "headline": "Reemployed (2023) -- Real downstream drift: income stress low -> moderate",
+      "headline": "Income scar ended (2024) -- Real downstream drift: income stress moderate -> low",
       "wall_side": "sim",
-      "account_id": "PROS-2018-0267",
-      "base_account_id": "PROS-2018-0267",
+      "account_id": "SYN-2016-433",
+      "base_account_id": "SYN-2016-433",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2018-0267",
+        "acc": "SYN-2016-433",
         "tab": "timeline",
-        "year": 2023
+        "year": 2024
       }
     },
     {

@@ -15,8 +15,8 @@
   "mprn": null,
   "lifetime_revenue_gbp": 7.01,
   "lifetime_gross_gbp": 5.4,
-  "lifetime_net_gbp": 2.34,
-  "lifetime_net_after_cts_gbp": 1.04,
+  "lifetime_net_gbp": 2.19,
+  "lifetime_net_after_cts_gbp": 0.88,
   "cost_to_serve_gbp": 1.31,
   "pricing_action": {
     "flag": "OK",
@@ -32,7 +32,7 @@
   "forward_looking_account_id": "SYN-2016-266",
   "commodity_split": {
     "electricity": {
-      "net_gbp": 2.34,
+      "net_gbp": 2.19,
       "revenue_gbp": 7.01
     },
     "gas": null
@@ -41,7 +41,7 @@
     "gas_account_id": "SYN-2016-266g",
     "gas_lifetime_net_gbp": 1.17,
     "gas_lifetime_revenue_gbp": 2.65,
-    "combined_net_gbp": 3.51,
+    "combined_net_gbp": 3.35,
     "combined_revenue_gbp": 9.66
   },
   "annual_pnl": [
@@ -49,7 +49,7 @@
       "year": 2016,
       "revenue_gbp": 7.01,
       "gross_gbp": 5.4,
-      "net_gbp": 2.34,
+      "net_gbp": 2.19,
       "tariff_min": 133.33,
       "tariff_max": 133.33
     }
@@ -80,7 +80,7 @@
   ],
   "invoices": [
     {
-      "id": "SYN-2016-266-INV36143",
+      "id": "SYN-2016-266-INV36364",
       "date": "2016-06-13",
       "period_start": "2016-06-08",
       "period_end": "2016-06-13",
@@ -139,7 +139,7 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 36143,
+      "invoice_number": 36364,
       "due_date": "2016-07-05",
       "document_type": "prepayment_statement"
     }
@@ -150,17 +150,17 @@
       {
         "date": "2016-06-21",
         "type": "invoice_raised",
-        "invoice_number": 36143,
+        "invoice_number": 36364,
         "amount_gbp": 7.36,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV36143 raised",
+        "description": "Invoice INV36364 raised",
         "running_balance_gbp": 7.36
       },
       {
         "date": "2016-07-05",
         "type": "payment_received",
-        "invoice_number": 36143,
+        "invoice_number": 36364,
         "amount_gbp": -7.36,
         "info_amount_gbp": null,
         "method": "prepayment",

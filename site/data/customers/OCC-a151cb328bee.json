@@ -13,14 +13,14 @@
     "bottom_line": "1004074394331"
   },
   "mprn": null,
-  "lifetime_revenue_gbp": 48.36,
-  "lifetime_gross_gbp": 38.05,
-  "lifetime_net_gbp": -27.64,
-  "lifetime_net_after_cts_gbp": -38.75,
+  "lifetime_revenue_gbp": 167.43,
+  "lifetime_gross_gbp": 122.22,
+  "lifetime_net_gbp": -116.1,
+  "lifetime_net_after_cts_gbp": -127.21,
   "cost_to_serve_gbp": 11.11,
   "pricing_action": {
     "flag": "NET_NEGATIVE",
-    "recommended_uplift_pct": 80.1
+    "recommended_uplift_pct": 76.0
   },
   "avg_hedge_fraction": 0.85,
   "clv_gbp": null,
@@ -32,8 +32,8 @@
   "forward_looking_account_id": "OCC-a151cb328bee",
   "commodity_split": {
     "electricity": {
-      "net_gbp": -27.64,
-      "revenue_gbp": 48.36
+      "net_gbp": -116.1,
+      "revenue_gbp": 167.43
     },
     "gas": null
   },
@@ -41,9 +41,9 @@
   "annual_pnl": [
     {
       "year": 2025,
-      "revenue_gbp": 48.36,
-      "gross_gbp": 38.05,
-      "net_gbp": -27.64,
+      "revenue_gbp": 167.43,
+      "gross_gbp": 122.22,
+      "net_gbp": -116.1,
       "tariff_min": 257.43,
       "tariff_max": 257.43
     }
@@ -52,20 +52,20 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "OCC-a151cb328bee-INV6474",
+      "id": "OCC-a151cb328bee-INV6295",
       "date": "2025-05-31",
       "period_start": "2025-05-07",
       "period_end": "2025-05-31",
       "commodity": "electricity",
-      "consumption_kwh": 98.8,
+      "consumption_kwh": 436.8,
       "unit_rate_p_per_kwh": 20.24,
-      "commodity_amount_gbp": 20.0,
+      "commodity_amount_gbp": 88.41,
       "standing_charge_gbp": 12.41,
       "days_in_period": 25,
       "standing_charge_gbp_per_day": 0.4964,
-      "non_commodity_amount_gbp": 5.44,
-      "vat_gbp": 1.89,
-      "amount_gbp": 39.74,
+      "non_commodity_amount_gbp": 24.02,
+      "vat_gbp": 6.24,
+      "amount_gbp": 131.08,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -78,7 +78,7 @@
       "mprn": null,
       "read_type": "A",
       "opening_read_kwh": 0.0,
-      "closing_read_kwh": 98.8,
+      "closing_read_kwh": 436.8,
       "read_unit": null,
       "opening_read_volume": null,
       "closing_read_volume": null,
@@ -90,8 +90,8 @@
       "registers": [
         {
           "label": "Anytime",
-          "consumption_kwh": 98.8,
-          "amount_gbp": 20.0,
+          "consumption_kwh": 436.8,
+          "amount_gbp": 88.41,
           "unit_rate_p_per_kwh": 20.24,
           "register_id": "1"
         }
@@ -111,25 +111,25 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 6474,
+      "invoice_number": 6295,
       "due_date": "2025-06-14",
       "document_type": "bill"
     },
     {
-      "id": "OCC-a151cb328bee-INV6475",
+      "id": "OCC-a151cb328bee-INV6296",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
       "commodity": "electricity",
-      "consumption_kwh": 27.1,
-      "unit_rate_p_per_kwh": 20.22,
-      "commodity_amount_gbp": 5.48,
+      "consumption_kwh": 122.5,
+      "unit_rate_p_per_kwh": 20.245,
+      "commodity_amount_gbp": 24.8,
       "standing_charge_gbp": 3.47,
       "days_in_period": 7,
       "standing_charge_gbp_per_day": 0.496,
-      "non_commodity_amount_gbp": 1.49,
-      "vat_gbp": 0.52,
-      "amount_gbp": 10.96,
+      "non_commodity_amount_gbp": 6.74,
+      "vat_gbp": 1.75,
+      "amount_gbp": 36.76,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -141,8 +141,8 @@
       "mpan": "1004074394331",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 98.8,
-      "closing_read_kwh": 125.9,
+      "opening_read_kwh": 436.8,
+      "closing_read_kwh": 559.3,
       "read_unit": null,
       "opening_read_volume": null,
       "closing_read_volume": null,
@@ -154,9 +154,9 @@
       "registers": [
         {
           "label": "Anytime",
-          "consumption_kwh": 27.1,
-          "amount_gbp": 5.48,
-          "unit_rate_p_per_kwh": 20.22,
+          "consumption_kwh": 122.5,
+          "amount_gbp": 24.8,
+          "unit_rate_p_per_kwh": 20.245,
           "register_id": "1"
         }
       ],
@@ -175,7 +175,7 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 6475,
+      "invoice_number": 6296,
       "due_date": "2025-06-29",
       "document_type": "bill"
     }
@@ -186,18 +186,18 @@
       {
         "date": "2025-05-31",
         "type": "invoice_raised",
-        "invoice_number": 6474,
-        "amount_gbp": 39.74,
+        "invoice_number": 6295,
+        "amount_gbp": 131.08,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6474 raised",
-        "running_balance_gbp": 39.74
+        "description": "Invoice INV6295 raised",
+        "running_balance_gbp": 131.08
       },
       {
         "date": "2025-05-31",
         "type": "deemed_account",
-        "invoice_number": 6474,
-        "amount_gbp": -39.74,
+        "invoice_number": 6295,
+        "amount_gbp": -131.08,
         "info_amount_gbp": null,
         "method": null,
         "description": "Billed to the occupier's deemed account",
@@ -206,18 +206,18 @@
       {
         "date": "2025-06-15",
         "type": "invoice_raised",
-        "invoice_number": 6475,
-        "amount_gbp": 10.96,
+        "invoice_number": 6296,
+        "amount_gbp": 36.76,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6475 raised",
-        "running_balance_gbp": 10.96
+        "description": "Invoice INV6296 raised",
+        "running_balance_gbp": 36.76
       },
       {
         "date": "2025-06-15",
         "type": "deemed_account",
-        "invoice_number": 6475,
-        "amount_gbp": -10.96,
+        "invoice_number": 6296,
+        "amount_gbp": -36.76,
         "info_amount_gbp": null,
         "method": null,
         "description": "Billed to the occupier's deemed account",
@@ -225,11 +225,11 @@
       }
     ],
     "current_balance_gbp": 0.0,
-    "total_billed_gbp": 50.7,
+    "total_billed_gbp": 167.84,
     "total_collected_gbp": 0,
     "total_written_off_gross_gbp": 0,
     "total_scheme_credit_gbp": 0,
-    "total_deemed_gbp": 50.7,
+    "total_deemed_gbp": 167.84,
     "total_refunded_gbp": 0,
     "total_recovered_gbp": 0,
     "total_epg_support_gbp": 0.0
@@ -247,11 +247,11 @@
     "monthly": [
       {
         "month": "2025-05",
-        "kwh": 98.8
+        "kwh": 436.8
       },
       {
         "month": "2025-06",
-        "kwh": 27.1
+        "kwh": 122.5
       }
     ],
     "has_hh_data": false

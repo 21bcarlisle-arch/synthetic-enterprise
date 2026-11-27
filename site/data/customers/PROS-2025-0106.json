@@ -14,13 +14,13 @@
   },
   "mprn": null,
   "lifetime_revenue_gbp": 373.18,
-  "lifetime_gross_gbp": 200.5,
-  "lifetime_net_gbp": -63.58,
-  "lifetime_net_after_cts_gbp": -81.62,
+  "lifetime_gross_gbp": 229.54,
+  "lifetime_net_gbp": 8.41,
+  "lifetime_net_after_cts_gbp": -9.64,
   "cost_to_serve_gbp": 18.05,
   "pricing_action": {
     "flag": "NET_NEGATIVE",
-    "recommended_uplift_pct": 21.9
+    "recommended_uplift_pct": 2.6
   },
   "avg_hedge_fraction": 0.85,
   "clv_gbp": null,
@@ -32,7 +32,7 @@
   "forward_looking_account_id": "PROS-2025-0106",
   "commodity_split": {
     "electricity": {
-      "net_gbp": -63.58,
+      "net_gbp": 8.41,
       "revenue_gbp": 373.18
     },
     "gas": null
@@ -42,8 +42,8 @@
     {
       "year": 2025,
       "revenue_gbp": 373.18,
-      "gross_gbp": 200.5,
-      "net_gbp": -63.58,
+      "gross_gbp": 229.54,
+      "net_gbp": 8.41,
       "tariff_min": 148.3,
       "tariff_max": 315.54
     }
@@ -67,7 +67,7 @@
   ],
   "invoices": [
     {
-      "id": "PROS-2025-0106-INV21393",
+      "id": "PROS-2025-0106-INV21337",
       "date": "2025-04-30",
       "period_start": "2025-04-17",
       "period_end": "2025-04-30",
@@ -137,12 +137,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 21393,
+      "invoice_number": 21337,
       "due_date": "2025-05-15",
       "document_type": "bill"
     },
     {
-      "id": "PROS-2025-0106-INV21394",
+      "id": "PROS-2025-0106-INV21338",
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
@@ -212,12 +212,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 21394,
+      "invoice_number": 21338,
       "due_date": "2025-06-15",
       "document_type": "bill"
     },
     {
-      "id": "PROS-2025-0106-INV21395",
+      "id": "PROS-2025-0106-INV21339",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -293,12 +293,12 @@
         }
       ],
       "catchup_corrects_invoices": [
-        "PROS-2025-0106-INV21393",
-        "PROS-2025-0106-INV21394"
+        "PROS-2025-0106-INV21337",
+        "PROS-2025-0106-INV21338"
       ],
       "catchup_written_off_gbp": 0.0,
       "catchup_back_billing_cap_applied": false,
-      "invoice_number": 21395,
+      "invoice_number": 21339,
       "due_date": "2025-06-24",
       "document_type": "bill"
     }
@@ -309,17 +309,17 @@
       {
         "date": "2025-05-01",
         "type": "invoice_raised",
-        "invoice_number": 21393,
+        "invoice_number": 21337,
         "amount_gbp": 252.64,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV21393 raised",
+        "description": "Invoice INV21337 raised",
         "running_balance_gbp": 252.64
       },
       {
         "date": "2025-05-30",
         "type": "payment_received",
-        "invoice_number": 21393,
+        "invoice_number": 21337,
         "amount_gbp": -252.64,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -329,27 +329,27 @@
       {
         "date": "2025-06-01",
         "type": "invoice_raised",
-        "invoice_number": 21394,
+        "invoice_number": 21338,
         "amount_gbp": 482.14,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV21394 raised",
+        "description": "Invoice INV21338 raised",
         "running_balance_gbp": 482.14
       },
       {
         "date": "2025-06-10",
         "type": "invoice_raised",
-        "invoice_number": 21395,
+        "invoice_number": 21339,
         "amount_gbp": -342.95,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV21395 raised",
+        "description": "Invoice INV21339 raised",
         "running_balance_gbp": 139.19
       },
       {
         "date": "2025-06-15",
         "type": "payment_received",
-        "invoice_number": 21394,
+        "invoice_number": 21338,
         "amount_gbp": -482.14,
         "info_amount_gbp": null,
         "method": "standard_credit",

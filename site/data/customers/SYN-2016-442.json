@@ -15,8 +15,8 @@
   "mprn": null,
   "lifetime_revenue_gbp": 365.53,
   "lifetime_gross_gbp": 279.98,
-  "lifetime_net_gbp": 156.11,
-  "lifetime_net_after_cts_gbp": 35.02,
+  "lifetime_net_gbp": 139.91,
+  "lifetime_net_after_cts_gbp": 18.82,
   "cost_to_serve_gbp": 121.09,
   "pricing_action": {
     "flag": "OK",
@@ -32,24 +32,24 @@
   "forward_looking_account_id": "SYN-2016-442",
   "commodity_split": {
     "electricity": {
-      "net_gbp": 156.11,
+      "net_gbp": 139.91,
       "revenue_gbp": 365.53
     },
     "gas": null
   },
   "dual_fuel_combined": {
     "gas_account_id": "SYN-2016-442g",
-    "gas_lifetime_net_gbp": 203.51,
-    "gas_lifetime_revenue_gbp": 558.6,
-    "combined_net_gbp": 359.62,
-    "combined_revenue_gbp": 924.13
+    "gas_lifetime_net_gbp": 203.93,
+    "gas_lifetime_revenue_gbp": 559.45,
+    "combined_net_gbp": 343.85,
+    "combined_revenue_gbp": 924.98
   },
   "annual_pnl": [
     {
       "year": 2016,
       "revenue_gbp": 60.63,
       "gross_gbp": 47.63,
-      "net_gbp": 27.06,
+      "net_gbp": 23.41,
       "tariff_min": 133.33,
       "tariff_max": 133.33
     },
@@ -57,7 +57,7 @@
       "year": 2017,
       "revenue_gbp": 241.38,
       "gross_gbp": 185.66,
-      "net_gbp": 104.17,
+      "net_gbp": 93.78,
       "tariff_min": 147.62,
       "tariff_max": 147.62
     },
@@ -65,7 +65,7 @@
       "year": 2018,
       "revenue_gbp": 63.51,
       "gross_gbp": 46.7,
-      "net_gbp": 24.88,
+      "net_gbp": 22.72,
       "tariff_min": 155.24,
       "tariff_max": 155.24
     }
@@ -97,7 +97,7 @@
   ],
   "invoices": [
     {
-      "id": "SYN-2016-442-INV44657",
+      "id": "SYN-2016-442-INV45035",
       "date": "2016-10-31",
       "period_start": "2016-10-01",
       "period_end": "2016-10-31",
@@ -156,12 +156,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44657,
+      "invoice_number": 45035,
       "due_date": "2016-11-23",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "SYN-2016-442-INV44658",
+      "id": "SYN-2016-442-INV45036",
       "date": "2016-11-30",
       "period_start": "2016-11-01",
       "period_end": "2016-11-30",
@@ -220,12 +220,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44658,
+      "invoice_number": 45036,
       "due_date": "2016-12-20",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "SYN-2016-442-INV44659",
+      "id": "SYN-2016-442-INV45037",
       "date": "2016-12-31",
       "period_start": "2016-12-01",
       "period_end": "2016-12-31",
@@ -284,12 +284,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44659,
+      "invoice_number": 45037,
       "due_date": "2017-01-14",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "SYN-2016-442-INV44660",
+      "id": "SYN-2016-442-INV45038",
       "date": "2017-01-31",
       "period_start": "2017-01-01",
       "period_end": "2017-01-31",
@@ -348,12 +348,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44660,
+      "invoice_number": 45038,
       "due_date": "2017-02-20",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "SYN-2016-442-INV44661",
+      "id": "SYN-2016-442-INV45039",
       "date": "2017-02-28",
       "period_start": "2017-02-01",
       "period_end": "2017-02-28",
@@ -412,12 +412,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44661,
+      "invoice_number": 45039,
       "due_date": "2017-03-17",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "SYN-2016-442-INV44662",
+      "id": "SYN-2016-442-INV45040",
       "date": "2017-03-31",
       "period_start": "2017-03-01",
       "period_end": "2017-03-31",
@@ -476,12 +476,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44662,
+      "invoice_number": 45040,
       "due_date": "2017-04-24",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "SYN-2016-442-INV44663",
+      "id": "SYN-2016-442-INV45041",
       "date": "2017-04-30",
       "period_start": "2017-04-01",
       "period_end": "2017-04-30",
@@ -540,12 +540,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44663,
+      "invoice_number": 45041,
       "due_date": "2017-05-14",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "SYN-2016-442-INV44664",
+      "id": "SYN-2016-442-INV45042",
       "date": "2017-05-31",
       "period_start": "2017-05-01",
       "period_end": "2017-05-31",
@@ -604,12 +604,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44664,
+      "invoice_number": 45042,
       "due_date": "2017-06-16",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "SYN-2016-442-INV44665",
+      "id": "SYN-2016-442-INV45043",
       "date": "2017-06-30",
       "period_start": "2017-06-01",
       "period_end": "2017-06-30",
@@ -668,12 +668,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44665,
+      "invoice_number": 45043,
       "due_date": "2017-07-16",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "SYN-2016-442-INV44666",
+      "id": "SYN-2016-442-INV45044",
       "date": "2017-07-31",
       "period_start": "2017-07-01",
       "period_end": "2017-07-31",
@@ -732,12 +732,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44666,
+      "invoice_number": 45044,
       "due_date": "2017-08-17",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "SYN-2016-442-INV44667",
+      "id": "SYN-2016-442-INV45045",
       "date": "2017-08-31",
       "period_start": "2017-08-01",
       "period_end": "2017-08-31",
@@ -796,12 +796,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44667,
+      "invoice_number": 45045,
       "due_date": "2017-09-15",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "SYN-2016-442-INV44668",
+      "id": "SYN-2016-442-INV45046",
       "date": "2017-09-30",
       "period_start": "2017-09-01",
       "period_end": "2017-09-30",
@@ -860,12 +860,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44668,
+      "invoice_number": 45046,
       "due_date": "2017-10-21",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "SYN-2016-442-INV44669",
+      "id": "SYN-2016-442-INV45047",
       "date": "2017-10-31",
       "period_start": "2017-10-01",
       "period_end": "2017-10-31",
@@ -924,12 +924,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44669,
+      "invoice_number": 45047,
       "due_date": "2017-11-14",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "SYN-2016-442-INV44670",
+      "id": "SYN-2016-442-INV45048",
       "date": "2017-11-30",
       "period_start": "2017-11-01",
       "period_end": "2017-11-30",
@@ -988,12 +988,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44670,
+      "invoice_number": 45048,
       "due_date": "2017-12-18",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "SYN-2016-442-INV44671",
+      "id": "SYN-2016-442-INV45049",
       "date": "2017-12-31",
       "period_start": "2017-12-01",
       "period_end": "2017-12-31",
@@ -1052,12 +1052,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44671,
+      "invoice_number": 45049,
       "due_date": "2018-01-16",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "SYN-2016-442-INV44672",
+      "id": "SYN-2016-442-INV45050",
       "date": "2018-01-31",
       "period_start": "2018-01-01",
       "period_end": "2018-01-31",
@@ -1116,12 +1116,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44672,
+      "invoice_number": 45050,
       "due_date": "2018-02-15",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "SYN-2016-442-INV44673",
+      "id": "SYN-2016-442-INV45051",
       "date": "2018-02-28",
       "period_start": "2018-02-01",
       "period_end": "2018-02-28",
@@ -1180,12 +1180,12 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44673,
+      "invoice_number": 45051,
       "due_date": "2018-03-14",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "SYN-2016-442-INV44674",
+      "id": "SYN-2016-442-INV45052",
       "date": "2018-03-31",
       "period_start": "2018-03-01",
       "period_end": "2018-03-31",
@@ -1244,7 +1244,7 @@
       "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44674,
+      "invoice_number": 45052,
       "due_date": "2018-04-19",
       "document_type": "prepayment_statement"
     }
@@ -1255,17 +1255,17 @@
       {
         "date": "2016-11-09",
         "type": "invoice_raised",
-        "invoice_number": 44657,
+        "invoice_number": 45035,
         "amount_gbp": 20.96,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44657 raised",
+        "description": "Invoice INV45035 raised",
         "running_balance_gbp": 20.96
       },
       {
         "date": "2016-11-23",
         "type": "payment_received",
-        "invoice_number": 44657,
+        "invoice_number": 45035,
         "amount_gbp": -20.96,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -1275,17 +1275,17 @@
       {
         "date": "2016-12-06",
         "type": "invoice_raised",
-        "invoice_number": 44658,
+        "invoice_number": 45036,
         "amount_gbp": 20.55,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44658 raised",
+        "description": "Invoice INV45036 raised",
         "running_balance_gbp": 20.55
       },
       {
         "date": "2016-12-20",
         "type": "payment_received",
-        "invoice_number": 44658,
+        "invoice_number": 45036,
         "amount_gbp": -20.55,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -1295,17 +1295,17 @@
       {
         "date": "2016-12-31",
         "type": "invoice_raised",
-        "invoice_number": 44659,
+        "invoice_number": 45037,
         "amount_gbp": 22.16,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44659 raised",
+        "description": "Invoice INV45037 raised",
         "running_balance_gbp": 22.16
       },
       {
         "date": "2017-01-14",
         "type": "payment_received",
-        "invoice_number": 44659,
+        "invoice_number": 45037,
         "amount_gbp": -22.16,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -1315,17 +1315,17 @@
       {
         "date": "2017-02-06",
         "type": "invoice_raised",
-        "invoice_number": 44660,
+        "invoice_number": 45038,
         "amount_gbp": 24.58,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44660 raised",
+        "description": "Invoice INV45038 raised",
         "running_balance_gbp": 24.58
       },
       {
         "date": "2017-02-20",
         "type": "payment_received",
-        "invoice_number": 44660,
+        "invoice_number": 45038,
         "amount_gbp": -24.58,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -1335,17 +1335,17 @@
       {
         "date": "2017-03-03",
         "type": "invoice_raised",
-        "invoice_number": 44661,
+        "invoice_number": 45039,
         "amount_gbp": 19.37,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44661 raised",
+        "description": "Invoice INV45039 raised",
         "running_balance_gbp": 19.37
       },
       {
         "date": "2017-03-17",
         "type": "payment_received",
-        "invoice_number": 44661,
+        "invoice_number": 45039,
         "amount_gbp": -19.37,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -1355,17 +1355,17 @@
       {
         "date": "2017-04-10",
         "type": "invoice_raised",
-        "invoice_number": 44662,
+        "invoice_number": 45040,
         "amount_gbp": 21.86,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44662 raised",
+        "description": "Invoice INV45040 raised",
         "running_balance_gbp": 21.86
       },
       {
         "date": "2017-04-24",
         "type": "payment_received",
-        "invoice_number": 44662,
+        "invoice_number": 45040,
         "amount_gbp": -21.86,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -1375,17 +1375,17 @@
       {
         "date": "2017-04-30",
         "type": "invoice_raised",
-        "invoice_number": 44663,
+        "invoice_number": 45041,
         "amount_gbp": 20.76,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44663 raised",
+        "description": "Invoice INV45041 raised",
         "running_balance_gbp": 20.76
       },
       {
         "date": "2017-05-14",
         "type": "payment_received",
-        "invoice_number": 44663,
+        "invoice_number": 45041,
         "amount_gbp": -20.76,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -1395,17 +1395,17 @@
       {
         "date": "2017-06-02",
         "type": "invoice_raised",
-        "invoice_number": 44664,
+        "invoice_number": 45042,
         "amount_gbp": 22.24,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44664 raised",
+        "description": "Invoice INV45042 raised",
         "running_balance_gbp": 22.24
       },
       {
         "date": "2017-06-16",
         "type": "payment_received",
-        "invoice_number": 44664,
+        "invoice_number": 45042,
         "amount_gbp": -22.24,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -1415,17 +1415,17 @@
       {
         "date": "2017-07-02",
         "type": "invoice_raised",
-        "invoice_number": 44665,
+        "invoice_number": 45043,
         "amount_gbp": 19.99,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44665 raised",
+        "description": "Invoice INV45043 raised",
         "running_balance_gbp": 19.99
       },
       {
         "date": "2017-07-16",
         "type": "payment_received",
-        "invoice_number": 44665,
+        "invoice_number": 45043,
         "amount_gbp": -19.99,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -1435,17 +1435,17 @@
       {
         "date": "2017-08-03",
         "type": "invoice_raised",
-        "invoice_number": 44666,
+        "invoice_number": 45044,
         "amount_gbp": 20.64,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44666 raised",
+        "description": "Invoice INV45044 raised",
         "running_balance_gbp": 20.64
       },
       {
         "date": "2017-08-17",
         "type": "payment_received",
-        "invoice_number": 44666,
+        "invoice_number": 45044,
         "amount_gbp": -20.64,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -1455,17 +1455,17 @@
       {
         "date": "2017-09-01",
         "type": "invoice_raised",
-        "invoice_number": 44667,
+        "invoice_number": 45045,
         "amount_gbp": 17.91,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44667 raised",
+        "description": "Invoice INV45045 raised",
         "running_balance_gbp": 17.91
       },
       {
         "date": "2017-09-15",
         "type": "payment_received",
-        "invoice_number": 44667,
+        "invoice_number": 45045,
         "amount_gbp": -17.91,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -1475,17 +1475,17 @@
       {
         "date": "2017-10-07",
         "type": "invoice_raised",
-        "invoice_number": 44668,
+        "invoice_number": 45046,
         "amount_gbp": 18.66,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44668 raised",
+        "description": "Invoice INV45046 raised",
         "running_balance_gbp": 18.66
       },
       {
         "date": "2017-10-21",
         "type": "payment_received",
-        "invoice_number": 44668,
+        "invoice_number": 45046,
         "amount_gbp": -18.66,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -1495,17 +1495,17 @@
       {
         "date": "2017-10-31",
         "type": "invoice_raised",
-        "invoice_number": 44669,
+        "invoice_number": 45047,
         "amount_gbp": 21.5,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44669 raised",
+        "description": "Invoice INV45047 raised",
         "running_balance_gbp": 21.5
       },
       {
         "date": "2017-11-14",
         "type": "payment_received",
-        "invoice_number": 44669,
+        "invoice_number": 45047,
         "amount_gbp": -21.5,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -1515,17 +1515,17 @@
       {
         "date": "2017-12-04",
         "type": "invoice_raised",
-        "invoice_number": 44670,
+        "invoice_number": 45048,
         "amount_gbp": 22.31,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44670 raised",
+        "description": "Invoice INV45048 raised",
         "running_balance_gbp": 22.31
       },
       {
         "date": "2017-12-18",
         "type": "payment_received",
-        "invoice_number": 44670,
+        "invoice_number": 45048,
         "amount_gbp": -22.31,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -1535,17 +1535,17 @@
       {
         "date": "2018-01-02",
         "type": "invoice_raised",
-        "invoice_number": 44671,
+        "invoice_number": 45049,
         "amount_gbp": 23.64,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44671 raised",
+        "description": "Invoice INV45049 raised",
         "running_balance_gbp": 23.64
       },
       {
         "date": "2018-01-16",
         "type": "payment_received",
-        "invoice_number": 44671,
+        "invoice_number": 45049,
         "amount_gbp": -23.64,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -1555,17 +1555,17 @@
       {
         "date": "2018-02-01",
         "type": "invoice_raised",
-        "invoice_number": 44672,
+        "invoice_number": 45050,
         "amount_gbp": 25.07,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44672 raised",
+        "description": "Invoice INV45050 raised",
         "running_balance_gbp": 25.07
       },
       {
         "date": "2018-02-15",
         "type": "payment_received",
-        "invoice_number": 44672,
+        "invoice_number": 45050,
         "amount_gbp": -25.07,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -1575,17 +1575,17 @@
       {
         "date": "2018-02-28",
         "type": "invoice_raised",
-        "invoice_number": 44673,
+        "invoice_number": 45051,
         "amount_gbp": 22.77,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44673 raised",
+        "description": "Invoice INV45051 raised",
         "running_balance_gbp": 22.77
       },
       {
         "date": "2018-03-14",
         "type": "payment_received",
-        "invoice_number": 44673,
+        "invoice_number": 45051,
         "amount_gbp": -22.77,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -1595,17 +1595,17 @@
       {
         "date": "2018-04-05",
         "type": "invoice_raised",
-        "invoice_number": 44674,
+        "invoice_number": 45052,
         "amount_gbp": 18.83,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44674 raised",
+        "description": "Invoice INV45052 raised",
         "running_balance_gbp": 18.83
       },
       {
         "date": "2018-04-19",
         "type": "payment_received",
-        "invoice_number": 44674,
+        "invoice_number": 45052,
         "amount_gbp": -18.83,
         "info_amount_gbp": null,
         "method": "prepayment",

@@ -1,5 +1,5 @@
 {
- "published_at": "2026-11-18T10:18:51.323554+00:00",
+ "published_at": "2026-11-27T03:11:22.006059+00:00",
  "basis": "dimensionless: each half hour's gCO2/kWh from sim/grid_carbon_history.py divided by its calendar year's DEMAND-WEIGHTED mean (Elexon INDO demand), so each year averages 1.0. The gCO2/kWh is NESO's Historic GB Generation Mix CARBON_INTENSITY, national outturn, on a GENERATION basis: CO2 at the generator per kWh generated, the generation counted including embedded wind and solar and imports at NESO's import factors. Transmission and distribution losses are NOT included. Where that series has no usable value it is NESO's own methodology applied to Elexon's published half-hourly fuel mix (FUELHH) plus NESO's embedded wind and solar estimate, at NESO's published factors. Every record carries its `source`.",
  "how_to_use": "Multiply `shape` by `annual_level.by_year[<the record's calendar year>].mean_g_co2_per_kwh` to get the published gCO2/kWh for that half hour. The annual level is published here, beside the shape it was normalised with; the company reads it in exactly one place, company/regulatory/carbon_emissions.py, and a year with `complete: false` is a mean of the dates it covers, never the year's.",
  "annual_level": {

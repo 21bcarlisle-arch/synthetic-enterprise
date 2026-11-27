@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-18T10:16:14Z",
-  "git_hash": "49d41097b",
+  "generated_at": "2026-11-27T03:08:42Z",
+  "git_hash": "acacb660f",
   "published_from": {
-    "commit": "49d41097b215a6f432257eb6ddecba9337581d7d",
+    "commit": "acacb660f96a56982f6a63e85e6a59139e3a9336",
     "tree_was_clean": true,
     "inputs_are_the_committed_bytes": true,
     "inputs": [
@@ -338,11 +338,11 @@
               "resolved_path": "tests/background/test_supervisor.py",
               "raw": "tests/background/test_supervisor.py",
               "is_test": true,
-              "test_functions": 199
+              "test_functions": 200
             }
           ],
           "test_files": 1,
-          "test_functions": 199,
+          "test_functions": 200,
           "ledger": [],
           "missing": [
             "NO_LEDGER_RECORD"
@@ -945,7 +945,7 @@
               "resolved_path": "tests/sim/test_weather_price_chain.py",
               "raw": "tests/sim/test_weather_price_chain.py + tests/company/test_weather_price_belief.py + tests/test_weather_price_triad.py (19 tests, R15 mutation)",
               "is_test": true,
-              "test_functions": 9
+              "test_functions": 12
             },
             {
               "path": "tests/company/test_weather_price_belief.py",
@@ -972,7 +972,7 @@
             }
           ],
           "test_files": 3,
-          "test_functions": 22,
+          "test_functions": 25,
           "ledger": [
             {
               "action": "BUILD_OPEN",

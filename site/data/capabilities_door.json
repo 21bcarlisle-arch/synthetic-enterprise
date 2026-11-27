@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-18T10:16:09Z",
- "git_commit": "49d41097b215a6f432257eb6ddecba9337581d7d",
+ "generated_at": "2026-11-27T03:08:38Z",
+ "git_commit": "acacb660f96a56982f6a63e85e6a59139e3a9336",
  "published_from": {
-  "commit": "49d41097b215a6f432257eb6ddecba9337581d7d",
+  "commit": "acacb660f96a56982f6a63e85e6a59139e3a9336",
   "tree_was_clean": true,
   "inputs_are_the_committed_bytes": true,
   "inputs": [
@@ -75,7 +75,7 @@
     ],
     "evidence": null,
     "checks": {
-     "checks": 22,
+     "checks": 25,
      "covered": 1,
      "of": 1
     }
@@ -104,7 +104,7 @@
     ],
     "evidence": null,
     "checks": {
-     "checks": 400,
+     "checks": 401,
      "covered": 2,
      "of": 2
     }
@@ -751,11 +751,10 @@
     "what": "Each home's carbon measured against what the grid was actually emitting half hour by half hour, a carbon budget beside the money one, and shifting use into the cleaner hours.",
     "test": "Carbon actually saved against what that household would have emitted anyway, and how much use genuinely moved.",
     "testable_now": false,
-    "status": "Waits on carbon kept on three separate ledgers, a live route to what the grid is emitting and ten years of what the grid emitted, lined up with the settlement record",
+    "status": "Waits on carbon kept on three separate ledgers and a live route to what the grid is emitting",
     "waits_on": [
      "carbon kept on three separate ledgers",
-     "a live route to what the grid is emitting",
-     "ten years of what the grid emitted, lined up with the settlement record"
+     "a live route to what the grid is emitting"
     ],
     "unmodelled": [],
     "rests_on": [
@@ -764,7 +763,7 @@
      "G14_half_hourly_grid_carbon_intensity_aligned_to_settlement"
     ],
     "needs_total": 3,
-    "needs_met": 0
+    "needs_met": 1
    },
    {
     "gate": "Value beyond the bill",
@@ -1154,11 +1153,10 @@
       "what": "Each home's carbon measured against what the grid was actually emitting half hour by half hour, a carbon budget beside the money one, and shifting use into the cleaner hours.",
       "test": "Carbon actually saved against what that household would have emitted anyway, and how much use genuinely moved.",
       "testable_now": false,
-      "status": "Waits on carbon kept on three separate ledgers, a live route to what the grid is emitting and ten years of what the grid emitted, lined up with the settlement record",
+      "status": "Waits on carbon kept on three separate ledgers and a live route to what the grid is emitting",
       "waits_on": [
        "carbon kept on three separate ledgers",
-       "a live route to what the grid is emitting",
-       "ten years of what the grid emitted, lined up with the settlement record"
+       "a live route to what the grid is emitting"
       ],
       "unmodelled": [],
       "rests_on": [
@@ -1167,7 +1165,7 @@
        "G14_half_hourly_grid_carbon_intensity_aligned_to_settlement"
       ],
       "needs_total": 3,
-      "needs_met": 0
+      "needs_met": 1
      },
      {
       "gate": "Value beyond the bill",
@@ -1481,6 +1479,10 @@
    "describes": "Company/SIM seam \u2014 THE SUPPLY BOOK (which meter points this supplier has registered)."
   },
   {
+   "module": "switching_gsop",
+   "describes": "The company's SWITCHING-GSOP surface: the one place the world reports a won switch's registration facts and learns what the gaining supplier owes on them under regs 6ZA and 6ZB."
+  },
+  {
    "module": "tou_offer",
    "describes": "The company's TIME-OF-USE OFFER surface \u2014 the one place the world may ask whether this customer is being offered a ToU tariff this term, and at what pair."
   },
@@ -1509,21 +1511,21 @@
  "scale": {
   "figures": [
    {
-    "value": 757,
+    "value": 766,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-11-11T20:09:43Z"
+    "as_of": "2026-11-18T10:16:43Z"
    },
    {
-    "value": 1300,
+    "value": 1304,
     "basis": "book size used by the break-even analysis",
     "source": "site/data/dashboard.json",
     "as_of": "2016-2025"
    }
   ],
   "agree": false,
-  "low": 757,
-  "high": 1300,
+  "low": 766,
+  "high": 1304,
   "real_world": "A real GB supplier serves hundreds of thousands to millions of homes."
  },
  "gaps": [
@@ -1536,8 +1538,8 @@
     "when": "being worked on now",
     "waiting_on_count": 0
    },
-   "title": "The book is 757\u20131300 customers",
-   "what": "Everything on this page is true of a supplier with 757\u20131300 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 757 (accounts in the live customer feed), 1300 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
+   "title": "The book is 766\u20131304 customers",
+   "what": "Everything on this page is true of a supplier with 766\u20131304 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 766 (accounts in the live customer feed), 1304 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
   },
   {
    "plan": {
@@ -1590,31 +1592,9 @@
  ],
  "fixed_this_week": {
   "window_days": 7,
-  "as_of": "18 Nov 2026",
-  "published_run": "6fe7827ab2",
-  "items": [
-   {
-    "commit": "cab13bbd18adc499a0e033ca46863c3bc4058a37",
-    "what": "A household on a level direct debit that leaves: its final bill now meets its credit before any refund, and a refund waits for the money that credit counts.",
-    "at": 1794405694,
-    "date": "Wed 11 Nov",
-    "in_published_run": true
-   },
-   {
-    "commit": "601929ce0b9459eefcdb0b39cde47df0e35b9d08",
-    "what": "Net margin now withheld with its reason; arrears count moved to Ofgem's 91-day definition, so the EBSS credit is no longer read as debt.",
-    "at": 1794414734,
-    "date": "Wed 11 Nov",
-    "in_published_run": false
-   },
-   {
-    "commit": "ccdfb652d79d568a45fe663978874d2fd1526de1",
-    "what": "A household's repayment is now dated the day its cash arrived, so a level return repaid before its bill falls due no longer reads as owed on the cure day.",
-    "at": 1794418255,
-    "date": "Wed 11 Nov",
-    "in_published_run": false
-   }
-  ],
-  "commits_to_the_model": 52
+  "as_of": "27 Nov 2026",
+  "published_run": "6af7fd0bfd",
+  "items": [],
+  "commits_to_the_model": 77
  }
 }
