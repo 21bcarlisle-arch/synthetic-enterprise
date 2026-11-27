@@ -222,12 +222,28 @@ exceptions:
       converts the meter's advance at its fixed calorific-value stand-in, so the repeat reaches it before it reads.
       A real household's summer gas (hot water and cooking) moves with occupancy and the mains water temperature.
       That year-to-year term is what is missing here, the gas half of N17.
+      RE-FILED 2026-11-27 on the 2100f84f85 book (recheck_by had passed, and the count was 4 against a ceiling of 1),
+      with a second route into the same class. The book has 4 breaches. SYN-2016-206g repeats 3 times, as above.
+      PROS-2019-0208g (M6537586704) repeats 29 times, with a winter run from 2023-12, and PROS-2021-0396g (M6774080497)
+      repeats 9 times. The book share is 53 of 3,807 pairs (1.39%, bound 1%), and 38 of those 53 repeats are on the
+      two PROS legs. Without them the share is about 0.4%. Each PROS leg falls in one April term, from a 10,700 or
+      11,600 kWh year that moves with the weather (2021-04 and 2023-04), to exactly 4.50 kWh a day for the rest of
+      the book: 135.1 in a 30-day month, 139.5 in a 31-day month, 126.0 in a February, in January as in July.
+      Route: gas_eac_multiplier_for_date returns GAS_HEAT_PUMP_RESIDUAL_FRACTION 0.12 after a heat pump
+      (EPC multipliers are 0.75 or more, so 0.12 is the only route to a cut that deep), so the term's aq_kwh is ~1,640.
+      The leg's SeasonalGasSplit keeps its trace's base whole in kWh. heating_fraction_for gives max(0, 1 - flat/aq),
+      which is 0 once the base exceeds that AQ, so resi_daily_gas_kwh returns aq/365 every day, and the AQ is fixed.
+      A real gas meter left on a hob after a heat pump still moves with cooking's season and with occupancy, so this
+      is the same missing year-to-year term, now covering the whole year. Also seen and filed apart: neither PROS leg's
+      electricity rises after the cut (PROS-2019-0208 ~2,750 kWh/yr either side of 2021-04). The heat that left the gas
+      reached no meter. docs/staging/SEAT_FINDING_A_HEAT_PUMP_HOMES_GAS_SETTLES_FLAT_FOREVER_AND_ITS_HEAT_REACHES_NO_METER_2026-11-27.md
     filed: 2026-11-07
-    recheck_by: 2026-11-23
+    recheck_by: 2026-12-11
     retired_by: >-
       the gas half of W2_30 (a fitted seasonal split for the premises now refused it, or a hot-water term that moves
-      year to year), graded on a fresh run. If neither has landed by recheck_by, re-grade the newest book and re-file.
-    max_breached: 1
+      year to year), and a post-heat-pump gas residual that carries cooking's season (the finding above), graded on a
+      fresh run. If neither has landed by recheck_by, re-grade the newest book and re-file.
+    max_breached: 4
   - invariant: INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT
     scope: >-
       Closing refunds on a dual-fuel household's leg whose whole excess is the other closing leg's debt at the end
