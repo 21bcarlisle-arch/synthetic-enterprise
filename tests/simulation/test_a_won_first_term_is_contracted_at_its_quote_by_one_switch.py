@@ -65,8 +65,8 @@ def test_the_switch_is_taken_by_default_and_off_still_carries_no_quote(monkeypat
 
 def test_taking_the_switch_carries_the_quote_onto_the_quoted_electricity_leg_only(monkeypatch):
     """Catches a switch that cannot be taken (`_won_customer_dicts` never reads it, or reads a copy
-    bound at import); a quote copied onto the gas leg, which was never quoted, because `_gas_leg_for`
-    copies the electricity dict; and a quote given to a winner the campaign did not price."""
+    bound at import); the electricity quote copied onto the gas leg, because `_gas_leg_for` copies
+    the electricity dict (the gas leg's own quote is `test_a_won_gas_first_term_...`); and a quote given to a winner the campaign did not price."""
     off, taken = _won(monkeypatch, False), _won(monkeypatch, True)
     assert set(off) == set(taken) == {"PROS-A", "PROS-Ag", "PROS-B", "PROS-Bg"}
     assert taken["PROS-A"][KEY] == QUOTED

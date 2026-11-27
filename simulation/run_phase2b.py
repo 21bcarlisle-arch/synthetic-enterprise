@@ -313,7 +313,12 @@ from simulation.policy_costs import (
 from simulation.record_table import RecordTable
 from simulation.registration_loss_feed import RegistrationLossFeed, supply_points_on_supply
 from simulation.renewal_engagement import passive_churn_cap_for, rolls_active_renewal
-from simulation.renewals import NOTICE_DAYS, build_renewal_schedule, price_fixed_term
+from simulation.renewals import (
+    NOTICE_DAYS,
+    build_renewal_schedule,
+    contracted_first_term,
+    price_fixed_term,
+)
 from simulation.reputation_index import ReputationEventType
 from simulation.resentment_ledger import FrictionEventType
 from simulation.retention_offer import ask_world_at_offer, offered_rate
@@ -1080,8 +1085,14 @@ def strike_gas_fixed_term(
 def _build_gas_renewal_schedule(
     customer: dict, gas_records: list[dict], lookback_temps_fn=None,
     report_end: str = REPORT_END, tariff_type: str = "fixed",
+    quoted_first_term_unit_rate_gbp_per_mwh: float | None = None,
 ) -> list[dict]:
     """Build renewal schedule for a gas customer using NBP forward prices.
+
+    `quoted_first_term_unit_rate_gbp_per_mwh` is the gas half of the dual-fuel quote a won home
+    was shown (2026-11-27), present only while `live_population.CONTRACT_THE_FIRST_TERM_AT_THE_
+    QUOTED_STRIKE` is taken; a fixed first term is contracted on it exactly as electricity's is
+    (`renewals.contracted_first_term`). None strikes it at the notice date as before.
 
     lookback_temps_fn (Phase 4c-3, optional): see
     `simulation.renewals.build_renewal_schedule` — same callable, threaded
@@ -1228,9 +1239,12 @@ def _build_gas_renewal_schedule(
             break
         # Phase 34a: gas tariffs also priced NOTICE_DAYS before term start.
         gas_notice_date = (date.fromisoformat(term_start) - timedelta(days=NOTICE_DAYS)).isoformat()
-        schedule.append(strike_gas_fixed_term(
+        term = strike_gas_fixed_term(
             customer, term_start, gas_notice_date, term_end, sim_fwd, gas_records,
-            tariff_type=tariff_type))
+            tariff_type=tariff_type)
+        if not schedule and tariff_type == "fixed":
+            term = contracted_first_term(term, quoted_first_term_unit_rate_gbp_per_mwh)
+        schedule.append(term)
         term_start = term_end  # next term starts where this ends
 
     return schedule
@@ -2528,6 +2542,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         gas_schedules[c["customer_id"]] = _build_gas_renewal_schedule(
             c, gas_records, lookback_temps_fn=_lookback_temps_fn(c["customer_id"]),
             report_end=effective_end, tariff_type=resolved_tariff_type(c),
+            quoted_first_term_unit_rate_gbp_per_mwh=c.get(QUOTED_FIRST_TERM_RATE_KEY),
         )
 
     # ---- Interleave all terms chronologically ----

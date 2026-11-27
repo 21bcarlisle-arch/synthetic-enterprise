@@ -1153,14 +1153,14 @@ def first_term_offer_fn(*, elec_daily, gas_daily):
         published_electricity_policy_cost_over_term,
     )
 
-    def offer(prospect, in_market: _dt.date):
+    def strike(commodity: str, segment: str, tariff_type, eac_kwh: float, in_market: _dt.date):
+        """The desk's quote for one fuel on one day, or None where the fuel has no history."""
         day = in_market.isoformat()
-        gas = prospect.commodity == "gas"
+        gas = commodity == "gas"
         if not (gas_daily if gas else elec_daily):
             return None
         if gas:
-            policy = (get_gas_ccl_per_mwh(day, prospect.segment)
-                      + get_ggl_per_mwh(day, prospect.eac_kwh))
+            policy = (get_gas_ccl_per_mwh(day, segment) + get_ggl_per_mwh(day, eac_kwh))
             network = get_gas_network_cost_per_mwh(day)
         else:
             try:
@@ -1169,26 +1169,54 @@ def first_term_offer_fn(*, elec_daily, gas_daily):
                 year_on = in_market + _dt.timedelta(days=365)
             policy = published_electricity_policy_cost_over_term(
                 in_market, (year_on - in_market).days, in_market)
-            network = get_electricity_network_cost_per_mwh(day, prospect.segment)
-        quote = quote_first_term(
-            segment=prospect.segment, commodity="gas" if gas else "electricity",
-            tariff_type=prospect.tariff_type or "fixed", eac_kwh=int(prospect.eac_kwh),
+            network = get_electricity_network_cost_per_mwh(day, segment)
+        return quote_first_term(
+            segment=segment, commodity=commodity,
+            tariff_type=tariff_type or "fixed", eac_kwh=int(eac_kwh),
             term_start=day, observable_daily_prices=gas_daily if gas else elec_daily,
             published_policy_cost_per_mwh=policy, published_network_cost_per_mwh=network,
-            observable_published_forward=published_forward_knowable_by(
-                day, "gas" if gas else "electricity"),
+            observable_published_forward=published_forward_knowable_by(day, commodity),
         )
+
+    def offer(prospect, in_market: _dt.date):
+        day = in_market.isoformat()
+        gas = prospect.commodity == "gas"
+        quote = strike("gas" if gas else "electricity", prospect.segment, prospect.tariff_type,
+                       prospect.eac_kwh, in_market)
+        if quote is None:
+            return None
         if not quote.quoted:
             return {"quoted": False, "reason": quote.reason}
         market = market_cheapest_ex_vat("gas" if gas else "electricity", day)
         if quote.unit_rate_per_mwh is None or not market:
             return None
-        return {"quoted": True,
-                "price_differential_pct": quote.unit_rate_per_mwh / market - 1.0,
-                # The ex-VAT strike the household was shown, kept so the won account's first term
-                # can be contracted on it (`CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE`). The
-                # funnel reads only the two keys above.
-                "unit_rate_per_mwh": quote.unit_rate_per_mwh}
+        result = {"quoted": True,
+                  "price_differential_pct": quote.unit_rate_per_mwh / market - 1.0,
+                  # The ex-VAT strike the household was shown, kept so the won account's first
+                  # term can be contracted on it (`CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE`).
+                  # The funnel reads only the two keys above.
+                  "unit_rate_per_mwh": quote.unit_rate_per_mwh}
+        if not gas:
+            # THE GAS HALF OF A DUAL-FUEL QUOTE (2026-11-27). Each fuel is its own contract with
+            # its own unit rate on its own label (§14 of the first-term page), so a household
+            # quoted for its home is shown a gas rate on the same day. Struck on the AQ its gas
+            # leg will carry (`_gas_aq_kwh`, the same accessor `_gas_leg_for` reads), whether or
+            # not the home turns out to take gas. A declined or unstruck gas quote records
+            # nothing: that leg is struck at the notice date as before, and the funnel still
+            # decides on the electricity position alone (GAP, §14).
+            aq = _gas_aq_kwh(prospect.customer_id, prospect.consumption_band)
+            gas_quote = (strike("gas", prospect.segment, prospect.tariff_type, aq, in_market)
+                         if aq is not None else None)
+            if gas_quote is not None and gas_quote.quoted and gas_quote.unit_rate_per_mwh is not None:
+                result["gas_unit_rate_per_mwh"] = gas_quote.unit_rate_per_mwh
+            else:
+                # Why no gas rate was shown, named so the record can count it (never read by the
+                # funnel or the book).
+                result["gas_unquoted_because"] = (
+                    "no_published_aq_for_band" if aq is None
+                    else "no_gas_history" if gas_quote is None
+                    else gas_quote.reason or "no_strike")
+        return result
 
     return offer
 
@@ -1208,7 +1236,8 @@ def first_term_offer_fn(*, elec_daily, gas_daily):
 #: `docs/staging/records/SEAT_PREREG_THE_FIRST_TERM_CONTRACTED_AT_ITS_QUOTE_2026-11-24.md`.
 CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE: bool = True
 
-#: The key a won electricity leg carries its quoted ex-VAT strike under, when the switch is taken.
+#: The key a won leg carries its quoted ex-VAT strike under, when the switch is taken. A dual-fuel
+#: quote's gas strike is recorded under the gas leg's own `<id>g` (`_quote_recorder`).
 QUOTED_FIRST_TERM_RATE_KEY = "quoted_first_term_unit_rate_gbp_per_mwh"
 
 
@@ -1245,6 +1274,8 @@ def _quote_recorder(offer_fn, quoted_strikes: dict):
         result = offer_fn(prospect, in_market)
         if result and result.get("quoted") and result.get("unit_rate_per_mwh") is not None:
             quoted_strikes[prospect.customer_id] = result["unit_rate_per_mwh"]
+            if result.get("gas_unit_rate_per_mwh") is not None:
+                quoted_strikes[f"{prospect.customer_id}g"] = result["gas_unit_rate_per_mwh"]
         return result
 
     return offer
@@ -1542,6 +1573,11 @@ def _won_customer_dicts(outcome: dict) -> List[dict]:
                 "acquisition_type": "net_new_won"}
         arrangement = _won_fuel_arrangement(prospect, seed)
         gas = _gas_leg_for(prospect, elec) if arrangement != "electricity" else None
+        gas_quote = quoted.get(f"{prospect.customer_id}g")
+        if gas is not None and gas_quote is not None:
+            # The gas strike the household was shown on the same quote (§14), set on the gas leg
+            # `_gas_leg_for` built, which copied `elec` before any strike went on it.
+            gas = {**gas, QUOTED_FIRST_TERM_RATE_KEY: gas_quote}
         if arrangement == "gas" and gas is not None:
             # The gas account IS the home's account, as a gas-only founder's is: no `g` suffix,
             # because there is no electricity account here for it to be the second leg of.
@@ -1549,8 +1585,8 @@ def _won_customer_dicts(outcome: dict) -> List[dict]:
             continue
         # A gas coin whose band the published table cannot price keeps the electricity leg the
         # campaign quoted, the same fail-closed answer `_gas_leg_for` gives a dual home.
-        # THE STRIKE THE HOUSEHOLD WAS SHOWN goes on that leg only, set after `_gas_leg_for` has
-        # copied it: the gas leg was never quoted (§7), so it is struck as before.
+        # THE STRIKE THE HOUSEHOLD WAS SHOWN goes on that leg, set after `_gas_leg_for` has copied
+        # it, so the gas leg carries its own gas strike and never the electricity one.
         if prospect.customer_id in quoted:
             elec = {**elec, QUOTED_FIRST_TERM_RATE_KEY: quoted[prospect.customer_id]}
         won.append(elec)
