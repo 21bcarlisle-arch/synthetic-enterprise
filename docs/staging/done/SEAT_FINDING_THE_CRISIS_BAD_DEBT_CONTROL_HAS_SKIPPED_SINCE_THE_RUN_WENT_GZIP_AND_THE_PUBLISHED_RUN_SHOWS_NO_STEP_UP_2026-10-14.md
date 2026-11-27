@@ -2031,3 +2031,31 @@ named exception (0.689% is above its 0.32% ceiling).
 
 **Status:** OPEN, not BLOCKING. The remaining gap is the world's (W2_38). E6 resumes when a book
 drawn with a price-reading payment draw is published.
+
+## 2026-11-27: drawn again; re-graded on the shared tree's 601887d76a book, and disposed to its two owners
+
+Worker tick. Nothing was built. **The control this finding opened on is fixed and live.** All four
+live legs read through `tools/run_output_store` and run as strict xfails with named reasons (9 passed,
+4 xfailed). None of them skips.
+
+**The re-grade.** The run is the shared tree's plain `run_output_latest.json`: producing commit
+601887d76a, resolved 2026-11-26T23:20Z, unpublished. The committed gz is still 6af7fd0bfd. This is
+the `ifrs9_charge` basis as a % of revenue:
+
+| 2016 | 2017 | 2018 | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|---|---|
+| 0.332 | 0.826 | 0.853 | 0.914 | 0.347 | 0.082 | 0.435 | 0.487 | -0.225 |
+
+The 2022-23 crisis is 0.4657%, against 0.7840% in 2016-19: x0.59, FAIL on both the floor and the
+step-up. The 10-28 pass (4ae8da9b0, 1.0009%) has not come back. As the 2026-11-03 named exception
+already says, that pass was one year-end's lump. 2022 alone (0.435%) is still under every year from
+2017 to 2019, so `..._steps_up_in_2022_itself` still holds. Its reason quotes the 10-28 run's 0.33%.
+The shape is unchanged and the number is stale.
+
+**Disposed as obsolete. The defect is not fixed: every leg still open is carried by an open owner.**
+- The level and the step-up are the world's non-payment. The open item is
+  `worker-finding-the-worlds-payment-draw-has-no-price-input-so-2022-cannot-raise-non-payment-and-the-budget-built-for-it-is-unwired`,
+  graded under W2_38 (level 2 -> 3). The ifrs9 xfail's named exception points at it.
+- The 2022 step that lands a year late is E6's build (level 1 -> 2). Since 11-13 that build waits on W2_38, so it has the same owner.
+- The four strict xfails are the guard. The day a published run steps up on a basis, that leg
+  XPASSes and turns the suite red, which reopens this question without this item.

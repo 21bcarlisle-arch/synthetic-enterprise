@@ -8,7 +8,7 @@ class: standard
 severity: LATENT
 source: finding
 evidence:
-- docs/staging/SEAT_FINDING_THE_CRISIS_BAD_DEBT_CONTROL_HAS_SKIPPED_SINCE_THE_RUN_WENT_GZIP_AND_THE_PUBLISHED_RUN_SHOWS_NO_STEP_UP_2026-10-14.md
+- docs/staging/done/SEAT_FINDING_THE_CRISIS_BAD_DEBT_CONTROL_HAS_SKIPPED_SINCE_THE_RUN_WENT_GZIP_AND_THE_PUBLISHED_RUN_SHOWS_NO_STEP_UP_2026-10-14.md
 knowledge_gap: null
 insight: null
 decider: machine
@@ -16,12 +16,15 @@ director_rank: null
 atom: E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build
 blocked_by: []
 occurrences: 1
-state: open
+state: obsolete
 opened_at: '2026-10-14T00:00:00+00:00'
 chosen_at: null
-closed_at: null
+closed_at: '2026-11-27T02:50:31+00:00'
 chosen_by: null
 done_evidence: null
 parked: null
-obsolete: null
+obsolete: 'control fixed and live (four strict xfails read through run_output_store);
+  the open level/step-up legs are carried by worker-finding-the-worlds-payment-draw-has-no-price-input-so-2022-cannot-raise-non-payment-and-the-budget-built-for-it-is-unwired
+  (W2_38) and E6''s build; re-graded 2026-11-27 on 601887d76a: ifrs9 crisis 0.4657%
+  vs 0.7840%, x0.59'
 finding_lane: W2_customer_generator
