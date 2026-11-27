@@ -133,7 +133,10 @@ judged by it on its own landing
 (`tests/tools/test_a_landing_is_gated_by_the_base_chain_not_its_own.py`, mutation-proven). Two costs
 follow. A new line added to the chain first runs on the commit after the one that adds it. A gate
 module cannot be deleted in the same commit as its hook line, because the base's line still calls
-it; that takes two landings. Still open: the `commit-msg` chain is still the change's copy, and the
+it; that takes two landings. The `commit-msg` chain followed the same day: `run_message_gate` runs
+HEAD's blob of `tools/git-hooks/commit-msg` through the same `_base_hook`, and refuses when the base
+has none, so a change cannot delete its own REUSE or `NEXT:` line on its landing (same test file,
+mutation-proven). The gate modules both hooks call are still the extract's copies. Still open: the
 plain `git commit` door runs the shared tree's working copy (`core.hooksPath`). First live reading
 of enforce (27 Nov 13:12Z): 1 enforce record, 0 refusals, 0 judge_failed. GAP-3, GAP-4 and GAP-5 are
 unchanged. **GAP-8:** a gate that passes its landing but refuses everything afterwards, including

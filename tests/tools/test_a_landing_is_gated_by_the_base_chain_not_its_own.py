@@ -12,6 +12,9 @@ judge it silenced was the one that exists to catch exactly that.
     missing-blob branch falls back to the change's file (the FAIL-OPEN direction).
   * `test_the_base_hook_is_not_left_inside_the_checkout` reds if the blob is written into the
     tree, where every staging/tree-reading gate would see an untracked file.
+  * `test_deleting_a_refusing_line_from_the_MESSAGE_chain_does_not_silence_it_either` reds if
+    `run_message_gate` runs the extract's `commit-msg` again (mutation: `["sh", msg_hook_rel, ..]`).
+  * `test_a_base_with_no_message_chain_blob_refuses` is the message chain's FAIL-OPEN leg.
   * `test_a_non_repo_checkout_still_runs_its_own_file` keeps the bare `hook.sh` unit path alive
     (the other run_gate tests depend on it); it is a contract, not a control.
 """
@@ -42,6 +45,19 @@ WEAKENED_HOOK = "#!/bin/sh\necho '1 passed'\n"
 
 MSG_HOOK = "#!/bin/sh\nexit 0\n"
 
+MSG_REL = "tools/git-hooks/commit-msg"
+
+BASE_MSG_HOOK = textwrap.dedent(
+    """\
+    #!/bin/sh
+    if grep -q NO_REUSE_RECORD "$1"; then
+        echo "the BASE message chain refuses: no REUSE record"
+        exit 1
+    fi
+    exit 0
+    """
+)
+
 
 def _run(repo: Path, *args: str) -> subprocess.CompletedProcess:
     r = subprocess.run(args, cwd=str(repo), capture_output=True, text=True)
@@ -49,7 +65,7 @@ def _run(repo: Path, *args: str) -> subprocess.CompletedProcess:
     return r
 
 
-def _repo(tmp_path: Path, with_hook: bool = True) -> Path:
+def _repo(tmp_path: Path, with_hook: bool = True, msg_hook: str | None = MSG_HOOK) -> Path:
     r = tmp_path / "repo"
     (r / "tools" / "git-hooks").mkdir(parents=True)
     _run(r.parent, "git", "init", "-q", "-b", "main", str(r))
@@ -57,7 +73,8 @@ def _repo(tmp_path: Path, with_hook: bool = True) -> Path:
     _run(r, "git", "config", "user.name", "T")
     if with_hook:
         (r / HOOK_REL).write_text(BASE_HOOK)
-    (r / "tools" / "git-hooks" / "commit-msg").write_text(MSG_HOOK)
+    if msg_hook is not None:
+        (r / MSG_REL).write_text(msg_hook)
     (r / "gate_verdict").write_text("green")
     _run(r, "git", "add", "-A")
     _run(r, "git", "commit", "-q", "--no-verify", "-m", "base")
@@ -127,3 +144,28 @@ def test_a_non_repo_checkout_still_runs_its_own_file(tmp_path: Path):
     rc, out, _err = sl.run_gate(tmp_path, "hook.sh")
 
     assert rc == 0 and "ran-the-file" in out
+
+
+def test_deleting_a_refusing_line_from_the_MESSAGE_chain_does_not_silence_it_either(
+        tmp_path: Path):
+    repo = _repo(tmp_path, msg_hook=BASE_MSG_HOOK)
+    (repo / MSG_REL).write_text(MSG_HOOK)
+    before = _head(repo)
+
+    with pytest.raises(sl.LandingRefused, match="MESSAGE GATE RED"):
+        sl.land(repo, [MSG_REL], "weaken the message chain NO_REUSE_RECORD")
+
+    assert _head(repo) == before
+    # Not vacuous: the same weakening with a message the base chain accepts lands.
+    assert sl.land(repo, [MSG_REL], "edit the message chain with its record") != before
+
+
+def test_a_base_with_no_message_chain_blob_refuses(tmp_path: Path):
+    repo = _repo(tmp_path, msg_hook=None)
+    (repo / MSG_REL).write_text(MSG_HOOK)
+    before = _head(repo)
+
+    with pytest.raises(sl.LandingRefused, match="UNAVAILABLE.*read from HEAD"):
+        sl.land(repo, [MSG_REL], "introduce a message chain the base never had")
+
+    assert _head(repo) == before

@@ -277,13 +277,16 @@ def test_the_gate_FIRES_through_surgical_lands_message_runner(repo, tmp_path):
     from tools import surgical_land as sl
 
     r, env = repo
+    # The door runs the BASE's blob of the chain (GAP-2), so the hook is committed, not dropped
+    # into the extract.
+    _write(r, env, sl.MSG_HOOK_REL, f'"{sys.executable}" "{GATE}" "$1" || exit 1\n')
+    _git(r, env, "commit", "-q", "-m", "the chain")
     parent = _git(r, env, "rev-parse", "HEAD").strip()
     checkout = tmp_path / "extract"
     checkout.mkdir()
     sl._make_standalone_repo(r, checkout, parent)
-    hook = checkout / sl.MSG_HOOK_REL
-    hook.parent.mkdir(parents=True)
-    hook.write_text(f'"{sys.executable}" "{GATE}" "$1" || exit 1\n')
+    subprocess.run(["git", "checkout-index", "-a"], cwd=checkout, env=sl._gitless_env(env),
+                   check=True)
     (checkout / CANON).parent.mkdir(parents=True, exist_ok=True)
     (checkout / CANON).write_text(CANON_TEXT + "edit\n")
     subprocess.run(["git", "add", "--", CANON], cwd=checkout, env=sl._gitless_env(env), check=True)

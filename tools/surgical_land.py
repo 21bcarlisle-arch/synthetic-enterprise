@@ -964,7 +964,7 @@ def _base_hook(checkout: Path, hook_rel: str):
             "running the change's own copy.".format(
                 head.stdout.decode().strip()[:9], hook_rel,
                 blob.stderr.decode("utf-8", "replace").strip()[-200:]))
-    fd, tmp = tempfile.mkstemp(prefix="surgical_land_base_hook_", suffix=".sh")
+    fd, tmp = tempfile.mkstemp(prefix="surgical_land_base_", suffix="_" + Path(hook_rel).name)
     try:
         with os.fdopen(fd, "wb") as f:
             f.write(blob.stdout)
@@ -1088,7 +1088,15 @@ def run_message_gate(checkout: Path, message: str, msg_hook_rel: str = MSG_HOOK_
     commit is made from the message the caller gave.
 
     FAIL-CLOSED, exactly as `run_gate`: a missing or un-runnable chain raises rather than
-    returning 0. An unavailable check is a failed check."""
+    returning 0. An unavailable check is a failed check.
+
+    THE CHAIN IS HEAD'S, NOT THE CHANGE'S, as in `run_gate` (GAP-2 of
+    `docs/market_research/gates_judged_from_the_base_2026-11-20.md`, message chain closed 27 Nov):
+    `sh` runs the base's blob via `_base_hook`, so a change deleting its own REUSE or NEXT line is
+    asked by that line. A base with HEAD but no blob refuses. The resulting tree must still carry
+    the file (check below). A checkout whose `.git` is not a repo with a HEAD runs the file on disk.
+    The gate MODULES the hook calls are still read from the extract; the pre-commit chain's
+    base-judged enforce leg is what holds those."""
     hook = checkout / msg_hook_rel
     if not hook.is_file():
         raise LandingRefused(
@@ -1108,9 +1116,10 @@ def run_message_gate(checkout: Path, message: str, msg_hook_rel: str = MSG_HOOK_
         merge_head.write_text(merge_parent + "\n", encoding="utf-8")
     env = _gitless_env()
     try:
-        r = subprocess.run(["sh", msg_hook_rel, ".git/COMMIT_EDITMSG"], cwd=str(checkout),
-                           env=env, capture_output=True, text=True,
-                           timeout=MESSAGE_GATE_TIMEOUT_SECONDS)
+        with _base_hook(checkout, msg_hook_rel) as argv_hook:
+            r = subprocess.run(["sh", argv_hook, ".git/COMMIT_EDITMSG"], cwd=str(checkout),
+                               env=env, capture_output=True, text=True,
+                               timeout=MESSAGE_GATE_TIMEOUT_SECONDS)
     except (OSError, subprocess.SubprocessError) as exc:
         raise LandingRefused(
             "the MESSAGE gate could not be EXECUTED ({}) -- refusing rather than landing with the "
