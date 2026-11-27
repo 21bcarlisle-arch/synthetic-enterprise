@@ -126,11 +126,16 @@ refusing crash would also refuse the commit that repairs it, and no lane could c
 **Bootstrap.** The landing commit is judged by HEAD's observe-mode copy, which ignores `--enforce`.
 Enforce starts on the next commit.
 
-**Still open.** **GAP-2** is half-closed. The judge is read from HEAD, but the line that calls it is
-still in the change's hook under `surgical_land`, which runs `sh tools/git-hooks/pre-commit` from the
-extract. The plain `git commit` door runs the shared tree's working copy (`core.hooksPath`). The next
-step is `surgical_land.run_gate` running HEAD's hook blob (refusing if it is missing), not the
-extract's file. GAP-3, GAP-4 and GAP-5 are unchanged. **GAP-8:** a gate that passes its landing but
-refuses everything afterwards, including its own repair, cannot be repaired through the door, because
-enforce judges the repair by the broken copy. The remedy is the director's console. The week showed
-none.
+**Still open.** **GAP-2** is closed for `surgical_land` (27 Nov): `run_gate` runs HEAD's blob of
+`tools/git-hooks/pre-commit` (the extract's HEAD is the base), written to a temp file outside the
+checkout, and refuses when the base has no such blob. A change that deletes the enforce line is
+judged by it on its own landing
+(`tests/tools/test_a_landing_is_gated_by_the_base_chain_not_its_own.py`, mutation-proven). Two costs
+follow. A new line added to the chain first runs on the commit after the one that adds it. A gate
+module cannot be deleted in the same commit as its hook line, because the base's line still calls
+it; that takes two landings. Still open: the `commit-msg` chain is still the change's copy, and the
+plain `git commit` door runs the shared tree's working copy (`core.hooksPath`). First live reading
+of enforce (27 Nov 13:12Z): 1 enforce record, 0 refusals, 0 judge_failed. GAP-3, GAP-4 and GAP-5 are
+unchanged. **GAP-8:** a gate that passes its landing but refuses everything afterwards, including
+its own repair, cannot be repaired through the door, because enforce judges the repair by the broken
+copy. The remedy is the director's console. The week showed none.

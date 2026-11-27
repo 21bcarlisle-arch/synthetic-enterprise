@@ -920,13 +920,65 @@ def run_gate(checkout: Path, hook_rel: str = HOOK_REL,
     reached a reader was six green ticks under the word REFUSED.
 
     FAIL-CLOSED: a hook that is missing, unreadable or un-runnable raises rather than returning
-    0. This is the branch that decides whether the tool is a gate or a rubber stamp."""
+    0. This is the branch that decides whether the tool is a gate or a rubber stamp.
+
+    THE CHAIN IS HEAD'S, NOT THE CHANGE'S (GAP-2 of
+    `docs/market_research/gates_judged_from_the_base_2026-11-20.md`, closed 27 Nov). The hook run
+    is the BASE's blob of `hook_rel` (`_base_hook`), so a change that deletes a line of the chain
+    -- the base-judged enforce line above all -- is still judged by that line on its own landing.
+    The resulting tree must ALSO carry the hook (the `git commit` door runs the working copy), so
+    a change deleting it is refused either way. A non-repo `checkout` (unit tests driving a bare
+    `hook.sh`) has no base and runs the file on disk."""
     hook = checkout / hook_rel
     if not hook.is_file():
         raise LandingRefused(
             "the gate is UNAVAILABLE: {} does not exist in the resulting tree. An unavailable "
             "check is a FAILED check (R15) -- refusing rather than landing ungated.".format(
                 hook_rel))
+    with _base_hook(checkout, hook_rel) as argv_hook:
+        return _run_gate_hook(checkout, argv_hook, gated_tree, merge_parent, prior_green, label)
+
+
+@contextmanager
+def _base_hook(checkout: Path, hook_rel: str):
+    """Yield the path `sh` should run: HEAD's blob of `hook_rel`, written to a temp file OUTSIDE
+    the checkout (inside it, it would be an untracked file every tree-reading gate could see), or
+    `hook_rel` itself when `checkout` is not a repo or HEAD is unborn (a root commit has no base
+    to read the chain from). It is a FILE and not `sh`'s stdin because the gates inherit stdin.
+
+    REFUSES when HEAD exists and has no such blob: the base carries no chain, so there is nothing
+    to judge this change by, and running the change's own copy instead is exactly the hole."""
+    if not (checkout / ".git").exists():
+        yield hook_rel
+        return
+    env = _gitless_env()
+    head = _git(checkout, "rev-parse", "--verify", "-q", "HEAD^{commit}", env=env)
+    if head.returncode != 0:
+        yield hook_rel
+        return
+    blob = _git(checkout, "show", "HEAD:" + hook_rel, env=env)
+    if blob.returncode != 0:
+        raise LandingRefused(
+            "the gate is UNAVAILABLE: the base {} has no {} to judge this change by ({}). The "
+            "chain is read from HEAD, never from the change (GAP-2) -- refusing rather than "
+            "running the change's own copy.".format(
+                head.stdout.decode().strip()[:9], hook_rel,
+                blob.stderr.decode("utf-8", "replace").strip()[-200:]))
+    fd, tmp = tempfile.mkstemp(prefix="surgical_land_base_hook_", suffix=".sh")
+    try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(blob.stdout)
+        yield tmp
+    finally:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+
+
+def _run_gate_hook(checkout: Path, hook_argv: str, gated_tree: str | None,
+                   merge_parent: str | None, prior_green: str | None,
+                   label: str) -> tuple[int, str, str]:
     env = _gitless_env()
     if gated_tree:
         env[stale_copy_refusal.ALREADY_GATED_ENV] = gated_tree
@@ -937,7 +989,7 @@ def run_gate(checkout: Path, hook_rel: str = HOOK_REL,
     try:
         with pre_commit_test_gate.LandingGateLock(label or str(checkout)) as held:
             env[pre_commit_test_gate.LANDING_GATE_HELD_ENV] = held.held_env_value()
-            r = _run_killing_the_tree(["sh", hook_rel], checkout, env, GATE_TIMEOUT_SECONDS)
+            r = _run_killing_the_tree(["sh", hook_argv], checkout, env, GATE_TIMEOUT_SECONDS)
     except (OSError, subprocess.SubprocessError) as exc:
         raise LandingRefused(
             "the gate could not be EXECUTED ({}) -- refusing rather than landing ungated.{}".format(
