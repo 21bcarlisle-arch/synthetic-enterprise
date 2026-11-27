@@ -3,6 +3,7 @@
 import pytest
 
 from simulation.hedged_settlement import run_hedged_term
+from simulation.policy_costs import get_electricity_loss_multiplier
 
 
 def _shape_fn(kwh_per_period=1.0):
@@ -191,8 +192,11 @@ def test_deemed_zero_premium_gives_zero_margin():
         consumption_shape=_shape_fn(1.0),
         system_price_records=_prices(["2022-01-01"], price=100.0),
     )
+    # At zero premium revenue is spot on the metered kWh, so the only shortfall is the domestic
+    # loss energy bought on top (`SETTLEMENT_LOSSES_APPLIED`): margin is exactly minus its cost.
+    assert any(r.get("loss_cost_gbp", 0.0) > 0.0 for r in result)
     for r in result:
-        assert r["margin_gbp"] == pytest.approx(0.0)
+        assert r["margin_gbp"] == pytest.approx(-r.get("loss_cost_gbp", 0.0))
 
 
 def test_deemed_hedge_fraction_is_zero():
@@ -278,8 +282,11 @@ def test_deemed_cap_binds_when_spot_plus_premium_exceeds_cap_post_2019():
     r = result[0]
     assert r["unit_rate_gbp_per_mwh"] == pytest.approx(_ex_vat(208.0))
     assert r["cap_bound"] is True
-    # Wholesale cost is unaffected by the cap -- the company still buys at spot.
-    assert r["wholesale_cost_gbp"] == pytest.approx(1000.0 * (2.0 / 1000.0))
+    # Wholesale cost is unaffected by the cap -- the company still buys at spot, on the metered
+    # energy grossed up for the cap period's published domestic loss multiplier.
+    m = get_electricity_loss_multiplier("2022-01-01")
+    assert 1.05 < m < 1.15, m
+    assert r["wholesale_cost_gbp"] == pytest.approx(1000.0 * (2.0 / 1000.0) * m)
 
 
 def test_deemed_margin_can_go_negative_once_capped():

@@ -66,12 +66,13 @@ _NIGHT_FIRST, _NIGHT_END = OFF_PEAK_WINDOW_PERIODS
 #: about a tenth light. The loss energy is bought at the same prices as the metered energy, as the
 #: gas leg buys its Unidentified Gas (`gas_settlement`). Revenue, levies and network stay on the
 #: meter. Pre-registered before any book carries it, with its predictions and its off-rule:
-#: `docs/staging/records/SEAT_PREREG_THE_WORLD_SETTLES_ELECTRICITY_LOSSES_2026-11-24.md`. It stays
-#: False until the first-term cap hold's one-variable book has been read, so the two changes are
-#: not read off one book. Flipping it reds the off-by-default leg of
-#: `tests/simulation/test_the_world_settles_electricity_losses_by_one_switch.py`; amend that leg
-#: in the same commit, then delete this switch.
-SETTLEMENT_LOSSES_APPLIED: bool = False
+#: `docs/staging/records/SEAT_PREREG_THE_WORLD_SETTLES_ELECTRICITY_LOSSES_2026-11-24.md`. Taken
+#: 2026-11-27 (S3), once the first-term cap hold's arm had been read against S1's book and that book
+#: shown deterministic (`SEAT_GRADE_S2_THE_CAP_HOLD_DELETION_ARM_ON_S1S_SEEDS_2026-11-27.md`). Its
+#: one-variable arm is 76f894811d plus this flip alone, graded against S1's book; the off-rule (P1
+#: outside 9.0-11.5% in any year, or a first-year count or revenue move) sets it back to False.
+#: Once that grade stands, delete this switch.
+SETTLEMENT_LOSSES_APPLIED: bool = True
 
 
 def _loss_multiplier(date_str: str, segment: str, multi_register: bool) -> float:

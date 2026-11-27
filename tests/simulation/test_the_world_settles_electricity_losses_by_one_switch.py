@@ -1,5 +1,5 @@
 """The world settles a domestic supplier's electricity grossed up for losses, by one switch, and the
-switch is off.
+switch is on.
 
 `hedged_settlement.SETTLEMENT_LOSSES_APPLIED` is pre-registered before any book carries it
 (`docs/staging/records/SEAT_PREREG_THE_WORLD_SETTLES_ELECTRICITY_LOSSES_2026-11-24.md`). The
@@ -52,12 +52,12 @@ def _sum(rows, key):
     return sum(r[key] for r in rows)
 
 
-def test_the_switch_is_off_until_the_first_term_hold_book_has_been_read():
-    """Catches the losses switched on before their book: the pre-registration's predictions can
-    refute nothing once a book already carries the change, and the hold deletion's one-variable
-    book would carry two variables."""
-    assert hs.SETTLEMENT_LOSSES_APPLIED is False
-    assert not any("loss_cost_gbp" in r for r in _hedged() + _deemed())
+def test_the_switch_is_on_once_the_first_term_hold_arm_has_been_read():
+    """Catches the losses switched back off without the off-rule firing: S2's arm was read against
+    a deterministic S1 book (2026-11-27), so S3 is this switch alone against that book, and a
+    default run that settles domestic electricity loss-free asserts the losses are zero."""
+    assert hs.SETTLEMENT_LOSSES_APPLIED is True
+    assert all(r.get("loss_cost_gbp", 0.0) > 0.0 for r in _hedged() + _deemed())
 
 
 def test_taking_the_switch_charges_domestic_electricity_its_losses_and_nothing_else(monkeypatch):
@@ -65,8 +65,10 @@ def test_taking_the_switch_charges_domestic_electricity_its_losses_and_nothing_e
     bought, a loss charged to a non-domestic supply the cap's table does not describe, and a
     multiplier applied to the levies or network that are charged on the meter. The partition is
     asserted both ways, so a writer that uplifts everything or nothing fails."""
+    monkeypatch.setattr(hs, "SETTLEMENT_LOSSES_APPLIED", False)
     off = {"resi": _hedged(), "sme": _hedged("SME"), "e7": _hedged(economy_7=True),
            "deemed": _deemed()}
+    assert not any("loss_cost_gbp" in r for v in off.values() for r in v)
     monkeypatch.setattr(hs, "SETTLEMENT_LOSSES_APPLIED", True)
     on = {"resi": _hedged(), "sme": _hedged("SME"), "e7": _hedged(economy_7=True),
           "deemed": _deemed()}
