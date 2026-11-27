@@ -13,33 +13,33 @@
   },
   "figures_caveat": null,
   "last_verified": {
-    "generated_at": "2026-11-26T22:08:24Z",
-    "git_commit": "76f894811d",
+    "generated_at": "2026-11-18T10:20:38Z",
+    "git_commit": "6af7fd0bfd",
     "population": {
-      "accounts": 1382,
-      "bills": 54463,
-      "total_revenue_gbp": 3154920.8
+      "accounts": 1306,
+      "bills": 53605,
+      "total_revenue_gbp": 3166717.09
     },
-    "run_id": "run_output_76f894811d_20261126T155009Z.json",
+    "run_id": "run_output_6af7fd0bfd_20261118T070221Z.json",
     "run_retained": true,
-    "verified_at": "2026-11-26T22:08:24Z"
+    "verified_at": "2026-11-18T10:20:38Z"
   },
   "paused_gate": "Refused by the domain-invariant check: 1 of its rules is broken and no dated exception covers it. Domestic gas use is mostly space heating, and space heating follows outdoor temperature, so a home's measured gas use in a calendar month moves from one year to the next with that month's heating\u2026 [INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR]: broken on 4 of 135 checked (unit: gas leg with a measured month a year after another).",
   "paused_reason": "domain-invariant breaches at git=2100f84f85 that no exception covers: INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR 4 (4 breaches exceed the exception's max_breached 1)",
   "paused_since": "2026-11-26T23:19:28Z",
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-11-26T22:08:24Z",
-    "git_commit": "76f894811d",
+    "generated_at": "2026-11-18T10:20:38Z",
+    "git_commit": "6af7fd0bfd",
     "population": {
-      "accounts": 1382,
-      "bills": 54463,
-      "total_revenue_gbp": 3154920.8
+      "accounts": 1306,
+      "bills": 53605,
+      "total_revenue_gbp": 3166717.09
     },
-    "run_id": "run_output_76f894811d_20261126T155009Z.json",
+    "run_id": "run_output_6af7fd0bfd_20261118T070221Z.json",
     "run_retained": true,
-    "verified_at": "2026-11-26T22:08:24Z"
+    "verified_at": "2026-11-18T10:20:38Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-11-26T23:19:28Z"
+  "written_at": "2026-11-26T23:51:31Z"
 }

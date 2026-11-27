@@ -9056,9 +9056,15 @@ def _publish_provenance_banner(git_hash, *, reason=None, gate=None):
         return False
     try:
         _prov = publish_provenance
+        target = str(_prov.PROVENANCE_FILE)
+        # This file goes out ALONE, so the run it names must be the run already committed. A stamp
+        # `record_verified` wrote ahead of a refused publish commit names figures that never landed
+        # (0b22846e13, 26 Nov: 76f894811d named over the 6af7fd0bfd feeds).
+        if _prov.withdraw_unserved_stamp(_committed_provenance(target)) is not None:
+            log("Provenance banner: withdrew a served-run stamp no commit carries -- the banner "
+                "names the run whose figures are committed")
         state = _prov.record_paused(reason=reason, gate=gate)
         log("Provenance banner: {}".format(_prov.banner_line(state)))
-        target = str(_prov.PROVENANCE_FILE)
     except Exception as exc:  # noqa: BLE001 -- see docstring
         log("Provenance banner write failed (non-fatal): {}".format(exc))
         return False

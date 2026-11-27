@@ -455,6 +455,32 @@ def figures_caveat(state) -> str | None:
     return None
 
 
+#: What the visitor is shown. They describe the run whose figures are COMMITTED beside them, so a
+#: copy of this file pushed alone must carry them as committed (`withdraw_unserved_stamp`).
+SERVED_FIELDS = ("showing_run", "last_verified", "figures_caveat")
+
+
+def withdraw_unserved_stamp(committed, *, path: Path = None, now=None) -> dict | None:
+    """Put the served fields back to the committed copy's when a local stamp never reached it.
+
+    `record_verified` runs BEFORE the publish commit, so that the stamp lands in the same commit as
+    the figures it names. When that commit is refused, the stamp stays in the working file. The
+    banner pushes this file ALONE, and it published the stamp over figures that never landed. On 26
+    Nov, 0b22846e13 put `showing_run` 76f894811d (1,382 accounts) on origin beside the 6af7fd0bfd
+    feeds (1,306 accounts). This can only move the served fields back to what is published, never
+    forward. It returns None and writes nothing when they already agree, or when `committed` is
+    unreadable (None: git cannot say what is served, so there is nothing to restore it to).
+    """
+    if not isinstance(committed, dict):
+        return None
+    state = read(path)
+    if all(state.get(f) == committed.get(f) for f in SERVED_FIELDS):
+        return None
+    for field in SERVED_FIELDS:
+        state[field] = committed.get(field)
+    return _write(state, path, now)
+
+
 def record_paused(*, reason=None, gate=None, path: Path = None, now=None) -> dict:
     """The scoped gate is RED. Stamps the pause once; moves no freshness field, ever.
 
