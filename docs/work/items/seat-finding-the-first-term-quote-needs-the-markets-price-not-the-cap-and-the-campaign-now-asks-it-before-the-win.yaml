@@ -23,13 +23,12 @@ closed_at: null
 chosen_by: null
 done_evidence: null
 parked:
-  reason: 're-read 2026-11-27: the MSC is on origin (567288c031 A, f70757dc9f B),
-    so the 25 Nov park condition is met. What remains is the cap-hold flip, and its
-    pre-registration''s own off-rule moved: S1 landed (a1eee4d921, quoted strike contracted),
-    which voids P2/P3 until they are rewritten against the new strike. The S1 book
-    76f894811d is being graded under live seat claim s1-r1-to-r5-are-graded-on-the-76f894811d-book
-    (claimed 27 Nov). Redraw once that grading is on origin: rewrite P2/P3 on its
-    book, then flip FIRST_TERM_CAP_HOLD_DELETED as one variable.'
-  revisit: '2026-11-29'
+  reason: 're-read 2026-11-27 (twice): the MSC is on origin (567288c031, f70757dc9f)
+    and S1 is graded on the 76f894811d book (056cf68b71: R1, R2, R5, R6 held; R3 in
+    range, 4 legs not 0). Both preconditions are met. Owed, and not started: rewrite
+    the prereg''s P2/P3 against the quoted strike on that book (SEAT_PREREG_THE_FIRST_TERM_CAP_HOLD_DELETED_2026-11-24.md
+    says they are void once S1 lands), then flip FIRST_TERM_CAP_HOLD_DELETED as one
+    variable.'
+  revisit: '2026-11-27'
 obsolete: null
 finding_lane: W2_customer_generator
