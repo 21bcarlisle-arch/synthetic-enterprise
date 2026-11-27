@@ -86,3 +86,15 @@ No world change is made, and the baseline does not move.
 
 The re-capture at the repair, held on its artefact. Then `tools/fit_year_level_anchor` on it, and the 2021 refit
 lands with `SE_LANDED_SIGNAL=/var/tmp/se-fix0-anchor-refit-landed.sha`. The rankq re-grade stays held on that file.
+
+## Disposition of the item (re-drawn 2026-11-27, after aa620cb77)
+
+The item `one-home-one-departure-decision-across-two-fuels` was re-drawn asking for a world change keying one
+renewal decision per home. **That part is spent:** the world already does it (`departure_decision_leg`,
+`simulation/customer_events.py:458`, called at `simulation/run_phase2b.py:3672`), so no world change is made and
+the K8 dual-fuel-switching section the draw asked for is not needed to justify a build that will not happen.
+The remainder (re-capture, P1-P3 grade, 2021 refit with the signal file) is carried by the successor
+`fix0-2021-anchor-refit-on-the-one-decision-capture`. The re-capture `longjob-one-decision-recapture` was
+already in flight at re-draw (launched 03:57Z, artefact
+`/var/tmp/se-reask-capture/departure_factors_one_decision.json`); it was not launched a second time. The claim is
+released.
