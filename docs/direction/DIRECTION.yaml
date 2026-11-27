@@ -1,215 +1,219 @@
 version: 1
-oriented_at: "2026-11-27T00:21:28.322397+00:00"
-thesis_read: >-
-  Against the thesis, the per-customer supplier still has no valid comparison with the flat-rules baseline. That
-  has not changed in three stretches. The rankq re-grade, the one ruled comparison with its commitment due 3 Dec,
-  is still deadlocked. /var/tmp/se-fix0-capture does not exist and no capture_departure_factors process is on the
-  box. The window move has landed (/var/tmp/se-fix0-window-landed.sha exists), so the refit continuation waits on
-  exactly one thing: the capture file that its own first step writes. This orientation reads that plainly for the
-  first time. The deadlock needs no parser fix to break. Launching one capture to that path releases the queued
-  refit, and the queue then draws it on its own. What DID move is the book, and that corrects my own error about
-  publishing. Origin's site/data/publish_provenance.json names 76f894811d (1,382 accounts, 54,463 bills) as
-  last_verified at 22:08Z. 44bf4cd13 is on origin. d415a9787 graded the six BLOCKING billing findings on that
-  book: 12 predictions held and 4 missed, and the book's own gate reads 0 unexcepted breaches. Last stretch's
-  first focus item is therefore finished and leaves focus. It was the one item drawn (1 of 4). It was also the
-  only focus item that existed as a continuation row, and I read that as the reason it was reachable. The next
-  book, 2100f84f85, carries b4ba8cb4f, and the publisher paused on it at 23:19Z. It breaks
-  INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR on 4 of 135 gas legs, against an exception that allows 1. A
-  landing is in flight (pid 566297) that traces this to a heat-pump home's gas settling flat. The commit split was
-  0 supplier, 1 world and 7 other. The substantive work was the gas-AQ world fix (601887d76) and two publish-wedge
-  fixes (de3138e6d, 2c014cfe4). That is still plumbing, not supplier decisions. The precondition for S1's R1-R5
-  grade, a verified S1 book on origin, is now met and nothing has drawn it. So the supplier results this focus
-  carries are S1's grade and the final-bill ask, behind the one launch that unblocks the baseline comparison.
+oriented_at: '2026-11-27T12:20:18.307630+00:00'
+thesis_read: 'Against the thesis, the stretch moved one supplier-facing step and then stalled on the machine. The
+  split is 3 world, 0 supplier, 5 other. The world commit that matters is 637c051d2: a won gas first term now bills
+  the gas rate the household was quoted. Gas was the last leg on which a household was charged a price it never
+  saw. Until it landed, the cap hold could not be removed without a transfer (M2), and B8 could not flip. S3''s
+  losses gross-up and the failed-level-final credit fix also landed. The rest is bookkeeping. What it MEANS: the
+  per-customer-against-flat comparison, the thesis''s only baseline test, is no closer than it was at 09:24. Its
+  prediction was never filed, and every run it depends on is in a queue, not on a CPU. The previous focus had 4
+  items: the gas quote landed and leaves focus. The fix0 refit moved (the whole-book fit emits 2021 = 22.10) and
+  now waits on a capture under that anchor, so it leaves focus to its held continuation. The rankq prediction was
+  not filed and stays, under a new id. Memory attribution stays. The real finding is about the machine. The admission
+  gate has kept the S3 arm (3h36m), the anchor7 capture, the S2 pair and the memgrowth probe queued. It counts 18,958
+  MB co-resident, while the guest reports 7,780 MB used, and 11,981 MB of that count is one head-green census. My
+  09:24 record read those launcher pids as running jobs; that is my error, listed below. One downstream disagreement
+  comes ahead of new work, and it is focus 1: nothing graded this week can be read until admission counts what is
+  actually resident.'
 stretch_reviewed:
-  since: "2026-11-26T21:21:16.808064+00:00"
+  since: '2026-11-27T09:24:46.581303+00:00'
   commits: 8
   substantive: 3
 focus:
-- id: launch-the-fix-0-capture-so-the-refit-continuation-releases
-  lane: W2_customer_generator
-  side: world
-  unblocks: The rankq-against-twin re-grade on fixed code (continuation the-rankq-regrade-launches-on-the-refit-fix-0-world).
-    It is the thesis's only pending per-customer-vs-flat comparison, ruled 26 Nov 05:47 with its commitment
-    due 3 Dec. It also voids or confirms the BLOCKING SEAT_FINDING_AN_OFFERED_LEAVER_IS_ANSWERED_ON_A_DIE_THE_FLOOR_DID_NOT_REDRAW.
-  what: 'Run one launch and nothing else. First re-check that /var/tmp/se-fix0-capture/departure_factors_fix0.json
-    is absent and that no capture_departure_factors process is running. Read the sha in /var/tmp/se-fix0-window-landed.sha
-    and make a fresh detached worktree at that commit (or at origin/main if it descends from that sha).
-    From that worktree, launch through background.launch_long_job: `python3 tools/capture_departure_factors.py
-    /var/tmp/se-fix0-capture/departure_factors_fix0.json`, creating the directory first. Do not refit,
-    land or grade in this item. Once the file exists, continuation fix-0-capture-and-2021-anchor-refit-on-the-moved-window
-    releases, and the queue draws the refit, the SE_LANDED_SIGNAL landing and the grade. If the capture
-    dies, read its log, write the cause into docs/staging/SEAT_FINDING_THE_WORLDS_2021_END_OF_FIX_RISE_IS_A_LATE_WITHDRAWAL_WINDOW_AND_A_PRICE_TERM_THAT_NEVER_ASKS_WHO_UNDERCUT_THE_DEFAULT_2026-11-26.md,
-    and relaunch only after the cause is fixed.'
-  why: This item went undrawn for three stretches while it carried three steps and a parser fix. The steps
-    after the capture already sit in the queue, held only on this file. Done means the capture file exists
-    and seat_continuation.live() shows the refit row with no waits_for. Then this item disappears. The
-    parser class fix stays in not_now.
-  written_at: 1795739148.752
-- id: s1-r1-to-r5-are-graded-on-the-76f894811d-book
-  lane: B_commercial
-  side: supplier
-  what: 'The precondition is now met: origin''s publish_provenance names 76f894811d as last_verified,
-    and 76f894811d descends from a1eee4d92 (S1, CONTRACT_THE_FIRST_TERM_AT_THE_QUOTED_STRIKE = True).
-    Claim continuation grade-s1-r1-to-r5-on-the-first-book-descending-from-a1eee4d92 with seat_work_in_hand
-    --claim and do its work now on run_output_76f894811d_20261126T155009Z.json. Its 28 Nov 12:00 embargo
-    existed only to wait for such a book. Grade R1-R5 from SEAT_RECORD_THE_DEFAULT_OFF_SWITCHES_AND_THE_ORDER_THEY_FLIP_IN_2026-11-24.md
-    s.3, each held or missed beside its prediction, with a `Graded:` trailer. Then retire the continuation.
-    Flip nothing: S2 and the B8 blind-holdout flip stay queued, and their STEP 0 reads this grade.'
-  why: S1 is the first default-off supplier switch to reach a published book. The levers-in-merit-order
-    chain (S2, then B8) is sequenced behind this grade. Done means R1-R5 are graded on origin and the
-    continuation is retired, so S2's STEP 0 can read it.
-  written_at: 1795739148.752
-- id: the-2100f84f85-book-publishes-and-the-final-bill-ask-is-graded-on-it
-  lane: D_billing_metering
-  side: supplier
-  what: 'Wait for the in-flight landing pid 566297 ("the gas-repeat exception is re-filed on the 2100f84f85
-    book") to end, using tools/wait_for.py and never pgrep. If it landed, confirm on origin that publish_provenance
-    verification_state is no longer paused and that last_verified names 2100f84f85, or a later book carrying
-    b4ba8cb4f such as 601887d76a, now building as pid 381166. If it was refused, or the exception was
-    only widened, read the 4 breaching gas legs. If a heat-pump home is settling gas at all, that is a
-    world defect: file it at its world source with a prediction. Do not raise max_breached to fit today''s
-    count. Once a book carrying b4ba8cb4f is last_verified on origin, claim continuation grade-the-final-bill-ask-on-the-first-book-after-b4ba8cb4f,
-    grade the Still-open section of SEAT_PREREG_THE_PAGE_RESOLVES_A_FINAL_BILL_ON_THE_WORLDS_ASK_2026-11-26.md
-    on that book with a `Graded:` trailer, and retire the continuation.'
-  why: Publishing has paused again on the very next book. A billing-accuracy result (the final bill on
-    the world's ask) is owed only once a book publishes, and that is the lesson in this record's own wrong
-    list. Done means a b4ba8cb4f book is last_verified on origin and the final-bill ask is graded on it,
-    or the gas breach is filed as a world defect with its cause named.
-  written_at: 1795739148.752
-- id: the-director-commitments-due-2-dec-are-queued-and-built
+- id: the-admission-gate-counts-shared-pages-and-starves-every-run
   lane: A_strategy_governance
   side: other
-  what: 'Two answered for_the_director rows carry commitments due 2026-12-02, and no draw has taken either.
-    (1) k8-covers-world-models-one-leg-test: write one test over the world modules under L3+ atoms. It
-    asserts that each module''s docstring cites a docs/market_research or site/knowledge page, or names
-    ''Knowledge: GAP''. It has no baseline list; the census is in docs/staging/WORKER_FINDING_A_WORLD_MODEL_CLOSED_AT_TARGET_WITH_NO_KNOWLEDGE_PAGE_BENEATH_IT_2026-11-24.md.
-    Then fix the docstrings it reds. (2) the-forward-world-has-bands-for-gas: add the ND, interconnector
-    net flow and carbon bands to docs/design/curriculum/forward_years.json exactly as the row''s proposal
-    states, each labelled as his curriculum choice. Source them from docs/market_research/how_the_gb_electricity_price_forms_2026-11-24.md
-    s.2a, s.5a and s.8a.'
-  why: He said yes to both on 25 Nov, and five days remain. Done means both are on origin before 2 Dec
-    and this item disappears. It is last because neither blocks a supplier result this week.
-  written_at: 1795739148.752
+  what: 'Measure, then unblock. (1) For head-green-census.service (pid 1293708 and its forkserver children),
+    sum Pss from /proc/<pid>/smaps_rollup and compare it with the 11,981 MB that background/launch_long_job.py::resident_census
+    counts and with `free`''s used figure. (2) If Pss is materially lower, make resident_census count
+    Pss (or one RSS per shared mapping), with a test naming the defect, a mutation that turns it red,
+    and a print of the old and new count at today''s real inputs. Then land it. (3) If the fix cannot
+    land within an hour, or Pss confirms the 12 GB, stop head-green-census.service and re-queue it BEHIND
+    the five queued jobs. Record that the census was stopped and how it is re-run. Do not cancel or relaunch
+    the queued jobs: they admit themselves within 60 s of room appearing.'
+  why: 'Every supplier result this stretch waits on runs that are not running: the S2 cap-hold grade,
+    the anchor7 capture that the rankq re-grade waits on, the S3 losses grade and the memory attribution
+    behind the director''s open row. Done means /var/tmp/longjob-anchor7-capture-queued.log shows the
+    job admitted and its child is computing, and the admission count is either corrected on origin or
+    shown by Pss to be true (with the census re-queued).'
+  written_at: 1795782300.682
+- id: rankq-refit-world-prediction-filed-before-launch
+  lane: B_commercial
+  side: supplier
+  what: 'File docs/staging/records/SEAT_PREREG_THE_RANKQ_REGRADE_ON_THE_REFIT_FIX0_WORLD_2026-11-27.md
+    and commit it now, before /var/tmp/se-fix0-anchor-refit-landed.sha exists. It must hold: the predicted
+    renewal-churn-belief AUC on the refit world with a range; the predicted per-customer-minus-flat-twin
+    net per household-year at the 0.12 cut, with a range and its sign; and which of the voided s.12g comparisons
+    (twin, cut, A, rankq; EP1 A4 at 20b14f3ed) this one run re-reads. Read SEAT_FINDING_AN_OFFERED_LEAVER_IS_ANSWERED_ON_A_DIE_THE_FLOOR_DID_NOT_REDRAW_2026-11-25.md
+    first: its decomposition (a retention offer should lose money in this world) is the prior. Change
+    no code. The held continuation the-rankq-regrade-launches-on-the-refit-fix-0-world launches the run.'
+  why: This is the thesis's only per-customer-against-flat-baseline comparison. It also clears the stretch's
+    one BLOCKING finding, and last stretch its prediction went unfiled. Done means the pre-registration
+    commit is on origin with a sha older than the re-grade's launch. If the launch comes first, record
+    the miss and file no prediction after it.
+  written_at: 1795782300.682
+- id: ep1-a4-regrade-on-the-fixed-dice-is-queued
+  lane: B_commercial
+  side: supplier
+  what: The dice-floor fix voided EP1's A4 grade (20b14f3ed), and no row re-grades it. Pre-register the
+    A4 re-grade on fixed code in docs/staging/records/ (the forward CLV three-horizon ranking against
+    realised held-back value, with a range per horizon), using the same seeds and book as 20b14f3ed. Then
+    file it as a continuation held on the rankq re-grade's output, so that the two never compete for admission
+    and EP1 is read on the same fixed harness. Launch nothing in this turn.
+  why: Forward customer value tested on held-back history is the supplier's second priority, and EP1's
+    only recent grade is void. EP1 has 1,718 unchanged draws and its B11 hold is met (stale_holds), so
+    without a queued re-grade nothing reaches it. Done means the pre-registration is on origin and seat_continuation.live()
+    lists the held row.
+  written_at: 1795782300.682
+- id: production-memory-growth-is-attributed
+  lane: A_strategy_governance
+  side: other
+  what: 'Do not relaunch: memgrowth-7700-origin-9176b1c0b3 is queued (see focus 1) and admits itself.
+    When it reads, compare its peak RSS with the 25 Oct 7,700 point and with the journal peaks in /var/tmp/se-memgrowth-out/journal_peaks.txt
+    (5,947-6,524 MB, 26-27 Nov). If the gap is 300 MB or more, bisect origin commits from 25 Oct, one
+    run per step, under tools/wait_for.py deadlines. File the commit that carries the step, or ''not one
+    commit'', in a staging finding, and append it to the director''s row your-20-oct-stop-rule-fired-production
+    (evidence field only). Build nothing.'
+  why: The director's two named fixes (R8 streaming, R6 index-once) cannot be chosen until the growth
+    is attributed. Done means the finding names a commit or the spread, with measured MB, and the row
+    cites it.
+  written_at: 1795782300.682
 not_now:
-  - what: >-
-      Fix the class in background/seat_continuation.py, where a DO NOT DRAW path inside a conditional hand-off
-      clause, or a path the item writes itself, becomes the row's hold. Last stretch it was bundled into the fix-0
-      item.
-    why: >-
-      The bundle is the likely reason the item never drew: four steps and a code change in one Lane 0 item. The
-      deadlock breaks with one launch, because the hold is a real file the capture writes. The class fix is worth
-      doing, but it guards our own controls and unblocks nothing this week. It returns to focus if a second row is
-      found held on its own output.
-  - what: >-
-      Raise the proposal to change delivery_lane's continuation-first order, under the condition the 21:21 record
-      set: a queue row drawn and still no focus item.
-    why: >-
-      The condition did not hold. A focus item was drawn, and it was the only one that also existed as a
-      continuation row. The cheaper reading is that focus reaches the draw when it is small and drawable, so this
-      record writes it that way. If the one-launch item is still undrawn at the next orientation, the proposal
-      goes in.
-  - what: >-
-      Act on the stale hold of EP1_clv_three_horizon on B11, which the brief marks met. EP1 carries forward
-      customer value, the supplier's priority.
-    why: >-
-      Today's A4 EP1 grade (20b14f3ed) is void under the offered-leaver dice finding. Re-grading EP1 before the
-      rankq re-grade runs on fixed code would grade it on the same broken harness. It follows the re-grade.
-  - what: Reap or land the eleven worktrees holding SALVAGE commits that no remote ref keeps.
-    why: >-
-      They are locked and losing nothing. The value-test trees become disposable only after the rankq re-grade
-      reads. /var/tmp/se-seat-executor's ee8db13b9 is being landed now by job 1795737136, so it is in flight, not
-      at risk.
-  - what: Pull S2 (cap-hold deletion) and the B8 blind-holdout flip forward onto 76f894811d alongside S1's grade.
-    why: >-
-      Both are flips, and their STEP 0 reads S1's grade. Flipping before R1-R5 are read stacks changes that no
-      reader could attribute.
+- what: Draw B8's blind-holdout flip.
+  why: Its row ripens 28 Nov 09:30, and it follows the S2 cap-hold grade on the gas-quoted book, which has not run.
+    Two changes are never read together.
+- what: Give the fix0 2021 anchor (anchor7 capture, P9-P12) its own focus item.
+  why: 'It is fully queued: held continuation fix0-2021-anchor-land-with-its-own-capture, with its capture admitted
+    by focus 1. A focus row would only invite a second capture. Its block is admission, not intent.'
+- what: Cancel or relaunch the five queued jobs, or raise the admission reserve, to get them running sooner.
+  why: A relaunch loses its queue place, and widening the guard trades the OOM protection (18 kills on record) for
+    speed. The fix is counting memory correctly, or freeing the one 12 GB holder.
+- what: Read the seven earlier DIED landings now.
+  why: Their triage line is 30 Nov. This stretch's two DIED landings were both correct refusals, so nothing points
+    at a live loss.
+- what: Build the deemed/flex standing charge in the settlement writers.
+  why: It is latent and owned in triage, and no supplier result this week reads it. The admission stall and the
+    rankq prediction outrank it.
+- what: Reap the worktrees that hold unlanded commits (14).
+  why: The value-test trees are pinned until the rankq re-grade reads. The b12, budgetpay, om2 and simsuite salvages
+    are October work already superseded on origin. The three unlocked 27 Nov SALVAGE trees belong to the queued
+    runs, so reaping them would destroy the arms' inputs.
+- what: Run the demand-vector subsample cell, or any larger N rung.
+  why: It is the director's open row, and my recommendation there is to hold. Nothing on the supplier side waits
+    on it.
 wrong:
-  - what: >-
-      THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333
-      on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 00:21 27 Nov -- unchanged on the live
-      belief. Its money test waits on the rankq re-grade, which waits on one capture launch (focus 1).
-    corrected: false
-  - what: >-
-      THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median
-      same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 00:21 27 Nov --
-      unchanged; triage owns it, still held behind W1_14.
-    corrected: false
-  - what: >-
-      THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one.
-      [Earlier tails are in decisions.jsonl.] 00:21 27 Nov -- unchanged; latent, and no domestic account reaches either
-      writer.
-    corrected: false
-  - what: >-
-      THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules twin.
-      [Earlier tails are in decisions.jsonl.] 00:21 27 Nov -- unestablished, not corrected. The grade it rests on is void
-      (a189c2824), and the re-grade has not launched.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z), but
-      their work reached origin. This is a new instance of a-landing-loses-its-race-to-origin. [Earlier tails are in
-      decisions.jsonl.] 00:21 27 Nov -- it recurred. land-se-seat-executor-1795735220 landed 753a47b54 (the VAT door
-      test), then DIED at 23:48Z on a merge conflict with the publisher's own paused-banner commit 0b22846e1. The same
-      fix had already reached origin as de3138e6d. Two writers on site/data/publish_provenance.json widen the race.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, NEW. The closed-account landing was relaunched at 14:35Z unchanged after two refusals on the same
-      three reds, and it was refused a third time. [Earlier tails are in decisions.jsonl.] 00:21 27 Nov -- no unchanged
-      relaunch this stretch: 1795730928's room-doc refusal was fixed before 1795733045 landed it as 601887d76. The
-      earlier seven DIED landings are still unread, and the triage line is 30 Nov.
-    corrected: false
-  - what: >-
-      THE SEAT'S OWN, NEW. My 21:24 record put every queued supplier result behind the book's BUILD, and never asked
-      whether a built book would pass the publisher's gates. Lesson: a book is owed until it PUBLISHES. [Earlier tails
-      are in decisions.jsonl.] 00:21 27 Nov -- corrected for 76f894811d. Origin's publish_provenance names it
-      last_verified (22:08Z), and d415a9787 graded its six findings. The lesson still binds the next book: focus 3 holds
-      the final-bill grade behind 2100f84f85's publish, not its build.
-    corrected: true
-  - what: >-
-      THE MACHINE'S, NEW. seat_continuation.live() held fix-0-capture-and-2021-anchor-refit-on-the-moved-window on
-      /var/tmp/se-fix0-capture/departure_factors_fix0.json. That is the item's own capture output, taken from a
-      conditional hand-off clause in its prose. The item can never release, and the rankq re-grade behind it is
-      deadlocked. 00:21 27 Nov -- still held. The class fix is in not_now. Focus 1 breaks this instance by writing the file.
-    corrected: false
-  - what: >-
-      THE SEAT'S OWN, NEW. My 12:23 record said "as soon as fix 0 is on origin, the same tick should draw" the re-grade
-      chain. It never checked that the chain's hand-off files would be written by anything. Lesson: a handed-on chain
-      is read file by file, writer to waiter, before it is trusted.
-    corrected: false
-  - what: >-
-      THE SEAT'S OWN, NEW. My 15:20 record put the fix-0 capture first as a Lane 0 item "done by hand, not by waiting
-      on the queue", and never checked that Lane 0 is consulted only once the continuation queue has nothing drawable.
-      The queue held drawable rows all stretch, so 0 of 4 focus items were drawn. Lesson: before relying on focus, count
-      the drawable continuation rows ahead of it. 00:21 27 Nov -- 1 of 4 drawn, and it was the only focus item that was
-      also a continuation row. The fix-0 item, which I wrote second and as four steps, was undrawn a third time.
-    corrected: false
-  - what: >-
-      THE SEAT'S OWN, NEW. My 21:21 record bundled the fix-0 capture, refit, landing, grade and a seat_continuation
-      parser fix into one Lane 0 item. It never noticed that the capture alone releases the queued refit, because the
-      hold is a real file the capture writes. Lesson: when a held row's hold is a file, the smallest item is the one
-      that writes the file.
-    corrected: true
-  - what: >-
-      THE WORLD'S, NEW. The 2100f84f85 book breaks INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR on 4 of 135 gas legs,
-      against an exception allowing 1, so publishing paused at 23:19Z. The in-flight landing (pid 566297) traces it to
-      a heat-pump home's gas settling flat. Focus 3 reads it.
-    corrected: false
+- what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC
+    0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 03:21 27 Nov -- unchanged on the
+    live belief. The rankq re-grade now waits on one-home-one-departure (focus 1), whose landing writes its signal.
+    06:22 27 Nov -- unchanged on the live belief. The refit that writes the rankq signal now waits on a second re-capture
+    (supplied-days-recapture, launched 06:12Z). 09:24 27 Nov -- unchanged on the live belief. The supplied-days
+    capture (pid 3329877) had reached March 2025 at 09:24Z; the refit, then the rankq signal, follow it (focus 2,
+    3). 12:20 27 Nov -- unchanged on the live belief. The whole-book fit emits 2021 = 22.10 (dff9e9de7), and the
+    anchor lands only with a capture taken under it (anchor7-capture). That capture has not started: it has sat
+    in the admission queue since 11:09Z (focus 1).'
+  corrected: false
+- what: 'THE WORLD''S OR THE COMPANY''S, NEW (N17). Metered electricity barely moves from one year to the next (a
+    median same-month change of 1.1%, against NEED''s 14.7%). [Earlier tails are in decisions.jsonl.] 03:21 27 Nov
+    -- unchanged; triage owns it. Its gas half was traced this stretch to a heat-pump home settling at aq/365, and
+    66911e638 fixes the cause; the grade is 28 Nov. 06:22 27 Nov -- unchanged. The d640bd67e book carrying 66911e638
+    is running (pid 1667939); the grade is 28 Nov. 09:24 27 Nov -- unchanged. The grade moves past 28 Nov: grade-one-home-one-life-p1-p4
+    reads the first PUBLISHED book carrying 66911e638, and publishing is held by the weekly window until 30 Nov
+    04:00Z. 12:20 27 Nov -- unchanged; the grade reads the first published book carrying 66911e638, and publishing
+    opens 30 Nov 04:00Z.'
+  corrected: false
+- what: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges
+    one. [Earlier tails are in decisions.jsonl.] 03:21 27 Nov -- unchanged; latent. 06:22 27 Nov -- unchanged; latent.
+    09:24 27 Nov -- unchanged; latent. 12:20 27 Nov -- unchanged; latent.
+  corrected: false
+- what: THE COMPANY'S, NEW. With the 0.12 retention cut, the per-customer arm still does not beat the flat-rules
+    twin. [Earlier tails are in decisions.jsonl.] 03:21 27 Nov -- unestablished; the re-grade has not launched.
+    06:22 27 Nov -- unestablished; the rankq re-grade has still not launched. 09:24 27 Nov -- unestablished; the
+    rankq re-grade still waits on the refit signal. 12:20 27 Nov -- unestablished. The rankq re-grade waits on the
+    anchor7 capture, which is queued, not running, and its prediction is still not on file (focus 2).
+  corrected: false
+- what: 'THE MACHINE''S, NEW. The launch register recorded three executor landings as DIED (exit 2, 01:14Z-01:20Z),
+    but their work reached origin. This is a new instance of a-landing-loses-its-race-to-origin. [Earlier tails
+    are in decisions.jsonl.] 03:21 27 Nov -- no new race instance was read this stretch. 1795745193 DIED on a real
+    message-gate refusal (a Graded trailer without held=/missed=), and 1795745213 landed the fix 4 minutes later
+    as 056cf68b7. 06:22 27 Nov -- one more DIED that is not a failure: land-se-seat-executor-1795757192 waited 2,330
+    s on the gate lock and then found its paths already at HEAD, because 3eb010b42 had landed the same bands. Two
+    landings of one item, not a lost race. 09:24 27 Nov -- one more DIED that is not a failure: land-se-seat-executor-1795759922
+    waited 6,065 s on the gate lock (held by the fix0 landing, pid 2616110) and then found its paths already at
+    HEAD. That is a duplicate landing again, not a lost race. 12:20 27 Nov -- two more DIED this stretch, and neither
+    one lost a race. 1795772382 (exit 1) was refused because the pre-commit gate timed out at 3,600 s, and surgical_land
+    refused to land ungated. That refusal was correct. 1795777832 (exit 2) landed dff9e9de7 and was then refused
+    promotion, because its worktree still held the capture''s deliberate anchor patch (simulation/departure_level_anchor.py).
+    That refusal was also correct.'
+  corrected: false
+- what: THE MACHINE'S, NEW. The closed-account landing was relaunched at 14:35Z unchanged after two refusals on
+    the same three reds, and it was refused a third time. [Earlier tails are in decisions.jsonl.] 03:21 27 Nov --
+    no unchanged relaunch this stretch. The earlier seven DIED landings are still unread, and the triage line is
+    30 Nov. 06:22 27 Nov -- no unchanged relaunch this stretch. The seven earlier DIED landings are still unread;
+    the triage line is 30 Nov. 09:24 27 Nov -- no unchanged relaunch this stretch. The seven earlier DIED landings
+    are still unread; the triage line is 30 Nov. 12:20 27 Nov -- no unchanged relaunch this stretch. The seven earlier
+    DIED landings are still unread; the triage line is 30 Nov.
+  corrected: false
+- what: 'THE SEAT''S OWN, NEW. My 15:20 record put the fix-0 capture first as a Lane 0 item "done by hand, not by
+    waiting on the queue", and never checked that Lane 0 is consulted only once the continuation queue has nothing
+    drawable. The queue held drawable rows all stretch, so 0 of 4 focus items were drawn. Lesson: before relying
+    on focus, count the drawable continuation rows ahead of it. 03:21 27 Nov -- 3 of 4 drawn. The undrawn one was
+    again the only item that was not a continuation row (the commitments pair), so it is split in this record. 06:22
+    27 Nov -- 5 of 5 named items drawn. This record holds 2 non-continuation items again (the gas quote, K8); if
+    either is undrawn at the next orientation, the lesson is not learned. 09:24 27 Nov -- not learned. 2 of 4 named
+    items landed (K8 and the final-bill grade, both via continuation rows). The gas quote, the only non-continuation
+    supplier item, was refused 7 times because a stale holder (surgical_land pid 2471730, now gone) held simulation/live_population.py.
+    That is the a-stale-land-holder class, and it beat the steer again. It is focus 1 below, and its holder is no
+    longer on the box. 12:20 27 Nov -- half learned. The gas quote, the non-continuation supplier item, landed (637c051d2).
+    The rankq pre-registration did not: nothing was filed. Its focus id was the same as a HELD continuation row,
+    and I cannot yet say whether that is why. This record gives it its own id. If it is still unfiled at the next
+    orientation, the collision is not the cause.'
+  corrected: false
+- what: THE WORLD'S, NEW. The 2100f84f85 book breaks INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR on 4 of 135 gas
+    legs, against an exception allowing 1, so publishing paused at 23:19Z. The in-flight landing (pid 566297) traces
+    it to a heat-pump home's gas settling flat. Focus 3 reads it. 03:21 27 Nov -- the cause is traced and fixed
+    in 66911e638, and the exception was re-filed at a ceiling of 4 (5becf5098). It is not corrected until a book
+    carrying the fix publishes and grade-one-home-one-life-p1-p4 reads it. 06:22 27 Nov -- the 601887d76a book published
+    under the ceiling-4 exception. It does not carry 66911e638. The d640bd67e book does, and is running. 09:24 27
+    Nov -- unchanged. The fix is on origin but no published book carries it until the 30 Nov window. 12:20 27 Nov
+    -- unchanged. No published book carries 66911e638 until the 30 Nov window.
+  corrected: false
+- what: 'THE WORLD''S, NEW. A won gas first term is contracted on the spot-led renewal strike, not a quoted price:
+    QUOTED_FIRST_TERM_RATE_KEY is set on the electricity leg only (simulation/live_population.py:1553). In S2''s
+    arm the cap hold is the only thing keeping 47 gas first terms at the cap. Deleting the hold would bill households
+    above a price they never saw, which is a transfer (M2). Focus 2. 09:24 27 Nov -- undrawn this stretch (see the
+    Lane 0 row). Focus 1. 12:20 27 Nov -- corrected. 637c051d2 strikes a won gas first term at the gas rate the
+    household was quoted, so 103 of 200 won gas legs now bill their quote. The S2 cap-hold re-run on that book (pre-registered
+    in 0d9cd6801) grades what the hold still does.'
+  corrected: true
+- what: 'THE MACHINE''S, NEW. The long-job admission gate has queued every experiment of this stretch, and nothing
+    is computing. Queued so far: the S3 losses arm 3h36m, anchor7-capture 1h10m, the S2 gas-quoted pair 43m and
+    the memgrowth probe 31m, each a launch_long_job wrapper with no child process. The gate counts 17,843-18,958
+    MB co-resident, 11,981 MB of it the head-green census (pid 1293708). At the same moment `free` read 7,780 MB
+    used guest-wide and 16,527 MB available. The count is about 2.4x the guest''s real use, which is what summing
+    RSS across forkserver workers that share pages looks like. Separately, ''landings come before experiments''
+    re-held the S3 arm behind at least six serial landings. Focus 1.'
+  corrected: false
+- what: 'THE SEAT''S OWN, NEW. My 09:24 record said the refit ''can be drawn this stretch'' and sent the memgrowth
+    probe to measure, and the brief listed all of these jobs as on the box. I took a launch_long_job pid as a running
+    job and never read its -queued.log. Lesson: a launcher pid with no child is a queue entry, so read the queued
+    log before writing that a job is in flight.'
+  corrected: false
 for_the_director:
 - id: the-world-s-91-day-arrears-stock
   raised: '2026-11-26'
   kind: vision
   decision_kind: fidelity
-  what: 'The world''s >91-day arrears stock (2019: 10.0%, 1.96x Ofgem''s 5.1%) is not concentrated in
-    households that cannot absorb a shock: RR 1.42 [0.70, 2.66] for the thinnest 30% of budgets against
-    the survey''s 3.6 [2.8, 4.6]. The financially-vulnerable state V2 drives nothing (RR 0.57 [0.18, 1.16]).
-    Pre-registered 25 Nov; Q2 failed.'
-  proposal: 'One financial state, not two: derive V2 from the household budget (the 30% least able to
-    absorb a shock) and let sustained non-payment run through that budget, so the gradient lands near
-    3.6 and the stock comes back toward 5.1%. The transient income_stress draw keeps only short, self-curing
-    failures. K8 first: knowledge page, then a one-variable build graded on a fresh 2019 capture.'
-  recommendation: 'I recommend you say yes to the proposal. Erring against the thesis: today''s world
-    scatters sustained debt almost at random with respect to resilience, the reverse of the survey on
-    who is behind, and a supplier graded on that world is tested on the wrong households. It is reversible,
-    and the world change is decided blind to company results.'
+  what: 'The world''s >91-day arrears stock (2019: 10.0%, 1.96x Ofgem''s 5.1%) is not concentrated in households
+    that cannot absorb a shock: RR 1.42 [0.70, 2.66] for the thinnest 30% of budgets against the survey''s 3.6 [2.8,
+    4.6]. The financially-vulnerable state V2 drives nothing (RR 0.57 [0.18, 1.16]). Pre-registered 25 Nov; Q2 failed.'
+  proposal: 'One financial state, not two: derive V2 from the household budget (the 30% least able to absorb a shock)
+    and let sustained non-payment run through that budget, so the gradient lands near 3.6 and the stock comes back
+    toward 5.1%. The transient income_stress draw keeps only short, self-curing failures. K8 first: knowledge page,
+    then a one-variable build graded on a fresh 2019 capture.'
+  recommendation: 'I recommend you say yes to the proposal. Erring against the thesis: today''s world scatters sustained
+    debt almost at random with respect to resilience, the reverse of the survey on who is behind, and a supplier
+    graded on that world is tested on the wrong households. It is reversible, and the world change is decided blind
+    to company results.'
   based_on: a3b2a7a0c8
   status: open
   resolution: ''
@@ -219,33 +223,32 @@ for_the_director:
   raised: '2026-11-26'
   kind: canon_intent
   decision_kind: curriculum
-  what: DD4b's complaint share at a material DD rise ships at 0, below the evidence's low end (0.02).
-    Now that DD4b answers the in-loop review (71c324b6d) and was graded at its range ends (SEAT_PREREG_DD4B...,
-    11 of 13 hold, placebo clean), the frozen world could take that low end.
-  proposal: 'Set dd4b_complaint_share_at_shock default from 0.0 to 0.02 in the assumption toggles. Leave
-    cancel and failure uplift at 0: their low ends are floors, not measurements, so 0 is a legitimate
-    sensitivity end for them.'
-  recommendation: I recommend setting it to 0.02. 0 says a DD rise causes no complaints at all, and the
-    evidence says that is wrong (K2). The low run moved total net by under 0.3%. It is reversible with
-    a one-line toggle edit.
+  what: DD4b's complaint share at a material DD rise ships at 0, below the evidence's low end (0.02). Now that DD4b
+    answers the in-loop review (71c324b6d) and was graded at its range ends (SEAT_PREREG_DD4B..., 11 of 13 hold,
+    placebo clean), the frozen world could take that low end.
+  proposal: 'Set dd4b_complaint_share_at_shock default from 0.0 to 0.02 in the assumption toggles. Leave cancel
+    and failure uplift at 0: their low ends are floors, not measurements, so 0 is a legitimate sensitivity end for
+    them.'
+  recommendation: I recommend setting it to 0.02. 0 says a DD rise causes no complaints at all, and the evidence
+    says that is wrong (K2). The low run moved total net by under 0.3%. It is reversible with a one-line toggle
+    edit.
   based_on: 2100f84f85
   status: open
   resolution: ''
-  evidence: docs/staging/done/WORLD_FREEZE_DD_SHOCK_SAVE_AND_MOVER_AT_THEIR_RANGE_ENDS_2026-10-12.md s1;
-    docs/staging/records/SEAT_PREREG_DD4B_AT_THE_IN_LOOP_REVIEW_LOW_AND_HIGH_2026-10-12.md
+  evidence: docs/staging/done/WORLD_FREEZE_DD_SHOCK_SAVE_AND_MOVER_AT_THEIR_RANGE_ENDS_2026-10-12.md s1; docs/staging/records/SEAT_PREREG_DD4B_AT_THE_IN_LOOP_REVIEW_LOW_AND_HIGH_2026-10-12.md
 - id: the-demand-vector-n-does-not-converge
   raised: '2026-11-27'
   kind: strategy
   decision_kind: measurement
-  what: 'The demand-vector N does not converge: graded against its prereg, 480k gives 15,030-25,028 (median
-    rung 19,500), so the 240k ''slowed'' reading is withdrawn and the requirement grows about as reference^0.33.
-    You parked W2_29 on 14 Oct: grade 480k, then decide whether a larger N is needed.'
-  proposal: 'Launch no larger rung. If the N study resumes, its next cell is one-variable: a 240k reference
-    SUBSAMPLED from the 480k population, same five seeds (~5 h per seed, two units). It tells a fresh-generation
-    draw apart from a real growth with P, which a larger rung cannot.'
-  recommendation: 'I recommend keeping W2_29 parked and spending nothing more on N now: the vector is
-    still blind to both shape components, so any N measured today is on a vector that will change when
-    (a) and (b) land. I recommend running the subsample cell only once the shape axes exist.'
+  what: 'The demand-vector N does not converge: graded against its prereg, 480k gives 15,030-25,028 (median rung
+    19,500), so the 240k ''slowed'' reading is withdrawn and the requirement grows about as reference^0.33. You
+    parked W2_29 on 14 Oct: grade 480k, then decide whether a larger N is needed.'
+  proposal: 'Launch no larger rung. If the N study resumes, its next cell is one-variable: a 240k reference SUBSAMPLED
+    from the 480k population, same five seeds (~5 h per seed, two units). It tells a fresh-generation draw apart
+    from a real growth with P, which a larger rung cannot.'
+  recommendation: 'I recommend keeping W2_29 parked and spending nothing more on N now: the vector is still blind
+    to both shape components, so any N measured today is on a vector that will change when (a) and (b) land. I recommend
+    running the subsample cell only once the shape axes exist.'
   based_on: 1c14ccff96
   status: open
   resolution: ''
@@ -254,20 +257,17 @@ for_the_director:
   raised: '2026-11-27'
   kind: strategy
   decision_kind: curriculum
-  what: 'Your 20 Oct stop rule fired: production''s run passed the 6,008 MB memory allowance (6,055-6,524
-    MB, 24-27 Nov), so the book is back at 400 supply points with a 5,000 customer-year budget, as the
-    ruling said'
-  proposal: 'Close the gap before going back to 400 households. First attribute the ~300-500 MB the run
-    has gained since the 25 Oct curve, with one re-measured curve point at origin, and bisect if one commit
-    carries the step. Then build whichever of your two named fixes the attribution points at: streaming
-    the settlement output (R8) or indexing once (R6). Go back to households only when a re-measured 7,700
-    point sits outside the 5% line.'
-  recommendation: I recommend keeping the revert until the memory growth is attributed and fixed, and
-    not raising the 0.25 share or the budget to make it fit.
+  what: 'Your 20 Oct stop rule fired: production''s run passed the 6,008 MB memory allowance (6,055-6,524 MB, 24-27
+    Nov), so the book is back at 400 supply points with a 5,000 customer-year budget, as the ruling said'
+  proposal: 'Close the gap before going back to 400 households. First attribute the ~300-500 MB the run has gained
+    since the 25 Oct curve, with one re-measured curve point at origin, and bisect if one commit carries the step.
+    Then build whichever of your two named fixes the attribution points at: streaming the settlement output (R8)
+    or indexing once (R6). Go back to households only when a re-measured 7,700 point sits outside the 5% line.'
+  recommendation: I recommend keeping the revert until the memory growth is attributed and fixed, and not raising
+    the 0.25 share or the budget to make it fit.
   based_on: d2a4696440
   status: open
   resolution: ''
-  evidence: 'sim-runner journal: largest process 5,750.2 MB on 20 Nov, then 5,920-6,058 MB on seven runs
-    and 6,260 / 6,524 MB on two, with 693-874 MB in swap. On the 25 Oct curve these price 7,183-7,658
-    cy against 7,700. Ruling: docs/staging/advisor/done/DIRECTOR_RULING_FOUNDER_HOUSEHOLDS_WITH_BUDGET_RAISED_2026-10-20.md
-    step 3.'
+  evidence: 'sim-runner journal: largest process 5,750.2 MB on 20 Nov, then 5,920-6,058 MB on seven runs and 6,260
+    / 6,524 MB on two, with 693-874 MB in swap. On the 25 Oct curve these price 7,183-7,658 cy against 7,700. Ruling:
+    docs/staging/advisor/done/DIRECTOR_RULING_FOUNDER_HOUSEHOLDS_WITH_BUDGET_RAISED_2026-10-20.md step 3.'
