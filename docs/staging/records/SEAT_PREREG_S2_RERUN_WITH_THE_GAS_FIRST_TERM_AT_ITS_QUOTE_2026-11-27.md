@@ -38,3 +38,17 @@ GAPs are built: what a home is shown when its gas fix is declined, and a default
 leg. If G1 fails, the gate and the hold disagree on where the cap is, and that is the next item.
 
 **Reverse:** delete this file. It changes nothing on origin.
+
+## Launched (delivery seat, 27 Nov 2026, appended; predictions above unchanged)
+
+The work this claim asked for (`a-won-gas-first-term-is-struck-at-a-quote`) is already done on origin: 637c051d2
+landed §14, the gated gas quote and this record. The draw took the disposition, not the work. What was still owed
+was queuing the re-run. No book yet descended from 637c051d2 (the newest standing book, `d640bd67e4`, is from
+04:28, before it), so both arms run here instead of waiting on the standing publish:
+
+- **Off:** `origin/main` at `5e075efa94` (it descends from 637c051d2 and carries S3's `SETTLEMENT_LOSSES_APPLIED`,
+  which is the same in both arms). Job `s2-gasq-off-5e075efa94` writes `/var/tmp/se-s2-gasq/out/run_output_off.json`.
+- **Arm:** the same commit plus `/var/tmp/se-s2-gasq/arm.diff` (`FIRST_TERM_CAP_HOLD_DELETED = True`, nothing else).
+  Job `s2-gasq-arm-5e075efa94` writes `/var/tmp/se-s2-gasq/out/run_output_arm.json`.
+- Both are queued behind `head-green-census` for memory. The grade is continuation
+  `s2-gasq-grade-the-cap-hold-arm-on-the-gas-quoted-book`, which is held on the arm's file.
