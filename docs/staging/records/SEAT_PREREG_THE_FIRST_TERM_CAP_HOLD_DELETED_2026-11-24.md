@@ -98,3 +98,42 @@ first.
 - **The campaign quotes electricity only** (§7). Gas first terms are unmeasured.
 - **The half-hourly SSP cache ends 2025-06-07.** 2025 wins after that date are not in this
   measurement.
+
+## Amendment, 27 Nov 2026: P1–P4 are re-pointed to a one-variable arm on S1's seeds
+
+*Worker, 27 Nov 2026, filed before the arm launches. This is S2 of
+`SEAT_RECORD_THE_DEFAULT_OFF_SWITCHES_AND_THE_ORDER_THEY_FLIP_IN_2026-11-24.md` §3. The one-strike
+change landed first (S1, a1eee4d92), so by the off-rule above, P2 and P3 are void as written. They are
+superseded by R3/R4 of `SEAT_PREREG_THE_FIRST_TERM_CONTRACTED_AT_ITS_QUOTE_2026-11-24.md`, as graded
+in `SEAT_GRADE_S1_THE_FIRST_TERM_AT_ITS_QUOTE_ON_THE_76F894811D_BOOK_2026-11-27.md`.*
+
+**The arm.** A worktree at 76f894811d (S1's producing commit), with one line changed:
+`FIRST_TERM_CAP_HOLD_DELETED = True` in `company/pricing/renewal_rate_chain.py`. It is run with the
+runner's own entry point (`tools.run_annual_report`, full window, not fast) at the default seed. The
+**off arm** is S1's book, `docs/reports/run_output_76f894811d_20261126T155009Z.json`. Nothing flips
+on origin. The predictions below are graded on that pair, not on "the first book whose producing
+commit has the flip as an ancestor".
+
+- **P1. Wins (exact).** 242 campaign wins and 3,089 quotes, with the same 242 won PROS ids as S1's
+  book. Any difference refutes "the campaign does not read the hold".
+- **P2′ (was P2). Legs the switch moves: 4**, range 0–6. They are the four 2021 clamps S1 found:
+  PROS-2021-0212, PROS-2021-0385, PROS-2021-0396 and PROS-2021-0399. Each one's term-0 billed rate
+  rises by the clamp S1 measured (+£3.35, +£2.27, +£7.69 and +£13.73 per MWh), to quote × the
+  term-0 default-belief allowance (≈ ×1.004). The other 140 quoted fixed residential electricity first
+  terms keep S1's billed term-0 rate to the penny. 2016–20 and 2022–25 move 0 legs.
+- **P3′ (was P3). First-year margin per win: +£0.29**, range £0–3, over 242 wins, all of it in 2021.
+  These legs are billed above their quote (by the allowance), so the margin is **transfer, not
+  value** (M2). If it is observed, the allowance on a carried quote is the defect, not the deletion.
+- **P4. MSC legs: 44** won switches between 2022-04-14 and 2024-03-31, the same as S1's book. **0**
+  contracted rates move inside the window (S1's four clamps are all in 2021). PROS-2022-0137, which the
+  original P4 named, is no longer clamped once the term is struck at its quote.
+
+**What would void the pair rather than refute a prediction.** The arm differs from S1 by the switch
+only if the same commit and seed reproduce the same book. **I cannot yet say whether they do.** The
+four legs' higher rates can move their later renewal and departure draws, so differences on those
+four accounts after their first term are allowed. A difference on any other account's term-0 rate,
+or in the campaign, is read first as non-determinism, not as the switch. In that case an off arm is
+re-run at 76f894811d before any P is graded.
+
+**Off-rule (from §3 and §4 of the order record).** If more than 6 legs move, #2 gets a standing book of
+its own before S3. Otherwise S3 (`SETTLEMENT_LOSSES_APPLIED`) is handed off from this grade.
