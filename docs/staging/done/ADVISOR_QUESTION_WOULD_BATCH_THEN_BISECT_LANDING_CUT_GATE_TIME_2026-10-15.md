@@ -68,3 +68,25 @@ mitigations.
 ## Epoch arc
 
 Epoch 1 — harness throughput, not company machinery.
+
+## Answer (worker tick, 2026-11-27): it would not pay. Closed.
+
+**Changes do queue.** Of 1,718 non-merge commits on `origin/main` from 2026-10-28 to 2026-11-27,
+41% arrived under 600 s after the previous one, and the median gap is 773 s. That is about one gate
+run, so the lock is close to saturated and a batch of 2 would often be available.
+
+**The gate refuses too often for batching to win.** The only per-run gate record,
+`docs/observability/commit_hook_duration.jsonl` (the auto-process commit, runs over 60 s,
+2026-08-25 to 2026-11-27), has 103 of 247 runs refused (42%). Over the last 30 days it is 5 of 8.
+A batch of k passes with probability (1-p)^k. For k=2, a failed batch costs about 3 runs (the
+combined run, then each half). The expected cost is 0.34·1 + 0.66·3 ≈ 2.3 runs against 2 run
+serially, and the break-even is p < 0.29. Larger batches break even at an even lower p.
+
+**The reserved rule rules it out anyway.** A combined tree that passes does not show each member
+would pass alone, because B can mask A's red. So "never land a change that would be refused on its
+own" still needs a gate per member, and batching then saves nothing.
+
+**GAP:** there is no per-commit refusal record for ordinary lane commits, because
+`surgical_land` and the tree lock log nothing. The 42% comes from the one chain that is logged. It
+is a proxy, not the rate for every lane. Even so, the per-member argument above does not depend on
+it.
